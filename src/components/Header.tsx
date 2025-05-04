@@ -5,7 +5,7 @@ const Header = () => {
   return <header className="bg-white shadow-sm py-4 fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          <img alt="Hedgcock AI Logo" className="h-10 w-auto" src="/lovable-uploads/81d789b3-121e-4fe7-9bb7-362fb54fb728.png" />
+          <img alt="Hedgcock AI Logo" className="h-10 w-auto" src="/lovable-uploads/9082b302-65e2-4b6f-b4e2-850a5f0c9bb1.png" />
           <div className="font-bold text-xl text-primary mx-0">Hedgcock <span className="text-secondary">AI</span></div>
         </div>
         
