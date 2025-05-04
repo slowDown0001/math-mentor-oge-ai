@@ -1,9 +1,6 @@
-
 import { Button } from "@/components/ui/button";
-
 const HeroSection = () => {
-  return (
-    <section className="pt-24 pb-12 md:pt-32 md:pb-20">
+  return <section className="pt-24 pb-12 md:pt-32 md:pb-20">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center gap-8">
           <div className="flex-1 space-y-6">
@@ -25,17 +22,11 @@ const HeroSection = () => {
           <div className="flex-1 mt-8 md:mt-0">
             <div className="relative">
               <div className="absolute -bottom-6 -right-6 w-full h-full rounded-xl bg-secondary/20 z-0"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=600&q=80" 
-                alt="Student learning math" 
-                className="rounded-xl shadow-lg z-10 relative"
-              />
+              <img alt="Student learning math" className="rounded-xl shadow-lg z-10 relative" src="/lovable-uploads/faaba9f8-cfbb-4a31-b175-a0c76248f917.png" />
             </div>
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroSection;
