@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,7 +81,7 @@ const ChatSection = () => {
         <div className="max-w-4xl mx-auto">
           <Card className="bg-white shadow-lg rounded-xl overflow-hidden border-0">
             <div className="bg-primary p-4">
-              <h3 className="text-white font-medium">MATHAI</h3>
+              <h3 className="text-white font-medium">HEDGCOCK AI</h3>
             </div>
             
             <div className="h-96 p-4 overflow-y-auto flex flex-col space-y-4 bg-gray-50">

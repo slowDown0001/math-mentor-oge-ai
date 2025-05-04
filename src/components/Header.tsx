@@ -1,11 +1,20 @@
+
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  return <header className="bg-white shadow-sm py-4 fixed top-0 left-0 w-full z-50">
+  
+  return (
+    <header className="bg-white shadow-sm py-4 fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <div className="font-bold text-xl text-primary mx-0">Math<span className="text-secondary">Mentor</span></div>
+        <div className="flex items-center space-x-3">
+          <img 
+            src="/lovable-uploads/cb01e324-8430-431b-9c04-271dd7942f22.png" 
+            alt="Hedgcock AI Logo" 
+            className="h-10 w-auto"
+          />
+          <div className="font-bold text-xl text-primary mx-0">Hedgcock <span className="text-secondary">AI</span></div>
         </div>
         
         {/* Desktop Navigation */}
@@ -30,7 +39,8 @@ const Header = () => {
       </div>
       
       {/* Mobile Navigation */}
-      {isMenuOpen && <div className="absolute top-16 left-0 w-full bg-white shadow-md py-4 px-4 md:hidden z-50 animate-fade-in">
+      {isMenuOpen && (
+        <div className="absolute top-16 left-0 w-full bg-white shadow-md py-4 px-4 md:hidden z-50 animate-fade-in">
           <div className="flex flex-col space-y-4">
             <a href="#" className="text-gray-600 hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>Home</a>
             <a href="#features" className="text-gray-600 hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>Features</a>
@@ -41,7 +51,10 @@ const Header = () => {
               <Button className="bg-primary hover:bg-primary/80 w-full">Sign Up</Button>
             </div>
           </div>
-        </div>}
-    </header>;
+        </div>
+      )}
+    </header>
+  );
 };
+
 export default Header;
