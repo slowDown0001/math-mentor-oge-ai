@@ -1,24 +1,28 @@
 
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const resources = [
   {
     title: "Электронный учебник",
     description: "Полные теоретические объяснения и практические задачи с решениями.",
     icon: "📚",
-    buttonText: "Открыть учебник"
+    buttonText: "Открыть учебник",
+    link: "#"
   },
   {
     title: "Видеоуроки",
     description: "Наглядные объяснения ключевых концепций от опытных учителей математики.",
     icon: "🎬",
-    buttonText: "Смотреть видео"
+    buttonText: "Смотреть видео",
+    link: "#"
   },
   {
     title: "Практические упражнения",
     description: "База заданий прошлых лет ОГЭ с обратной связью на базе ИИ.",
     icon: "✏️",
-    buttonText: "Начать практику"
+    buttonText: "Начать практику",
+    link: "/practice"
   }
 ];
 
@@ -39,8 +43,10 @@ const ResourcesSection = () => {
               <div className="text-5xl mb-4">{resource.icon}</div>
               <h3 className="text-xl font-bold mb-3">{resource.title}</h3>
               <p className="text-gray-600 mb-6">{resource.description}</p>
-              <Button className="bg-secondary hover:bg-secondary/90 mt-auto">
-                {resource.buttonText}
+              <Button className="bg-secondary hover:bg-secondary/90 mt-auto" asChild>
+                <Link to={resource.link}>
+                  {resource.buttonText}
+                </Link>
               </Button>
             </div>
           ))}
