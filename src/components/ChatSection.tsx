@@ -1,7 +1,10 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Send } from "lucide-react";
 
 interface Message {
   id: number;
@@ -69,7 +72,7 @@ const ChatSection = () => {
   };
   
   return (
-    <section id="ai-tutor" className="py-16 bg-gray-50">
+    <section id="ai-tutor" className="py-16 bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Your AI Math Tutor</h2>
@@ -79,53 +82,64 @@ const ChatSection = () => {
         </div>
         
         <div className="max-w-4xl mx-auto">
-          <Card className="bg-white shadow-lg rounded-xl overflow-hidden border-0">
-            <div className="bg-primary p-4">
-              <h3 className="text-white font-medium">HEDGCOCK AI</h3>
+          <Card className="bg-white backdrop-blur-lg shadow-xl rounded-xl overflow-hidden border-0 relative">
+            <div className="bg-gradient-to-r from-primary to-secondary p-4">
+              <h3 className="text-white font-medium flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-accent animate-pulse"></span>
+                HEDGCOCK AI
+              </h3>
             </div>
             
-            <div className="h-96 p-4 overflow-y-auto flex flex-col space-y-4 bg-gray-50">
-              {messages.map(message => (
-                <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] p-3 rounded-lg ${message.isUser ? "bg-primary text-white rounded-tr-none" : "bg-white shadow-sm border rounded-tl-none"}`}>
-                    <p>{message.text}</p>
-                    <div className={`text-xs mt-1 ${message.isUser ? "text-primary-foreground/80" : "text-gray-400"}`}>
-                      {message.timestamp.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+            <ScrollArea className="h-96 bg-gray-50/80">
+              <div className="p-4 flex flex-col space-y-4">
+                {messages.map(message => (
+                  <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"} animate-fade-in`}>
+                    <div 
+                      className={`max-w-[80%] p-3 rounded-lg shadow-sm ${
+                        message.isUser 
+                          ? "bg-gradient-to-br from-primary to-primary/80 text-white rounded-tr-none" 
+                          : "bg-white/80 border border-gray-200/50 rounded-tl-none"
+                      }`}
+                    >
+                      <p>{message.text}</p>
+                      <div className={`text-xs mt-1 ${message.isUser ? "text-primary-foreground/80" : "text-gray-400"}`}>
+                        {message.timestamp.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="bg-white shadow-sm border p-3 rounded-lg rounded-tl-none max-w-[80%]">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></div>
-                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse delay-100"></div>
-                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse delay-200"></div>
+                ))}
+                
+                {isTyping && (
+                  <div className="flex justify-start animate-fade-in">
+                    <div className="bg-white/80 shadow-sm border border-gray-200/50 p-3 rounded-lg rounded-tl-none max-w-[80%]">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 rounded-full bg-primary/70 animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-primary/70 animate-pulse delay-100"></div>
+                        <div className="w-2 h-2 rounded-full bg-primary/70 animate-pulse delay-200"></div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </ScrollArea>
             
-            <div className="p-4 border-t flex gap-2">
+            <div className="p-4 border-t border-gray-200/30 backdrop-blur-sm bg-white/80 flex gap-2">
               <Input 
                 value={userInput} 
                 onChange={e => setUserInput(e.target.value)} 
                 onKeyDown={handleKeyDown} 
                 placeholder="Ask your math question..." 
-                className="flex-1" 
+                className="flex-1 border-gray-200/70 focus:ring-primary/50 bg-white rounded-lg" 
               />
               <Button 
                 onClick={handleSendMessage} 
-                className="bg-primary hover:bg-primary/90" 
+                className="bg-primary hover:bg-primary/90 shadow-md transition-all duration-200 hover:scale-105" 
                 disabled={!userInput.trim()}
               >
-                Send
+                <Send className="h-5 w-5" />
               </Button>
             </div>
           </Card>
