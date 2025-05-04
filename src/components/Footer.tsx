@@ -5,45 +5,45 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-bold mb-4">Math<span className="text-primary">Mentor</span></h3>
+            <h3 className="text-lg font-bold mb-4">Hedgcock<span className="text-primary">AI</span></h3>
             <p className="text-gray-400">
-              Your personal AI tutor for OGE Math success.
+              Ваш персональный ИИ-репетитор для успешной сдачи ОГЭ по математике.
             </p>
           </div>
           
           <div>
-            <h4 className="text-lg font-medium mb-4">Resources</h4>
+            <h4 className="text-lg font-medium mb-4">Ресурсы</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Textbook</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Video Lessons</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Practice Tests</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Study Plans</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Учебник</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Видеоуроки</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Тренировочные тесты</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Учебные планы</a></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="text-lg font-medium mb-4">Company</h4>
+            <h4 className="text-lg font-medium mb-4">Компания</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Careers</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">О нас</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Блог</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Карьера</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Контакты</a></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="text-lg font-medium mb-4">Legal</h4>
+            <h4 className="text-lg font-medium mb-4">Юридическая информация</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Cookie Policy</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Условия использования</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Политика конфиденциальности</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Политика использования файлов cookie</a></li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            &copy; {new Date().getFullYear()} Math Mentor. All rights reserved.
+            &copy; {new Date().getFullYear()} Hedgcock AI. Все права защищены.
           </p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <a href="#" className="text-gray-400 hover:text-white transition-colors">

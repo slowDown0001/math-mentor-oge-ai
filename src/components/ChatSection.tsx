@@ -16,12 +16,12 @@ interface Message {
 const ChatSection = () => {
   const [messages, setMessages] = useState<Message[]>([{
     id: 1,
-    text: "Hi! I'm your AI Math Tutor. Let's check your level first!",
+    text: "Привет! Я твой ИИ-репетитор по математике. Давай проверим твой уровень знаний!",
     isUser: false,
     timestamp: new Date()
   }, {
     id: 2,
-    text: "Would you like to take a placement test or try some practice problems?",
+    text: "Хочешь пройти входное тестирование или решить несколько тренировочных задач?",
     isUser: false,
     timestamp: new Date()
   }]);
@@ -45,14 +45,14 @@ const ChatSection = () => {
     // Simulate AI response based on user input
     setTimeout(() => {
       let aiResponse = "";
-      if (userInput.toLowerCase().includes("test")) {
-        aiResponse = "Great! I'll prepare a placement test for you. This will help me understand your current level and create a personalized study plan.";
-      } else if (userInput.toLowerCase().includes("practice") || userInput.toLowerCase().includes("problem")) {
-        aiResponse = "Perfect! Let's try this algebra problem: Solve for x: 3x - 7 = 8. Take your time and let me know your answer.";
-      } else if (userInput.toLowerCase().includes("hello") || userInput.toLowerCase().includes("hi")) {
-        aiResponse = "Hello! I'm here to help you prepare for your OGE Math exam. What would you like to work on today?";
+      if (userInput.toLowerCase().includes("тест")) {
+        aiResponse = "Отлично! Я подготовлю входной тест для тебя. Это поможет мне понять твой текущий уровень и создать персонализированный учебный план.";
+      } else if (userInput.toLowerCase().includes("задач") || userInput.toLowerCase().includes("задания") || userInput.toLowerCase().includes("примеры")) {
+        aiResponse = "Отлично! Давай попробуем эту задачу по алгебре: Решите уравнение: 3x - 7 = 8. Не торопись и напиши свой ответ, когда будешь готов.";
+      } else if (userInput.toLowerCase().includes("привет") || userInput.toLowerCase().includes("здравствуй")) {
+        aiResponse = "Привет! Я здесь, чтобы помочь тебе подготовиться к экзамену ОГЭ по математике. Что бы ты хотел изучить сегодня?";
       } else {
-        aiResponse = "I'd be happy to help with that. Would you like to focus on Algebra, Geometry, or Statistics today?";
+        aiResponse = "Я с радостью помогу тебе с этим. Хочешь сосредоточиться на алгебре, геометрии или теории вероятностей сегодня?";
       }
       const newAiMessage = {
         id: messages.length + 2,
@@ -75,9 +75,9 @@ const ChatSection = () => {
     <section id="ai-tutor" className="py-16 bg-gradient-to-b from-gray-50 to-gray-100">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Your AI Math Tutor</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Ваш ИИ-репетитор по математике</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Ask questions, get explanations, and practice problems with immediate feedback.
+            Задавайте вопросы, получайте объяснения и решайте задачи с мгновенной обратной связью.
           </p>
         </div>
         
@@ -131,7 +131,7 @@ const ChatSection = () => {
                 value={userInput} 
                 onChange={e => setUserInput(e.target.value)} 
                 onKeyDown={handleKeyDown} 
-                placeholder="Ask your math question..." 
+                placeholder="Задайте ваш вопрос по математике..." 
                 className="flex-1 border-gray-200/70 focus:ring-primary/50 bg-white rounded-lg" 
               />
               <Button 

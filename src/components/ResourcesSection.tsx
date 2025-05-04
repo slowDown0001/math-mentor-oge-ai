@@ -3,22 +3,22 @@ import { Button } from "@/components/ui/button";
 
 const resources = [
   {
-    title: "Digital Textbook",
-    description: "Comprehensive theory explanations and practice problems with solutions.",
+    title: "Электронный учебник",
+    description: "Полные теоретические объяснения и практические задачи с решениями.",
     icon: "📚",
-    buttonText: "Access Textbook"
+    buttonText: "Открыть учебник"
   },
   {
-    title: "Video Lessons",
-    description: "Visual explanations of key concepts by experienced math teachers.",
+    title: "Видеоуроки",
+    description: "Наглядные объяснения ключевых концепций от опытных учителей математики.",
     icon: "🎬",
-    buttonText: "Watch Videos"
+    buttonText: "Смотреть видео"
   },
   {
-    title: "Practice Exercises",
-    description: "Database of past OGE questions with AI-powered feedback.",
+    title: "Практические упражнения",
+    description: "База заданий прошлых лет ОГЭ с обратной связью на базе ИИ.",
     icon: "✏️",
-    buttonText: "Start Practicing"
+    buttonText: "Начать практику"
   }
 ];
 
@@ -27,9 +27,9 @@ const ResourcesSection = () => {
     <section id="resources" className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Learning Resources</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Учебные ресурсы</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            All the materials you need to master OGE Mathematics.
+            Все материалы, необходимые для освоения математики ОГЭ.
           </p>
         </div>
         

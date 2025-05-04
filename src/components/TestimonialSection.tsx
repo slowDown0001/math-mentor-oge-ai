@@ -3,19 +3,19 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const testimonials = [
   {
-    quote: "The AI tutor helped me understand algebra concepts I've been struggling with for years. My grades improved from C to A!",
-    name: "Maria K.",
-    role: "9th Grade Student"
+    quote: "ИИ-репетитор помог мне понять концепции алгебры, с которыми я боролась годами. Мои оценки улучшились с С до А!",
+    name: "Мария К.",
+    role: "Ученица 9 класса"
   },
   {
-    quote: "The personalized study plan focused on my weak areas. I feel much more confident about the OGE exam now.",
-    name: "Alexei S.",
-    role: "9th Grade Student"
+    quote: "Персонализированный план обучения сосредоточился на моих слабых местах. Теперь я чувствую себя намного увереннее перед экзаменом ОГЭ.",
+    name: "Алексей С.",
+    role: "Ученик 9 класса"
   },
   {
-    quote: "As a parent, I love that I can see my child's progress. The AI tutor is there when I can't help with math questions.",
-    name: "Elena P.",
-    role: "Parent"
+    quote: "Как родитель, я люблю, что могу видеть прогресс моего ребенка. ИИ-репетитор всегда рядом, когда я не могу помочь с вопросами по математике.",
+    name: "Елена П.",
+    role: "Родитель"
   }
 ];
 
@@ -24,9 +24,9 @@ const TestimonialSection = () => {
     <section className="py-16">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">What Students Say</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Что говорят ученики</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Real results from students who used Math Mentor to prepare for their exams.
+            Реальные результаты учеников, которые использовали нашу платформу для подготовки к экзаменам.
           </p>
         </div>
         

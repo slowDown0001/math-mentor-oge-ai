@@ -4,33 +4,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const features = [
   {
     icon: "📊",
-    title: "Personalized Study Plans",
-    description: "Get a learning plan tailored to your strengths and weaknesses based on placement test results."
+    title: "Персонализированные учебные планы",
+    description: "Получите учебный план, адаптированный к вашим сильным и слабым сторонам на основе результатов входного теста."
   },
   {
     icon: "📝",
-    title: "Practice with Past Papers",
-    description: "Access a database of previous OGE questions with step-by-step solutions."
+    title: "Практика с прошлогодними заданиями",
+    description: "Доступ к базе заданий прошлых лет ОГЭ с пошаговыми решениями."
   },
   {
     icon: "🎓",
-    title: "Video Lessons",
-    description: "Watch clear explanations of key math concepts from experienced teachers."
+    title: "Видеоуроки",
+    description: "Смотрите понятные объяснения ключевых математических концепций от опытных преподавателей."
   },
   {
     icon: "🤖",
-    title: "AI Tutoring",
-    description: "Get immediate help with problems and personalized guidance at any time."
+    title: "ИИ-репетитор",
+    description: "Получайте мгновенную помощь с задачами и персонализированное руководство в любое время."
   },
   {
     icon: "📈",
-    title: "Progress Tracking",
-    description: "Monitor your improvement over time with detailed statistics and insights."
+    title: "Отслеживание прогресса",
+    description: "Следите за своим улучшением с течением времени с помощью подробной статистики и аналитики."
   },
   {
     icon: "🏆",
-    title: "Goals & Achievements",
-    description: "Set targets and earn achievements as you make progress towards exam success."
+    title: "Цели и достижения",
+    description: "Ставьте цели и зарабатывайте достижения по мере продвижения к успеху на экзамене."
   }
 ];
 
@@ -39,9 +39,9 @@ const FeaturesSection = () => {
     <section id="features" className="py-16">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Platform Features</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Функции платформы</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Everything you need to excel in your OGE Math exam is right here.
+            Всё необходимое для успешной сдачи ОГЭ по математике находится здесь.
           </p>
         </div>
         
