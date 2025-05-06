@@ -21,22 +21,22 @@ const testimonials = [
 
 const TestimonialSection = () => {
   return (
-    <section className="py-16">
+    <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Что говорят ученики</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Реальные результаты учеников, которые использовали нашу платформу для подготовки к экзаменам.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="border-0 shadow-md">
-              <CardContent className="p-6">
-                <div className="text-2xl text-gray-400 mb-4">"</div>
-                <p className="text-gray-700 mb-6 italic">{testimonial.quote}</p>
-                <div className="flex flex-col">
+            <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-all rounded-xl overflow-hidden">
+              <CardContent className="p-8">
+                <div className="text-primary text-5xl mb-4">"</div>
+                <p className="text-gray-700 mb-8 text-lg">{testimonial.quote}</p>
+                <div className="flex flex-col pt-4 border-t border-gray-100">
                   <span className="font-medium text-gray-900">{testimonial.name}</span>
                   <span className="text-sm text-gray-500">{testimonial.role}</span>
                 </div>

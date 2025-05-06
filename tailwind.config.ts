@@ -26,11 +26,11 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#3b82f6',
+					DEFAULT: '#1D9BF0', // Blue color similar to Kognity
 					foreground: '#ffffff'
 				},
 				secondary: {
-					DEFAULT: '#8b5cf6',
+					DEFAULT: '#2EC5CE', // Teal accent similar to Kognity
 					foreground: '#ffffff'
 				},
 				destructive: {
@@ -42,7 +42,7 @@ export default {
 					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: '#4ade80',
+					DEFAULT: '#FFB800', // Yellow accent similar to Kognity
 					foreground: '#ffffff'
 				},
 				popover: {
