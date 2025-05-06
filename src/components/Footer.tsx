@@ -5,7 +5,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-bold mb-4">Hedgcock<span className="text-primary">AI</span></h3>
+            <h3 className="text-lg font-bold mb-4">Ёжик<span className="text-primary">AI</span></h3>
             <p className="text-gray-400">
               Ваш персональный ИИ-репетитор для успешной сдачи ОГЭ по математике.
             </p>
@@ -43,7 +43,7 @@ const Footer = () => {
         
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            &copy; {new Date().getFullYear()} Hedgcock AI. Все права защищены.
+            &copy; {new Date().getFullYear()} Ёжик AI. Все права защищены.
           </p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <a href="#" className="text-gray-400 hover:text-white transition-colors">

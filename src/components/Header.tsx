@@ -6,8 +6,8 @@ const Header = () => {
   return <header className="bg-white shadow-sm py-4 fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          <img alt="Логотип Hedgcock AI" className="h-10 w-auto" src="/lovable-uploads/9082b302-65e2-4b6f-b4e2-850a5f0c9bb1.png" />
-          <div className="font-bold text-xl text-primary mx-0">Hedgcock <span className="text-secondary">AI</span></div>
+          <img alt="Логотип Ёжик" className="h-10 w-auto" src="/lovable-uploads/9082b302-65e2-4b6f-b4e2-850a5f0c9bb1.png" />
+          <div className="font-bold text-xl text-primary mx-0">Ёжик <span className="text-secondary">AI</span></div>
         </div>
         
         {/* Desktop Navigation */}
