@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -26,11 +25,11 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#1D9BF0', // Blue color similar to Kognity
+					DEFAULT: '#0A2540', // Deep navy blue like Kognity
 					foreground: '#ffffff'
 				},
 				secondary: {
-					DEFAULT: '#2EC5CE', // Teal accent similar to Kognity
+					DEFAULT: '#33C3F0', // Light blue accent like Kognity
 					foreground: '#ffffff'
 				},
 				destructive: {
@@ -42,7 +41,7 @@ export default {
 					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: '#FFB800', // Yellow accent similar to Kognity
+					DEFAULT: '#2EC5CE', // Teal accent like Kognity
 					foreground: '#ffffff'
 				},
 				popover: {
@@ -106,6 +105,10 @@ export default {
 				'typing': 'typing 3.5s steps(40, end)',
 				'blink': 'blink 1s step-end infinite',
 				'bounce-in': 'bounce-in 0.5s ease-out'
+			},
+			fontFamily: {
+				sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+				heading: ['"Montserrat"', 'sans-serif']
 			}
 		}
 	},

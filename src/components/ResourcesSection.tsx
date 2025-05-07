@@ -28,11 +28,11 @@ const resources = [
 
 const ResourcesSection = () => {
   return (
-    <section id="resources" className="py-20 bg-blue-50">
+    <section id="resources" className="py-24 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Учебные ресурсы</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h2 className="section-title">Учебные ресурсы</h2>
+          <p className="section-description">
             Все материалы, необходимые для освоения математики ОГЭ.
           </p>
         </div>
@@ -40,8 +40,8 @@ const ResourcesSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {resources.map((resource, index) => (
             <div key={index} className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center">
-              <div className="text-5xl mb-6 bg-blue-50 rounded-full w-20 h-20 flex items-center justify-center">{resource.icon}</div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">{resource.title}</h3>
+              <div className="text-5xl mb-6 bg-gray-50 rounded-full w-20 h-20 flex items-center justify-center">{resource.icon}</div>
+              <h3 className="text-xl font-bold mb-3 text-primary font-heading">{resource.title}</h3>
               <p className="text-gray-600 mb-8">{resource.description}</p>
               <Button className="bg-primary hover:bg-primary/90 rounded-full mt-auto" asChild>
                 <Link to={resource.link}>

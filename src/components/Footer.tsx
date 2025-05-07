@@ -5,17 +5,17 @@ const Footer = () => {
   return (
     <footer className="bg-gray-50 text-gray-700 py-16">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div>
-            <h3 className="text-lg font-bold mb-4 text-primary">Ёжик<span className="text-accent">AI</span></h3>
+            <h3 className="text-lg font-bold mb-4 text-primary font-heading">Ёжик<span className="text-accent">AI</span></h3>
             <p className="text-gray-600">
               Ваш персональный ИИ-репетитор для успешной сдачи ОГЭ по математике.
             </p>
           </div>
           
           <div>
-            <h4 className="text-lg font-medium mb-4">Ресурсы</h4>
-            <ul className="space-y-2">
+            <h4 className="text-lg font-medium mb-4 text-primary font-heading">Ресурсы</h4>
+            <ul className="space-y-3">
               <li><Link to="#" className="text-gray-600 hover:text-primary transition-colors">Учебник</Link></li>
               <li><Link to="#" className="text-gray-600 hover:text-primary transition-colors">Видеоуроки</Link></li>
               <li><Link to="/practice" className="text-gray-600 hover:text-primary transition-colors">Тренировочные тесты</Link></li>
@@ -24,8 +24,8 @@ const Footer = () => {
           </div>
           
           <div>
-            <h4 className="text-lg font-medium mb-4">Компания</h4>
-            <ul className="space-y-2">
+            <h4 className="text-lg font-medium mb-4 text-primary font-heading">Компания</h4>
+            <ul className="space-y-3">
               <li><Link to="#" className="text-gray-600 hover:text-primary transition-colors">О нас</Link></li>
               <li><Link to="#" className="text-gray-600 hover:text-primary transition-colors">Блог</Link></li>
               <li><Link to="#" className="text-gray-600 hover:text-primary transition-colors">Карьера</Link></li>
@@ -34,8 +34,8 @@ const Footer = () => {
           </div>
           
           <div>
-            <h4 className="text-lg font-medium mb-4">Юридическая информация</h4>
-            <ul className="space-y-2">
+            <h4 className="text-lg font-medium mb-4 text-primary font-heading">Юридическая информация</h4>
+            <ul className="space-y-3">
               <li><Link to="#" className="text-gray-600 hover:text-primary transition-colors">Условия использования</Link></li>
               <li><Link to="#" className="text-gray-600 hover:text-primary transition-colors">Политика конфиденциальности</Link></li>
               <li><Link to="#" className="text-gray-600 hover:text-primary transition-colors">Политика использования файлов cookie</Link></li>

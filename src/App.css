@@ -46,13 +46,25 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Clean card styles */
 .clean-card {
-  border-radius: 12px;
+  border-radius: 1rem;
   border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
 }
 
 .clean-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
+}
+
+/* Kognity-inspired container */
+.kognity-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Gradient backgrounds */
+.hero-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f9ff 100%);
 }
