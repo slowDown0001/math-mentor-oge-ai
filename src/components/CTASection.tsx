@@ -1,8 +1,14 @@
 
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const CTASection = () => {
+  const navigate = useNavigate();
+  
+  const handleRegisterClick = () => {
+    navigate("/dashboard");
+  };
+  
   return (
     <section id="about" className="py-24 bg-gradient-to-br from-primary/10 to-blue-50">
       <div className="container mx-auto px-4">
@@ -13,10 +19,11 @@ const CTASection = () => {
             Начните свой индивидуальный путь обучения сегодня.
           </p>
           <div className="flex flex-wrap justify-center gap-6">
-            <Button asChild className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-full">
-              <Link to="/practice">
-                Регистрация бесплатно
-              </Link>
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-full"
+              onClick={handleRegisterClick}
+            >
+              Регистрация бесплатно
             </Button>
             <Button variant="outline" asChild className="border-2 border-primary text-primary hover:bg-primary/5 px-8 py-6 text-lg rounded-full">
               <Link to="#">

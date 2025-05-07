@@ -86,7 +86,7 @@ const ChatSection = () => {
             <div className="bg-gradient-to-r from-primary to-secondary p-4">
               <h3 className="text-white font-medium flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-accent animate-pulse"></span>
-                HEDGCOCK AI
+                Ёжик AI
               </h3>
             </div>
             

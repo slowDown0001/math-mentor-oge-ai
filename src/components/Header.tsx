@@ -1,11 +1,16 @@
 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  
+  const handleAuthButton = () => {
+    navigate("/dashboard");
+  };
   
   return (
     <header className="bg-white shadow-sm py-4 fixed top-0 left-0 w-full z-50">
@@ -30,10 +35,17 @@ const Header = () => {
         </nav>
         
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="outline" className="border-2 border-primary text-primary hover:bg-primary/5 rounded-full">
+          <Button 
+            variant="outline" 
+            className="border-2 border-primary text-primary hover:bg-primary/5 rounded-full"
+            onClick={handleAuthButton}
+          >
             Вход
           </Button>
-          <Button className="bg-primary hover:bg-primary/90 rounded-full">
+          <Button 
+            className="bg-primary hover:bg-primary/90 rounded-full"
+            onClick={handleAuthButton}
+          >
             Начать бесплатно
           </Button>
         </div>
@@ -65,10 +77,17 @@ const Header = () => {
               Практика
             </Link>
             <div className="flex flex-col space-y-3 pt-4 border-t">
-              <Button variant="outline" className="border-2 border-primary text-primary hover:bg-primary/5 w-full rounded-full">
+              <Button 
+                variant="outline" 
+                className="border-2 border-primary text-primary hover:bg-primary/5 w-full rounded-full"
+                onClick={handleAuthButton}
+              >
                 Вход
               </Button>
-              <Button className="bg-primary hover:bg-primary/90 w-full rounded-full">
+              <Button 
+                className="bg-primary hover:bg-primary/90 w-full rounded-full"
+                onClick={handleAuthButton}
+              >
                 Начать бесплатно
               </Button>
             </div>
