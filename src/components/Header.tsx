@@ -30,7 +30,7 @@ const Header = () => {
         <nav className="hidden md:flex items-center space-x-8">
           <Link to="/" className="text-gray-700 hover:text-primary font-medium transition-colors">Главная</Link>
           <Link to="#features" className="text-gray-700 hover:text-primary font-medium transition-colors">Функции</Link>
-          <Link to="#resources" className="text-gray-700 hover:text-primary font-medium transition-colors">Ресурсы</Link>
+          <Link to="/resources" className="text-gray-700 hover:text-primary font-medium transition-colors">Ресурсы</Link>
           <Link to="/practice" className="text-gray-700 hover:text-primary font-medium transition-colors">Практика</Link>
         </nav>
         
@@ -70,7 +70,7 @@ const Header = () => {
             <Link to="#features" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
               Функции
             </Link>
-            <Link to="#resources" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/resources" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
               Ресурсы
             </Link>
             <Link to="/practice" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>

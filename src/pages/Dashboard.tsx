@@ -128,7 +128,7 @@ const Dashboard = () => {
                   
                   <div className="mt-6 flex space-x-3">
                     <Button variant="outline" asChild className="flex gap-2 border-primary/70 text-primary">
-                      <Link to="#"><BookOpen className="w-4 h-4" /> Учебные материалы</Link>
+                      <Link to="/resources"><BookOpen className="w-4 h-4" /> Учебные материалы</Link>
                     </Button>
                     <Button asChild className="flex gap-2 bg-primary">
                       <Link to="/practice"><CheckCircle className="w-4 h-4" /> Практика</Link>
@@ -147,7 +147,9 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-600 mt-1">Видеоурок, 15 минут</p>
                     </div>
                   </div>
-                  <Button className="w-full bg-primary">Смотреть видеоурок</Button>
+                  <Button asChild className="w-full bg-primary">
+                    <Link to="/resources?tab=videos">Смотреть видеоурок</Link>
+                  </Button>
                 </div>
               </div>
               
