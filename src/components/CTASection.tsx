@@ -1,12 +1,14 @@
 
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useState } from "react";
+import AuthModal from "./auth/AuthModal";
 
 const CTASection = () => {
-  const navigate = useNavigate();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
   const handleRegisterClick = () => {
-    navigate("/dashboard");
+    setIsAuthModalOpen(true);
   };
   
   return (
@@ -33,6 +35,13 @@ const CTASection = () => {
           </div>
         </div>
       </div>
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        initialView="signup"
+      />
     </section>
   );
 };

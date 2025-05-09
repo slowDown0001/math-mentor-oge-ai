@@ -1,27 +1,35 @@
 
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import AuthModal from "./auth/AuthModal";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalView, setAuthModalView] = useState<'signin' | 'signup'>('signin');
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, signOut } = useAuth();
   
-  useEffect(() => {
-    // Check if the user is on dashboard or profile page to simulate authentication
-    setIsLoggedIn(location.pathname.includes('/dashboard') || location.pathname.includes('/profile'));
-  }, [location]);
-  
-  const handleAuthButton = () => {
-    setIsLoggedIn(true);
-    navigate("/dashboard");
+  const handleSignInClick = () => {
+    setAuthModalView('signin');
+    setIsAuthModalOpen(true);
+  };
+
+  const handleSignUpClick = () => {
+    setAuthModalView('signup');
+    setIsAuthModalOpen(true);
   };
 
   const handleProfileButton = () => {
     navigate("/profile");
+  };
+
+  const handleLogout = async () => {
+    await signOut();
   };
   
   return (
@@ -47,30 +55,40 @@ const Header = () => {
         </nav>
         
         <div className="hidden md:flex items-center space-x-4">
-          {!isLoggedIn ? (
+          {!user ? (
             <>
               <Button 
                 variant="outline" 
                 className="border-2 border-primary text-primary hover:bg-primary/5 rounded-full"
-                onClick={handleAuthButton}
+                onClick={handleSignInClick}
               >
                 Вход
               </Button>
               <Button 
                 className="bg-primary hover:bg-primary/90 rounded-full"
-                onClick={handleAuthButton}
+                onClick={handleSignUpClick}
               >
                 Начать бесплатно
               </Button>
             </>
           ) : (
-            <Button 
-              className="flex items-center gap-2 bg-primary hover:bg-primary/90 rounded-full"
-              onClick={handleProfileButton}
-            >
-              <User className="h-4 w-4" />
-              Профиль
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline"
+                className="gap-2 border-gray-300 rounded-full"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4" />
+                Выйти
+              </Button>
+              <Button 
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 rounded-full"
+                onClick={handleProfileButton}
+              >
+                <User className="h-4 w-4" />
+                Профиль
+              </Button>
+            </div>
           )}
         </div>
         
@@ -101,35 +119,52 @@ const Header = () => {
               Практика
             </Link>
             <div className="flex flex-col space-y-3 pt-4 border-t">
-              {!isLoggedIn ? (
+              {!user ? (
                 <>
                   <Button 
                     variant="outline" 
                     className="border-2 border-primary text-primary hover:bg-primary/5 w-full rounded-full"
-                    onClick={handleAuthButton}
+                    onClick={handleSignInClick}
                   >
                     Вход
                   </Button>
                   <Button 
                     className="bg-primary hover:bg-primary/90 w-full rounded-full"
-                    onClick={handleAuthButton}
+                    onClick={handleSignUpClick}
                   >
                     Начать бесплатно
                   </Button>
                 </>
               ) : (
-                <Button 
-                  className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 w-full rounded-full"
-                  onClick={handleProfileButton}
-                >
-                  <User className="h-4 w-4" />
-                  Профиль
-                </Button>
+                <>
+                  <Button 
+                    variant="outline"
+                    className="gap-2 border-gray-300 w-full rounded-full"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Выйти
+                  </Button>
+                  <Button 
+                    className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 w-full rounded-full"
+                    onClick={handleProfileButton}
+                  >
+                    <User className="h-4 w-4" />
+                    Профиль
+                  </Button>
+                </>
               )}
             </div>
           </div>
         </div>
       )}
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        initialView={authModalView}
+      />
     </header>
   );
 };
