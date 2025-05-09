@@ -1,21 +1,33 @@
 
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Menu, X, User } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Check if the user is on dashboard or profile page to simulate authentication
+    setIsLoggedIn(location.pathname.includes('/dashboard') || location.pathname.includes('/profile'));
+  }, [location]);
   
   const handleAuthButton = () => {
+    setIsLoggedIn(true);
     navigate("/dashboard");
+  };
+
+  const handleProfileButton = () => {
+    navigate("/profile");
   };
   
   return (
     <header className="bg-white shadow-sm py-4 fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <div className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center space-x-2">
           <img 
             alt="Логотип Ёжик" 
             className="h-10 w-auto" 
@@ -24,7 +36,7 @@ const Header = () => {
           <div className="font-heading font-bold text-xl text-primary">
             Ёжик <span className="text-accent">AI</span>
           </div>
-        </div>
+        </Link>
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
@@ -35,19 +47,31 @@ const Header = () => {
         </nav>
         
         <div className="hidden md:flex items-center space-x-4">
-          <Button 
-            variant="outline" 
-            className="border-2 border-primary text-primary hover:bg-primary/5 rounded-full"
-            onClick={handleAuthButton}
-          >
-            Вход
-          </Button>
-          <Button 
-            className="bg-primary hover:bg-primary/90 rounded-full"
-            onClick={handleAuthButton}
-          >
-            Начать бесплатно
-          </Button>
+          {!isLoggedIn ? (
+            <>
+              <Button 
+                variant="outline" 
+                className="border-2 border-primary text-primary hover:bg-primary/5 rounded-full"
+                onClick={handleAuthButton}
+              >
+                Вход
+              </Button>
+              <Button 
+                className="bg-primary hover:bg-primary/90 rounded-full"
+                onClick={handleAuthButton}
+              >
+                Начать бесплатно
+              </Button>
+            </>
+          ) : (
+            <Button 
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90 rounded-full"
+              onClick={handleProfileButton}
+            >
+              <User className="h-4 w-4" />
+              Профиль
+            </Button>
+          )}
         </div>
         
         {/* Mobile Menu Button */}
@@ -77,19 +101,31 @@ const Header = () => {
               Практика
             </Link>
             <div className="flex flex-col space-y-3 pt-4 border-t">
-              <Button 
-                variant="outline" 
-                className="border-2 border-primary text-primary hover:bg-primary/5 w-full rounded-full"
-                onClick={handleAuthButton}
-              >
-                Вход
-              </Button>
-              <Button 
-                className="bg-primary hover:bg-primary/90 w-full rounded-full"
-                onClick={handleAuthButton}
-              >
-                Начать бесплатно
-              </Button>
+              {!isLoggedIn ? (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="border-2 border-primary text-primary hover:bg-primary/5 w-full rounded-full"
+                    onClick={handleAuthButton}
+                  >
+                    Вход
+                  </Button>
+                  <Button 
+                    className="bg-primary hover:bg-primary/90 w-full rounded-full"
+                    onClick={handleAuthButton}
+                  >
+                    Начать бесплатно
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 w-full rounded-full"
+                  onClick={handleProfileButton}
+                >
+                  <User className="h-4 w-4" />
+                  Профиль
+                </Button>
+              )}
             </div>
           </div>
         </div>
