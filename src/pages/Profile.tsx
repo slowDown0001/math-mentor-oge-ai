@@ -1,4 +1,3 @@
-
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
@@ -8,13 +7,18 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { User, BookOpen, CheckCircle, Settings, BarChart3, Calendar, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
 
 const Profile = () => {
+  const { user } = useAuth();
+  
+  // Extract user information from Supabase user data
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
+  const userEmail = user?.email || '';
+  const joinedDate = new Date(user?.created_at || Date.now()).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+  
   const userData = {
-    name: "Афанасий",
-    email: "afanasiy@example.com",
-    joinedDate: "Март 2025",
-    lastActive: "Сегодня",
     progress: {
       overall: 60,
       algebra: 75,
@@ -53,12 +57,12 @@ const Profile = () => {
                   <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                     <User className="h-12 w-12 text-primary" />
                   </div>
-                  <h1 className="text-2xl font-bold text-gray-800">{userData.name}</h1>
-                  <p className="text-gray-600">{userData.email}</p>
+                  <h1 className="text-2xl font-bold text-gray-800">{userName}</h1>
+                  <p className="text-gray-600">{userEmail}</p>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
-                    <span>Присоединился: {userData.joinedDate}</span>
+                    <span>Присоединился: {joinedDate}</span>
                     <span>•</span>
-                    <span>Активность: {userData.lastActive}</span>
+                    <span>Активность: Сегодня</span>
                   </div>
                 </div>
                 
