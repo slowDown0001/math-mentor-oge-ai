@@ -11,6 +11,7 @@ import { Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Message {
   id: number;
@@ -20,9 +21,12 @@ interface Message {
 }
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
+  
   const [messages, setMessages] = useState<Message[]>([{
     id: 1,
-    text: "Здравствуйте, Афанасий! Рад видеть вас снова. У вас хороший прогресс подготовки к ОГЭ — 60%. Продолжайте в том же духе!",
+    text: `Здравствуйте, ${userName}! Рад видеть вас снова. У вас хороший прогресс подготовки к ОГЭ — 60%. Продолжайте в том же духе!`,
     isUser: false,
     timestamp: new Date()
   }, {
@@ -86,7 +90,7 @@ const Dashboard = () => {
             <div className="flex flex-col md:flex-row gap-8">
               <div className="md:w-1/3 space-y-6">
                 <div>
-                  <h1 className="text-3xl font-bold text-primary mb-2">Здравствуйте, Афанасий!</h1>
+                  <h1 className="text-3xl font-bold text-primary mb-2">Здравствуйте, {userName}!</h1>
                   <p className="text-gray-700">Рады видеть вас снова! Продолжайте обучение.</p>
                 </div>
                 

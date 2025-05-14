@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Message {
   id: number;
@@ -14,9 +15,12 @@ interface Message {
 }
 
 const ChatSection = () => {
+  const { user } = useAuth();
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
+  
   const [messages, setMessages] = useState<Message[]>([{
     id: 1,
-    text: "Привет! Я твой ИИ-репетитор по математике. Давай проверим твой уровень знаний!",
+    text: `Привет, ${userName}! Я твой ИИ-репетитор по математике. Давай проверим твой уровень знаний!`,
     isUser: false,
     timestamp: new Date()
   }, {
@@ -46,13 +50,13 @@ const ChatSection = () => {
     setTimeout(() => {
       let aiResponse = "";
       if (userInput.toLowerCase().includes("тест")) {
-        aiResponse = "Отлично! Я подготовлю входной тест для тебя. Это поможет мне понять твой текущий уровень и создать персонализированный учебный план.";
+        aiResponse = `Отлично, ${userName}! Я подготовлю входной тест для тебя. Это поможет мне понять твой текущий уровень и создать персонализированный учебный план.`;
       } else if (userInput.toLowerCase().includes("задач") || userInput.toLowerCase().includes("задания") || userInput.toLowerCase().includes("примеры")) {
-        aiResponse = "Отлично! Давай попробуем эту задачу по алгебре: Решите уравнение: 3x - 7 = 8. Не торопись и напиши свой ответ, когда будешь готов.";
+        aiResponse = `Отлично, ${userName}! Давай попробуем эту задачу по алгебре: Решите уравнение: 3x - 7 = 8. Не торопись и напиши свой ответ, когда будешь готов.`;
       } else if (userInput.toLowerCase().includes("привет") || userInput.toLowerCase().includes("здравствуй")) {
-        aiResponse = "Привет! Я здесь, чтобы помочь тебе подготовиться к экзамену ОГЭ по математике. Что бы ты хотел изучить сегодня?";
+        aiResponse = `Привет, ${userName}! Я здесь, чтобы помочь тебе подготовиться к экзамену ОГЭ по математике. Что бы ты хотел изучить сегодня?`;
       } else {
-        aiResponse = "Я с радостью помогу тебе с этим. Хочешь сосредоточиться на алгебре, геометрии или теории вероятностей сегодня?";
+        aiResponse = `Я с радостью помогу тебе с этим, ${userName}. Хочешь сосредоточиться на алгебре, геометрии или теории вероятностей сегодня?`;
       }
       const newAiMessage = {
         id: messages.length + 2,
