@@ -26,6 +26,15 @@ const ChatSection = () => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
+    // Check if API key is available
+    if (!import.meta.env.VITE_GROQ_API_KEY) {
+      toast({
+        title: "Ошибка настройки",
+        description: "API ключ GROQ не настроен. Пожалуйста, добавьте VITE_GROQ_API_KEY в переменные окружения.",
+        variant: "destructive"
+      });
+    }
+    
     // Welcome message when component mounts
     if (messages.length === 0) {
       setMessages([
@@ -78,6 +87,11 @@ const ChatSection = () => {
     setIsTyping(true);
 
     try {
+      // Check if API key is available
+      if (!import.meta.env.VITE_GROQ_API_KEY) {
+        throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
+      }
+      
       // Add the new user message to history and convert to Groq format
       const updatedMessages = [...messages, newUserMessage];
       const groqMessages = updatedMessages.map(msg => ({
@@ -101,7 +115,7 @@ const ChatSection = () => {
       console.error('Error getting response:', error);
       toast({
         title: "Ошибка",
-        description: "Не удалось получить ответ от ассистента. Пожалуйста, попробуйте позже.",
+        description: "Не удалось получить ответ от ассистента. Пожалуйста, проверьте, что API ключ GROQ настроен правильно.",
         variant: "destructive"
       });
     } finally {
