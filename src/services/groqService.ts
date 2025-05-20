@@ -6,11 +6,11 @@ export interface Message {
 }
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 // Check if API key is available
 if (!GROQ_API_KEY) {
-  console.error('GROQ_API_KEY is not set in environment variables');
+  console.error('VITE_GROQ_API_KEY is not set in environment variables');
 }
 
 // System prompt for the math tutor
@@ -22,7 +22,7 @@ const SYSTEM_PROMPT: Message = {
 export async function streamChatCompletion(messages: Message[]): Promise<ReadableStream<Uint8Array> | null> {
   try {
     if (!GROQ_API_KEY) {
-      throw new Error('GROQ_API_KEY is not set in environment variables');
+      throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
     }
     
     const fullMessages = [SYSTEM_PROMPT, ...messages];
@@ -56,7 +56,7 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
 export async function getChatCompletion(messages: Message[]): Promise<string> {
   try {
     if (!GROQ_API_KEY) {
-      throw new Error('GROQ_API_KEY is not set in environment variables');
+      throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
     }
     
     const fullMessages = [SYSTEM_PROMPT, ...messages];
