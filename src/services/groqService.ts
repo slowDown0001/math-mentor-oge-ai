@@ -7,7 +7,8 @@ export interface Message {
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 // Use Vite's environment variable syntax instead of process.env
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+const GROQ_API_KEY = process.env.VITE_GROQ_API_KEY;
+
 
 // Check if API key is available
 if (!GROQ_API_KEY) {
