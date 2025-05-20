@@ -6,7 +6,12 @@ export interface Message {
 }
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+
+// Check if API key is available
+if (!GROQ_API_KEY) {
+  console.error('GROQ_API_KEY is not set in environment variables');
+}
 
 // System prompt for the math tutor
 const SYSTEM_PROMPT: Message = {
@@ -16,6 +21,10 @@ const SYSTEM_PROMPT: Message = {
 
 export async function streamChatCompletion(messages: Message[]): Promise<ReadableStream<Uint8Array> | null> {
   try {
+    if (!GROQ_API_KEY) {
+      throw new Error('GROQ_API_KEY is not set in environment variables');
+    }
+    
     const fullMessages = [SYSTEM_PROMPT, ...messages];
     
     const response = await fetch(GROQ_API_URL, {
@@ -46,6 +55,10 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
 
 export async function getChatCompletion(messages: Message[]): Promise<string> {
   try {
+    if (!GROQ_API_KEY) {
+      throw new Error('GROQ_API_KEY is not set in environment variables');
+    }
+    
     const fullMessages = [SYSTEM_PROMPT, ...messages];
     
     const response = await fetch(GROQ_API_URL, {
@@ -70,6 +83,6 @@ export async function getChatCompletion(messages: Message[]): Promise<string> {
     return data.choices[0].message.content;
   } catch (error) {
     console.error('Error getting chat completion from Groq:', error);
-    return 'Извините, у меня возникла проблема с подключением. Пожалуйста, попробуйте еще раз через минуту.';
+    return 'Извините, у меня возникла проблема с подключением. Пожалуйста, проверьте, что API ключ GROQ настроен правильно и попробуйте еще раз.';
   }
 }
