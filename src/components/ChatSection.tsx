@@ -58,7 +58,7 @@ const ChatSection = () => {
   // Convert our messages to Groq format
   const convertToGroqMessages = (): GroqMessage[] => {
     return messages.map(msg => ({
-      role: msg.isUser ? 'user' : 'assistant',
+      role: msg.isUser ? 'user' as const : 'assistant' as const,
       content: msg.text
     }));
   };
@@ -81,7 +81,7 @@ const ChatSection = () => {
       // Add the new user message to history and convert to Groq format
       const updatedMessages = [...messages, newUserMessage];
       const groqMessages = updatedMessages.map(msg => ({
-        role: msg.isUser ? 'user' : 'assistant',
+        role: msg.isUser ? 'user' as const : 'assistant' as const,
         content: msg.text
       }));
       
