@@ -113,11 +113,37 @@ const ChatSection = () => {
       setMessages(prev => [...prev, newAiMessage]);
     } catch (error) {
       console.error('Error getting response:', error);
+      
+      // Display more specific error message
+      let errorMessage = "Не удалось получить ответ от ассистента. ";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('VITE_GROQ_API_KEY is not set')) {
+          errorMessage += "API ключ GROQ не настроен. Пожалуйста, добавьте VITE_GROQ_API_KEY в переменные окружения.";
+        } else if (error.message.includes('Groq API error')) {
+          errorMessage += "Ошибка API Groq: " + error.message;
+        } else {
+          errorMessage += error.message;
+        }
+      } else {
+        errorMessage += "Пожалуйста, проверьте консоль для получения дополнительной информации.";
+      }
+      
       toast({
         title: "Ошибка",
-        description: "Не удалось получить ответ от ассистента. Пожалуйста, проверьте, что API ключ GROQ настроен правильно.",
+        description: errorMessage,
         variant: "destructive"
       });
+      
+      // Add error message to chat
+      const errorAiMessage = {
+        id: messages.length + 2,
+        text: "Извините, произошла ошибка при обработке вашего запроса. " + errorMessage,
+        isUser: false,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorAiMessage]);
     } finally {
       setIsTyping(false);
     }
