@@ -1,11 +1,13 @@
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getChatCompletion, streamChatCompletion, Message as GroqMessage } from "@/services/groqService";
+import { toast } from "@/hooks/use-toast";
 
 interface Message {
   id: number;
@@ -18,21 +20,50 @@ const ChatSection = () => {
   const { user } = useAuth();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
   
-  const [messages, setMessages] = useState<Message[]>([{
-    id: 1,
-    text: `Привет, ${userName}! Я твой ИИ-репетитор по математике. Давай проверим твой уровень знаний!`,
-    isUser: false,
-    timestamp: new Date()
-  }, {
-    id: 2,
-    text: "Хочешь пройти входное тестирование или решить несколько тренировочных задач?",
-    isUser: false,
-    timestamp: new Date()
-  }]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [userInput, setUserInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   
-  const handleSendMessage = () => {
+  useEffect(() => {
+    // Welcome message when component mounts
+    if (messages.length === 0) {
+      setMessages([
+        {
+          id: 1,
+          text: `Привет, ${userName}! Я твой ИИ-репетитор по математике. Давай проверим твой уровень знаний!`,
+          isUser: false,
+          timestamp: new Date()
+        },
+        {
+          id: 2,
+          text: "Хочешь пройти входное тестирование или решить несколько тренировочных задач?",
+          isUser: false,
+          timestamp: new Date()
+        }
+      ]);
+    }
+  }, [userName]);
+  
+  useEffect(() => {
+    // Scroll to bottom when new messages come in
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }
+  }, [messages]);
+  
+  // Convert our messages to Groq format
+  const convertToGroqMessages = (): GroqMessage[] => {
+    return messages.map(msg => ({
+      role: msg.isUser ? 'user' : 'assistant',
+      content: msg.text
+    }));
+  };
+  
+  const handleSendMessage = async () => {
     if (userInput.trim() === "") return;
 
     // Add user message
@@ -46,27 +77,36 @@ const ChatSection = () => {
     setUserInput("");
     setIsTyping(true);
 
-    // Simulate AI response based on user input
-    setTimeout(() => {
-      let aiResponse = "";
-      if (userInput.toLowerCase().includes("тест")) {
-        aiResponse = `Отлично, ${userName}! Я подготовлю входной тест для тебя. Это поможет мне понять твой текущий уровень и создать персонализированный учебный план.`;
-      } else if (userInput.toLowerCase().includes("задач") || userInput.toLowerCase().includes("задания") || userInput.toLowerCase().includes("примеры")) {
-        aiResponse = `Отлично, ${userName}! Давай попробуем эту задачу по алгебре: Решите уравнение: 3x - 7 = 8. Не торопись и напиши свой ответ, когда будешь готов.`;
-      } else if (userInput.toLowerCase().includes("привет") || userInput.toLowerCase().includes("здравствуй")) {
-        aiResponse = `Привет, ${userName}! Я здесь, чтобы помочь тебе подготовиться к экзамену ОГЭ по математике. Что бы ты хотел изучить сегодня?`;
-      } else {
-        aiResponse = `Я с радостью помогу тебе с этим, ${userName}. Хочешь сосредоточиться на алгебре, геометрии или теории вероятностей сегодня?`;
-      }
+    try {
+      // Add the new user message to history and convert to Groq format
+      const updatedMessages = [...messages, newUserMessage];
+      const groqMessages = updatedMessages.map(msg => ({
+        role: msg.isUser ? 'user' : 'assistant',
+        content: msg.text
+      }));
+      
+      // Call Groq API
+      const aiResponse = await getChatCompletion(groqMessages);
+      
+      // Add AI response to chat
       const newAiMessage = {
-        id: messages.length + 2,
+        id: updatedMessages.length + 1,
         text: aiResponse,
         isUser: false,
         timestamp: new Date()
       };
+      
       setMessages(prev => [...prev, newAiMessage]);
+    } catch (error) {
+      console.error('Error getting response:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось получить ответ от ассистента. Пожалуйста, попробуйте позже.",
+        variant: "destructive"
+      });
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -94,7 +134,7 @@ const ChatSection = () => {
               </h3>
             </div>
             
-            <ScrollArea className="h-96 bg-gray-50/80">
+            <ScrollArea className="h-96 bg-gray-50/80" ref={scrollAreaRef}>
               <div className="p-4 flex flex-col space-y-4">
                 {messages.map(message => (
                   <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"} animate-fade-in`}>
@@ -105,7 +145,7 @@ const ChatSection = () => {
                           : "bg-white/80 border border-gray-200/50 rounded-tl-none"
                       }`}
                     >
-                      <p>{message.text}</p>
+                      <p className="whitespace-pre-wrap">{message.text}</p>
                       <div className={`text-xs mt-1 ${message.isUser ? "text-primary-foreground/80" : "text-gray-400"}`}>
                         {message.timestamp.toLocaleTimeString([], {
                           hour: '2-digit',
@@ -137,11 +177,12 @@ const ChatSection = () => {
                 onKeyDown={handleKeyDown} 
                 placeholder="Задайте ваш вопрос по математике..." 
                 className="flex-1 border-gray-200/70 focus:ring-primary/50 bg-white rounded-lg" 
+                disabled={isTyping}
               />
               <Button 
                 onClick={handleSendMessage} 
                 className="bg-primary hover:bg-primary/90 shadow-md transition-all duration-200 hover:scale-105" 
-                disabled={!userInput.trim()}
+                disabled={!userInput.trim() || isTyping}
               >
                 <Send className="h-5 w-5" />
               </Button>
