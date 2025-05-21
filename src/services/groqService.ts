@@ -68,7 +68,7 @@ export async function getChatCompletion(messages: Message[]): Promise<string> {
     console.log("🛠️ DEBUG fetch config", {
       url: GROQ_API_URL,
       headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
+        Authorization: `Bearer ${VITE_GROQ_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
