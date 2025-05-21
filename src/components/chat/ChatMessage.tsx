@@ -1,5 +1,6 @@
 
 import { type Message } from "../ChatSection";
+import LatexRenderer from "./LatexRenderer";
 
 interface ChatMessageProps {
   message: Message;
@@ -15,7 +16,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             : "bg-white/80 border border-gray-200/50 rounded-tl-none"
         }`}
       >
-        <p className="whitespace-pre-wrap">{message.text}</p>
+        <LatexRenderer content={message.text} />
         <div className={`text-xs mt-1 ${message.isUser ? "text-primary-foreground/80" : "text-gray-400"}`}>
           {message.timestamp.toLocaleTimeString([], {
             hour: '2-digit',
