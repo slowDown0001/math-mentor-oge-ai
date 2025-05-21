@@ -22,23 +22,18 @@ const LatexRenderer = ({ content }: LatexRendererProps) => {
   useEffect(() => {
     if (!containerRef.current) return;
     
-    // Import MathJax dynamically
-    import('mathjax/es5/tex-svg.js').then((MathJax) => {
-      const mathJax = MathJax.default;
-      
-      // Configure MathJax
-      mathJax.startup.promise = mathJax.startup.promise
-        .then(() => {
-          try {
-            // Process and typeset the container with LaTeX content
-            mathJax.typesetPromise([containerRef.current])
-              .catch((err) => console.error('MathJax typesetting error:', err));
-          } catch (error) {
-            console.error('MathJax error:', error);
-          }
-        })
-        .catch((err) => console.error('MathJax initialization error:', err));
-    });
+    // Check if MathJax is loaded globally
+    if (window.MathJax) {
+      try {
+        // Process and typeset the container with LaTeX content
+        window.MathJax.typesetPromise([containerRef.current])
+          .catch((err) => console.error('MathJax typesetting error:', err));
+      } catch (error) {
+        console.error('MathJax error:', error);
+      }
+    } else {
+      console.error('MathJax is not loaded globally');
+    }
   }, [content]);
   
   // Process content to ensure LaTeX expressions are properly formatted

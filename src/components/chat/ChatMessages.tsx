@@ -18,7 +18,10 @@ const ChatMessages = ({ messages, isTyping }: ChatMessagesProps) => {
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        // Delay scroll to bottom slightly to allow MathJax rendering to complete
+        setTimeout(() => {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }, 100);
       }
     }
   }, [messages, isTyping]);
