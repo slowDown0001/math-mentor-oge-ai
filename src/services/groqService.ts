@@ -29,6 +29,9 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
     
     const fullMessages = [SYSTEM_PROMPT, ...messages];
     
+    console.log("🧪 [GroqService] Key type:", typeof GROQ_API_KEY);
+    console.log("🧪 [GroqService] Key value:", GROQ_API_KEY);  // WARNING: temporary, don't expose in production!
+    
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
