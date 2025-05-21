@@ -65,7 +65,18 @@ export async function getChatCompletion(messages: Message[]): Promise<string> {
     }
     
     const fullMessages = [SYSTEM_PROMPT, ...messages];
-    
+    console.log("🛠️ DEBUG fetch config", {
+      url: GROQ_API_URL,
+      headers: {
+        Authorization: `Bearer ${GROQ_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [SYSTEM_PROMPT, ...messages]
+      }),
+    });
+
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
