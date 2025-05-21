@@ -7,11 +7,11 @@ export interface Message {
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 // Use Vite's environment variable syntax instead of process.env
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+const VITE_GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 
 // Check if API key is available
-if (!GROQ_API_KEY) {
+if (!VITE_GROQ_API_KEY) {
   console.error('VITE_GROQ_API_KEY is not set in environment variables');
 }
 
@@ -23,20 +23,20 @@ const SYSTEM_PROMPT: Message = {
 
 export async function streamChatCompletion(messages: Message[]): Promise<ReadableStream<Uint8Array> | null> {
   try {
-    if (!GROQ_API_KEY) {
+    if (!VITE_GROQ_API_KEY) {
       throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
     }
     
     const fullMessages = [SYSTEM_PROMPT, ...messages];
     
-    console.log("🧪 [GroqService] Key type:", typeof GROQ_API_KEY);
-    console.log("🧪 [GroqService] Key value:", GROQ_API_KEY);  // WARNING: temporary, don't expose in production!
+    console.log("🧪 [GroqService] Key type:", typeof VITE_GROQ_API_KEY);
+    console.log("🧪 [GroqService] Key value:", VITE_GROQ_API_KEY);  // WARNING: temporary, don't expose in production!
     
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
+        'Authorization': `Bearer ${VITE_GROQ_API_KEY}`
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
@@ -60,7 +60,7 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
 
 export async function getChatCompletion(messages: Message[]): Promise<string> {
   try {
-    if (!GROQ_API_KEY) {
+    if (!VITE_GROQ_API_KEY) {
       throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
     }
     
@@ -70,7 +70,7 @@ export async function getChatCompletion(messages: Message[]): Promise<string> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_API_KEY}`
+        'Authorization': `Bearer ${VITE_GROQ_API_KEY}`
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
