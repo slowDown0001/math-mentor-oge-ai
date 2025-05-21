@@ -6,12 +6,12 @@ import { BookOpen, Video, CheckCircle } from "lucide-react";
 import { useState } from "react";
 
 import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
+import ChatMessages from "@/components/chat/ChatMessages";
+import ChatInput from "@/components/chat/ChatInput";
+import { sendChatMessage } from "@/services/chatService";
 
 interface Message {
   id: number;
@@ -36,10 +36,9 @@ const Dashboard = () => {
     timestamp: new Date()
   }]);
   
-  const [userInput, setUserInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   
-  const handleSendMessage = () => {
+  const handleSendMessage = async (userInput: string) => {
     if (userInput.trim() === "") return;
 
     // Add user message
@@ -49,35 +48,16 @@ const Dashboard = () => {
       isUser: true,
       timestamp: new Date()
     };
+    
     setMessages(prev => [...prev, newUserMessage]);
-    setUserInput("");
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      let aiResponse = "";
-      if (userInput.toLowerCase().includes("видео") || userInput.toLowerCase().includes("урок")) {
-        aiResponse = "Отлично! Вот видеоурок по теме 'Подобие треугольников'. После просмотра вы можете перейти к практическим заданиям на странице Практика.";
-      } else if (userInput.toLowerCase().includes("практи") || userInput.toLowerCase().includes("задания") || userInput.toLowerCase().includes("задачи")) {
-        aiResponse = "Хорошо! На странице Практика вас ждут задания по теме 'Подобие треугольников'. Переходите по ссылке когда будете готовы.";
-      } else {
-        aiResponse = "Понимаю. Что бы вы хотели изучить сегодня? Я рекомендую тему 'Подобие треугольников', но мы можем заняться и другими темами по вашему выбору.";
-      }
-      
-      const newAiMessage = {
-        id: messages.length + 2,
-        text: aiResponse,
-        isUser: false,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, newAiMessage]);
+    try {
+      // Send message to AI and get response using Groq API
+      const aiResponse = await sendChatMessage(newUserMessage, messages);
+      setMessages(prev => [...prev, aiResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
-  };
-  
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSendMessage();
     }
   };
   
@@ -166,58 +146,8 @@ const Dashboard = () => {
                     </h3>
                   </div>
                   
-                  <ScrollArea className="flex-1 bg-gray-50/80">
-                    <div className="p-4 flex flex-col space-y-4">
-                      {messages.map(message => (
-                        <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"} animate-fade-in`}>
-                          <div 
-                            className={`max-w-[80%] p-3 rounded-lg shadow-sm ${
-                              message.isUser 
-                                ? "bg-gradient-to-br from-primary to-primary/80 text-white rounded-tr-none" 
-                                : "bg-white/80 border border-gray-200/50 rounded-tl-none"
-                            }`}
-                          >
-                            <p>{message.text}</p>
-                            <div className={`text-xs mt-1 ${message.isUser ? "text-primary-foreground/80" : "text-gray-400"}`}>
-                              {message.timestamp.toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      
-                      {isTyping && (
-                        <div className="flex justify-start animate-fade-in">
-                          <div className="bg-white/80 shadow-sm border border-gray-200/50 p-3 rounded-lg rounded-tl-none max-w-[80%]">
-                            <div className="flex space-x-1">
-                              <div className="w-2 h-2 rounded-full bg-primary/70 animate-pulse"></div>
-                              <div className="w-2 h-2 rounded-full bg-primary/70 animate-pulse delay-100"></div>
-                              <div className="w-2 h-2 rounded-full bg-primary/70 animate-pulse delay-200"></div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                  
-                  <div className="p-4 border-t border-gray-200/30 backdrop-blur-sm bg-white/80 flex gap-2">
-                    <Input 
-                      value={userInput} 
-                      onChange={e => setUserInput(e.target.value)} 
-                      onKeyDown={handleKeyDown} 
-                      placeholder="Задайте ваш вопрос по математике..." 
-                      className="flex-1 border-gray-200/70 focus:ring-primary/50 bg-white rounded-lg" 
-                    />
-                    <Button 
-                      onClick={handleSendMessage} 
-                      className="bg-primary hover:bg-primary/90 shadow-md transition-all duration-200 hover:scale-105" 
-                      disabled={!userInput.trim()}
-                    >
-                      <Send className="h-5 w-5" />
-                    </Button>
-                  </div>
+                  <ChatMessages messages={messages} isTyping={isTyping} />
+                  <ChatInput onSendMessage={handleSendMessage} isTyping={isTyping} />
                 </Card>
               </div>
             </div>

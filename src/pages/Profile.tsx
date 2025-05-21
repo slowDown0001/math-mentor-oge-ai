@@ -4,6 +4,18 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserProfileCard } from "@/components/profile/UserProfileCard";
 import { ProfileTabs } from "@/components/profile/ProfileTabs";
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import ChatMessages from "@/components/chat/ChatMessages";
+import ChatInput from "@/components/chat/ChatInput";
+import { sendChatMessage } from "@/services/chatService";
+
+export interface Message {
+  id: number;
+  text: string;
+  isUser: boolean;
+  timestamp: Date;
+}
 
 const Profile = () => {
   const { user } = useAuth();
@@ -12,6 +24,38 @@ const Profile = () => {
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
   const userEmail = user?.email || '';
   const joinedDate = new Date(user?.created_at || Date.now()).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+  
+  const [messages, setMessages] = useState<Message[]>([{
+    id: 1,
+    text: `Привет, ${userName}! Я могу помочь тебе разобраться с любыми вопросами по математике. Чем я могу тебе помочь?`,
+    isUser: false,
+    timestamp: new Date()
+  }]);
+  
+  const [isTyping, setIsTyping] = useState(false);
+  
+  const handleSendMessage = async (userInput: string) => {
+    if (userInput.trim() === "") return;
+
+    // Add user message
+    const newUserMessage = {
+      id: messages.length + 1,
+      text: userInput,
+      isUser: true,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, newUserMessage]);
+    setIsTyping(true);
+
+    try {
+      // Send message to AI and get response using Groq API
+      const aiResponse = await sendChatMessage(newUserMessage, messages);
+      setMessages(prev => [...prev, aiResponse]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
   
   const userData = {
     progress: {
@@ -53,6 +97,19 @@ const Profile = () => {
                 joinedDate={joinedDate}
                 userData={userData}
               />
+              
+              {/* Chat with AI Tutor */}
+              <Card className="mt-6 bg-white shadow-md rounded-xl overflow-hidden border-0 h-[400px] flex flex-col">
+                <div className="bg-gradient-to-r from-primary to-secondary p-3">
+                  <h3 className="text-white font-medium flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-accent animate-pulse"></span>
+                    Персональный репетитор
+                  </h3>
+                </div>
+                
+                <ChatMessages messages={messages} isTyping={isTyping} />
+                <ChatInput onSendMessage={handleSendMessage} isTyping={isTyping} />
+              </Card>
             </div>
             
             {/* Right Column - Tabs */}
