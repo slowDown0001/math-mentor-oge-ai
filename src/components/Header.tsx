@@ -32,10 +32,13 @@ const Header = () => {
     await signOut();
   };
   
+  // Determine where the logo should link to
+  const logoLinkTarget = user ? "/dashboard" : "/";
+  
   return (
     <header className="bg-white shadow-sm py-4 fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <Link to="/" className="flex items-center space-x-2">
+        <Link to={logoLinkTarget} className="flex items-center space-x-2">
           <img 
             alt="Логотип Ёжик" 
             className="h-10 w-auto" 
@@ -48,10 +51,16 @@ const Header = () => {
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <Link to="/" className="text-gray-700 hover:text-primary font-medium transition-colors">Главная</Link>
-          <Link to="#features" className="text-gray-700 hover:text-primary font-medium transition-colors">Функции</Link>
-          <Link to="/resources" className="text-gray-700 hover:text-primary font-medium transition-colors">Ресурсы</Link>
-          <Link to="/practice" className="text-gray-700 hover:text-primary font-medium transition-colors">Практика</Link>
+          {user ? (
+            <>
+              <Link to="/dashboard" className="text-gray-700 hover:text-primary font-medium transition-colors">Главная</Link>
+              <Link to="#features" className="text-gray-700 hover:text-primary font-medium transition-colors">Функции</Link>
+              <Link to="/resources" className="text-gray-700 hover:text-primary font-medium transition-colors">Ресурсы</Link>
+              <Link to="/practice" className="text-gray-700 hover:text-primary font-medium transition-colors">Практика</Link>
+            </>
+          ) : (
+            <div className="flex-1"></div> // Empty space for unregistered users
+          )}
         </nav>
         
         <div className="hidden md:flex items-center space-x-4">
@@ -106,18 +115,25 @@ const Header = () => {
       {isMenuOpen && (
         <div className="absolute top-16 left-0 w-full bg-white shadow-md py-6 px-4 md:hidden z-50 animate-fade-in">
           <div className="flex flex-col space-y-5">
-            <Link to="/" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-              Главная
-            </Link>
-            <Link to="#features" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-              Функции
-            </Link>
-            <Link to="/resources" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-              Ресурсы
-            </Link>
-            <Link to="/practice" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-              Практика
-            </Link>
+            {user ? (
+              <>
+                <Link to="/dashboard" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+                  Главная
+                </Link>
+                <Link to="#features" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+                  Функции
+                </Link>
+                <Link to="/resources" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+                  Ресурсы
+                </Link>
+                <Link to="/practice" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+                  Практика
+                </Link>
+              </>
+            ) : (
+              <div className="pt-2"></div> // Empty space for unregistered users
+            )}
+            
             <div className="flex flex-col space-y-3 pt-4 border-t">
               {!user ? (
                 <>
