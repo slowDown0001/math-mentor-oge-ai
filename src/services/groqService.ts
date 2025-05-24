@@ -1,3 +1,4 @@
+import { getRandomMathProblem } from "@/services/mathProblemService";
 
 // Groq API service for chat completions
 export interface Message {
