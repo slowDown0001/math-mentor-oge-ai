@@ -70,23 +70,29 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
 
 export async function getChatCompletion(messages: Message[]): Promise<string> {
   try {
-    if (!VITE_GROQ_API_KEY) {
-      throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
-    }
-    
-    const fullMessages = [SYSTEM_PROMPT, ...messages];
-    console.log("🛠️ DEBUG fetch config", {
-      url: GROQ_API_URL,
-      headers: {
-        Authorization: `Bearer ${VITE_GROQ_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [SYSTEM_PROMPT, ...messages]
-      }),
-    });
+    const lastUserMessage = messages[messages.length - 1]?.content.toLowerCase();
 
+    // Check if user asked for a math problem
+    if (lastUserMessage.includes('задачу')) {
+      let category: string | undefined = undefined;
+
+      if (lastUserMessage.includes('алгебр')) category = 'алгебра';
+      else if (lastUserMessage.includes('арифметик')) category = 'арифметика';
+      else if (lastUserMessage.includes('геометр')) category = 'геометрия';
+      else if (lastUserMessage.includes('практич')) category = 'практическая математика';
+
+      const problem = await getRandomMathProblem(category);
+
+      if (problem) {
+        const imagePart = problem.problem_image ? `🖼️ ![изображение](${problem.problem_image})\n\n` : "";
+        return `Вот задача по категории *${category ?? 'Общее'}*:\n\n${imagePart}${problem.problem_text}\n\nНапиши *показать ответ* или *покажи решение*, если хочешь продолжить.`;
+      }
+
+      return "Не удалось найти задачу. Попробуй ещё раз позже.";
+    }
+
+    // Default: go to Groq
+    const fullMessages = [SYSTEM_PROMPT, ...messages];
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
@@ -99,16 +105,10 @@ export async function getChatCompletion(messages: Message[]): Promise<string> {
       })
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Groq API error:', errorData);
-      throw new Error(`Groq API error: ${response.status}`);
-    }
-
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error) {
-    console.error('Error getting chat completion from Groq:', error);
-    return 'Извините, у меня возникла проблема с подключением. Пожалуйста, проверьте, что API ключ GROQ настроен правильно и попробуйте еще раз.';
+    console.error('Chat completion error:', error);
+    return 'Произошла ошибка. Попробуй позже.';
   }
 }
