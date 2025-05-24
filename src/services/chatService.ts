@@ -1,5 +1,6 @@
 
 import { getChatCompletion, type Message as GroqMessage } from "./groqService";
+import { getRandomMathProblem, getMathProblemById, getCategoryByCode, type MathProblem } from "./mathProblemsService";
 import { toast } from "@/hooks/use-toast";
 
 export interface Message {
@@ -7,7 +8,50 @@ export interface Message {
   text: string;
   isUser: boolean;
   timestamp: Date;
+  problemId?: string; // Add problemId to track current problem
 }
+
+// Store current problem for follow-up questions
+let currentProblem: MathProblem | null = null;
+
+const formatProblemResponse = (problem: MathProblem): string => {
+  const category = getCategoryByCode(problem.code);
+  let response = `**Задача по теме: ${category}** (${problem.code})\n\n`;
+  
+  if (problem.problem_image) {
+    response += `*[Изображение к задаче доступно]*\n\n`;
+  }
+  
+  response += problem.problem_text + '\n\n';
+  response += `Если нужна помощь, скажи:\n`;
+  response += `• "покажи ответ" - для получения ответа\n`;
+  response += `• "покажи решение" - для получения решения\n`;
+  response += `• "объясни подробнее" - для подробного объяснения`;
+  
+  return response;
+};
+
+const handleHelpRequest = (userMessage: string): string | null => {
+  if (!currentProblem) {
+    return "Сначала попросите задачу, а потом я смогу показать решение.";
+  }
+  
+  const message = userMessage.toLowerCase();
+  
+  if (message.includes('покажи ответ') || message.includes('ответ')) {
+    return `**Ответ:** ${currentProblem.answer}`;
+  }
+  
+  if (message.includes('покажи решение') || message.includes('решение')) {
+    return currentProblem.solution_text || "Решение для этой задачи пока недоступно.";
+  }
+  
+  if (message.includes('объясни подробнее') || message.includes('подробнее') || message.includes('не понял')) {
+    return currentProblem.solutiontextexpanded || currentProblem.solution_text || "Подробное объяснение для этой задачи пока недоступно.";
+  }
+  
+  return null;
+};
 
 export const sendChatMessage = async (
   userMessage: Message,
@@ -19,6 +63,18 @@ export const sendChatMessage = async (
       throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
     }
     
+    // Check if user is asking for help with current problem
+    const helpResponse = handleHelpRequest(userMessage.text);
+    if (helpResponse) {
+      return {
+        id: messageHistory.length + 2,
+        text: helpResponse,
+        isUser: false,
+        timestamp: new Date(),
+        problemId: currentProblem?.question_id
+      };
+    }
+    
     // Convert to Groq format
     const groqMessages = [...messageHistory, userMessage].map(msg => ({
       role: msg.isUser ? 'user' as const : 'assistant' as const,
@@ -28,9 +84,35 @@ export const sendChatMessage = async (
     // Call Groq API
     const aiResponse = await getChatCompletion(groqMessages);
     
+    // Check if AI wants to fetch a problem
+    if (aiResponse.includes('FETCH_PROBLEM:')) {
+      const category = aiResponse.split('FETCH_PROBLEM:')[1].trim();
+      const requestedCategory = category === 'random' ? undefined : category;
+      
+      const problem = await getRandomMathProblem(requestedCategory);
+      
+      if (problem) {
+        currentProblem = problem;
+        return {
+          id: messageHistory.length + 2,
+          text: formatProblemResponse(problem),
+          isUser: false,
+          timestamp: new Date(),
+          problemId: problem.question_id
+        };
+      } else {
+        return {
+          id: messageHistory.length + 2,
+          text: "Извините, не удалось найти подходящую задачу. Попробуйте запросить другую тему.",
+          isUser: false,
+          timestamp: new Date()
+        };
+      }
+    }
+    
     // Create and return AI message
     return {
-      id: messageHistory.length + 2, // +1 for user message, +1 for AI response
+      id: messageHistory.length + 2,
       text: aiResponse,
       isUser: false,
       timestamp: new Date()

@@ -15,6 +15,7 @@ export interface Message {
   text: string;
   isUser: boolean;
   timestamp: Date;
+  problemId?: string;
 }
 
 const Profile = () => {

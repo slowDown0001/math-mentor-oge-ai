@@ -1,12 +1,27 @@
 
 import { type Message } from "../ChatSection";
 import LatexRenderer from "./LatexRenderer";
+import { useEffect, useState } from "react";
+import { getMathProblemById, type MathProblem } from "@/services/mathProblemsService";
 
 interface ChatMessageProps {
   message: Message;
 }
 
 const ChatMessage = ({ message }: ChatMessageProps) => {
+  const [problemImage, setProblemImage] = useState<string | null>(null);
+  
+  useEffect(() => {
+    // If message has a problemId, fetch the problem to get the image
+    if (message.problemId && !message.isUser) {
+      getMathProblemById(message.problemId).then(problem => {
+        if (problem?.problem_image) {
+          setProblemImage(problem.problem_image);
+        }
+      });
+    }
+  }, [message.problemId]);
+  
   return (
     <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"} animate-fade-in`}>
       <div 
@@ -16,6 +31,21 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             : "bg-white/80 border border-gray-200/50 rounded-tl-none"
         }`}
       >
+        {/* Show problem image if available */}
+        {problemImage && !message.isUser && (
+          <div className="mb-3">
+            <img 
+              src={problemImage} 
+              alt="Изображение к задаче" 
+              className="max-w-full h-auto rounded-lg border border-gray-200"
+              onError={(e) => {
+                console.error('Failed to load problem image:', problemImage);
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+        
         <LatexRenderer content={message.text} />
         <div className={`text-xs mt-1 ${message.isUser ? "text-primary-foreground/80" : "text-gray-400"}`}>
           {message.timestamp.toLocaleTimeString([], {
