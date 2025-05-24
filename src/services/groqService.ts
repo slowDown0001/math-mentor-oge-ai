@@ -1,4 +1,4 @@
-import { getRandomMathProblem } from "@/services/mathProblemService";
+import { getRandomMathProblem } from "@/services/mathProblemsService.ts";
 
 // Groq API service for chat completions
 export interface Message {
