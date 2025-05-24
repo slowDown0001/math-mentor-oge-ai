@@ -8,7 +8,7 @@ export interface Message {
   text: string;
   isUser: boolean;
   timestamp: Date;
-  problemId?: string; // Add problemId to track current problem
+  problemId?: string;
 }
 
 // Store current problem for follow-up questions
@@ -33,7 +33,7 @@ const formatProblemResponse = (problem: MathProblem): string => {
 
 const handleHelpRequest = (userMessage: string): string | null => {
   if (!currentProblem) {
-    return "Сначала попросите задачу, а потом я смогу показать решение.";
+    return null; // Let the AI handle it naturally instead of showing error
   }
   
   const message = userMessage.toLowerCase();
@@ -48,6 +48,25 @@ const handleHelpRequest = (userMessage: string): string | null => {
   
   if (message.includes('объясни подробнее') || message.includes('подробнее') || message.includes('не понял')) {
     return currentProblem.solutiontextexpanded || currentProblem.solution_text || "Подробное объяснение для этой задачи пока недоступно.";
+  }
+  
+  return null;
+};
+
+const shouldFetchProblem = (userMessage: string): string | null => {
+  const message = userMessage.toLowerCase();
+  
+  // Check for practice problem requests
+  if (message.includes('дай задач') || message.includes('хочу задач') || 
+      message.includes('покажи задач') || message.includes('практик') ||
+      message.includes('тренировк') || message.includes('упражнен')) {
+    
+    if (message.includes('арифметик')) return 'арифметика';
+    if (message.includes('алгебр')) return 'алгебра';
+    if (message.includes('геометри')) return 'геометрия';
+    if (message.includes('практическ')) return 'практическая математика';
+    
+    return 'random';
   }
   
   return null;
@@ -75,20 +94,10 @@ export const sendChatMessage = async (
       };
     }
     
-    // Convert to Groq format
-    const groqMessages = [...messageHistory, userMessage].map(msg => ({
-      role: msg.isUser ? 'user' as const : 'assistant' as const,
-      content: msg.text
-    }));
-    
-    // Call Groq API
-    const aiResponse = await getChatCompletion(groqMessages);
-    
-    // Check if AI wants to fetch a problem
-    if (aiResponse.includes('FETCH_PROBLEM:')) {
-      const category = aiResponse.split('FETCH_PROBLEM:')[1].trim();
-      const requestedCategory = category === 'random' ? undefined : category;
-      
+    // Check if user wants a practice problem
+    const problemCategory = shouldFetchProblem(userMessage.text);
+    if (problemCategory) {
+      const requestedCategory = problemCategory === 'random' ? undefined : problemCategory;
       const problem = await getRandomMathProblem(requestedCategory);
       
       if (problem) {
@@ -109,6 +118,15 @@ export const sendChatMessage = async (
         };
       }
     }
+    
+    // For all other messages, send to AI for general math conversation
+    const groqMessages = [...messageHistory, userMessage].map(msg => ({
+      role: msg.isUser ? 'user' as const : 'assistant' as const,
+      content: msg.text
+    }));
+    
+    // Call Groq API for general conversation
+    const aiResponse = await getChatCompletion(groqMessages);
     
     // Create and return AI message
     return {

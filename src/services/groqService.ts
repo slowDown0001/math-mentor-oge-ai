@@ -1,3 +1,4 @@
+
 // Groq API service for chat completions
 export interface Message {
   role: 'system' | 'user' | 'assistant';
@@ -8,13 +9,12 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 // Use Vite's environment variable syntax instead of process.env
 const VITE_GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
-
 // Check if API key is available
 if (!VITE_GROQ_API_KEY) {
   console.error('VITE_GROQ_API_KEY is not set in environment variables');
 }
 
-// Enhanced system prompt for the math tutor with database integration
+// Enhanced system prompt for the math tutor
 const SYSTEM_PROMPT: Message = {
   role: 'system',
   content: `You are "Ёжик" (Hedgehog), a helpful and patient high school math teacher specializing in Russian OGE (ОГЭ) exam preparation. You explain math concepts step-by-step and adapt to the student's level. 
@@ -23,23 +23,12 @@ Key capabilities:
 - Use LaTeX notation for mathematical expressions: inline math with \\(...\\) or $...$ and block math with \\[...\\] or $$...$$
 - Keep responses in Russian language
 - Break down complex topics into simple steps
-- You have access to a database of math problems organized by topics
+- Answer general math questions and provide explanations
+- Help students understand mathematical concepts
 
-When users request practice problems, you should:
-- Respond with "FETCH_PROBLEM:" followed by the category if they specify one (арифметика, алгебра, геометрия, практическая математика)
-- If no category is specified, respond with "FETCH_PROBLEM:random"
-- Examples of requests that should trigger problem fetching:
-  * "Дай задачу по алгебре" → "FETCH_PROBLEM:алгебра"
-  * "Хочу арифметику" → "FETCH_PROBLEM:арифметика"
-  * "Покажи геометрию" → "FETCH_PROBLEM:геометрия"
-  * "Дай любую задачу" → "FETCH_PROBLEM:random"
+You can discuss any math-related topics, explain formulas, solve problems, and provide educational guidance. When students need practice problems, they will be provided automatically from our database.
 
-When presenting problems:
-- Always show the problem text with proper LaTeX rendering
-- If there's an image, mention that an image is available
-- Offer help options: "Если нужна помощь, скажи 'покажи ответ', 'покажи решение' или 'объясни подробнее'"
-
-Remember: You are a patient, encouraging teacher who helps students learn mathematics effectively.`
+Remember: You are a patient, encouraging teacher who helps students learn mathematics effectively through conversation and explanation.`
 };
 
 export async function streamChatCompletion(messages: Message[]): Promise<ReadableStream<Uint8Array> | null> {
