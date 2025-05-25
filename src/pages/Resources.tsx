@@ -13,69 +13,61 @@ const mathTopics = [
     id: "algebra",
     title: "Алгебра",
     chapters: [
-      { id: "1.1", title: "Арифметика и свойства чисел" },
-      { id: "1.2", title: "Выражения и преобразования" },
-      { id: "1.3", title: "Уравнения и неравенства" },
-      { id: "1.4", title: "Функции и графики" },
-      { id: "1.5", title: "Текстовые задачи" },
-      { id: "1.6", title: "Последовательности и прогрессии" },
-      { id: "1.7", title: "Элементы статистики и вероятности" }
+      { id: "1.1", title: "Арифметика и свойства чисел", videoId: "dGyQ9sgZmxk" },
+      { id: "1.2", title: "Выражения и преобразования", videoId: "m3qgoftljsI" },
+      { id: "1.3", title: "Уравнения и неравенства", videoId: "wYM5Fk9zvtE" },
+      { id: "1.4", title: "Функции и графики", videoId: "ID8li13rH0I" },
+      { id: "1.5", title: "Текстовые задачи", videoId: "GBgH7bKdkbc" },
+      { id: "1.6", title: "Последовательности и прогрессии", videoId: "eKuTXAGJLKQ" },
+      { id: "1.7", title: "Элементы статистики и вероятности", videoId: "7sKzL2Ij7zo" }
     ]
   },
   {
     id: "arithmetic",
     title: "Арифметика",
     chapters: [
-      { id: "2.1", title: "Числа и вычисления" },
-      { id: "2.2", title: "Дроби и проценты" },
-      { id: "2.3", title: "Пропорции и отношения" },
-      { id: "2.4", title: "Рациональные числа" },
-      { id: "2.5", title: "Степени и корни" }
+      { id: "2.1", title: "Числа и вычисления", videoId: "JfwBXJVkNXw" },
+      { id: "2.2", title: "Дроби и проценты", videoId: "m3qgoftljsI" },
+      { id: "2.3", title: "Пропорции и отношения", videoId: "wYM5Fk9zvtE" },
+      { id: "2.4", title: "Рациональные числа", videoId: "ID8li13rH0I" },
+      { id: "2.5", title: "Степени и корни", videoId: "GBgH7bKdkbc" }
     ]
   },
   {
     id: "geometry",
     title: "Геометрия",
     chapters: [
-      { id: "3.1", title: "Планиметрия" },
-      { id: "3.2", title: "Треугольники и их свойства" },
-      { id: "3.3", title: "Четырехугольники" },
-      { id: "3.4", title: "Окружности и круги" },
-      { id: "3.5", title: "Площади фигур" },
-      { id: "3.6", title: "Подобие треугольников" },
-      { id: "3.7", title: "Векторы" }
+      { id: "3.1", title: "Планиметрия", videoId: "eKuTXAGJLKQ" },
+      { id: "3.2", title: "Треугольники и их свойства", videoId: "dGyQ9sgZmxk" },
+      { id: "3.3", title: "Четырехугольники", videoId: "7sKzL2Ij7zo" },
+      { id: "3.4", title: "Окружности и круги", videoId: "JfwBXJVkNXw" },
+      { id: "3.5", title: "Площади фигур", videoId: "m3qgoftljsI" },
+      { id: "3.6", title: "Подобие треугольников", videoId: "wYM5Fk9zvtE" },
+      { id: "3.7", title: "Векторы", videoId: "ID8li13rH0I" }
     ]
   },
   {
     id: "practical",
     title: "Практическая математика",
     chapters: [
-      { id: "4.1", title: "Реальная математика" },
-      { id: "4.2", title: "Практические задачи" },
-      { id: "4.3", title: "Задачи на движение" },
-      { id: "4.4", title: "Задачи на работу" },
-      { id: "4.5", title: "Экономические задачи" }
+      { id: "4.1", title: "Реальная математика", videoId: "GBgH7bKdkbc" },
+      { id: "4.2", title: "Практические задачи", videoId: "eKuTXAGJLKQ" },
+      { id: "4.3", title: "Задачи на движение", videoId: "dGyQ9sgZmxk" },
+      { id: "4.4", title: "Задачи на работу", videoId: "7sKzL2Ij7zo" },
+      { id: "4.5", title: "Экономические задачи", videoId: "JfwBXJVkNXw" }
     ]
   }
 ];
 
-// Mock video content
-const getVideoContent = (id: string, title: string) => {
-  // Example YouTube IDs for math videos
-  const videoIds = [
-    "JfwBXJVkNXw", "m3qgoftljsI", "wYM5Fk9zvtE", "ID8li13rH0I", 
-    "GBgH7bKdkbc", "eKuTXAGJLKQ", "dGyQ9sgZmxk", "7sKzL2Ij7zo"
-  ];
-  // Get a consistent but semi-random video for each chapter
-  const videoIndex = (id.charCodeAt(0) + id.charCodeAt(id.length-1)) % videoIds.length;
-  
+// Video content with real YouTube videos
+const getVideoContent = (id: string, title: string, videoId: string) => {
   return (
     <div className="mt-2 space-y-3">
       <h4 className="text-lg font-medium text-gray-900">{title}</h4>
       <div className="aspect-video rounded-lg overflow-hidden">
         <iframe 
           className="w-full h-full"
-          src={`https://www.youtube.com/embed/${videoIds[videoIndex]}`}
+          src={`https://www.youtube.com/embed/${videoId}`}
           title={title}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -189,7 +181,7 @@ const Resources = () => {
                                     {chapter.id}. {chapter.title}
                                   </AccordionTrigger>
                                   <AccordionContent>
-                                    {getVideoContent(chapter.id, chapter.title)}
+                                    {getVideoContent(chapter.id, chapter.title, chapter.videoId)}
                                   </AccordionContent>
                                 </AccordionItem>
                               </Accordion>
