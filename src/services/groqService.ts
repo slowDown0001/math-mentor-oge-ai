@@ -1,8 +1,8 @@
-import { getRandomMathProblem, getMathProblemById } from "@/services/mathProblemsService";
+import { getRandomMathProblem } from "@/services/mathProblemsService.ts";
 
 // Groq API service for chat completions
 export interface Message {
-  role: 'system' | 'user' | 'assistant'; 
+  role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
@@ -37,9 +37,12 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
     if (!VITE_GROQ_API_KEY) {
       throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
     }
-
+    
     const fullMessages = [SYSTEM_PROMPT, ...messages];
-
+    
+    console.log("🧪 [GroqService] Key type:", typeof VITE_GROQ_API_KEY);
+    console.log("🧪 [GroqService] Key value:", VITE_GROQ_API_KEY);  // WARNING: temporary, don't expose in production!
+    
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
@@ -66,62 +69,30 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
   }
 }
 
-
-function extractLastQuestionId(messages: Message[]): string | null {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const match = messages[i].content.match(/ID задачи: ([\w-]+)/);
-    if (match) return match[1];
-  }
-  return null;
-}
-
 export async function getChatCompletion(messages: Message[]): Promise<string> {
   try {
-    const lastMessage = messages[messages.length - 1]?.content.toLowerCase();
+    const lastUserMessage = messages[messages.length - 1]?.content.toLowerCase();
 
-    // Step 1: Handle follow-up (answer/solution/details)
-    if (lastMessage.includes('показать ответ') || lastMessage.includes('покажи решение') || lastMessage.includes('не понял')) {
-      const questionId = extractLastQuestionId(messages);
-      if (!questionId) return "Я не могу найти последнюю задачу. Пожалуйста, запроси новую.";
-
-      const problem = await getMathProblemById(questionId);
-      if (!problem) return "Не удалось найти задачу по ID.";
-
-      if (lastMessage.includes('показать ответ')) {
-        return `📌 Ответ: **${problem.answer}**`;
-      }
-
-      if (lastMessage.includes('покажи решение')) {
-        return problem.solution_text || "Решение пока недоступно.";
-      }
-
-      if (lastMessage.includes('не понял')) {
-        return problem.solutiontextexpanded || "Подробного объяснения нет.";
-      }
-    }
-
-    // Step 2: Handle new problem request
-    if (lastMessage.includes('задачу')) {
+    // Check if user asked for a math problem
+    if (lastUserMessage.includes('задачу')) {
       let category: string | undefined = undefined;
 
-      if (lastMessage.includes('алгебр')) category = 'алгебра';
-      else if (lastMessage.includes('арифметик')) category = 'арифметика';
-      else if (lastMessage.includes('геометр')) category = 'геометрия';
-      else if (lastMessage.includes('практич')) category = 'практическая математика';
+      if (lastUserMessage.includes('алгебр')) category = 'алгебра';
+      else if (lastUserMessage.includes('арифметик')) category = 'арифметика';
+      else if (lastUserMessage.includes('геометр')) category = 'геометрия';
+      else if (lastUserMessage.includes('практич')) category = 'практическая математика';
 
       const problem = await getRandomMathProblem(category);
 
       if (problem) {
-        const imageUrl = `https://casohrqgydyyvcclqwqm.supabase.co/storage/v1/object/public/images/${problem.problem_image?.replace(/^\/+/, '')}`;
-        const imagePart = problem.problem_image ? `🖼️ ![изображение](${imageUrl})\n\n` : "";
-
-        return `Вот задача по категории *${category ?? 'Общее'}*:\n\n${imagePart}${problem.problem_text}\n\n(📌 ID задачи: ${problem.question_id})\n\nНапиши *показать ответ* или *покажи решение*, если хочешь продолжить.`;
+        const imagePart = problem.problem_image ? `🖼️ ![изображение](${problem.problem_image})\n\n` : "";
+        return `Вот задача по категории *${category ?? 'Общее'}*:\n\n${imagePart}${problem.problem_text}\n\nНапиши *показать ответ* или *покажи решение*, если хочешь продолжить.`;
       }
 
       return "Не удалось найти задачу. Попробуй ещё раз позже.";
     }
 
-    // Step 3: Default to Groq completion
+    // Default: go to Groq
     const fullMessages = [SYSTEM_PROMPT, ...messages];
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
