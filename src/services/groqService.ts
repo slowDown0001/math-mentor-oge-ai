@@ -3,7 +3,7 @@ import { getMathProblemById } from "@/services/mathProblemService";
 
 // Groq API service for chat completions
 export interface Message {
-  role: 'system' | 'user' | 'assistant';
+  role: 'system' | 'user' | 'assistant'; 
   content: string;
 }
 
