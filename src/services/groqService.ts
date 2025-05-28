@@ -38,17 +38,14 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
     if (!VITE_GROQ_API_KEY) {
       throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
     }
-    
+
     const fullMessages = [SYSTEM_PROMPT, ...messages];
-    
-    console.log("🧪 [GroqService] Key type:", typeof VITE_GROQ_API_KEY);
-    console.log("🧪 [GroqService] Key value:", VITE_GROQ_API_KEY);  // WARNING: temporary, don't expose in production!
-    
+
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': Bearer ${VITE_GROQ_API_KEY}
+        'Authorization': `Bearer ${VITE_GROQ_API_KEY}`
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
@@ -60,7 +57,7 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
     if (!response.ok) {
       const errorData = await response.json();
       console.error('Groq API error:', errorData);
-      throw new Error(Groq API error: ${response.status});
+      throw new Error(`Groq API error: ${response.status}`);
     }
 
     return response.body;
@@ -69,6 +66,7 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
     return null;
   }
 }
+
 
 function extractLastQuestionId(messages: Message[]): string | null {
   for (let i = messages.length - 1; i >= 0; i--) {
