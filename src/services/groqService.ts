@@ -1,4 +1,5 @@
 import { getRandomMathProblem } from "@/services/mathProblemsService.ts";
+import { getMathProblemById } from "@/services/mathProblemService";
 
 // Groq API service for chat completions
 export interface Message {
@@ -69,7 +70,38 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
   }
 }
 
+function extractLastQuestionId(messages: Message[]): string | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const match = messages[i].content.match(/ID задачи: ([\w-]+)/);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 export async function getChatCompletion(messages: Message[]): Promise<string> {
+  try {
+    const lastMessage = messages[messages.length - 1]?.content.toLowerCase();
+
+    // Check if user wants answer/solution
+    if (lastMessage.includes('показать ответ') || lastMessage.includes('покажи решение') || lastMessage.includes('не понял')) {
+      const questionId = extractLastQuestionId(messages);
+      if (!questionId) return "Я не могу найти последнюю задачу. Пожалуйста, запроси новую.";
+
+      const problem = await getMathProblemById(questionId);
+      if (!problem) return "Не удалось найти задачу по ID.";
+
+      if (lastMessage.includes('показать ответ')) {
+        return `📌 Ответ: **${problem.answer}**`;
+      }
+
+      if (lastMessage.includes('покажи решение')) {
+        return problem.solution_text || "Решение пока недоступно.";
+      }
+
+      if (lastMessage.includes('не понял')) {
+        return problem.solutiontextexpanded || "Подробного объяснения нет.";
+      }
+    }  
   try {
     const lastUserMessage = messages[messages.length - 1]?.content.toLowerCase();
 
@@ -86,7 +118,7 @@ export async function getChatCompletion(messages: Message[]): Promise<string> {
 
       if (problem) {
         const imagePart = problem.problem_image ? `🖼️ ![изображение](${problem.problem_image})\n\n` : "";
-        return `Вот задача по категории *${category ?? 'Общее'}*:\n\n${imagePart}${problem.problem_text}\n\nНапиши *показать ответ* или *покажи решение*, если хочешь продолжить.`;
+        return `Вот задача по категории *${category ?? 'Общее'}*:\n\n${imagePart}${problem.problem_text}\n\n(📌 ID задачи: ${problem.question_id})\n\nНапиши *показать ответ* или *покажи решение*, если хочешь продолжить.`;
       }
 
       return "Не удалось найти задачу. Попробуй ещё раз позже.";
