@@ -112,7 +112,13 @@ export async function getChatCompletion(messages: Message[]): Promise<string> {
       const problem = await getRandomMathProblem(category);
 
       if (problem) {
-        const imageUrl = `https://casohrqgydyyvcclqwqm.supabase.co/storage/v1/object/public/images/${problem.problem_image?.replace(/^\/+/, '')}`;
+       
+        const rawImage = problem.problem_image?.replace(/^\/+/, '');
+        const imageUrl = rawImage?.startsWith('http')
+          ? rawImage
+          : `https://casohrqgydyyvcclqwqm.supabase.co/storage/v1/object/public/images/${rawImage}`;
+
+        
         const imagePart = problem.problem_image ? `🖼️ ![изображение](${imageUrl})\n\n` : "";
 
         return `Вот задача по категории *${category ?? 'Общее'}*:\n\n${imagePart}${problem.problem_text}\n\n(📌 ID задачи: ${problem.question_id})\n\nНапиши *показать ответ* или *покажи решение*, если хочешь продолжить.`;
