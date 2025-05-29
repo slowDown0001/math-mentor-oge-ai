@@ -21,21 +21,27 @@ const LatexRenderer = ({ content }: LatexRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    if (!containerRef.current) return;
-    
-    // Check if MathJax is loaded globally
-    if (window.MathJax) {
-      try {
-        // Process and typeset the container with LaTeX content
-        window.MathJax.typesetPromise([containerRef.current])
-          .catch((err) => console.error('MathJax typesetting error:', err));
-      } catch (error) {
-        console.error('MathJax error:', error);
-      }
-    } else {
-      console.error('MathJax is not loaded globally');
+  const tryRender = async () => {
+    if (!window.MathJax || !containerRef.current) return;
+
+    try {
+      await window.MathJax.typesetPromise([containerRef.current]);
+    } catch (error) {
+      console.error("MathJax typesetting error:", error);
     }
-  }, [content]);
+  };
+
+  // Wait briefly to ensure the content is in the DOM
+  const timeout = setTimeout(tryRender, 100); // delay slightly to ensure DOM is ready
+
+  return () => clearTimeout(timeout);
+}, [content]);
+
+  
+  
+  
+  
+
   
   // Process content to ensure LaTeX expressions are properly formatted
   const processedContent = processLatex(content);
