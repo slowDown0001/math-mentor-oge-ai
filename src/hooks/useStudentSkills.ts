@@ -48,31 +48,57 @@ export const useStudentSkills = (): SkillData => {
 
         if (!skillData) {
           // If no skill data exists, create default values
-          const defaultTopicProgress = topicMappingData.map(topic => ({
-            topic: topic.topic,
-            name: topic.name,
-            averageScore: 0
-          }));
+          const defaultTopicProgress = [
+            { topic: "1", name: "Числа и вычисления", averageScore: 0 },
+            { topic: "2", name: "Алгебраические выражения", averageScore: 0 },
+            { topic: "3", name: "Уравнения и неравенства", averageScore: 0 },
+            { topic: "4", name: "Числовые последовательности", averageScore: 0 },
+            { topic: "5", name: "Функции", averageScore: 0 },
+            { topic: "6", name: "Координаты на прямой и плоскости", averageScore: 0 },
+            { topic: "7", name: "Геометрия", averageScore: 0 },
+            { topic: "8", name: "Вероятность и статистика", averageScore: 0 }
+          ];
           setTopicProgress(defaultTopicProgress);
           setGeneralPreparedness(0);
           setIsLoading(false);
           return;
         }
 
-        // Calculate topic-level averages
-        const calculatedTopicProgress = topicMappingData.map(topic => {
-          const skillScores = topic.skills.map(skillNum => {
-            const skillKey = `skill_${skillNum}` as keyof typeof skillData;
-            return skillData[skillKey] as number || 0;
+        // Define the main topic groups
+        const mainTopics = [
+          { id: "1", name: "Числа и вычисления", subtopics: ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"] },
+          { id: "2", name: "Алгебраические выражения", subtopics: ["2.1", "2.2", "2.3", "2.4", "2.5"] },
+          { id: "3", name: "Уравнения и неравенства", subtopics: ["3.1", "3.2", "3.3"] },
+          { id: "4", name: "Числовые последовательности", subtopics: ["4.1", "4.2"] },
+          { id: "5", name: "Функции", subtopics: ["5.1"] },
+          { id: "6", name: "Координаты на прямой и плоскости", subtopics: ["6.1", "6.2"] },
+          { id: "7", name: "Геометрия", subtopics: ["7.1", "7.2", "7.3", "7.4", "7.5", "7.6", "7.7"] },
+          { id: "8", name: "Вероятность и статистика", subtopics: ["8.1", "8.2", "8.3", "8.4", "8.5"] }
+        ];
+
+        // Calculate averages for each main topic
+        const calculatedTopicProgress = mainTopics.map(mainTopic => {
+          const allSkillScores: number[] = [];
+
+          // Get all skills for the subtopics of this main topic
+          mainTopic.subtopics.forEach(subtopicId => {
+            const subtopic = topicMappingData.find(topic => topic.topic === subtopicId);
+            if (subtopic) {
+              subtopic.skills.forEach(skillNum => {
+                const skillKey = `skill_${skillNum}` as keyof typeof skillData;
+                const skillValue = skillData[skillKey] as number || 0;
+                allSkillScores.push(skillValue);
+              });
+            }
           });
 
-          const averageScore = skillScores.length > 0 
-            ? Math.round(skillScores.reduce((sum, score) => sum + score, 0) / skillScores.length)
+          const averageScore = allSkillScores.length > 0 
+            ? Math.round(allSkillScores.reduce((sum, score) => sum + score, 0) / allSkillScores.length)
             : 0;
 
           return {
-            topic: topic.topic,
-            name: topic.name,
+            topic: mainTopic.id,
+            name: mainTopic.name,
             averageScore
           };
         });
