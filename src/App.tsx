@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Resources from "./pages/Resources";
 import Profile from "./pages/Profile";
 import Statistics from "./pages/Statistics";
+import DetailedStatistics from "./pages/DetailedStatistics";
 import { AuthProvider } from "./contexts/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 
@@ -33,6 +33,7 @@ const App = () => (
               <Route path="/practice" element={<PracticeExercise />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/statistics" element={<Statistics />} />
+              <Route path="/statistics/detailed" element={<DetailedStatistics />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
