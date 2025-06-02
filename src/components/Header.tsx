@@ -57,9 +57,10 @@ const Header = () => {
               <Link to="#features" className="text-gray-700 hover:text-primary font-medium transition-colors">Функции</Link>
               <Link to="/resources" className="text-gray-700 hover:text-primary font-medium transition-colors">Ресурсы</Link>
               <Link to="/practice" className="text-gray-700 hover:text-primary font-medium transition-colors">Практика</Link>
+              <Link to="/statistics" className="text-gray-700 hover:text-primary font-medium transition-colors">Статистика</Link>
             </>
           ) : (
-            <div className="flex-1"></div> // Empty space for unregistered users
+            <div className="flex-1"></div>
           )}
         </nav>
         
@@ -129,9 +130,12 @@ const Header = () => {
                 <Link to="/practice" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
                   Практика
                 </Link>
+                <Link to="/statistics" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+                  Статистика
+                </Link>
               </>
             ) : (
-              <div className="pt-2"></div> // Empty space for unregistered users
+              <div className="pt-2"></div>
             )}
             
             <div className="flex flex-col space-y-3 pt-4 border-t">
