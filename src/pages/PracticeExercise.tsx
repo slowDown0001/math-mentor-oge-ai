@@ -1,10 +1,10 @@
 
 import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Image as ImageIcon, Calculator, BookOpen, ChevronDown } from "lucide-react";
+import { ChevronRight, Image as ImageIcon, Calculator, BookOpen } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +38,6 @@ interface MainTopic {
 const PracticeExercise = () => {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTopic, setSelectedTopic] = useState<string>("1");
   const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
   const [expandedStates, setExpandedStates] = useState<{
     answer: boolean;
@@ -173,8 +172,6 @@ const PracticeExercise = () => {
     }))
   }));
 
-  const currentTopic = organizedTopics.find(topic => topic.id === selectedTopic);
-  
   const handleProblemSelect = (problem: Problem) => {
     setSelectedProblem(problem);
     setExpandedStates({
@@ -210,115 +207,138 @@ const PracticeExercise = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <div className="container mx-auto px-4 py-8 flex-grow">
-        <h1 className="text-3xl font-bold mb-6">Практические задачи ОГЭ</h1>
-
-        {/* Main Topic Navigation */}
-        <div className="flex overflow-x-auto mb-6 pb-2">
-          {organizedTopics.map((topic) => {
-            const totalProblems = topic.subtopics.reduce((sum, subtopic) => sum + subtopic.problems.length, 0);
-            return (
-              <button
-                key={topic.id}
-                onClick={() => setSelectedTopic(topic.id)}
-                className={`px-4 py-3 mr-2 rounded-lg font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-                  selectedTopic === topic.id
-                    ? "bg-primary text-white shadow-md"
-                    : "bg-white text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                {topic.id}. {topic.name}
-                <span className="text-xs bg-white/20 px-2 py-1 rounded">
-                  {totalProblems}
-                </span>
-              </button>
-            );
-          })}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-3 text-gray-900">Практические задачи ОГЭ</h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Выберите тему и навык для практики. Задачи организованы по официальному кодификатору ОГЭ.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Side - Subtopics and Problems */}
-          <div className="lg:col-span-1 bg-white p-4 rounded-xl shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">
-              {currentTopic?.name}
-            </h2>
-            
-            <ScrollArea className="h-[calc(100vh-300px)]">
-              <div className="space-y-4">
-                {currentTopic?.subtopics.map((subtopic) => (
-                  <div key={subtopic.id} className="border rounded-lg p-3">
-                    <h3 className="font-medium text-gray-800 mb-2 flex items-center justify-between">
-                      <span>{subtopic.id}. {subtopic.name}</span>
-                      <span className="text-xs bg-gray-200 px-2 py-1 rounded">
-                        {subtopic.problems.length}
-                      </span>
-                    </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Side - Topics and Problems Navigation */}
+          <div className="lg:col-span-1">
+            <Card className="shadow-lg border-0">
+              <div className="p-6 border-b bg-gradient-to-r from-primary to-primary/90 text-white rounded-t-lg">
+                <h2 className="text-xl font-semibold">Темы и навыки</h2>
+                <p className="text-sm text-primary-foreground/80 mt-1">
+                  {problems.length} задач доступно
+                </p>
+              </div>
+              
+              <ScrollArea className="h-[calc(100vh-350px)] p-4">
+                <Accordion type="single" collapsible className="w-full space-y-2">
+                  {organizedTopics.map((topic) => {
+                    const totalProblems = topic.subtopics.reduce((sum, subtopic) => sum + subtopic.problems.length, 0);
                     
-                    {subtopic.problems.length > 0 ? (
-                      <div className="space-y-2">
-                        {subtopic.problems.map((problem) => (
-                          <button
-                            key={problem.question_id}
-                            onClick={() => handleProblemSelect(problem)}
-                            className={`w-full text-left p-2 rounded transition-all flex items-center justify-between text-sm ${
-                              selectedProblem?.question_id === problem.question_id
-                                ? "bg-primary/10 border-l-4 border-primary"
-                                : "bg-gray-50 hover:bg-gray-100"
-                            }`}
-                          >
-                            <div className="flex-grow">
-                              <div className="flex items-center gap-1 mb-1">
-                                {problem.calculator_allowed && (
-                                  <Calculator className="h-3 w-3 text-blue-500" />
-                                )}
-                                {problem.problem_image && (
-                                  <ImageIcon className="h-3 w-3 text-green-500" />
+                    return (
+                      <AccordionItem key={topic.id} value={topic.id} className="border rounded-lg overflow-hidden">
+                        <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 text-left">
+                          <div className="flex items-center justify-between w-full mr-4">
+                            <div className="flex items-center gap-3">
+                              <span className="bg-primary text-white text-sm font-medium px-2 py-1 rounded">
+                                {topic.id}
+                              </span>
+                              <span className="font-medium text-gray-800">{topic.name}</span>
+                            </div>
+                            <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
+                              {totalProblems}
+                            </span>
+                          </div>
+                        </AccordionTrigger>
+                        
+                        <AccordionContent className="px-4 pb-4">
+                          <div className="space-y-3 mt-2">
+                            {topic.subtopics.map((subtopic) => (
+                              <div key={subtopic.id} className="border-l-2 border-gray-200 pl-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="font-medium text-sm text-gray-700">
+                                    {subtopic.id}. {subtopic.name}
+                                  </h4>
+                                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                    {subtopic.problems.length}
+                                  </span>
+                                </div>
+                                
+                                {subtopic.problems.length > 0 ? (
+                                  <div className="space-y-1">
+                                    {subtopic.problems.map((problem) => (
+                                      <button
+                                        key={problem.question_id}
+                                        onClick={() => handleProblemSelect(problem)}
+                                        className={`w-full text-left p-3 rounded-lg transition-all text-sm border ${
+                                          selectedProblem?.question_id === problem.question_id
+                                            ? "bg-primary/10 border-primary/30 shadow-sm"
+                                            : "bg-white hover:bg-gray-50 border-gray-200"
+                                        }`}
+                                      >
+                                        <div className="flex items-start justify-between">
+                                          <div className="flex-grow">
+                                            <div className="flex items-center gap-2 mb-2">
+                                              {problem.calculator_allowed && (
+                                                <Calculator className="h-3 w-3 text-blue-500" />
+                                              )}
+                                              {problem.problem_image && (
+                                                <ImageIcon className="h-3 w-3 text-green-500" />
+                                              )}
+                                              {problem.difficulty && (
+                                                <span className="text-xs bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded">
+                                                  {problem.difficulty}
+                                                </span>
+                                              )}
+                                            </div>
+                                            <p className="text-gray-600 line-clamp-2 text-xs">
+                                              {problem.problem_text?.substring(0, 80)}...
+                                            </p>
+                                          </div>
+                                          <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
+                                        </div>
+                                      </button>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-gray-500 italic py-2">Задачи не найдены</p>
                                 )}
                               </div>
-                              <p className="text-xs text-gray-600 line-clamp-2">
-                                {problem.problem_text?.substring(0, 60)}...
-                              </p>
-                            </div>
-                            <ChevronRight className="h-3 w-3 text-gray-400" />
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-gray-500 italic">Задачи не найдены</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
+              </ScrollArea>
+            </Card>
           </div>
 
           {/* Right Side - Problem Detail */}
           <div className="lg:col-span-2">
             {selectedProblem ? (
-              <Card className="shadow-sm">
-                <div className="bg-white p-6 rounded-t-xl border-b">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="font-mono text-lg bg-primary text-white px-3 py-1 rounded">
+              <Card className="shadow-lg border-0">
+                <div className="bg-gradient-to-r from-secondary to-accent text-white p-6 rounded-t-lg">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="font-mono text-lg bg-white/20 text-white px-3 py-1 rounded">
                       {selectedProblem.code}
                     </span>
                     {selectedProblem.calculator_allowed && (
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      <span className="text-xs bg-white/20 text-white px-2 py-1 rounded">
                         Калькулятор разрешён
                       </span>
                     )}
                     {selectedProblem.difficulty && (
-                      <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                      <span className="text-xs bg-white/20 text-white px-2 py-1 rounded">
                         {selectedProblem.difficulty}
                       </span>
                     )}
                   </div>
+                  <h3 className="text-xl font-semibold">Задача для решения</h3>
                 </div>
                 
                 <CardContent className="p-6">
-                  <ScrollArea className="h-[calc(100vh-400px)] min-h-[400px]">
+                  <ScrollArea className="h-[calc(100vh-420px)] min-h-[400px]">
                     <div className="space-y-6">
                       {/* Problem Image */}
                       {selectedProblem.problem_image && (
-                        <div className="flex justify-center">
+                        <div className="flex justify-center bg-gray-50 p-4 rounded-lg">
                           <img
                             src={selectedProblem.problem_image}
                             alt="Изображение задачи"
@@ -332,30 +352,32 @@ const PracticeExercise = () => {
 
                       {/* Problem Text */}
                       <div className="prose max-w-none">
-                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                          <BookOpen className="h-5 w-5" />
+                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-800">
+                          <BookOpen className="h-5 w-5 text-primary" />
                           Условие задачи
                         </h3>
-                        <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-primary">
                           <LatexRenderer content={selectedProblem.problem_text || ""} />
                         </div>
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <Button
                           onClick={() => toggleSection('answer')}
                           variant="outline"
-                          className="w-full justify-start"
+                          className="w-full justify-start h-12 text-left bg-green-50 border-green-200 hover:bg-green-100"
                         >
-                          Показать ответ
+                          <span className="text-green-700">📋 Показать ответ</span>
                         </Button>
                         
                         <Collapsible open={expandedStates.answer} onOpenChange={() => toggleSection('answer')}>
                           <CollapsibleContent>
-                            <div className="bg-green-50 border border-green-200 p-4 rounded-lg mt-2">
-                              <h4 className="font-semibold text-green-800 mb-2">Ответ:</h4>
-                              <LatexRenderer content={selectedProblem.answer || "Ответ не указан"} />
+                            <div className="bg-green-50 border border-green-200 p-6 rounded-lg mt-2">
+                              <h4 className="font-semibold text-green-800 mb-3 text-lg">✅ Ответ:</h4>
+                              <div className="text-green-900 text-lg">
+                                <LatexRenderer content={selectedProblem.answer || "Ответ не указан"} />
+                              </div>
                             </div>
                           </CollapsibleContent>
                         </Collapsible>
@@ -363,16 +385,18 @@ const PracticeExercise = () => {
                         <Button
                           onClick={() => toggleSection('solution')}
                           variant="outline"
-                          className="w-full justify-start"
+                          className="w-full justify-start h-12 text-left bg-blue-50 border-blue-200 hover:bg-blue-100"
                         >
-                          Показать решение
+                          <span className="text-blue-700">💡 Показать решение</span>
                         </Button>
                         
                         <Collapsible open={expandedStates.solution} onOpenChange={() => toggleSection('solution')}>
                           <CollapsibleContent>
-                            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mt-2">
-                              <h4 className="font-semibold text-blue-800 mb-2">Решение:</h4>
-                              <LatexRenderer content={selectedProblem.solution_text || "Решение не указано"} />
+                            <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg mt-2">
+                              <h4 className="font-semibold text-blue-800 mb-3 text-lg">🔍 Решение:</h4>
+                              <div className="text-blue-900">
+                                <LatexRenderer content={selectedProblem.solution_text || "Решение не указано"} />
+                              </div>
                             </div>
                           </CollapsibleContent>
                         </Collapsible>
@@ -382,16 +406,18 @@ const PracticeExercise = () => {
                             <Button
                               onClick={() => toggleSection('expanded')}
                               variant="outline"
-                              className="w-full justify-start"
+                              className="w-full justify-start h-12 text-left bg-purple-50 border-purple-200 hover:bg-purple-100"
                             >
-                              Я всё ещё не понял(а). Покажи подробнее.
+                              <span className="text-purple-700">🔎 Я всё ещё не понял(а). Покажи подробнее.</span>
                             </Button>
                             
                             <Collapsible open={expandedStates.expanded} onOpenChange={() => toggleSection('expanded')}>
                               <CollapsibleContent>
-                                <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg mt-2">
-                                  <h4 className="font-semibold text-purple-800 mb-2">Подробное объяснение:</h4>
-                                  <LatexRenderer content={selectedProblem.solutiontextexpanded} />
+                                <div className="bg-purple-50 border border-purple-200 p-6 rounded-lg mt-2">
+                                  <h4 className="font-semibold text-purple-800 mb-3 text-lg">📚 Подробное объяснение:</h4>
+                                  <div className="text-purple-900">
+                                    <LatexRenderer content={selectedProblem.solutiontextexpanded} />
+                                  </div>
                                 </div>
                               </CollapsibleContent>
                             </Collapsible>
@@ -403,15 +429,17 @@ const PracticeExercise = () => {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="shadow-sm">
+              <Card className="shadow-lg border-0">
                 <CardContent className="p-12 text-center">
-                  <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                    Выберите задачу для решения
-                  </h3>
-                  <p className="text-gray-500">
-                    Выберите задачу из списка слева, чтобы начать решение
-                  </p>
+                  <div className="max-w-md mx-auto">
+                    <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-6" />
+                    <h3 className="text-2xl font-semibold text-gray-600 mb-3">
+                      Выберите задачу для решения
+                    </h3>
+                    <p className="text-gray-500 text-lg leading-relaxed">
+                      Выберите тему и задачу из списка слева, чтобы начать практику решения задач ОГЭ
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
