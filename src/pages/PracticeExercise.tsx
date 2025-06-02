@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Image as ImageIcon, Calculator, BookOpen } from "lucide-react";
+import { ChevronRight, Image as ImageIcon, Calculator, BookOpen, ChevronDown } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,17 +23,22 @@ interface Problem {
   calculator_allowed?: boolean;
 }
 
-interface CategoryGroup {
+interface SubTopic {
   id: string;
   name: string;
-  codeRange: string[];
   problems: Problem[];
+}
+
+interface MainTopic {
+  id: string;
+  name: string;
+  subtopics: SubTopic[];
 }
 
 const PracticeExercise = () => {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>("arithmetic");
+  const [selectedTopic, setSelectedTopic] = useState<string>("1");
   const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
   const [expandedStates, setExpandedStates] = useState<{
     answer: boolean;
@@ -45,31 +50,87 @@ const PracticeExercise = () => {
     expanded: false
   });
 
-  // Category definitions
-  const categories: CategoryGroup[] = [
+  // Main topic definitions with subtopics
+  const mainTopics: MainTopic[] = [
     {
-      id: "arithmetic",
-      name: "Арифметика",
-      codeRange: ["1.1", "1.2", "1.3", "1.4", "1.5"],
-      problems: []
+      id: "1",
+      name: "Числа и вычисления",
+      subtopics: [
+        { id: "1.1", name: "Натуральные и целые числа", problems: [] },
+        { id: "1.2", name: "Дроби и проценты", problems: [] },
+        { id: "1.3", name: "Рациональные числа и арифметические действия", problems: [] },
+        { id: "1.4", name: "Действительные числа", problems: [] },
+        { id: "1.5", name: "Приближённые вычисления", problems: [] },
+        { id: "1.6", name: "Работа с данными и графиками", problems: [] },
+        { id: "1.7", name: "Прикладная геометрия: площади и расстояния в жизни", problems: [] }
+      ]
     },
     {
-      id: "algebra", 
-      name: "Алгебра",
-      codeRange: ["2.1", "2.2", "2.3", "2.4", "2.5", "3.1", "3.2", "3.3", "4.1", "4.2", "5.1", "5.2", "6.1", "6.2"],
-      problems: []
+      id: "2",
+      name: "Алгебраические выражения",
+      subtopics: [
+        { id: "2.1", name: "Буквенные выражения", problems: [] },
+        { id: "2.2", name: "Степени", problems: [] },
+        { id: "2.3", name: "Многочлены", problems: [] },
+        { id: "2.4", name: "Алгебраические дроби", problems: [] },
+        { id: "2.5", name: "Арифметические корни", problems: [] }
+      ]
     },
     {
-      id: "geometry",
-      name: "Геометрия", 
-      codeRange: ["7.1", "7.2", "7.3", "7.4", "7.5", "7.6"],
-      problems: []
+      id: "3",
+      name: "Уравнения и неравенства",
+      subtopics: [
+        { id: "3.1", name: "Уравнения и системы", problems: [] },
+        { id: "3.2", name: "Неравенства и системы", problems: [] },
+        { id: "3.3", name: "Текстовые задачи", problems: [] }
+      ]
     },
     {
-      id: "practical",
-      name: "Практическая математика",
-      codeRange: ["8.1", "8.2", "8.3", "8.4", "8.5"],
-      problems: []
+      id: "4",
+      name: "Числовые последовательности",
+      subtopics: [
+        { id: "4.1", name: "Последовательности", problems: [] },
+        { id: "4.2", name: "Арифметическая и геометрическая прогрессии", problems: [] }
+      ]
+    },
+    {
+      id: "5",
+      name: "Функции",
+      subtopics: [
+        { id: "5.1", name: "Свойства и графики функций", problems: [] }
+      ]
+    },
+    {
+      id: "6",
+      name: "Координаты на прямой и плоскости",
+      subtopics: [
+        { id: "6.1", name: "Координатная прямая", problems: [] },
+        { id: "6.2", name: "Декартовы координаты", problems: [] }
+      ]
+    },
+    {
+      id: "7",
+      name: "Геометрия",
+      subtopics: [
+        { id: "7.1", name: "Геометрические фигуры", problems: [] },
+        { id: "7.2", name: "Треугольники", problems: [] },
+        { id: "7.3", name: "Многоугольники", problems: [] },
+        { id: "7.4", name: "Окружность и круг", problems: [] },
+        { id: "7.5", name: "Измерения", problems: [] },
+        { id: "7.6", name: "Векторы", problems: [] },
+        { id: "7.7", name: "Дополнительные темы по геометрии", problems: [] }
+      ]
+    },
+    {
+      id: "8",
+      name: "Вероятность и статистика",
+      subtopics: [
+        { id: "8.1", name: "Описательная статистика", problems: [] },
+        { id: "8.2", name: "Вероятность", problems: [] },
+        { id: "8.3", name: "Комбинаторика", problems: [] },
+        { id: "8.4", name: "Множества", problems: [] },
+        { id: "8.5", name: "Графы", problems: [] }
+      ]
     }
   ];
 
@@ -103,15 +164,16 @@ const PracticeExercise = () => {
     }
   };
 
-  // Group problems by category
-  const categorizedProblems = categories.map(category => ({
-    ...category,
-    problems: problems.filter(problem => 
-      category.codeRange.includes(problem.code)
-    )
+  // Group problems by topics and subtopics
+  const organizedTopics = mainTopics.map(topic => ({
+    ...topic,
+    subtopics: topic.subtopics.map(subtopic => ({
+      ...subtopic,
+      problems: problems.filter(problem => problem.code === subtopic.id)
+    }))
   }));
 
-  const currentCategory = categorizedProblems.find(cat => cat.id === selectedCategory);
+  const currentTopic = organizedTopics.find(topic => topic.id === selectedTopic);
   
   const handleProblemSelect = (problem: Problem) => {
     setSelectedProblem(problem);
@@ -150,63 +212,80 @@ const PracticeExercise = () => {
       <div className="container mx-auto px-4 py-8 flex-grow">
         <h1 className="text-3xl font-bold mb-6">Практические задачи ОГЭ</h1>
 
-        {/* Category Navigation */}
+        {/* Main Topic Navigation */}
         <div className="flex overflow-x-auto mb-6 pb-2">
-          {categorizedProblems.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
-              className={`px-6 py-3 mr-2 rounded-lg font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-                selectedCategory === category.id
-                  ? "bg-primary text-white shadow-md"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {category.name}
-              <span className="text-xs bg-white/20 px-2 py-1 rounded">
-                {category.problems.length}
-              </span>
-            </button>
-          ))}
+          {organizedTopics.map((topic) => {
+            const totalProblems = topic.subtopics.reduce((sum, subtopic) => sum + subtopic.problems.length, 0);
+            return (
+              <button
+                key={topic.id}
+                onClick={() => setSelectedTopic(topic.id)}
+                className={`px-4 py-3 mr-2 rounded-lg font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
+                  selectedTopic === topic.id
+                    ? "bg-primary text-white shadow-md"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {topic.id}. {topic.name}
+                <span className="text-xs bg-white/20 px-2 py-1 rounded">
+                  {totalProblems}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Side - Problem List */}
+          {/* Left Side - Subtopics and Problems */}
           <div className="lg:col-span-1 bg-white p-4 rounded-xl shadow-sm">
             <h2 className="text-xl font-semibold mb-4">
-              {currentCategory?.name}
+              {currentTopic?.name}
             </h2>
             
             <ScrollArea className="h-[calc(100vh-300px)]">
-              <div className="space-y-2">
-                {currentCategory?.problems.map((problem) => (
-                  <button
-                    key={problem.question_id}
-                    onClick={() => handleProblemSelect(problem)}
-                    className={`w-full text-left p-3 rounded-lg transition-all flex items-center justify-between ${
-                      selectedProblem?.question_id === problem.question_id
-                        ? "bg-primary/10 border-l-4 border-primary"
-                        : "bg-gray-50 hover:bg-gray-100"
-                    }`}
-                  >
-                    <div className="flex-grow">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono text-sm bg-gray-200 px-2 py-1 rounded">
-                          {problem.code}
-                        </span>
-                        {problem.calculator_allowed && (
-                          <Calculator className="h-3 w-3 text-blue-500" />
-                        )}
-                        {problem.problem_image && (
-                          <ImageIcon className="h-3 w-3 text-green-500" />
-                        )}
+              <div className="space-y-4">
+                {currentTopic?.subtopics.map((subtopic) => (
+                  <div key={subtopic.id} className="border rounded-lg p-3">
+                    <h3 className="font-medium text-gray-800 mb-2 flex items-center justify-between">
+                      <span>{subtopic.id}. {subtopic.name}</span>
+                      <span className="text-xs bg-gray-200 px-2 py-1 rounded">
+                        {subtopic.problems.length}
+                      </span>
+                    </h3>
+                    
+                    {subtopic.problems.length > 0 ? (
+                      <div className="space-y-2">
+                        {subtopic.problems.map((problem) => (
+                          <button
+                            key={problem.question_id}
+                            onClick={() => handleProblemSelect(problem)}
+                            className={`w-full text-left p-2 rounded transition-all flex items-center justify-between text-sm ${
+                              selectedProblem?.question_id === problem.question_id
+                                ? "bg-primary/10 border-l-4 border-primary"
+                                : "bg-gray-50 hover:bg-gray-100"
+                            }`}
+                          >
+                            <div className="flex-grow">
+                              <div className="flex items-center gap-1 mb-1">
+                                {problem.calculator_allowed && (
+                                  <Calculator className="h-3 w-3 text-blue-500" />
+                                )}
+                                {problem.problem_image && (
+                                  <ImageIcon className="h-3 w-3 text-green-500" />
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-600 line-clamp-2">
+                                {problem.problem_text?.substring(0, 60)}...
+                              </p>
+                            </div>
+                            <ChevronRight className="h-3 w-3 text-gray-400" />
+                          </button>
+                        ))}
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {problem.problem_text?.substring(0, 80)}...
-                      </p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-gray-400" />
-                  </button>
+                    ) : (
+                      <p className="text-xs text-gray-500 italic">Задачи не найдены</p>
+                    )}
+                  </div>
                 ))}
               </div>
             </ScrollArea>
