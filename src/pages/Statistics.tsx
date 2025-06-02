@@ -6,22 +6,11 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Target, TrendingUp } from "lucide-react";
 import Header from "@/components/Header";
+import { useStudentSkills } from "@/hooks/useStudentSkills";
 
 const Statistics = () => {
   const [practiceHours, setPracticeHours] = useState([2]);
-  
-  // Mock progress data - in a real app, this would come from user's actual progress
-  const subjectProgress = {
-    algebra: 65,
-    arithmetic: 78,
-    geometry: 45,
-    practical: 82
-  };
-
-  // Calculate general preparedness (average of all subjects)
-  const generalPreparedness = Math.round(
-    (subjectProgress.algebra + subjectProgress.arithmetic + subjectProgress.geometry + subjectProgress.practical) / 4
-  );
+  const { topicProgress, generalPreparedness, isLoading, error } = useStudentSkills();
 
   // Calculate predicted grade based on general preparedness and practice hours
   const calculatePredictedGrade = () => {
@@ -49,6 +38,22 @@ const Statistics = () => {
     return "text-red-600";
   };
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="pt-20 pb-12">
+          <div className="container mx-auto px-4">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">Ошибка загрузки статистики</h1>
+              <p className="text-gray-600">{error}</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -61,49 +66,35 @@ const Statistics = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Subject Progress */}
+            {/* Topic Progress */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
-                  Прогресс по предметам
+                  Прогресс по темам
                 </CardTitle>
                 <CardDescription>
                   Ваш текущий уровень подготовки по каждой категории
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium">Алгебра</span>
-                    <span className="text-sm text-gray-500">{subjectProgress.algebra}%</span>
+              <CardContent className="space-y-4 max-h-96 overflow-y-auto">
+                {isLoading ? (
+                  <div className="text-center py-4">
+                    <div className="text-gray-500">Загрузка данных...</div>
                   </div>
-                  <Progress value={subjectProgress.algebra} className="h-2" />
-                </div>
-                
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium">Арифметика</span>
-                    <span className="text-sm text-gray-500">{subjectProgress.arithmetic}%</span>
-                  </div>
-                  <Progress value={subjectProgress.arithmetic} className="h-2" />
-                </div>
-                
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium">Геометрия</span>
-                    <span className="text-sm text-gray-500">{subjectProgress.geometry}%</span>
-                  </div>
-                  <Progress value={subjectProgress.geometry} className="h-2" />
-                </div>
-                
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium">Практические задачи</span>
-                    <span className="text-sm text-gray-500">{subjectProgress.practical}%</span>
-                  </div>
-                  <Progress value={subjectProgress.practical} className="h-2" />
-                </div>
+                ) : (
+                  <>
+                    {topicProgress.map((topic) => (
+                      <div key={topic.topic}>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm font-medium">{topic.topic}. {topic.name}</span>
+                          <span className="text-sm text-gray-500">{topic.averageScore}%</span>
+                        </div>
+                        <Progress value={topic.averageScore} className="h-2" />
+                      </div>
+                    ))}
+                  </>
+                )}
 
                 <Button variant="outline" className="w-full mt-4">
                   Подробная статистика
@@ -119,21 +110,29 @@ const Statistics = () => {
                   Общая готовность к экзамену
                 </CardTitle>
                 <CardDescription>
-                  Средний показатель подготовки
+                  Средний показатель подготовки по всем навыкам
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center mb-6">
-                  <div className="text-4xl font-bold text-primary mb-2">
-                    {generalPreparedness}%
+                {isLoading ? (
+                  <div className="text-center py-8">
+                    <div className="text-gray-500">Загрузка...</div>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {generalPreparedness >= 75 ? "Отличная подготовка!" : 
-                     generalPreparedness >= 50 ? "Хорошая подготовка" : 
-                     "Требуется больше практики"}
-                  </div>
-                </div>
-                <Progress value={generalPreparedness} className="h-3" />
+                ) : (
+                  <>
+                    <div className="text-center mb-6">
+                      <div className="text-4xl font-bold text-primary mb-2">
+                        {generalPreparedness}%
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {generalPreparedness >= 75 ? "Отличная подготовка!" : 
+                         generalPreparedness >= 50 ? "Хорошая подготовка" : 
+                         "Требуется больше практики"}
+                      </div>
+                    </div>
+                    <Progress value={generalPreparedness} className="h-3" />
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>

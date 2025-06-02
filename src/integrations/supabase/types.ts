@@ -207,6 +207,54 @@ export type Database = {
         }
         Relationships: []
       }
+      student_skills: {
+        Row: {
+          created_at: string | null
+          skill_1: number | null
+          skill_10: number | null
+          skill_181: number | null
+          skill_2: number | null
+          skill_3: number | null
+          skill_4: number | null
+          skill_5: number | null
+          skill_6: number | null
+          skill_7: number | null
+          skill_8: number | null
+          skill_9: number | null
+          uid: string
+        }
+        Insert: {
+          created_at?: string | null
+          skill_1?: number | null
+          skill_10?: number | null
+          skill_181?: number | null
+          skill_2?: number | null
+          skill_3?: number | null
+          skill_4?: number | null
+          skill_5?: number | null
+          skill_6?: number | null
+          skill_7?: number | null
+          skill_8?: number | null
+          skill_9?: number | null
+          uid: string
+        }
+        Update: {
+          created_at?: string | null
+          skill_1?: number | null
+          skill_10?: number | null
+          skill_181?: number | null
+          skill_2?: number | null
+          skill_3?: number | null
+          skill_4?: number | null
+          skill_5?: number | null
+          skill_6?: number | null
+          skill_7?: number | null
+          skill_8?: number | null
+          skill_9?: number | null
+          uid?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
