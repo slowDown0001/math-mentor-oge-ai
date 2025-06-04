@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -54,9 +53,9 @@ const Header = () => {
           {user ? (
             <>
               <Link to="/dashboard" className="text-gray-700 hover:text-primary font-medium transition-colors">Главная</Link>
-              <Link to="#features" className="text-gray-700 hover:text-primary font-medium transition-colors">Функции</Link>
               <Link to="/resources" className="text-gray-700 hover:text-primary font-medium transition-colors">Ресурсы</Link>
               <Link to="/practice" className="text-gray-700 hover:text-primary font-medium transition-colors">Практика</Link>
+              <Link to="/diagnostic" className="text-gray-700 hover:text-primary font-medium transition-colors">Диагностика</Link>
               <Link to="/statistics" className="text-gray-700 hover:text-primary font-medium transition-colors">Статистика</Link>
             </>
           ) : (
@@ -121,14 +120,14 @@ const Header = () => {
                 <Link to="/dashboard" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
                   Главная
                 </Link>
-                <Link to="#features" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-                  Функции
-                </Link>
                 <Link to="/resources" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
                   Ресурсы
                 </Link>
                 <Link to="/practice" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
                   Практика
+                </Link>
+                <Link to="/diagnostic" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+                  Диагностика
                 </Link>
                 <Link to="/statistics" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
                   Статистика

@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
+import { useStudentSkills } from "@/hooks/useStudentSkills";
 
 interface Message {
   id: number;
@@ -23,11 +24,12 @@ interface Message {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { generalPreparedness, isLoading } = useStudentSkills();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
   
   const [messages, setMessages] = useState<Message[]>([{
     id: 1,
-    text: `Здравствуйте, ${userName}! Рад видеть вас снова. У вас хороший прогресс подготовки к ОГЭ — 60%. Продолжайте в том же духе!`,
+    text: `Здравствуйте, ${userName}! Рад видеть вас снова. У вас хороший прогресс подготовки к ОГЭ — ${generalPreparedness}%. Продолжайте в том же духе!`,
     isUser: false,
     timestamp: new Date()
   }, {
@@ -78,37 +80,19 @@ const Dashboard = () => {
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                   <h2 className="text-xl font-semibold text-gray-800 mb-4">Прогресс подготовки к ОГЭ</h2>
                   <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm text-gray-700">Общий прогресс</span>
-                        <span className="text-sm font-medium text-primary">60%</span>
+                    {isLoading ? (
+                      <div className="text-center py-4">
+                        <div className="text-gray-500">Загрузка...</div>
                       </div>
-                      <Progress value={60} className="h-3 bg-primary/20" />
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm text-gray-700">Алгебра</span>
-                        <span className="text-sm font-medium text-primary">75%</span>
+                    ) : (
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm text-gray-700">Общий прогресс</span>
+                          <span className="text-sm font-medium text-primary">{generalPreparedness}%</span>
+                        </div>
+                        <Progress value={generalPreparedness} className="h-3 bg-primary/20" />
                       </div>
-                      <Progress value={75} className="h-3 bg-primary/20" />
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm text-gray-700">Геометрия</span>
-                        <span className="text-sm font-medium text-primary">45%</span>
-                      </div>
-                      <Progress value={45} className="h-3 bg-primary/20" />
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm text-gray-700">Теория вероятностей</span>
-                        <span className="text-sm font-medium text-primary">60%</span>
-                      </div>
-                      <Progress value={60} className="h-3 bg-primary/20" />
-                    </div>
+                    )}
                   </div>
                   
                   <div className="mt-6 flex space-x-3">

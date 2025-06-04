@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard";
 import Resources from "./pages/Resources";
 import Profile from "./pages/Profile";
 import Statistics from "./pages/Statistics";
+import DetailedStatistics from "./pages/DetailedStatistics";
+import DiagnosticTest from "./pages/DiagnosticTest";
 import { AuthProvider } from "./contexts/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 
@@ -33,6 +35,8 @@ const App = () => (
               <Route path="/practice" element={<PracticeExercise />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/statistics" element={<Statistics />} />
+              <Route path="/statistics/detailed" element={<DetailedStatistics />} />
+              <Route path="/diagnostic" element={<DiagnosticTest />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
