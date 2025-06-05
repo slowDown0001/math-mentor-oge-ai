@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Target, TrendingUp } from "lucide-react";
 import Header from "@/components/Header";
 import { useStudentSkills } from "@/hooks/useStudentSkills";
+import CastleVisualization from "@/components/CastleVisualization";
 
 const Statistics = () => {
   const [practiceHours, setPracticeHours] = useState([2]);
@@ -212,6 +213,11 @@ const Statistics = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Castle Visualization */}
+          <div className="mt-8">
+            <CastleVisualization topicProgress={topicProgress} isLoading={isLoading} />
           </div>
         </div>
       </main>
