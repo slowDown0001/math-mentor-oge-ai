@@ -77,11 +77,6 @@ export const sendChatMessage = async (
   messageHistory: Message[]
 ): Promise<Message> => {
   try {
-    // Check if API key is available
-    if (!import.meta.env.VITE_GROQ_API_KEY) {
-      throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
-    }
-    
     // Check if user is asking for help with current problem
     const helpResponse = handleHelpRequest(userMessage.text);
     if (helpResponse) {
@@ -142,13 +137,7 @@ export const sendChatMessage = async (
     let errorMessage = "Не удалось получить ответ от ассистента. ";
     
     if (error instanceof Error) {
-      if (error.message.includes('VITE_GROQ_API_KEY is not set')) {
-        errorMessage += "API ключ GROQ не настроен. Пожалуйста, добавьте VITE_GROQ_API_KEY в переменные окружения.";
-      } else if (error.message.includes('Groq API error')) {
-        errorMessage += "Ошибка API Groq: " + error.message;
-      } else {
-        errorMessage += error.message;
-      }
+      errorMessage += error.message;
     } else {
       errorMessage += "Пожалуйста, проверьте консоль для получения дополнительной информации.";
     }

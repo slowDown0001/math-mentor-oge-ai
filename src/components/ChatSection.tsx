@@ -23,15 +23,6 @@ const ChatSection = () => {
   const [isTyping, setIsTyping] = useState(false);
   
   useEffect(() => {
-    // Check if API key is available
-    if (!import.meta.env.VITE_GROQ_API_KEY) {
-      toast({
-        title: "Ошибка настройки",
-        description: "API ключ GROQ не настроен. Пожалуйста, добавьте VITE_GROQ_API_KEY в переменные окружения.",
-        variant: "destructive"
-      });
-    }
-    
     // Welcome message when component mounts
     if (messages.length === 0) {
       setMessages([
