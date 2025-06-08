@@ -12,9 +12,11 @@ export interface Message {
 interface ChatContextType {
   messages: Message[];
   isTyping: boolean;
+  isDatabaseMode: boolean;
   addMessage: (message: Message) => void;
   setMessages: (messages: Message[]) => void;
   setIsTyping: (isTyping: boolean) => void;
+  setIsDatabaseMode: (isDatabaseMode: boolean) => void;
   resetChat: () => void;
 }
 
@@ -35,6 +37,7 @@ interface ChatProviderProps {
 export const ChatProvider = ({ children }: ChatProviderProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isDatabaseMode, setIsDatabaseMode] = useState(false);
 
   const addMessage = (message: Message) => {
     setMessages(prev => [...prev, message]);
@@ -49,9 +52,11 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     <ChatContext.Provider value={{
       messages,
       isTyping,
+      isDatabaseMode,
       addMessage,
       setMessages,
       setIsTyping,
+      setIsDatabaseMode,
       resetChat
     }}>
       {children}

@@ -33,7 +33,7 @@ const formatProblemResponse = (problem: MathProblem): string => {
 
 const handleHelpRequest = (userMessage: string): string | null => {
   if (!currentProblem) {
-    return null; // Let the AI handle it naturally instead of showing error
+    return null;
   }
   
   const message = userMessage.toLowerCase();
@@ -72,63 +72,102 @@ const shouldFetchProblem = (userMessage: string): string | null => {
   return null;
 };
 
+const handleDatabaseOnlyMode = async (userMessage: string): Promise<string> => {
+  // Check for help requests first
+  const helpResponse = handleHelpRequest(userMessage);
+  if (helpResponse) {
+    return helpResponse;
+  }
+  
+  // Check for problem requests
+  const problemCategory = shouldFetchProblem(userMessage);
+  if (problemCategory) {
+    const requestedCategory = problemCategory === 'random' ? undefined : problemCategory;
+    const problem = await getRandomMathProblem(requestedCategory);
+    
+    if (problem) {
+      currentProblem = problem;
+      return formatProblemResponse(problem);
+    } else {
+      return "Извините, не удалось найти подходящую задачу в базе данных.";
+    }
+  }
+  
+  // For any other input in database mode, provide standard database responses
+  if (userMessage.toLowerCase().includes('помощь') || userMessage.toLowerCase().includes('что ты умеешь')) {
+    return `В режиме "База" я могу:\n\n• Предоставить задачи из базы данных\n• Показать ответы к задачам\n• Показать решения\n• Дать подробные объяснения\n\nЧтобы получить задачу, скажите "дай задачу" или укажите тему (алгебра, геометрия, арифметика).`;
+  }
+  
+  // Default response for database mode
+  return "В режиме работы с базой данных я могу предоставить только задачи и решения из базы. Скажите 'дай задачу' или укажите нужную тему.";
+};
+
 export const sendChatMessage = async (
   userMessage: Message,
-  messageHistory: Message[]
+  messageHistory: Message[],
+  isDatabaseMode: boolean = false
 ): Promise<Message> => {
   try {
-    // Check if user is asking for help with current problem
-    const helpResponse = handleHelpRequest(userMessage.text);
-    if (helpResponse) {
-      return {
-        id: messageHistory.length + 2,
-        text: helpResponse,
-        isUser: false,
-        timestamp: new Date(),
-        problemId: currentProblem?.question_id
-      };
-    }
+    let responseText: string;
     
-    // Check if user wants a practice problem
-    const problemCategory = shouldFetchProblem(userMessage.text);
-    if (problemCategory) {
-      const requestedCategory = problemCategory === 'random' ? undefined : problemCategory;
-      const problem = await getRandomMathProblem(requestedCategory);
-      
-      if (problem) {
-        currentProblem = problem;
+    if (isDatabaseMode) {
+      // Handle database-only mode
+      responseText = await handleDatabaseOnlyMode(userMessage.text);
+    } else {
+      // Check if user is asking for help with current problem
+      const helpResponse = handleHelpRequest(userMessage.text);
+      if (helpResponse) {
         return {
           id: messageHistory.length + 2,
-          text: formatProblemResponse(problem),
+          text: helpResponse,
           isUser: false,
           timestamp: new Date(),
-          problemId: problem.question_id
-        };
-      } else {
-        return {
-          id: messageHistory.length + 2,
-          text: "Извините, не удалось найти подходящую задачу. Попробуйте запросить другую тему.",
-          isUser: false,
-          timestamp: new Date()
+          problemId: currentProblem?.question_id
         };
       }
+      
+      // Check if user wants a practice problem
+      const problemCategory = shouldFetchProblem(userMessage.text);
+      if (problemCategory) {
+        const requestedCategory = problemCategory === 'random' ? undefined : problemCategory;
+        const problem = await getRandomMathProblem(requestedCategory);
+        
+        if (problem) {
+          currentProblem = problem;
+          return {
+            id: messageHistory.length + 2,
+            text: formatProblemResponse(problem),
+            isUser: false,
+            timestamp: new Date(),
+            problemId: problem.question_id
+          };
+        } else {
+          return {
+            id: messageHistory.length + 2,
+            text: "Извините, не удалось найти подходящую задачу. Попробуйте запросить другую тему.",
+            isUser: false,
+            timestamp: new Date()
+          };
+        }
+      }
+      
+      // For all other messages, send to AI for general math conversation
+      const groqMessages = [...messageHistory, userMessage].map(msg => ({
+        role: msg.isUser ? 'user' as const : 'assistant' as const,
+        content: msg.text
+      }));
+      
+      // Call Groq API for general conversation
+      responseText = await getChatCompletion(groqMessages);
     }
-    
-    // For all other messages, send to AI for general math conversation
-    const groqMessages = [...messageHistory, userMessage].map(msg => ({
-      role: msg.isUser ? 'user' as const : 'assistant' as const,
-      content: msg.text
-    }));
-    
-    // Call Groq API for general conversation
-    const aiResponse = await getChatCompletion(groqMessages);
     
     // Create and return AI message
     return {
       id: messageHistory.length + 2,
-      text: aiResponse,
+      text: responseText,
       isUser: false,
-      timestamp: new Date()
+      timestamp: new Date(),
+      problemId: currentProblem?.question_id
     };
   } catch (error) {
     console.error('Error getting response:', error);

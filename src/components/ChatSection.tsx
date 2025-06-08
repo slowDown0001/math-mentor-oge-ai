@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,7 +17,7 @@ export interface Message {
 
 const ChatSection = () => {
   const { user } = useAuth();
-  const { messages, isTyping, setMessages, setIsTyping, addMessage } = useChatContext();
+  const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
   
   // Initialize welcome messages if chat is empty
@@ -53,7 +54,7 @@ const ChatSection = () => {
 
     try {
       // Send message to AI and get response
-      const aiResponse = await sendChatMessage(newUserMessage, messages);
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
     } finally {
       setIsTyping(false);

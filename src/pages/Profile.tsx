@@ -20,7 +20,7 @@ export interface Message {
 
 const Profile = () => {
   const { user } = useAuth();
-  const { messages, isTyping, setMessages, setIsTyping, addMessage } = useChatContext();
+  const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
   
   // Extract user information from Supabase user data
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
@@ -55,7 +55,7 @@ const Profile = () => {
 
     try {
       // Send message to AI and get response using Groq API
-      const aiResponse = await sendChatMessage(newUserMessage, messages);
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
     } finally {
       setIsTyping(false);
