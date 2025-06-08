@@ -34,6 +34,9 @@ const Header = () => {
   // Determine where the logo should link to
   const logoLinkTarget = user ? "/dashboard" : "/";
   
+  // Determine where "Главная" should link to
+  const homeLinkTarget = user ? "/dashboard" : "/";
+  
   return (
     <header className="bg-white shadow-sm py-4 fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
@@ -52,7 +55,7 @@ const Header = () => {
         <nav className="hidden md:flex items-center space-x-8">
           {user ? (
             <>
-              <Link to="/dashboard" className="text-gray-700 hover:text-primary font-medium transition-colors">Главная</Link>
+              <Link to={homeLinkTarget} className="text-gray-700 hover:text-primary font-medium transition-colors">Главная</Link>
               <Link to="/resources" className="text-gray-700 hover:text-primary font-medium transition-colors">Ресурсы</Link>
               <Link to="/practice" className="text-gray-700 hover:text-primary font-medium transition-colors">Практика</Link>
               <Link to="/diagnostic" className="text-gray-700 hover:text-primary font-medium transition-colors">Диагностика</Link>
@@ -117,7 +120,7 @@ const Header = () => {
           <div className="flex flex-col space-y-5">
             {user ? (
               <>
-                <Link to="/dashboard" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+                <Link to={homeLinkTarget} className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
                   Главная
                 </Link>
                 <Link to="/resources" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
