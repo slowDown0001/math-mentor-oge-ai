@@ -1,9 +1,8 @@
-
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { BookOpen, Video, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Card } from "@/components/ui/card";
 import Header from "@/components/Header";
@@ -13,6 +12,7 @@ import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
 import { useStudentSkills } from "@/hooks/useStudentSkills";
+import { useChatContext } from "@/contexts/ChatContext";
 
 interface Message {
   id: number;
@@ -25,21 +25,29 @@ interface Message {
 const Dashboard = () => {
   const { user } = useAuth();
   const { generalPreparedness, isLoading } = useStudentSkills();
+  const { messages, isTyping, setMessages, setIsTyping, addMessage } = useChatContext();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
   
-  const [messages, setMessages] = useState<Message[]>([{
-    id: 1,
-    text: `Здравствуйте, ${userName}! Рад видеть вас снова. У вас хороший прогресс подготовки к ОГЭ — ${generalPreparedness}%. Продолжайте в том же духе!`,
-    isUser: false,
-    timestamp: new Date()
-  }, {
-    id: 2,
-    text: "На сегодня я рекомендую вам изучить тему по геометрии: 'Подобие треугольников'. Хотите посмотреть видеоурок или сразу перейти к практическим заданиям?",
-    isUser: false,
-    timestamp: new Date()
-  }]);
-  
-  const [isTyping, setIsTyping] = useState(false);
+  // Initialize welcome messages if chat is empty
+  useEffect(() => {
+    if (messages.length === 0) {
+      const welcomeMessages = [
+        {
+          id: 1,
+          text: `Здравствуйте, ${userName}! Рад видеть вас снова. У вас хороший прогресс подготовки к ОГЭ — ${generalPreparedness}%. Продолжайте в том же духе!`,
+          isUser: false,
+          timestamp: new Date()
+        },
+        {
+          id: 2,
+          text: "На сегодня я рекомендую вам изучить тему по геометрии: 'Подобие треугольников'. Хотите посмотреть видеоурок или сразу перейти к практическим заданиям?",
+          isUser: false,
+          timestamp: new Date()
+        }
+      ];
+      setMessages(welcomeMessages);
+    }
+  }, [messages.length, userName, generalPreparedness, setMessages]);
   
   const handleSendMessage = async (userInput: string) => {
     if (userInput.trim() === "") return;
@@ -52,13 +60,13 @@ const Dashboard = () => {
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, newUserMessage]);
+    addMessage(newUserMessage);
     setIsTyping(true);
 
     try {
       // Send message to AI and get response using Groq API
       const aiResponse = await sendChatMessage(newUserMessage, messages);
-      setMessages(prev => [...prev, aiResponse]);
+      addMessage(aiResponse);
     } finally {
       setIsTyping(false);
     }

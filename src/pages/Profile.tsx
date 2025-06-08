@@ -1,14 +1,14 @@
-
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserProfileCard } from "@/components/profile/UserProfileCard";
 import { ProfileTabs } from "@/components/profile/ProfileTabs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
+import { useChatContext } from "@/contexts/ChatContext";
 
 export interface Message {
   id: number;
@@ -20,20 +20,24 @@ export interface Message {
 
 const Profile = () => {
   const { user } = useAuth();
+  const { messages, isTyping, setMessages, setIsTyping, addMessage } = useChatContext();
   
   // Extract user information from Supabase user data
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
   const userEmail = user?.email || '';
   const joinedDate = new Date(user?.created_at || Date.now()).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
   
-  const [messages, setMessages] = useState<Message[]>([{
-    id: 1,
-    text: `Привет, ${userName}! Я могу помочь тебе разобраться с любыми вопросами по математике. Чем я могу тебе помочь?`,
-    isUser: false,
-    timestamp: new Date()
-  }]);
-  
-  const [isTyping, setIsTyping] = useState(false);
+  // Initialize welcome message if chat is empty
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([{
+        id: 1,
+        text: `Привет, ${userName}! Я могу помочь тебе разобраться с любыми вопросами по математике. Чем я могу тебе помочь?`,
+        isUser: false,
+        timestamp: new Date()
+      }]);
+    }
+  }, [messages.length, userName, setMessages]);
   
   const handleSendMessage = async (userInput: string) => {
     if (userInput.trim() === "") return;
@@ -46,13 +50,13 @@ const Profile = () => {
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, newUserMessage]);
+    addMessage(newUserMessage);
     setIsTyping(true);
 
     try {
       // Send message to AI and get response using Groq API
       const aiResponse = await sendChatMessage(newUserMessage, messages);
-      setMessages(prev => [...prev, aiResponse]);
+      addMessage(aiResponse);
     } finally {
       setIsTyping(false);
     }

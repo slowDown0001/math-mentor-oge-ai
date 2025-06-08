@@ -1,8 +1,7 @@
-
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
+import { useChatContext } from "@/contexts/ChatContext";
 import ChatMessages from "./chat/ChatMessages";
 import ChatInput from "./chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
@@ -17,13 +16,11 @@ export interface Message {
 
 const ChatSection = () => {
   const { user } = useAuth();
+  const { messages, isTyping, setMessages, setIsTyping, addMessage } = useChatContext();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
   
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  
+  // Initialize welcome messages if chat is empty
   useEffect(() => {
-    // Welcome message when component mounts
     if (messages.length === 0) {
       setMessages([
         {
@@ -40,7 +37,7 @@ const ChatSection = () => {
         }
       ]);
     }
-  }, [userName]);
+  }, [messages.length, userName, setMessages]);
   
   const handleSendMessage = async (userInput: string) => {
     // Add user message
@@ -51,13 +48,13 @@ const ChatSection = () => {
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, newUserMessage]);
+    addMessage(newUserMessage);
     setIsTyping(true);
 
     try {
       // Send message to AI and get response
       const aiResponse = await sendChatMessage(newUserMessage, messages);
-      setMessages(prev => [...prev, aiResponse]);
+      addMessage(aiResponse);
     } finally {
       setIsTyping(false);
     }
