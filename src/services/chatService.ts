@@ -1,5 +1,3 @@
-
-
 import { getChatCompletion, type Message as GroqMessage } from "./groqService";
 import { getRandomMathProblem, getMathProblemById, getCategoryByCode, type MathProblem } from "./mathProblemsService";
 import { toast } from "@/hooks/use-toast";
@@ -79,8 +77,8 @@ export const sendChatMessage = async (
 ): Promise<Message> => {
   try {
     // Check if API key is available
-    if (!process.env.GROQ_API_KEY) {
-      throw new Error('GROQ_API_KEY is not set in environment variables');
+    if (!import.meta.env.VITE_GROQ_API_KEY) {
+      throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
     }
     
     // Check if user is asking for help with current problem
@@ -143,8 +141,8 @@ export const sendChatMessage = async (
     let errorMessage = "Не удалось получить ответ от ассистента. ";
     
     if (error instanceof Error) {
-      if (error.message.includes('GROQ_API_KEY is not set')) {
-        errorMessage += "API ключ GROQ не настроен. Пожалуйста, добавьте GROQ_API_KEY в переменные окружения.";
+      if (error.message.includes('VITE_GROQ_API_KEY is not set')) {
+        errorMessage += "API ключ GROQ не настроен. Пожалуйста, добавьте VITE_GROQ_API_KEY в переменные окружения.";
       } else if (error.message.includes('Groq API error')) {
         errorMessage += "Ошибка API Groq: " + error.message;
       } else {

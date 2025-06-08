@@ -24,10 +24,10 @@ const ChatSection = () => {
   
   useEffect(() => {
     // Check if API key is available
-    if (!process.env.GROQ_API_KEY) {
+    if (!import.meta.env.VITE_GROQ_API_KEY) {
       toast({
         title: "Ошибка настройки",
-        description: "API ключ GROQ не настроен. Пожалуйста, добавьте GROQ_API_KEY в переменные окружения.",
+        description: "API ключ GROQ не настроен. Пожалуйста, добавьте VITE_GROQ_API_KEY в переменные окружения.",
         variant: "destructive"
       });
     }
