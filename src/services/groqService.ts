@@ -1,3 +1,4 @@
+
 import { getRandomMathProblem, getMathProblemById } from "@/services/mathProblemsService";
 
 // Groq API service for chat completions
@@ -7,12 +8,12 @@ export interface Message {
 }
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-// Use Vite's environment variable syntax instead of process.env
-const VITE_GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+// Use process.env for server-side environment variable access
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 // Check if API key is available
-if (!VITE_GROQ_API_KEY) {
-  console.error('VITE_GROQ_API_KEY is not set in environment variables');
+if (!GROQ_API_KEY) {
+  console.error('GROQ_API_KEY is not set in environment variables');
 }
 
 // Enhanced system prompt for the math tutor
@@ -34,8 +35,8 @@ Remember: You are a patient, encouraging teacher who helps students learn mathem
 
 export async function streamChatCompletion(messages: Message[]): Promise<ReadableStream<Uint8Array> | null> {
   try {
-    if (!VITE_GROQ_API_KEY) {
-      throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
+    if (!GROQ_API_KEY) {
+      throw new Error('GROQ_API_KEY is not set in environment variables');
     }
 
     const fullMessages = [SYSTEM_PROMPT, ...messages];
@@ -44,7 +45,7 @@ export async function streamChatCompletion(messages: Message[]): Promise<Readabl
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${VITE_GROQ_API_KEY}`
+        'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
@@ -133,7 +134,7 @@ export async function getChatCompletion(messages: Message[]): Promise<string> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${VITE_GROQ_API_KEY}`
+        'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
