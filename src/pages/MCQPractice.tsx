@@ -39,6 +39,9 @@ const MCQPractice = () => {
   const skills = mathSkillsData as MathSkill[];
   const currentSkill = skills.find(s => s.id === skillId);
 
+  // Russian option labels
+  const optionLabels = ['А', 'Б', 'В', 'Г'];
+
   useEffect(() => {
     fetchQuestions();
   }, [skillId]);
@@ -235,7 +238,7 @@ const MCQPractice = () => {
                             : 'bg-white border-gray-200 hover:bg-gray-50'
                         } ${isAnswered ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
                       >
-                        <span className="font-medium mr-3">{index + 1})</span>
+                        <span className="font-bold text-blue-600 mr-3">{optionLabels[index]}.</span>
                         <LatexRenderer content={option} />
                       </button>
                     ))}
