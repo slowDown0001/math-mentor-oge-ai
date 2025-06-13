@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import LatexRenderer from "@/components/chat/LatexRenderer";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +42,7 @@ interface Article {
 }
 
 const DigitalTextbook = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
   const [selectedSubtopic, setSelectedSubtopic] = useState<string | null>(null);
@@ -131,6 +133,10 @@ const DigitalTextbook = () => {
     setSelectedSkill(skill);
     // Small delay to show loading state
     setTimeout(() => setLoadingArticle(false), 300);
+  };
+
+  const handleGoToExercise = (skillId: number) => {
+    navigate(`/mcq-practice?skill=${skillId}`);
   };
 
   const filteredSkills = getFilteredSkills();
@@ -278,9 +284,19 @@ const DigitalTextbook = () => {
                           const articleContent = getArticleForSkill(selectedSkill.id);
                           if (articleContent) {
                             return (
-                              <div className="prose max-w-none">
-                                <LatexRenderer content={articleContent} />
-                              </div>
+                              <>
+                                <div className="prose max-w-none">
+                                  <LatexRenderer content={articleContent} />
+                                </div>
+                                <div className="flex justify-center pt-6 border-t">
+                                  <Button 
+                                    onClick={() => handleGoToExercise(selectedSkill.id)}
+                                    className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
+                                  >
+                                    Перейти к упражнениям!
+                                  </Button>
+                                </div>
+                              </>
                             );
                           } else {
                             return (
@@ -289,9 +305,15 @@ const DigitalTextbook = () => {
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                                   Материал готовится
                                 </h3>
-                                <p className="text-gray-600">
+                                <p className="text-gray-600 mb-6">
                                   Содержимое для навыка "{selectedSkill.skill}" скоро будет добавлено
                                 </p>
+                                <Button 
+                                  onClick={() => handleGoToExercise(selectedSkill.id)}
+                                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
+                                >
+                                  Перейти к упражнениям!
+                                </Button>
                               </div>
                             );
                           }
