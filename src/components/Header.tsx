@@ -1,192 +1,180 @@
-import { Button } from "@/components/ui/button";
+
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, BookOpen, Brain, Users, BarChart3, Calculator } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "./auth/AuthModal";
+import { Link, useLocation } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalView, setAuthModalView] = useState<'signin' | 'signup'>('signin');
-  const navigate = useNavigate();
-  const location = useLocation();
   const { user, signOut } = useAuth();
-  
-  const handleSignInClick = () => {
-    setAuthModalView('signin');
-    setIsAuthModalOpen(true);
+  const location = useLocation();
+
+  const navigation = [
+    { name: "Главная", href: "/", icon: BookOpen },
+    { name: "Учебник", href: "/textbook", icon: BookOpen },
+    { name: "Ресурсы", href: "/resources", icon: Brain },
+  ];
+
+  const userNavigation = user ? [
+    { name: "Панель управления", href: "/dashboard", icon: BarChart3 },
+    { name: "Профиль", href: "/profile", icon: Users },
+    { name: "Статистика", href: "/statistics", icon: BarChart3 },
+    { name: "Практика", href: "/practice", icon: Calculator },
+  ] : [];
+
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return location.pathname === "/";
+    }
+    return location.pathname.startsWith(href);
   };
 
-  const handleSignUpClick = () => {
-    setAuthModalView('signup');
-    setIsAuthModalOpen(true);
-  };
-
-  const handleProfileButton = () => {
-    navigate("/profile");
-  };
-
-  const handleLogout = async () => {
-    await signOut();
-  };
-  
-  // Determine where the logo should link to
-  const logoLinkTarget = user ? "/dashboard" : "/";
-  
-  // Determine where "Главная" should link to
-  const homeLinkTarget = user ? "/dashboard" : "/";
-  
   return (
-    <header className="bg-white shadow-sm py-4 fixed top-0 left-0 w-full z-50">
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        <Link to={logoLinkTarget} className="flex items-center space-x-2">
-          <img 
-            alt="Логотип Ёжик" 
-            className="h-10 w-auto" 
-            src="/lovable-uploads/9082b302-65e2-4b6f-b4e2-850a5f0c9bb1.png" 
-          />
-          <div className="font-heading font-bold text-xl text-primary">
-            Ёжик <span className="text-accent">AI</span>
-          </div>
-        </Link>
-        
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {user ? (
-            <>
-              <Link to={homeLinkTarget} className="text-gray-700 hover:text-primary font-medium transition-colors">Главная</Link>
-              <Link to="/resources" className="text-gray-700 hover:text-primary font-medium transition-colors">Ресурсы</Link>
-              <Link to="/practice" className="text-gray-700 hover:text-primary font-medium transition-colors">Практика</Link>
-              <Link to="/diagnostic" className="text-gray-700 hover:text-primary font-medium transition-colors">Диагностика</Link>
-              <Link to="/statistics" className="text-gray-700 hover:text-primary font-medium transition-colors">Статистика</Link>
-            </>
-          ) : (
-            <div className="flex-1"></div>
-          )}
-        </nav>
-        
-        <div className="hidden md:flex items-center space-x-4">
-          {!user ? (
-            <>
-              <Button 
-                variant="outline" 
-                className="border-2 border-primary text-primary hover:bg-primary/5 rounded-full"
-                onClick={handleSignInClick}
-              >
-                Вход
-              </Button>
-              <Button 
-                className="bg-primary hover:bg-primary/90 rounded-full"
-                onClick={handleSignUpClick}
-              >
-                Начать бесплатно
-              </Button>
-            </>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline"
-                className="gap-2 border-gray-300 rounded-full"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-4 w-4" />
-                Выйти
-              </Button>
-              <Button 
-                className="flex items-center gap-2 bg-primary hover:bg-primary/90 rounded-full"
-                onClick={handleProfileButton}
-              >
-                <User className="h-4 w-4" />
-                Профиль
-              </Button>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">ОГЭ</span>
             </div>
-          )}
-        </div>
-        
-        {/* Mobile Menu Button */}
-        <button className="md:hidden text-gray-700" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          {isMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
-        </button>
-      </div>
-      
-      {/* Mobile Navigation */}
-      {isMenuOpen && (
-        <div className="absolute top-16 left-0 w-full bg-white shadow-md py-6 px-4 md:hidden z-50 animate-fade-in">
-          <div className="flex flex-col space-y-5">
-            {user ? (
-              <>
-                <Link to={homeLinkTarget} className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-                  Главная
-                </Link>
-                <Link to="/resources" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-                  Ресурсы
-                </Link>
-                <Link to="/practice" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-                  Практика
-                </Link>
-                <Link to="/diagnostic" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-                  Диагностика
-                </Link>
-                <Link to="/statistics" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-                  Статистика
-                </Link>
-              </>
-            ) : (
-              <div className="pt-2"></div>
-            )}
-            
-            <div className="flex flex-col space-y-3 pt-4 border-t">
-              {!user ? (
-                <>
-                  <Button 
-                    variant="outline" 
-                    className="border-2 border-primary text-primary hover:bg-primary/5 w-full rounded-full"
-                    onClick={handleSignInClick}
-                  >
-                    Вход
-                  </Button>
-                  <Button 
-                    className="bg-primary hover:bg-primary/90 w-full rounded-full"
-                    onClick={handleSignUpClick}
-                  >
-                    Начать бесплатно
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button 
-                    variant="outline"
-                    className="gap-2 border-gray-300 w-full rounded-full"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Выйти
-                  </Button>
-                  <Button 
-                    className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 w-full rounded-full"
-                    onClick={handleProfileButton}
-                  >
-                    <User className="h-4 w-4" />
-                    Профиль
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+            <span className="font-bold text-xl text-primary font-heading">Hedgehog</span>
+          </Link>
 
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
-        initialView={authModalView}
-      />
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex space-x-8">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? "text-primary bg-primary/10"
+                      : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+            {userNavigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? "text-primary bg-primary/10"
+                      : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Auth Section */}
+          <div className="hidden md:flex items-center space-x-4">
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-700">
+                  Привет, {user.email?.split('@')[0]}!
+                </span>
+                <Button onClick={signOut} variant="outline" size="sm">
+                  Выйти
+                </Button>
+              </div>
+            ) : (
+              <AuthModal />
+            )}
+          </div>
+
+          {/* Mobile Menu */}
+          <div className="md:hidden">
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <nav className="flex flex-col space-y-4 mt-8">
+                  {navigation.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-md text-base font-medium transition-colors ${
+                          isActive(item.href)
+                            ? "text-primary bg-primary/10"
+                            : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span>{item.name}</span>
+                      </Link>
+                    );
+                  })}
+                  {userNavigation.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-md text-base font-medium transition-colors ${
+                          isActive(item.href)
+                            ? "text-primary bg-primary/10"
+                            : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span>{item.name}</span>
+                      </Link>
+                    );
+                  })}
+                  
+                  <div className="pt-4 border-t">
+                    {user ? (
+                      <div className="space-y-4">
+                        <div className="px-4">
+                          <p className="text-sm text-gray-700">
+                            Привет, {user.email?.split('@')[0]}!
+                          </p>
+                        </div>
+                        <Button 
+                          onClick={() => {
+                            signOut();
+                            setIsMenuOpen(false);
+                          }} 
+                          variant="outline" 
+                          className="w-full"
+                        >
+                          Выйти
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="px-4">
+                        <AuthModal />
+                      </div>
+                    )}
+                  </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
     </header>
   );
 };
