@@ -382,7 +382,7 @@ const DigitalTextbook = () => {
                                           {skill.id}
                                         </Badge>
                                         <span className="text-sm">{skill.skill}</span>
-                                      </div>
+                                      </button>
                                     ))}
                                   </div>
                                 </div>
