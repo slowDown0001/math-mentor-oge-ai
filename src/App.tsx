@@ -41,66 +41,56 @@ const App = () => (
                   </Suspense>
                 } 
               />
-              <Route
-                path="/dashboard"
-                element={
-                  <PrivateRoute>
+              <Route element={<PrivateRoute />}>
+                <Route
+                  path="/dashboard"
+                  element={
                     <Suspense fallback={<div>Loading...</div>}>
                       <Dashboard />
                     </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
                     <Suspense fallback={<div>Loading...</div>}>
                       <Profile />
                     </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/diagnostic"
-                element={
-                  <PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/diagnostic"
+                  element={
                     <Suspense fallback={<div>Loading...</div>}>
                       <DiagnosticTest />
                     </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/statistics"
-                element={
-                  <PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/statistics"
+                  element={
                     <Suspense fallback={<div>Loading...</div>}>
                       <Statistics />
                     </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/detailed-statistics"
-                element={
-                  <PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/detailed-statistics"
+                  element={
                     <Suspense fallback={<div>Loading...</div>}>
                       <DetailedStatistics />
                     </Suspense>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/practice"
-                element={
-                  <PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/practice"
+                  element={
                     <Suspense fallback={<div>Loading...</div>}>
                       <PracticeExercise />
                     </Suspense>
-                  </PrivateRoute>
-                }
-              />
+                  }
+                />
+              </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
