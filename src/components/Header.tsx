@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Menu, X, BookOpen, Brain, Users, BarChart3, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,6 @@ const Header = () => {
   const navigation = [
     { name: "Главная", href: "/", icon: BookOpen },
     { name: "Учебник", href: "/textbook", icon: BookOpen },
-    { name: "Ресурсы", href: "/resources", icon: Brain },
   ];
 
   const userNavigation = user ? [
@@ -97,6 +95,11 @@ const Header = () => {
               <AuthModal 
                 isOpen={isAuthModalOpen} 
                 onClose={() => setIsAuthModalOpen(false)}
+                trigger={
+                  <Button onClick={() => setIsAuthModalOpen(true)}>
+                    Войти
+                  </Button>
+                }
               />
             )}
           </div>
@@ -172,6 +175,14 @@ const Header = () => {
                         <AuthModal 
                           isOpen={isAuthModalOpen} 
                           onClose={() => setIsAuthModalOpen(false)}
+                          trigger={
+                            <Button 
+                              onClick={() => setIsAuthModalOpen(true)}
+                              className="w-full"
+                            >
+                              Войти
+                            </Button>
+                          }
                         />
                       </div>
                     )}

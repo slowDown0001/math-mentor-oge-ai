@@ -16,7 +16,6 @@ const DiagnosticTest = lazy(() => import("./pages/DiagnosticTest"));
 const Statistics = lazy(() => import("./pages/Statistics"));
 const DetailedStatistics = lazy(() => import("./pages/DetailedStatistics"));
 const PracticeExercise = lazy(() => import("./pages/PracticeExercise"));
-const Resources = lazy(() => import("./pages/Resources"));
 const DigitalTextbook = lazy(() => import("./pages/DigitalTextbook"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -33,7 +32,6 @@ const App = () => (
             <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/resources" element={<Resources />} />
                 <Route path="/textbook" element={<DigitalTextbook />} />
                 <Route element={<PrivateRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
