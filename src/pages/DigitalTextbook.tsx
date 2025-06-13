@@ -43,6 +43,7 @@ interface Article {
 const DigitalTextbook = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
+  const [selectedSubtopic, setSelectedSubtopic] = useState<string | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<MathSkill | null>(null);
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["1"]));
   const [articles, setArticles] = useState<Article[]>([]);
@@ -115,7 +116,14 @@ const DigitalTextbook = () => {
 
   const handleTopicSelect = (topicNum: string) => {
     setSelectedTopic(topicNum);
+    setSelectedSubtopic(null);
     setSelectedSkill(null); // Clear selected skill when changing topic
+  };
+
+  const handleSubtopicSelect = (subtopicId: string) => {
+    setSelectedSubtopic(subtopicId);
+    setSelectedTopic("subtopic");
+    setSelectedSkill(null);
   };
 
   const handleSkillSelect = (skill: MathSkill) => {
@@ -203,29 +211,15 @@ const DigitalTextbook = () => {
                             </CollapsibleTrigger>
                             <CollapsibleContent className="space-y-1 ml-2 mt-1">
                               {subtopics.map((subtopic) => (
-                                <div key={subtopic.topic} className="mb-2">
-                                  <div className="p-2 text-xs text-gray-600 font-medium mb-1">
-                                    {subtopic.topic} {subtopic.name} ({subtopic.skills.length})
-                                  </div>
-                                  <div className="ml-2 space-y-1">
-                                    {subtopic.skills.map((skillId) => {
-                                      const skill = skills.find(s => s.id === skillId);
-                                      if (!skill) return null;
-                                      
-                                      return (
-                                        <button
-                                          key={skill.id}
-                                          onClick={() => handleSkillSelect(skill)}
-                                          className={`w-full text-left p-1 text-xs rounded hover:bg-gray-100 transition-colors ${
-                                            selectedSkill?.id === skill.id ? 'bg-blue-100 text-blue-800' : 'text-gray-700'
-                                          }`}
-                                        >
-                                          {skill.id}. {skill.skill}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
+                                <button
+                                  key={subtopic.topic}
+                                  onClick={() => handleSubtopicSelect(subtopic.topic)}
+                                  className={`w-full text-left p-2 text-xs rounded hover:bg-gray-100 transition-colors ${
+                                    selectedSubtopic === subtopic.topic ? 'bg-blue-100 text-blue-800' : 'text-gray-700'
+                                  }`}
+                                >
+                                  {subtopic.topic} {subtopic.name} ({subtopic.skills.length})
+                                </button>
                               ))}
                             </CollapsibleContent>
                           </Collapsible>
@@ -315,6 +309,11 @@ const DigitalTextbook = () => {
                       <h2 className="text-2xl font-bold text-gray-900 mb-2">
                         {selectedTopic === "Special" 
                           ? "Дополнительные навыки" 
+                          : selectedTopic === "subtopic" && selectedSubtopic
+                          ? (() => {
+                              const subtopic = mappings.find(m => m.topic === selectedSubtopic);
+                              return subtopic ? `${subtopic.topic} ${subtopic.name}` : "Подтема";
+                            })()
                           : `${selectedTopic}. ${mainTopics[selectedTopic as keyof typeof mainTopics]}`
                         }
                       </h2>
@@ -323,7 +322,44 @@ const DigitalTextbook = () => {
 
                   {/* Skills List */}
                   <div className="space-y-4">
-                    {selectedTopic === "all" ? (
+                    {selectedTopic === "subtopic" && selectedSubtopic ? (
+                      // Show selected subtopic skills
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>
+                            {(() => {
+                              const subtopic = mappings.find(m => m.topic === selectedSubtopic);
+                              return subtopic ? `${subtopic.topic} ${subtopic.name}` : "Подтема";
+                            })()}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid gap-2">
+                            {(() => {
+                              const subtopic = mappings.find(m => m.topic === selectedSubtopic);
+                              if (!subtopic) return null;
+                              
+                              const subtopicSkills = filteredSkills.filter(skill => 
+                                subtopic.skills.includes(skill.id)
+                              );
+                              
+                              return subtopicSkills.map((skill) => (
+                                <button
+                                  key={skill.id}
+                                  onClick={() => handleSkillSelect(skill)}
+                                  className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded text-left transition-colors"
+                                >
+                                  <Badge variant="outline" className="text-xs">
+                                    {skill.id}
+                                  </Badge>
+                                  <span className="text-sm">{skill.skill}</span>
+                                </button>
+                              ));
+                            })()}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : selectedTopic === "all" ? (
                       // Show all skills organized by topics
                       Object.entries(mainTopics).map(([topicNum, topicName]) => {
                         const subtopics = getSubtopicsForMainTopic(topicNum);
