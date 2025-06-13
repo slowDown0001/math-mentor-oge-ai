@@ -9,6 +9,7 @@ import { Link, useLocation } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { user, signOut } = useAuth();
   const location = useLocation();
 
@@ -93,7 +94,10 @@ const Header = () => {
                 </Button>
               </div>
             ) : (
-              <AuthModal />
+              <AuthModal 
+                isOpen={isAuthModalOpen} 
+                onClose={() => setIsAuthModalOpen(false)}
+              />
             )}
           </div>
 
@@ -165,7 +169,10 @@ const Header = () => {
                       </div>
                     ) : (
                       <div className="px-4">
-                        <AuthModal />
+                        <AuthModal 
+                          isOpen={isAuthModalOpen} 
+                          onClose={() => setIsAuthModalOpen(false)}
+                        />
                       </div>
                     )}
                   </div>

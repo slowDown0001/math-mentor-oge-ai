@@ -24,16 +24,23 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <ChatProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
+        <ChatProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/resources" element={<Resources />} />
-              <Route path="/textbook" element={<DigitalTextbook />} />
+              <Route 
+                path="/textbook" 
+                element={
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <DigitalTextbook />
+                  </Suspense>
+                } 
+              />
               <Route
                 path="/dashboard"
                 element={
@@ -96,10 +103,10 @@ const App = () => (
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ChatProvider>
-    </AuthProvider>
+          </TooltipProvider>
+        </ChatProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 

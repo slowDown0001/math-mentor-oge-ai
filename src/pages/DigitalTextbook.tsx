@@ -1,68 +1,59 @@
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, Search, Bookmark, ChevronDown, ChevronRight } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useToast } from '@/hooks/use-toast';
-import mathSkills from '/documentation/math_skills_full.json';
+import { useState, useEffect } from "react";
+import { Book, Search, Star, ChevronRight, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import Header from "@/components/Header";
+import { supabase } from "@/lib/supabase";
 
-// Topic mapping based on topics.md
-const topicMapping = {
+// Mock data structures for math_skills_full.json and topics mapping
+const mathSkillsMapping = {
   1: "Числа и вычисления",
   2: "Алгебраические выражения", 
   3: "Уравнения и неравенства",
-  4: "Числовые последовательности",
-  5: "Функции",
-  6: "Координаты на прямой и плоскости",
-  7: "Геометрия",
-  8: "Вероятность и статистика"
+  4: "Функции",
+  5: "Координаты и графики",
+  6: "Арифметическая прогрессия",
+  7: "Геометрические фигуры",
+  8: "Площади и объёмы"
 };
 
-const skillToTopicMap: { [key: number]: number } = {
-  // Numbers and calculations (1-34)
-  1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1, 13: 1, 14: 1, 15: 1, 16: 1, 17: 1, 18: 1, 19: 1, 20: 1, 21: 1, 22: 1, 23: 1, 24: 1, 25: 1, 26: 1, 27: 1, 28: 1, 29: 1, 30: 1, 31: 1, 32: 1, 33: 1, 34: 1,
-  // Algebraic expressions (35-58)
-  35: 2, 36: 2, 37: 2, 38: 2, 39: 2, 40: 2, 41: 2, 42: 2, 43: 2, 44: 2, 45: 2, 46: 2, 47: 2, 48: 2, 49: 2, 50: 2, 51: 2, 52: 2, 53: 2, 54: 2, 55: 2, 56: 2, 57: 2, 58: 2,
-  // Equations and inequalities (59-76)
-  59: 3, 60: 3, 61: 3, 62: 3, 63: 3, 64: 3, 65: 3, 66: 3, 67: 3, 68: 3, 69: 3, 70: 3, 71: 3, 72: 3, 73: 3, 74: 3, 75: 3, 76: 3,
-  // Number sequences (77-89)
-  77: 4, 78: 4, 79: 4, 80: 4, 81: 4, 82: 4, 83: 4, 84: 4, 85: 4, 86: 4, 87: 4, 88: 4, 89: 4,
-  // Functions (90-103)
-  90: 5, 91: 5, 92: 5, 93: 5, 94: 5, 95: 5, 96: 5, 97: 5, 98: 5, 99: 5, 100: 5, 101: 5, 102: 5, 103: 5,
-  // Coordinates (104-112)
-  104: 6, 105: 6, 106: 6, 107: 6, 108: 6, 109: 6, 110: 6, 111: 6, 112: 6,
-  // Geometry (113-162)
-  113: 7, 114: 7, 115: 7, 116: 7, 117: 7, 118: 7, 119: 7, 120: 7, 121: 7, 122: 7, 123: 7, 124: 7, 125: 7, 126: 7, 127: 7, 128: 7, 129: 7, 130: 7, 131: 7, 132: 7, 133: 7, 134: 7, 135: 7, 136: 7, 137: 7, 138: 7, 139: 7, 140: 7, 141: 7, 142: 7, 143: 7, 144: 7, 145: 7, 146: 7, 147: 7, 148: 7, 149: 7, 150: 7, 151: 7, 152: 7, 153: 7, 154: 7, 155: 7, 156: 7, 157: 7, 158: 7, 159: 7, 160: 7, 161: 7, 162: 7,
-  // Probability and statistics (163-179)
-  163: 8, 164: 8, 165: 8, 166: 8, 167: 8, 168: 8, 169: 8, 170: 8, 171: 8, 172: 8, 173: 8, 174: 8, 175: 8, 176: 8, 177: 8, 178: 8, 179: 8,
-  // Special skills
-  180: 1, 181: 1, 182: 1
+const topicMapping = {
+  "Числа и вычисления": "Алгебра",
+  "Алгебраические выражения": "Алгебра", 
+  "Уравнения и неравенства": "Алгебра",
+  "Функции": "Алгебра",
+  "Координаты и графики": "Алгебра",
+  "Арифметическая прогрессия": "Алгебра",
+  "Геометрические фигуры": "Геометрия",
+  "Площади и объёмы": "Геометрия"
 };
 
 interface Article {
+  id: string;
+  title: string;
+  content: string;
   skill: number;
-  art: string;
+  created_at: string;
+  author?: string;
 }
 
-interface GroupedArticles {
-  [topicId: number]: Article[];
-}
-
-const DigitalTextbook: React.FC = () => {
+const DigitalTextbook = () => {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [groupedArticles, setGroupedArticles] = useState<GroupedArticles>({});
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-  const [readArticles, setReadArticles] = useState<Set<number>>(new Set());
-  const [bookmarkedArticles, setBookmarkedArticles] = useState<Set<number>>(new Set());
-  const [openTopics, setOpenTopics] = useState<Set<number>>(new Set([1, 2, 3, 4, 5, 6, 7, 8]));
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTopic, setSelectedTopic] = useState<string>("all");
+  const [bookmarkedArticles, setBookmarkedArticles] = useState<Set<string>>(new Set());
+  const [readArticles, setReadArticles] = useState<Set<string>>(new Set());
+  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["Алгебра"]));
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+
+  // Group articles by topics
+  const topics = ["Алгебра", "Геометрия"];
 
   useEffect(() => {
     fetchArticles();
@@ -70,335 +61,334 @@ const DigitalTextbook: React.FC = () => {
 
   const fetchArticles = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('articles')
-        .select('skill, art')
-        .not('art', 'is', null)
-        .not('art', 'eq', '');
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching articles:', error);
+        return;
+      }
 
       setArticles(data || []);
-      groupArticlesByTopic(data || []);
     } catch (error) {
-      console.error('Error fetching articles:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось загрузить статьи",
-        variant: "destructive"
-      });
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const groupArticlesByTopic = (articlesData: Article[]) => {
-    const grouped: GroupedArticles = {};
-    
-    articlesData.forEach(article => {
-      const topicId = skillToTopicMap[article.skill] || 1;
-      if (!grouped[topicId]) {
-        grouped[topicId] = [];
-      }
-      grouped[topicId].push(article);
-    });
-
-    setGroupedArticles(grouped);
+  const getTopicForSkill = (skill: number): string => {
+    const skillName = mathSkillsMapping[skill] || "Общие";
+    return topicMapping[skillName] || "Общие";
   };
 
-  const getSkillName = (skillId: number): string => {
-    const skill = mathSkills.find(s => s.id === skillId);
-    return skill?.skill || `Навык ${skillId}`;
-  };
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         article.content.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTopic = selectedTopic === "all" || getTopicForSkill(article.skill) === selectedTopic;
+    return matchesSearch && matchesTopic;
+  });
 
-  const getArticlePreview = (content: string): string => {
-    const plainText = content.replace(/<[^>]*>/g, '').replace(/\$[^$]*\$/g, '[формула]');
-    return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText;
-  };
+  const articlesByTopic = topics.reduce((acc, topic) => {
+    acc[topic] = filteredArticles.filter(article => getTopicForSkill(article.skill) === topic);
+    return acc;
+  }, {} as Record<string, Article[]>);
 
-  const toggleTopic = (topicId: number) => {
-    const newOpenTopics = new Set(openTopics);
-    if (newOpenTopics.has(topicId)) {
-      newOpenTopics.delete(topicId);
-    } else {
-      newOpenTopics.add(topicId);
-    }
-    setOpenTopics(newOpenTopics);
-  };
-
-  const markAsRead = (skillId: number) => {
-    setReadArticles(prev => new Set([...prev, skillId]));
-  };
-
-  const toggleBookmark = (skillId: number) => {
+  const toggleBookmark = (articleId: string) => {
     const newBookmarks = new Set(bookmarkedArticles);
-    if (newBookmarks.has(skillId)) {
-      newBookmarks.delete(skillId);
-      toast({
-        title: "Закладка удалена",
-        description: "Статья удалена из закладок"
-      });
+    if (newBookmarks.has(articleId)) {
+      newBookmarks.delete(articleId);
     } else {
-      newBookmarks.add(skillId);
-      toast({
-        title: "Закладка добавлена",
-        description: "Статья добавлена в закладки"
-      });
+      newBookmarks.add(articleId);
     }
     setBookmarkedArticles(newBookmarks);
   };
 
-  const filteredArticles = articles.filter(article => {
-    const skillName = getSkillName(article.skill);
-    const content = article.art;
-    return skillName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           content.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  const markAsRead = (articleId: string) => {
+    setReadArticles(prev => new Set([...prev, articleId]));
+  };
+
+  const toggleTopic = (topic: string) => {
+    const newExpanded = new Set(expandedTopics);
+    if (newExpanded.has(topic)) {
+      newExpanded.delete(topic);
+    } else {
+      newExpanded.add(topic);
+    }
+    setExpandedTopics(newExpanded);
+  };
 
   if (selectedArticle) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen bg-gray-50">
         <Header />
-        <main className="flex-1 pt-20">
-          <div className="container mx-auto px-4 py-8">
+        <div className="pt-20 pb-8">
+          <div className="container mx-auto px-4 max-w-4xl">
             <Button 
+              variant="outline" 
               onClick={() => setSelectedArticle(null)}
               className="mb-6"
-              variant="outline"
             >
-              ← Назад к учебнику
+              ← Назад к статьям
             </Button>
             
-            <div className="max-w-4xl mx-auto">
-              <div className="flex justify-between items-start mb-6">
-                <h1 className="text-3xl font-bold text-primary">
-                  {getSkillName(selectedArticle.skill)}
-                </h1>
-                <Button
-                  onClick={() => toggleBookmark(selectedArticle.skill)}
-                  variant={bookmarkedArticles.has(selectedArticle.skill) ? "default" : "outline"}
-                  size="sm"
-                >
-                  <Bookmark className="w-4 h-4 mr-2" />
-                  {bookmarkedArticles.has(selectedArticle.skill) ? "В закладках" : "Добавить"}
-                </Button>
-              </div>
-              
-              <Card>
-                <CardContent className="prose max-w-none p-8">
-                  <div 
-                    dangerouslySetInnerHTML={{ __html: selectedArticle.art }}
-                    className="math-content"
-                  />
-                </CardContent>
-              </Card>
-            </div>
+            <Card className="mb-6">
+              <CardHeader className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Badge variant="secondary">
+                    {mathSkillsMapping[selectedArticle.skill] || "Общие"}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleBookmark(selectedArticle.id)}
+                  >
+                    <Star 
+                      className={`w-4 h-4 ${
+                        bookmarkedArticles.has(selectedArticle.id) 
+                          ? 'fill-yellow-400 text-yellow-400' 
+                          : 'text-gray-400'
+                      }`} 
+                    />
+                  </Button>
+                </div>
+                <CardTitle className="text-2xl font-bold">
+                  {selectedArticle.title}
+                </CardTitle>
+                {selectedArticle.author && (
+                  <p className="text-sm text-gray-600">Автор: {selectedArticle.author}</p>
+                )}
+              </CardHeader>
+              <CardContent>
+                <div 
+                  className="math-content prose prose-lg max-w-none"
+                  dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
+                />
+              </CardContent>
+            </Card>
           </div>
-        </main>
-        <Footer />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="flex-1 pt-20">
-        <div className="bg-gradient-to-b from-primary/10 to-primary/5 py-12">
-          <div className="container mx-auto px-4">
-            <h1 className="text-3xl md:text-4xl font-bold text-primary mb-6 font-heading">
+      <div className="pt-20 pb-8">
+        <div className="container mx-auto px-4">
+          {/* Header Section */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4 font-heading">
               Электронный учебник
             </h1>
-            <p className="text-gray-700 max-w-3xl mb-8">
-              Изучайте математику с помощью наших подробных статей, организованных по темам. 
-              Каждая статья содержит теоретические объяснения и примеры.
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Изучайте математику с помощью наших подробных статей и материалов
             </p>
           </div>
-        </div>
 
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar Navigation */}
-            <div className="lg:w-1/4">
-              <div className="sticky top-24">
-                <div className="mb-6">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      type="text"
-                      placeholder="Поиск по статьям..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
+          {/* Search Bar */}
+          <div className="max-w-md mx-auto mb-8">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Поиск статей..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
 
-                <nav className="space-y-2">
-                  {Object.entries(topicMapping).map(([topicId, topicName]) => {
-                    const id = parseInt(topicId);
-                    const topicArticles = groupedArticles[id] || [];
-                    const isOpen = openTopics.has(id);
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              <Card className="sticky top-24">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Book className="w-5 h-5" />
+                    Разделы
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="space-y-2">
+                    <Button
+                      variant={selectedTopic === "all" ? "default" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => setSelectedTopic("all")}
+                    >
+                      Все разделы
+                    </Button>
                     
-                    return (
-                      <Collapsible key={id} open={isOpen} onOpenChange={() => toggleTopic(id)}>
-                        <CollapsibleTrigger className="flex items-center justify-between w-full p-3 text-left rounded-lg hover:bg-gray-100 transition-colors">
-                          <span className="font-medium text-gray-900">{topicName}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">({topicArticles.length})</span>
-                            {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                          </div>
+                    {topics.map((topic) => (
+                      <Collapsible 
+                        key={topic}
+                        open={expandedTopics.has(topic)}
+                        onOpenChange={() => toggleTopic(topic)}
+                      >
+                        <CollapsibleTrigger asChild>
+                          <Button
+                            variant={selectedTopic === topic ? "default" : "ghost"}
+                            className="w-full justify-between"
+                            onClick={() => setSelectedTopic(topic)}
+                          >
+                            <span>{topic}</span>
+                            {expandedTopics.has(topic) ? 
+                              <ChevronDown className="w-4 h-4" /> : 
+                              <ChevronRight className="w-4 h-4" />
+                            }
+                          </Button>
                         </CollapsibleTrigger>
-                        <CollapsibleContent className="pl-4 space-y-1">
-                          {topicArticles.map((article) => (
-                            <button
-                              key={article.skill}
-                              onClick={() => {
-                                setSelectedArticle(article);
-                                markAsRead(article.skill);
-                              }}
-                              className={`block w-full text-left p-2 rounded text-sm hover:bg-blue-50 transition-colors ${
-                                readArticles.has(article.skill) ? 'text-gray-600' : 'text-gray-900'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <span>{getSkillName(article.skill)}</span>
-                                {bookmarkedArticles.has(article.skill) && (
-                                  <Bookmark className="w-3 h-3 text-primary fill-current" />
-                                )}
+                        <CollapsibleContent className="space-y-1 ml-4 mt-1">
+                          {Object.entries(mathSkillsMapping)
+                            .filter(([_, skillName]) => topicMapping[skillName] === topic)
+                            .map(([skillId, skillName]) => (
+                              <div key={skillId} className="text-sm text-gray-600 py-1">
+                                {skillName}
                               </div>
-                            </button>
-                          ))}
+                            ))}
                         </CollapsibleContent>
                       </Collapsible>
-                    );
-                  })}
-                </nav>
-              </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Main Content */}
-            <div className="lg:w-3/4">
+            <div className="lg:col-span-3">
               {loading ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                   <p className="mt-4 text-gray-600">Загрузка статей...</p>
                 </div>
-              ) : searchTerm ? (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-6">
-                    Результаты поиска: "{searchTerm}"
-                  </h2>
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {filteredArticles.map((article) => (
-                      <Card key={article.skill} className="hover:shadow-lg transition-shadow cursor-pointer">
-                        <CardHeader>
-                          <CardTitle className="text-lg flex items-center justify-between">
-                            <span>{getSkillName(article.skill)}</span>
-                            {bookmarkedArticles.has(article.skill) && (
-                              <Bookmark className="w-4 h-4 text-primary fill-current" />
-                            )}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-gray-600 mb-4">
-                            {getArticlePreview(article.art)}
-                          </p>
-                          <div className="flex justify-between items-center">
-                            <Button 
+              ) : (
+                <div className="space-y-6">
+                  {selectedTopic === "all" ? (
+                    // Show all articles grouped by topic
+                    topics.map((topic) => (
+                      <div key={topic}>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4">{topic}</h2>
+                        <div className="grid gap-4 mb-8">
+                          {articlesByTopic[topic].map((article) => (
+                            <Card 
+                              key={article.id} 
+                              className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
                               onClick={() => {
                                 setSelectedArticle(article);
-                                markAsRead(article.skill);
+                                markAsRead(article.id);
                               }}
-                              variant="outline"
-                              size="sm"
                             >
-                              <BookOpen className="w-4 h-4 mr-2" />
-                              Читать
-                            </Button>
-                            <Button
-                              onClick={() => toggleBookmark(article.skill)}
-                              variant="ghost"
-                              size="sm"
-                            >
-                              <Bookmark className={`w-4 h-4 ${bookmarkedArticles.has(article.skill) ? 'fill-current text-primary' : ''}`} />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-6">Все темы</h2>
-                  <div className="space-y-8">
-                    {Object.entries(topicMapping).map(([topicId, topicName]) => {
-                      const id = parseInt(topicId);
-                      const topicArticles = groupedArticles[id] || [];
-                      
-                      if (topicArticles.length === 0) return null;
-                      
-                      return (
-                        <div key={id}>
-                          <h3 className="text-xl font-semibold mb-4 text-primary">
-                            {topicName}
-                          </h3>
-                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {topicArticles.slice(0, 6).map((article) => (
-                              <Card key={article.skill} className="hover:shadow-lg transition-shadow cursor-pointer">
-                                <CardHeader>
-                                  <CardTitle className="text-base flex items-center justify-between">
-                                    <span>{getSkillName(article.skill)}</span>
-                                    {bookmarkedArticles.has(article.skill) && (
-                                      <Bookmark className="w-4 h-4 text-primary fill-current" />
+                              <CardHeader>
+                                <div className="flex items-center justify-between">
+                                  <Badge variant="secondary">
+                                    {mathSkillsMapping[article.skill] || "Общие"}
+                                  </Badge>
+                                  <div className="flex items-center gap-2">
+                                    {readArticles.has(article.id) && (
+                                      <Badge variant="outline" className="text-xs">
+                                        Прочитано
+                                      </Badge>
                                     )}
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  <p className="text-gray-600 text-sm mb-4">
-                                    {getArticlePreview(article.art)}
-                                  </p>
-                                  <div className="flex justify-between items-center">
-                                    <Button 
-                                      onClick={() => {
-                                        setSelectedArticle(article);
-                                        markAsRead(article.skill);
-                                      }}
-                                      variant="outline"
-                                      size="sm"
-                                    >
-                                      <BookOpen className="w-4 h-4 mr-2" />
-                                      Читать
-                                    </Button>
                                     <Button
-                                      onClick={() => toggleBookmark(article.skill)}
                                       variant="ghost"
                                       size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleBookmark(article.id);
+                                      }}
                                     >
-                                      <Bookmark className={`w-4 h-4 ${bookmarkedArticles.has(article.skill) ? 'fill-current text-primary' : ''}`} />
+                                      <Star 
+                                        className={`w-4 h-4 ${
+                                          bookmarkedArticles.has(article.id) 
+                                            ? 'fill-yellow-400 text-yellow-400' 
+                                            : 'text-gray-400'
+                                        }`} 
+                                      />
                                     </Button>
                                   </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                          {topicArticles.length > 6 && (
-                            <Button variant="ghost" className="mt-4">
-                              Показать еще ({topicArticles.length - 6})
-                            </Button>
-                          )}
+                                </div>
+                                <CardTitle className="text-lg">{article.title}</CardTitle>
+                                <CardDescription>
+                                  {article.content.substring(0, 150)}...
+                                </CardDescription>
+                              </CardHeader>
+                            </Card>
+                          ))}
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    ))
+                  ) : (
+                    // Show articles for selected topic
+                    <div className="grid gap-4">
+                      {filteredArticles.map((article) => (
+                        <Card 
+                          key={article.id} 
+                          className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                          onClick={() => {
+                            setSelectedArticle(article);
+                            markAsRead(article.id);
+                          }}
+                        >
+                          <CardHeader>
+                            <div className="flex items-center justify-between">
+                              <Badge variant="secondary">
+                                {mathSkillsMapping[article.skill] || "Общие"}
+                              </Badge>
+                              <div className="flex items-center gap-2">
+                                {readArticles.has(article.id) && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Прочитано
+                                  </Badge>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleBookmark(article.id);
+                                  }}
+                                >
+                                  <Star 
+                                    className={`w-4 h-4 ${
+                                      bookmarkedArticles.has(article.id) 
+                                        ? 'fill-yellow-400 text-yellow-400' 
+                                        : 'text-gray-400'
+                                    }`} 
+                                  />
+                                </Button>
+                              </div>
+                            </div>
+                            <CardTitle className="text-lg">{article.title}</CardTitle>
+                            <CardDescription>
+                              {article.content.substring(0, 150)}...
+                            </CardDescription>
+                          </CardHeader>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+
+                  {filteredArticles.length === 0 && !loading && (
+                    <div className="text-center py-12">
+                      <Book className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        Статьи не найдены
+                      </h3>
+                      <p className="text-gray-600">
+                        Попробуйте изменить поисковый запрос или выбрать другой раздел
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
         </div>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 };
