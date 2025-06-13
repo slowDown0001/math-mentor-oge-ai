@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Menu, X, BookOpen, Brain, Users, BarChart3, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -92,15 +93,15 @@ const Header = () => {
                 </Button>
               </div>
             ) : (
-              <AuthModal 
-                isOpen={isAuthModalOpen} 
-                onClose={() => setIsAuthModalOpen(false)}
-                trigger={
-                  <Button onClick={() => setIsAuthModalOpen(true)}>
-                    Войти
-                  </Button>
-                }
-              />
+              <>
+                <Button onClick={() => setIsAuthModalOpen(true)}>
+                  Войти
+                </Button>
+                <AuthModal 
+                  isOpen={isAuthModalOpen} 
+                  onClose={() => setIsAuthModalOpen(false)}
+                />
+              </>
             )}
           </div>
 
@@ -172,17 +173,15 @@ const Header = () => {
                       </div>
                     ) : (
                       <div className="px-4">
+                        <Button 
+                          onClick={() => setIsAuthModalOpen(true)}
+                          className="w-full"
+                        >
+                          Войти
+                        </Button>
                         <AuthModal 
                           isOpen={isAuthModalOpen} 
                           onClose={() => setIsAuthModalOpen(false)}
-                          trigger={
-                            <Button 
-                              onClick={() => setIsAuthModalOpen(true)}
-                              className="w-full"
-                            >
-                              Войти
-                            </Button>
-                          }
                         />
                       </div>
                     )}
