@@ -30,69 +30,22 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/resources" element={<Resources />} />
-              <Route 
-                path="/textbook" 
-                element={
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <DigitalTextbook />
-                  </Suspense>
-                } 
-              />
-              <Route element={<PrivateRoute />}>
-                <Route
-                  path="/dashboard"
-                  element={
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <Dashboard />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <Profile />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/diagnostic"
-                  element={
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <DiagnosticTest />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/statistics"
-                  element={
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <Statistics />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/detailed-statistics"
-                  element={
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <DetailedStatistics />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/practice"
-                  element={
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <PracticeExercise />
-                    </Suspense>
-                  }
-                />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/resources" element={<Resources />} />
+                <Route path="/textbook" element={<DigitalTextbook />} />
+                <Route element={<PrivateRoute />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/diagnostic" element={<DiagnosticTest />} />
+                  <Route path="/statistics" element={<Statistics />} />
+                  <Route path="/detailed-statistics" element={<DetailedStatistics />} />
+                  <Route path="/practice" element={<PracticeExercise />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
           </TooltipProvider>
         </ChatProvider>
       </AuthProvider>
