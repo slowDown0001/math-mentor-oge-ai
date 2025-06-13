@@ -1,11 +1,10 @@
 
 import { useState } from "react";
-import { Menu, X, BookOpen, Brain, Users, BarChart3, Calculator } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, LogOut, User, BookOpen, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "./auth/AuthModal";
-import { Link, useLocation } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,185 +12,203 @@ const Header = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
 
-  const navigation = [
-    { name: "Главная", href: "/", icon: BookOpen },
-    { name: "Учебник", href: "/textbook", icon: BookOpen },
-  ];
-
-  const userNavigation = user ? [
-    { name: "Панель управления", href: "/dashboard", icon: BarChart3 },
-    { name: "Профиль", href: "/profile", icon: Users },
-    { name: "Статистика", href: "/statistics", icon: BarChart3 },
-    { name: "Практика", href: "/practice", icon: Calculator },
-  ] : [];
-
-  const isActive = (href: string) => {
-    if (href === "/") {
-      return location.pathname === "/";
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
     }
-    return location.pathname.startsWith(href);
   };
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+    <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md shadow-sm z-50">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">ОГЭ</span>
+              <span className="text-white font-bold text-lg">Ё</span>
             </div>
-            <span className="font-bold text-xl text-primary font-heading">Hedgehog</span>
+            <span className="font-bold text-xl text-gray-900">Ёжик</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? "text-primary bg-primary/10"
-                      : "text-gray-700 hover:text-primary hover:bg-primary/5"
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link 
+              to="/textbook" 
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                isActive('/textbook') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Учебник</span>
+            </Link>
+            
+            <Link 
+              to="/scanner" 
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                isActive('/scanner') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+              }`}
+            >
+              <ScanLine className="w-4 h-4" />
+              <span>Сканер</span>
+            </Link>
+
+            {user && (
+              <>
+                <Link 
+                  to="/dashboard" 
+                  className={`text-sm font-medium transition-colors ${
+                    isActive('/dashboard') ? 'text-primary' : 'text-gray-600 hover:text-primary'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.name}</span>
+                  Главная
                 </Link>
-              );
-            })}
-            {userNavigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? "text-primary bg-primary/10"
-                      : "text-gray-700 hover:text-primary hover:bg-primary/5"
+                <Link 
+                  to="/practice" 
+                  className={`text-sm font-medium transition-colors ${
+                    isActive('/practice') ? 'text-primary' : 'text-gray-600 hover:text-primary'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.name}</span>
+                  Упражнения
                 </Link>
-              );
-            })}
+                <Link 
+                  to="/statistics" 
+                  className={`text-sm font-medium transition-colors ${
+                    isActive('/statistics') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+                  }`}
+                >
+                  Статистика
+                </Link>
+              </>
+            )}
           </nav>
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700">
-                  Привет, {user.email?.split('@')[0]}!
-                </span>
-                <Button onClick={signOut} variant="outline" size="sm">
+              <div className="flex items-center space-x-2">
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-1">
+                    <User className="w-4 h-4" />
+                    <span>{user.user_metadata?.full_name || user.email}</span>
+                  </Button>
+                </Link>
+                <Button onClick={handleSignOut} variant="outline" size="sm">
+                  <LogOut className="w-4 h-4 mr-1" />
                   Выйти
                 </Button>
               </div>
             ) : (
-              <>
-                <Button onClick={() => setIsAuthModalOpen(true)}>
-                  Войти
-                </Button>
-                <AuthModal 
-                  isOpen={isAuthModalOpen} 
-                  onClose={() => setIsAuthModalOpen(false)}
-                />
-              </>
+              <Button onClick={() => setIsAuthModalOpen(true)} variant="default" size="sm">
+                Войти
+              </Button>
             )}
           </div>
 
-          {/* Mobile Menu */}
-          <div className="md:hidden">
-            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <Menu className="h-6 w-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                <nav className="flex flex-col space-y-4 mt-8">
-                  {navigation.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-md text-base font-medium transition-colors ${
-                          isActive(item.href)
-                            ? "text-primary bg-primary/10"
-                            : "text-gray-700 hover:text-primary hover:bg-primary/5"
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span>{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                  {userNavigation.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-md text-base font-medium transition-colors ${
-                          isActive(item.href)
-                            ? "text-primary bg-primary/10"
-                            : "text-gray-700 hover:text-primary hover:bg-primary/5"
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span>{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                  
-                  <div className="pt-4 border-t">
-                    {user ? (
-                      <div className="space-y-4">
-                        <div className="px-4">
-                          <p className="text-sm text-gray-700">
-                            Привет, {user.email?.split('@')[0]}!
-                          </p>
-                        </div>
-                        <Button 
-                          onClick={() => {
-                            signOut();
-                            setIsMenuOpen(false);
-                          }} 
-                          variant="outline" 
-                          className="w-full"
-                        >
-                          Выйти
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="px-4">
-                        <Button 
-                          onClick={() => setIsAuthModalOpen(true)}
-                          className="w-full"
-                        >
-                          Войти
-                        </Button>
-                        <AuthModal 
-                          isOpen={isAuthModalOpen} 
-                          onClose={() => setIsAuthModalOpen(false)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden p-2"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden py-4 border-t border-gray-200">
+            <nav className="flex flex-col space-y-2">
+              <Link 
+                to="/textbook" 
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/textbook') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Учебник</span>
+              </Link>
+              
+              <Link 
+                to="/scanner" 
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/scanner') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <ScanLine className="w-4 h-4" />
+                <span>Сканер</span>
+              </Link>
+
+              {user && (
+                <>
+                  <Link 
+                    to="/dashboard" 
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/dashboard') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Главная
+                  </Link>
+                  <Link 
+                    to="/practice" 
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/practice') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Упражнения
+                  </Link>
+                  <Link 
+                    to="/statistics" 
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/statistics') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Статистика
+                  </Link>
+                  <Link 
+                    to="/profile" 
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/profile') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Профиль
+                  </Link>
+                </>
+              )}
+            </nav>
+            
+            {/* Mobile Auth */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              {user ? (
+                <Button onClick={handleSignOut} variant="outline" className="w-full">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Выйти
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => {
+                    setIsAuthModalOpen(true);
+                    setIsMenuOpen(false);
+                  }} 
+                  className="w-full"
+                >
+                  Войти
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </header>
   );
 };
