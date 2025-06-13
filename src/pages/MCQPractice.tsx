@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, CheckCircle, XCircle } from "lucide-react";
@@ -15,6 +16,10 @@ interface MCQQuestion {
   problem_text: string;
   answer: string;
   skills: number;
+  option1: string;
+  option2: string;
+  option3: string;
+  option4: string;
 }
 
 interface MathSkill {
@@ -49,8 +54,8 @@ const MCQPractice = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('mcq')
-        .select('question_id, problem_text, answer, skills')
+        .from('mcq_with_options')
+        .select('question_id, problem_text, answer, skills, option1, option2, option3, option4')
         .eq('skills', skillId)
         .limit(10);
 
@@ -69,35 +74,6 @@ const MCQPractice = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const parseAnswerOptions = (problemText: string) => {
-    // Extract answer options from problem text
-    // Look for patterns like "1) option" or "А) option" or "а) option"
-    const optionRegex = /[1-4АБВГабвг]\)\s*([^1-4АБВГабвг)]+?)(?=[1-4АБВГабвг]\)|$)/g;
-    const options: string[] = [];
-    let match;
-    
-    while ((match = optionRegex.exec(problemText)) !== null) {
-      const cleanOption = match[1].trim();
-      if (cleanOption && cleanOption.length > 0) {
-        options.push(cleanOption);
-      }
-    }
-    
-    // If the above doesn't work, try a simpler approach
-    if (options.length === 0) {
-      // Split by common delimiters and filter for meaningful content
-      const parts = problemText.split(/[1-4]\)|[АБВГабвг]\)/).slice(1);
-      parts.forEach(part => {
-        const cleaned = part.trim();
-        if (cleaned && cleaned.length > 0 && cleaned.length < 200) {
-          options.push(cleaned);
-        }
-      });
-    }
-    
-    return options.slice(0, 4); // Only take first 4 options
   };
 
   const handleAnswerClick = (selectedOption: string, optionIndex: number) => {
@@ -196,7 +172,12 @@ const MCQPractice = () => {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const answerOptions = parseAnswerOptions(currentQuestion.problem_text);
+  const answerOptions = [
+    currentQuestion.option1,
+    currentQuestion.option2,
+    currentQuestion.option3,
+    currentQuestion.option4
+  ].filter(option => option && option.trim().length > 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -262,7 +243,7 @@ const MCQPractice = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
-                    Варианты ответов не найдены в тексте вопроса
+                    Варианты ответов не найдены
                   </div>
                 )}
 
