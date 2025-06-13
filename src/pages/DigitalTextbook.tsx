@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import Header from "@/components/Header";
-import { supabase } from "@/lib/supabase";
 import mathSkillsData from "../../documentation/math_skills_full.json";
 import topicSkillMapping from "../../documentation/topic_skill_mapping_with_names.json";
 
@@ -24,15 +23,6 @@ const mainTopics = {
   "8": "Вероятность и статистика"
 };
 
-interface Article {
-  id: string;
-  title: string;
-  content: string;
-  skill: number;
-  created_at: string;
-  author?: string;
-}
-
 interface MathSkill {
   skill: string;
   id: number;
@@ -45,43 +35,12 @@ interface TopicMapping {
 }
 
 const DigitalTextbook = () => {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
-  const [selectedSubtopic, setSelectedSubtopic] = useState<string>("all");
-  const [bookmarkedArticles, setBookmarkedArticles] = useState<Set<string>>(new Set());
-  const [readArticles, setReadArticles] = useState<Set<string>>(new Set());
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["1"]));
-  const [loading, setLoading] = useState(true);
 
   const skills = mathSkillsData as MathSkill[];
   const mappings = topicSkillMapping as TopicMapping[];
-
-  useEffect(() => {
-    fetchArticles();
-  }, []);
-
-  const fetchArticles = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('articles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching articles:', error);
-        return;
-      }
-
-      setArticles(data || []);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Get main topic number from topic string (e.g., "1.1" -> "1")
   const getMainTopicNumber = (topicStr: string): string => {
@@ -102,54 +61,14 @@ const DigitalTextbook = () => {
     return skill ? skill.skill : `Навык ${skillId}`;
   };
 
-  // Get articles for a specific skill
-  const getArticlesForSkill = (skillId: number) => {
-    return articles.filter(article => article.skill === skillId);
-  };
-
-  // Filter articles based on current selection
-  const getFilteredArticles = () => {
-    let filtered = articles;
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(article => 
-        article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        article.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        getSkillNameById(article.skill).toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by main topic
-    if (selectedTopic !== "all") {
-      const subtopics = getSubtopicsForMainTopic(selectedTopic);
-      const relevantSkills = subtopics.flatMap(subtopic => subtopic.skills);
-      filtered = filtered.filter(article => relevantSkills.includes(article.skill));
-    }
-
-    // Filter by subtopic
-    if (selectedSubtopic !== "all") {
-      const subtopic = mappings.find(m => m.topic === selectedSubtopic);
-      if (subtopic) {
-        filtered = filtered.filter(article => subtopic.skills.includes(article.skill));
-      }
-    }
-
-    return filtered;
-  };
-
-  const toggleBookmark = (articleId: string) => {
-    const newBookmarks = new Set(bookmarkedArticles);
-    if (newBookmarks.has(articleId)) {
-      newBookmarks.delete(articleId);
-    } else {
-      newBookmarks.add(articleId);
-    }
-    setBookmarkedArticles(newBookmarks);
-  };
-
-  const markAsRead = (articleId: string) => {
-    setReadArticles(prev => new Set([...prev, articleId]));
+  // Filter skills based on search term
+  const getFilteredSkills = () => {
+    if (!searchTerm) return skills;
+    
+    return skills.filter(skill => 
+      skill.skill.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      skill.id.toString().includes(searchTerm)
+    );
   };
 
   const toggleTopic = (topic: string) => {
@@ -164,83 +83,9 @@ const DigitalTextbook = () => {
 
   const handleTopicSelect = (topicNum: string) => {
     setSelectedTopic(topicNum);
-    setSelectedSubtopic("all");
   };
 
-  const handleSubtopicSelect = (subtopicId: string) => {
-    setSelectedSubtopic(subtopicId);
-  };
-
-  if (selectedArticle) {
-    const skillName = getSkillNameById(selectedArticle.skill);
-    const subtopic = mappings.find(mapping => mapping.skills.includes(selectedArticle.skill));
-    const mainTopicNum = subtopic ? getMainTopicNumber(subtopic.topic) : "1";
-    const mainTopicName = mainTopics[mainTopicNum as keyof typeof mainTopics] || "Общие";
-
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="pt-20 pb-8">
-          <div className="container mx-auto px-4 max-w-4xl">
-            <Button 
-              variant="outline" 
-              onClick={() => setSelectedArticle(null)}
-              className="mb-6"
-            >
-              ← Назад к статьям
-            </Button>
-            
-            <Card className="mb-6">
-              <CardHeader className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col gap-2">
-                    <Badge variant="secondary">
-                      {mainTopicName}
-                    </Badge>
-                    {subtopic && (
-                      <Badge variant="outline">
-                        {subtopic.name}
-                      </Badge>
-                    )}
-                    <Badge variant="outline" className="text-xs">
-                      {skillName}
-                    </Badge>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleBookmark(selectedArticle.id)}
-                  >
-                    <Star 
-                      className={`w-4 h-4 ${
-                        bookmarkedArticles.has(selectedArticle.id) 
-                          ? 'fill-yellow-400 text-yellow-400' 
-                          : 'text-gray-400'
-                      }`} 
-                    />
-                  </Button>
-                </div>
-                <CardTitle className="text-2xl font-bold">
-                  {selectedArticle.title}
-                </CardTitle>
-                {selectedArticle.author && (
-                  <p className="text-sm text-gray-600">Автор: {selectedArticle.author}</p>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div 
-                  className="math-content prose prose-lg max-w-none"
-                  dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const filteredArticles = getFilteredArticles();
+  const filteredSkills = getFilteredSkills();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -253,7 +98,7 @@ const DigitalTextbook = () => {
               Электронный учебник
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Изучайте математику с помощью наших подробных статей и материалов по 180 навыкам ОГЭ
+              180 навыков математики для подготовки к ОГЭ
             </p>
           </div>
 
@@ -262,7 +107,7 @@ const DigitalTextbook = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="Поиск статей и навыков..."
+                placeholder="Поиск навыков..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -286,21 +131,14 @@ const DigitalTextbook = () => {
                       <Button
                         variant={selectedTopic === "all" ? "default" : "ghost"}
                         className="w-full justify-start"
-                        onClick={() => {
-                          setSelectedTopic("all");
-                          setSelectedSubtopic("all");
-                        }}
+                        onClick={() => setSelectedTopic("all")}
                       >
-                        Все разделы
+                        Все навыки (180)
                       </Button>
                       
                       {Object.entries(mainTopics).map(([topicNum, topicName]) => {
                         const subtopics = getSubtopicsForMainTopic(topicNum);
-                        const hasArticles = subtopics.some(subtopic => 
-                          subtopic.skills.some(skillId => 
-                            articles.some(article => article.skill === skillId)
-                          )
-                        );
+                        const totalSkills = subtopics.reduce((sum, subtopic) => sum + subtopic.skills.length, 0);
 
                         return (
                           <Collapsible 
@@ -315,7 +153,7 @@ const DigitalTextbook = () => {
                                 onClick={() => handleTopicSelect(topicNum)}
                               >
                                 <span className="text-left flex-1">
-                                  {topicNum}. {topicName}
+                                  {topicNum}. {topicName} ({totalSkills})
                                 </span>
                                 {expandedTopics.has(topicNum) ? 
                                   <ChevronDown className="w-4 h-4" /> : 
@@ -324,28 +162,26 @@ const DigitalTextbook = () => {
                               </Button>
                             </CollapsibleTrigger>
                             <CollapsibleContent className="space-y-1 ml-2 mt-1">
-                              {subtopics.map((subtopic) => {
-                                const hasSubtopicArticles = subtopic.skills.some(skillId => 
-                                  articles.some(article => article.skill === skillId)
-                                );
-                                
-                                return (
-                                  <Button
-                                    key={subtopic.topic}
-                                    variant={selectedSubtopic === subtopic.topic ? "default" : "ghost"}
-                                    className="w-full justify-start text-xs"
-                                    size="sm"
-                                    onClick={() => handleSubtopicSelect(subtopic.topic)}
-                                    disabled={!hasSubtopicArticles}
-                                  >
-                                    {subtopic.topic} {subtopic.name}
-                                  </Button>
-                                );
-                              })}
+                              {subtopics.map((subtopic) => (
+                                <div key={subtopic.topic} className="p-2 text-xs text-gray-600">
+                                  <div className="font-medium mb-1">
+                                    {subtopic.topic} {subtopic.name} ({subtopic.skills.length})
+                                  </div>
+                                </div>
+                              ))}
                             </CollapsibleContent>
                           </Collapsible>
                         );
                       })}
+
+                      {/* Special Topics */}
+                      <Button
+                        variant={selectedTopic === "Special" ? "default" : "ghost"}
+                        className="w-full justify-start text-sm"
+                        onClick={() => setSelectedTopic("Special")}
+                      >
+                        Дополнительные навыки ({mappings.find(m => m.topic === "Special")?.skills.length || 0})
+                      </Button>
                     </div>
                   </ScrollArea>
                 </CardContent>
@@ -354,109 +190,146 @@ const DigitalTextbook = () => {
 
             {/* Main Content */}
             <div className="lg:col-span-3">
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                  <p className="mt-4 text-gray-600">Загрузка статей...</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Show current selection info */}
-                  {selectedTopic !== "all" && (
-                    <div className="mb-6">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                        {selectedTopic}. {mainTopics[selectedTopic as keyof typeof mainTopics]}
-                      </h2>
-                      {selectedSubtopic !== "all" && (
-                        <p className="text-gray-600">
-                          {mappings.find(m => m.topic === selectedSubtopic)?.name}
-                        </p>
-                      )}
-                    </div>
-                  )}
+              <div className="space-y-6">
+                {/* Show current selection info */}
+                {selectedTopic !== "all" && (
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      {selectedTopic === "Special" 
+                        ? "Дополнительные навыки" 
+                        : `${selectedTopic}. ${mainTopics[selectedTopic as keyof typeof mainTopics]}`
+                      }
+                    </h2>
+                  </div>
+                )}
 
-                  {/* Articles Grid */}
-                  <div className="grid gap-4">
-                    {filteredArticles.map((article) => {
-                      const skillName = getSkillNameById(article.skill);
-                      const subtopic = mappings.find(mapping => mapping.skills.includes(article.skill));
-                      const mainTopicNum = subtopic ? getMainTopicNumber(subtopic.topic) : "1";
-                      const mainTopicName = mainTopics[mainTopicNum as keyof typeof mainTopics] || "Общие";
+                {/* Skills List */}
+                <div className="space-y-4">
+                  {selectedTopic === "all" ? (
+                    // Show all skills organized by topics
+                    Object.entries(mainTopics).map(([topicNum, topicName]) => {
+                      const subtopics = getSubtopicsForMainTopic(topicNum);
+                      const topicSkills = subtopics.flatMap(subtopic => subtopic.skills);
+                      const displaySkills = filteredSkills.filter(skill => topicSkills.includes(skill.id));
+                      
+                      if (displaySkills.length === 0 && searchTerm) return null;
 
                       return (
-                        <Card 
-                          key={article.id} 
-                          className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
-                          onClick={() => {
-                            setSelectedArticle(article);
-                            markAsRead(article.id);
-                          }}
-                        >
+                        <Card key={topicNum} className="mb-6">
                           <CardHeader>
-                            <div className="flex items-center justify-between">
-                              <div className="flex flex-wrap gap-1">
-                                <Badge variant="secondary" className="text-xs">
-                                  {mainTopicName}
-                                </Badge>
-                                {subtopic && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {subtopic.name}
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {readArticles.has(article.id) && (
-                                  <Badge variant="outline" className="text-xs">
-                                    Прочитано
-                                  </Badge>
-                                )}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleBookmark(article.id);
-                                  }}
-                                >
-                                  <Star 
-                                    className={`w-4 h-4 ${
-                                      bookmarkedArticles.has(article.id) 
-                                        ? 'fill-yellow-400 text-yellow-400' 
-                                        : 'text-gray-400'
-                                    }`} 
-                                  />
-                                </Button>
-                              </div>
-                            </div>
-                            <CardTitle className="text-lg">{article.title}</CardTitle>
-                            <CardDescription className="text-sm">
-                              <span className="font-medium">Навык:</span> {skillName}
-                            </CardDescription>
-                            <CardDescription>
-                              {article.content.replace(/<[^>]*>/g, '').substring(0, 150)}...
-                            </CardDescription>
+                            <CardTitle className="text-lg">
+                              {topicNum}. {topicName}
+                            </CardTitle>
                           </CardHeader>
+                          <CardContent>
+                            <div className="grid gap-2">
+                              {subtopics.map((subtopic) => {
+                                const subtopicSkills = filteredSkills.filter(skill => 
+                                  subtopic.skills.includes(skill.id)
+                                );
+                                
+                                if (subtopicSkills.length === 0 && searchTerm) return null;
+
+                                return (
+                                  <div key={subtopic.topic} className="mb-4">
+                                    <h4 className="font-medium text-sm text-gray-700 mb-2">
+                                      {subtopic.topic} {subtopic.name}
+                                    </h4>
+                                    <div className="grid gap-1 ml-4">
+                                      {subtopicSkills.map((skill) => (
+                                        <div key={skill.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                                          <Badge variant="outline" className="text-xs">
+                                            {skill.id}
+                                          </Badge>
+                                          <span className="text-sm">{skill.skill}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </CardContent>
                         </Card>
                       );
-                    })}
-                  </div>
+                    })
+                  ) : selectedTopic === "Special" ? (
+                    // Show special skills
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Дополнительные навыки</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid gap-2">
+                          {mappings
+                            .filter(m => m.topic === "Special")
+                            .flatMap(subtopic => 
+                              filteredSkills.filter(skill => subtopic.skills.includes(skill.id))
+                            )
+                            .map((skill) => (
+                              <div key={skill.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                                <Badge variant="outline" className="text-xs">
+                                  {skill.id}
+                                </Badge>
+                                <span className="text-sm">{skill.skill}</span>
+                              </div>
+                            ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    // Show selected topic skills
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>
+                          {selectedTopic}. {mainTopics[selectedTopic as keyof typeof mainTopics]}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {getSubtopicsForMainTopic(selectedTopic).map((subtopic) => {
+                            const subtopicSkills = filteredSkills.filter(skill => 
+                              subtopic.skills.includes(skill.id)
+                            );
+                            
+                            if (subtopicSkills.length === 0 && searchTerm) return null;
 
-                  {filteredArticles.length === 0 && !loading && (
-                    <div className="text-center py-12">
-                      <Book className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Статьи не найдены
-                      </h3>
-                      <p className="text-gray-600">
-                        {searchTerm 
-                          ? "Попробуйте изменить поисковый запрос или выбрать другой раздел"
-                          : "В выбранном разделе пока нет статей"
-                        }
-                      </p>
-                    </div>
+                            return (
+                              <div key={subtopic.topic}>
+                                <h4 className="font-medium text-sm text-gray-700 mb-2">
+                                  {subtopic.topic} {subtopic.name}
+                                </h4>
+                                <div className="grid gap-1 ml-4">
+                                  {subtopicSkills.map((skill) => (
+                                    <div key={skill.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                                      <Badge variant="outline" className="text-xs">
+                                        {skill.id}
+                                      </Badge>
+                                      <span className="text-sm">{skill.skill}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
                   )}
                 </div>
-              )}
+
+                {filteredSkills.length === 0 && searchTerm && (
+                  <div className="text-center py-12">
+                    <Book className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Навыки не найдены
+                    </h3>
+                    <p className="text-gray-600">
+                      Попробуйте изменить поисковый запрос
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
