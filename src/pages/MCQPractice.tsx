@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, CheckCircle, XCircle } from "lucide-react";
@@ -74,16 +73,31 @@ const MCQPractice = () => {
 
   const parseAnswerOptions = (problemText: string) => {
     // Extract answer options from problem text
-    // Assuming format like "Question text 1) option1 2) option2 3) option3 4) option4"
-    const optionRegex = /\d+\)\s*([^0-9)]+?)(?=\d+\)|$)/g;
+    // Look for patterns like "1) option" or "А) option" or "а) option"
+    const optionRegex = /[1-4АБВГабвг]\)\s*([^1-4АБВГабвг)]+?)(?=[1-4АБВГабвг]\)|$)/g;
     const options: string[] = [];
     let match;
     
     while ((match = optionRegex.exec(problemText)) !== null) {
-      options.push(match[1].trim());
+      const cleanOption = match[1].trim();
+      if (cleanOption && cleanOption.length > 0) {
+        options.push(cleanOption);
+      }
     }
     
-    return options;
+    // If the above doesn't work, try a simpler approach
+    if (options.length === 0) {
+      // Split by common delimiters and filter for meaningful content
+      const parts = problemText.split(/[1-4]\)|[АБВГабвг]\)/).slice(1);
+      parts.forEach(part => {
+        const cleaned = part.trim();
+        if (cleaned && cleaned.length > 0 && cleaned.length < 200) {
+          options.push(cleaned);
+        }
+      });
+    }
+    
+    return options.slice(0, 4); // Only take first 4 options
   };
 
   const handleAnswerClick = (selectedOption: string, optionIndex: number) => {
@@ -228,19 +242,22 @@ const MCQPractice = () => {
                 {answerOptions.length > 0 ? (
                   <div className="space-y-3">
                     {answerOptions.map((option, index) => (
-                      <button
+                      <Button
                         key={index}
                         onClick={() => handleAnswerClick(option, index)}
                         disabled={isAnswered}
-                        className={`w-full text-left p-4 rounded-lg border transition-colors ${
+                        variant="outline"
+                        className={`w-full text-left p-6 h-auto justify-start ${
                           selectedAnswer === option
                             ? 'bg-blue-50 border-blue-300'
                             : 'bg-white border-gray-200 hover:bg-gray-50'
                         } ${isAnswered ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
                       >
-                        <span className="font-bold text-blue-600 mr-3">{optionLabels[index]}.</span>
-                        <LatexRenderer content={option} />
-                      </button>
+                        <span className="font-bold text-blue-600 mr-3 text-lg">{optionLabels[index]}.</span>
+                        <div className="flex-1">
+                          <LatexRenderer content={option} />
+                        </div>
+                      </Button>
                     ))}
                   </div>
                 ) : (
