@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, CheckCircle, XCircle } from "lucide-react";
@@ -76,21 +75,18 @@ const MCQPractice = () => {
     }
   };
 
-  const handleAnswerClick = (selectedOption: string, optionIndex: number) => {
+  const handleAnswerClick = (optionIndex: number) => {
     if (isAnswered) return;
     
-    setSelectedAnswer(selectedOption);
+    const clickedOption = optionLabels[optionIndex];
+    setSelectedAnswer(clickedOption);
     setIsAnswered(true);
     
     const currentQuestion = questions[currentQuestionIndex];
     const correctAnswer = currentQuestion.answer.trim();
     
-    // Check if the selected answer is correct
-    // We'll compare by option number (1, 2, 3, 4) or by text content
-    const isCorrect = 
-      selectedOption.toLowerCase().includes(correctAnswer.toLowerCase()) ||
-      correctAnswer === (optionIndex + 1).toString() ||
-      correctAnswer === selectedOption;
+    // Compare the clicked option (А, Б, В, Г) with the correct answer from database
+    const isCorrect = clickedOption === correctAnswer;
 
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
@@ -102,7 +98,7 @@ const MCQPractice = () => {
     } else {
       toast({
         title: "❌ Неправильно!",
-        description: "Попробуйте еще раз или переходите к следующему вопросу",
+        description: `Правильный ответ: ${correctAnswer}`,
         variant: "destructive",
       });
     }
@@ -222,24 +218,51 @@ const MCQPractice = () => {
                 {/* Answer Options */}
                 {answerOptions.length > 0 ? (
                   <div className="space-y-3">
-                    {answerOptions.map((option, index) => (
-                      <Button
-                        key={index}
-                        onClick={() => handleAnswerClick(option, index)}
-                        disabled={isAnswered}
-                        variant="outline"
-                        className={`w-full text-left p-6 h-auto justify-start ${
-                          selectedAnswer === option
-                            ? 'bg-blue-50 border-blue-300'
-                            : 'bg-white border-gray-200 hover:bg-gray-50'
-                        } ${isAnswered ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}
-                      >
-                        <span className="font-bold text-blue-600 mr-3 text-lg">{optionLabels[index]}.</span>
-                        <div className="flex-1">
-                          <LatexRenderer content={option} />
-                        </div>
-                      </Button>
-                    ))}
+                    {answerOptions.map((option, index) => {
+                      const optionLetter = optionLabels[index];
+                      const isSelected = selectedAnswer === optionLetter;
+                      const isCorrect = currentQuestion.answer.trim() === optionLetter;
+                      
+                      let buttonStyle = "w-full text-left p-6 h-auto justify-start ";
+                      
+                      if (isAnswered) {
+                        if (isSelected && isCorrect) {
+                          buttonStyle += "bg-green-100 border-green-500 text-green-800";
+                        } else if (isSelected && !isCorrect) {
+                          buttonStyle += "bg-red-100 border-red-500 text-red-800";
+                        } else if (!isSelected && isCorrect) {
+                          buttonStyle += "bg-green-50 border-green-300 text-green-700";
+                        } else {
+                          buttonStyle += "bg-gray-50 border-gray-200 text-gray-600";
+                        }
+                        buttonStyle += " cursor-not-allowed opacity-75";
+                      } else {
+                        buttonStyle += "bg-white border-gray-200 hover:bg-gray-50 cursor-pointer";
+                      }
+
+                      return (
+                        <Button
+                          key={index}
+                          onClick={() => handleAnswerClick(index)}
+                          disabled={isAnswered}
+                          variant="outline"
+                          className={buttonStyle}
+                        >
+                          <span className="font-bold text-blue-600 mr-3 text-lg">
+                            {optionLetter}.
+                          </span>
+                          <div className="flex-1">
+                            <LatexRenderer content={option} />
+                          </div>
+                          {isAnswered && isCorrect && (
+                            <CheckCircle className="w-5 h-5 text-green-600 ml-2" />
+                          )}
+                          {isAnswered && isSelected && !isCorrect && (
+                            <XCircle className="w-5 h-5 text-red-600 ml-2" />
+                          )}
+                        </Button>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
