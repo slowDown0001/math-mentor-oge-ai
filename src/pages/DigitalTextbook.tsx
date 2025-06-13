@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Book, Search, Star, ChevronRight, ChevronDown } from "lucide-react";
+import { Book, Search, Star, ChevronRight, ChevronDown, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +37,7 @@ interface TopicMapping {
 const DigitalTextbook = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
+  const [selectedSkill, setSelectedSkill] = useState<MathSkill | null>(null);
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["1"]));
 
   const skills = mathSkillsData as MathSkill[];
@@ -83,6 +84,11 @@ const DigitalTextbook = () => {
 
   const handleTopicSelect = (topicNum: string) => {
     setSelectedTopic(topicNum);
+    setSelectedSkill(null); // Clear selected skill when changing topic
+  };
+
+  const handleSkillSelect = (skill: MathSkill) => {
+    setSelectedSkill(skill);
   };
 
   const filteredSkills = getFilteredSkills();
@@ -131,7 +137,7 @@ const DigitalTextbook = () => {
                       <Button
                         variant={selectedTopic === "all" ? "default" : "ghost"}
                         className="w-full justify-start"
-                        onClick={() => setSelectedTopic("all")}
+                        onClick={() => handleTopicSelect("all")}
                       >
                         Все навыки (180)
                       </Button>
@@ -163,9 +169,27 @@ const DigitalTextbook = () => {
                             </CollapsibleTrigger>
                             <CollapsibleContent className="space-y-1 ml-2 mt-1">
                               {subtopics.map((subtopic) => (
-                                <div key={subtopic.topic} className="p-2 text-xs text-gray-600">
-                                  <div className="font-medium mb-1">
+                                <div key={subtopic.topic} className="mb-2">
+                                  <div className="p-2 text-xs text-gray-600 font-medium mb-1">
                                     {subtopic.topic} {subtopic.name} ({subtopic.skills.length})
+                                  </div>
+                                  <div className="ml-2 space-y-1">
+                                    {subtopic.skills.map((skillId) => {
+                                      const skill = skills.find(s => s.id === skillId);
+                                      if (!skill) return null;
+                                      
+                                      return (
+                                        <button
+                                          key={skill.id}
+                                          onClick={() => handleSkillSelect(skill)}
+                                          className={`w-full text-left p-1 text-xs rounded hover:bg-gray-100 transition-colors ${
+                                            selectedSkill?.id === skill.id ? 'bg-blue-100 text-blue-800' : 'text-gray-700'
+                                          }`}
+                                        >
+                                          {skill.id}. {skill.skill}
+                                        </button>
+                                      );
+                                    })}
                                   </div>
                                 </div>
                               ))}
@@ -178,7 +202,7 @@ const DigitalTextbook = () => {
                       <Button
                         variant={selectedTopic === "Special" ? "default" : "ghost"}
                         className="w-full justify-start text-sm"
-                        onClick={() => setSelectedTopic("Special")}
+                        onClick={() => handleTopicSelect("Special")}
                       >
                         Дополнительные навыки ({mappings.find(m => m.topic === "Special")?.skills.length || 0})
                       </Button>
@@ -190,146 +214,199 @@ const DigitalTextbook = () => {
 
             {/* Main Content */}
             <div className="lg:col-span-3">
-              <div className="space-y-6">
-                {/* Show current selection info */}
-                {selectedTopic !== "all" && (
-                  <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                      {selectedTopic === "Special" 
-                        ? "Дополнительные навыки" 
-                        : `${selectedTopic}. ${mainTopics[selectedTopic as keyof typeof mainTopics]}`
-                      }
-                    </h2>
-                  </div>
-                )}
-
-                {/* Skills List */}
-                <div className="space-y-4">
-                  {selectedTopic === "all" ? (
-                    // Show all skills organized by topics
-                    Object.entries(mainTopics).map(([topicNum, topicName]) => {
-                      const subtopics = getSubtopicsForMainTopic(topicNum);
-                      const topicSkills = subtopics.flatMap(subtopic => subtopic.skills);
-                      const displaySkills = filteredSkills.filter(skill => topicSkills.includes(skill.id));
-                      
-                      if (displaySkills.length === 0 && searchTerm) return null;
-
-                      return (
-                        <Card key={topicNum} className="mb-6">
-                          <CardHeader>
-                            <CardTitle className="text-lg">
-                              {topicNum}. {topicName}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="grid gap-2">
-                              {subtopics.map((subtopic) => {
-                                const subtopicSkills = filteredSkills.filter(skill => 
-                                  subtopic.skills.includes(skill.id)
-                                );
-                                
-                                if (subtopicSkills.length === 0 && searchTerm) return null;
-
-                                return (
-                                  <div key={subtopic.topic} className="mb-4">
-                                    <h4 className="font-medium text-sm text-gray-700 mb-2">
-                                      {subtopic.topic} {subtopic.name}
-                                    </h4>
-                                    <div className="grid gap-1 ml-4">
-                                      {subtopicSkills.map((skill) => (
-                                        <div key={skill.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                                          <Badge variant="outline" className="text-xs">
-                                            {skill.id}
-                                          </Badge>
-                                          <span className="text-sm">{skill.skill}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })
-                  ) : selectedTopic === "Special" ? (
-                    // Show special skills
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Дополнительные навыки</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid gap-2">
-                          {mappings
-                            .filter(m => m.topic === "Special")
-                            .flatMap(subtopic => 
-                              filteredSkills.filter(skill => subtopic.skills.includes(skill.id))
-                            )
-                            .map((skill) => (
-                              <div key={skill.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                                <Badge variant="outline" className="text-xs">
-                                  {skill.id}
-                                </Badge>
-                                <span className="text-sm">{skill.skill}</span>
-                              </div>
-                            ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    // Show selected topic skills
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>
-                          {selectedTopic}. {mainTopics[selectedTopic as keyof typeof mainTopics]}
+              {selectedSkill ? (
+                /* Selected Skill Page */
+                <Card className="min-h-[600px] bg-white">
+                  <CardHeader className="border-b">
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-6 h-6 text-blue-600" />
+                      <div>
+                        <CardTitle className="text-xl">
+                          Навык {selectedSkill.id}: {selectedSkill.skill}
                         </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {getSubtopicsForMainTopic(selectedTopic).map((subtopic) => {
-                            const subtopicSkills = filteredSkills.filter(skill => 
-                              subtopic.skills.includes(skill.id)
-                            );
-                            
-                            if (subtopicSkills.length === 0 && searchTerm) return null;
+                        <CardDescription>
+                          Изучение математического навыка
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedSkill(null)}
+                      className="self-start mt-2"
+                    >
+                      ← Назад к списку
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    <div className="space-y-6">
+                      <div className="text-center py-12">
+                        <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Материал готовится
+                        </h3>
+                        <p className="text-gray-600">
+                          Содержимое для навыка "{selectedSkill.skill}" скоро будет добавлено
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                /* Skills List */
+                <div className="space-y-6">
+                  {/* Show current selection info */}
+                  {selectedTopic !== "all" && (
+                    <div className="mb-6">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                        {selectedTopic === "Special" 
+                          ? "Дополнительные навыки" 
+                          : `${selectedTopic}. ${mainTopics[selectedTopic as keyof typeof mainTopics]}`
+                        }
+                      </h2>
+                    </div>
+                  )}
 
-                            return (
-                              <div key={subtopic.topic}>
-                                <h4 className="font-medium text-sm text-gray-700 mb-2">
-                                  {subtopic.topic} {subtopic.name}
-                                </h4>
-                                <div className="grid gap-1 ml-4">
-                                  {subtopicSkills.map((skill) => (
-                                    <div key={skill.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
-                                      <Badge variant="outline" className="text-xs">
-                                        {skill.id}
-                                      </Badge>
-                                      <span className="text-sm">{skill.skill}</span>
+                  {/* Skills List */}
+                  <div className="space-y-4">
+                    {selectedTopic === "all" ? (
+                      // Show all skills organized by topics
+                      Object.entries(mainTopics).map(([topicNum, topicName]) => {
+                        const subtopics = getSubtopicsForMainTopic(topicNum);
+                        const topicSkills = subtopics.flatMap(subtopic => subtopic.skills);
+                        const displaySkills = filteredSkills.filter(skill => topicSkills.includes(skill.id));
+                        
+                        if (displaySkills.length === 0 && searchTerm) return null;
+
+                        return (
+                          <Card key={topicNum} className="mb-6">
+                            <CardHeader>
+                              <CardTitle className="text-lg">
+                                {topicNum}. {topicName}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="grid gap-2">
+                                {subtopics.map((subtopic) => {
+                                  const subtopicSkills = filteredSkills.filter(skill => 
+                                    subtopic.skills.includes(skill.id)
+                                  );
+                                  
+                                  if (subtopicSkills.length === 0 && searchTerm) return null;
+
+                                  return (
+                                    <div key={subtopic.topic} className="mb-4">
+                                      <h4 className="font-medium text-sm text-gray-700 mb-2">
+                                        {subtopic.topic} {subtopic.name}
+                                      </h4>
+                                      <div className="grid gap-1 ml-4">
+                                        {subtopicSkills.map((skill) => (
+                                          <button
+                                            key={skill.id}
+                                            onClick={() => handleSkillSelect(skill)}
+                                            className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded text-left transition-colors"
+                                          >
+                                            <Badge variant="outline" className="text-xs">
+                                              {skill.id}
+                                            </Badge>
+                                            <span className="text-sm">{skill.skill}</span>
+                                          </button>
+                                        ))}
+                                      </div>
                                     </div>
-                                  ))}
-                                </div>
+                                  );
+                                })}
                               </div>
-                            );
-                          })}
-                        </div>
-                      </CardContent>
-                    </Card>
+                            </CardContent>
+                          </Card>
+                        );
+                      })
+                    ) : selectedTopic === "Special" ? (
+                      // Show special skills
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Дополнительные навыки</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid gap-2">
+                            {mappings
+                              .filter(m => m.topic === "Special")
+                              .flatMap(subtopic => 
+                                filteredSkills.filter(skill => subtopic.skills.includes(skill.id))
+                              )
+                              .map((skill) => (
+                                <button
+                                  key={skill.id}
+                                  onClick={() => handleSkillSelect(skill)}
+                                  className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded text-left transition-colors"
+                                >
+                                  <Badge variant="outline" className="text-xs">
+                                    {skill.id}
+                                  </Badge>
+                                  <span className="text-sm">{skill.skill}</span>
+                                </button>
+                              ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      // Show selected topic skills
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>
+                            {selectedTopic}. {mainTopics[selectedTopic as keyof typeof mainTopics]}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {getSubtopicsForMainTopic(selectedTopic).map((subtopic) => {
+                              const subtopicSkills = filteredSkills.filter(skill => 
+                                subtopic.skills.includes(skill.id)
+                              );
+                              
+                              if (subtopicSkills.length === 0 && searchTerm) return null;
+
+                              return (
+                                <div key={subtopic.topic}>
+                                  <h4 className="font-medium text-sm text-gray-700 mb-2">
+                                    {subtopic.topic} {subtopic.name}
+                                  </h4>
+                                  <div className="grid gap-1 ml-4">
+                                    {subtopicSkills.map((skill) => (
+                                      <button
+                                        key={skill.id}
+                                        onClick={() => handleSkillSelect(skill)}
+                                        className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded text-left transition-colors"
+                                      >
+                                        <Badge variant="outline" className="text-xs">
+                                          {skill.id}
+                                        </Badge>
+                                        <span className="text-sm">{skill.skill}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+
+                  {filteredSkills.length === 0 && searchTerm && (
+                    <div className="text-center py-12">
+                      <Book className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        Навыки не найдены
+                      </h3>
+                      <p className="text-gray-600">
+                        Попробуйте изменить поисковый запрос
+                      </p>
+                    </div>
                   )}
                 </div>
-
-                {filteredSkills.length === 0 && searchTerm && (
-                  <div className="text-center py-12">
-                    <Book className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Навыки не найдены
-                    </h3>
-                    <p className="text-gray-600">
-                      Попробуйте изменить поисковый запрос
-                    </p>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>
