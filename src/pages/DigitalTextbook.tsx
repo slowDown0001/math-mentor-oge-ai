@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Book, Search, Star, ChevronRight, ChevronDown, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import Header from "@/components/Header";
+import LatexRenderer from "@/components/chat/LatexRenderer";
+import { supabase } from "@/integrations/supabase/client";
 import mathSkillsData from "../../documentation/math_skills_full.json";
 import topicSkillMapping from "../../documentation/topic_skill_mapping_with_names.json";
 
@@ -34,14 +35,44 @@ interface TopicMapping {
   skills: number[];
 }
 
+interface Article {
+  skill: number;
+  art: string;
+}
+
 const DigitalTextbook = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
   const [selectedSkill, setSelectedSkill] = useState<MathSkill | null>(null);
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["1"]));
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loadingArticle, setLoadingArticle] = useState(false);
 
   const skills = mathSkillsData as MathSkill[];
   const mappings = topicSkillMapping as TopicMapping[];
+
+  // Fetch articles from Supabase
+  useEffect(() => {
+    const fetchArticles = async () => {
+      const { data, error } = await supabase
+        .from('articles')
+        .select('skill, art');
+      
+      if (error) {
+        console.error('Error fetching articles:', error);
+      } else {
+        setArticles(data || []);
+      }
+    };
+
+    fetchArticles();
+  }, []);
+
+  // Get article content for a skill
+  const getArticleForSkill = (skillId: number): string | null => {
+    const article = articles.find(a => a.skill === skillId);
+    return article ? article.art : null;
+  };
 
   // Get main topic number from topic string (e.g., "1.1" -> "1")
   const getMainTopicNumber = (topicStr: string): string => {
@@ -88,7 +119,10 @@ const DigitalTextbook = () => {
   };
 
   const handleSkillSelect = (skill: MathSkill) => {
+    setLoadingArticle(true);
     setSelectedSkill(skill);
+    // Small delay to show loading state
+    setTimeout(() => setLoadingArticle(false), 300);
   };
 
   const filteredSkills = getFilteredSkills();
@@ -239,17 +273,37 @@ const DigitalTextbook = () => {
                     </Button>
                   </CardHeader>
                   <CardContent className="p-8">
-                    <div className="space-y-6">
+                    {loadingArticle ? (
                       <div className="text-center py-12">
-                        <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          Материал готовится
-                        </h3>
-                        <p className="text-gray-600">
-                          Содержимое для навыка "{selectedSkill.skill}" скоро будет добавлено
-                        </p>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Загрузка материала...</p>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {(() => {
+                          const articleContent = getArticleForSkill(selectedSkill.id);
+                          if (articleContent) {
+                            return (
+                              <div className="prose max-w-none">
+                                <LatexRenderer content={articleContent} />
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <div className="text-center py-12">
+                                <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                  Материал готовится
+                                </h3>
+                                <p className="text-gray-600">
+                                  Содержимое для навыка "{selectedSkill.skill}" скоро будет добавлено
+                                </p>
+                              </div>
+                            );
+                          }
+                        })()}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ) : (
