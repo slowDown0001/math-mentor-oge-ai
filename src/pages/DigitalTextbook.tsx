@@ -9,28 +9,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import Header from "@/components/Header";
 import { supabase } from "@/lib/supabase";
+import mathSkillsData from "../../documentation/math_skills_full.json";
+import topicSkillMapping from "../../documentation/topic_skill_mapping_with_names.json";
 
-// Mock data structures for math_skills_full.json and topics mapping
-const mathSkillsMapping = {
-  1: "Числа и вычисления",
-  2: "Алгебраические выражения", 
-  3: "Уравнения и неравенства",
-  4: "Функции",
-  5: "Координаты и графики",
-  6: "Арифметическая прогрессия",
-  7: "Геометрические фигуры",
-  8: "Площади и объёмы"
-};
-
-const topicMapping = {
-  "Числа и вычисления": "Алгебра",
-  "Алгебраические выражения": "Алгебра", 
-  "Уравнения и неравенства": "Алгебра",
-  "Функции": "Алгебра",
-  "Координаты и графики": "Алгебра",
-  "Арифметическая прогрессия": "Алгебра",
-  "Геометрические фигуры": "Геометрия",
-  "Площади и объёмы": "Геометрия"
+// Main topics mapping
+const mainTopics = {
+  "1": "Числа и вычисления",
+  "2": "Алгебраические выражения", 
+  "3": "Уравнения и неравенства",
+  "4": "Числовые последовательности",
+  "5": "Функции",
+  "6": "Координаты на прямой и плоскости",
+  "7": "Геометрия",
+  "8": "Вероятность и статистика"
 };
 
 interface Article {
@@ -42,18 +33,30 @@ interface Article {
   author?: string;
 }
 
+interface MathSkill {
+  skill: string;
+  id: number;
+}
+
+interface TopicMapping {
+  topic: string;
+  name: string;
+  skills: number[];
+}
+
 const DigitalTextbook = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
+  const [selectedSubtopic, setSelectedSubtopic] = useState<string>("all");
   const [bookmarkedArticles, setBookmarkedArticles] = useState<Set<string>>(new Set());
   const [readArticles, setReadArticles] = useState<Set<string>>(new Set());
-  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["Алгебра"]));
+  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["1"]));
   const [loading, setLoading] = useState(true);
 
-  // Group articles by topics
-  const topics = ["Алгебра", "Геометрия"];
+  const skills = mathSkillsData as MathSkill[];
+  const mappings = topicSkillMapping as TopicMapping[];
 
   useEffect(() => {
     fetchArticles();
@@ -80,22 +83,60 @@ const DigitalTextbook = () => {
     }
   };
 
-  const getTopicForSkill = (skill: number): string => {
-    const skillName = mathSkillsMapping[skill] || "Общие";
-    return topicMapping[skillName] || "Общие";
+  // Get main topic number from topic string (e.g., "1.1" -> "1")
+  const getMainTopicNumber = (topicStr: string): string => {
+    if (topicStr === "Special") return "Special";
+    return topicStr.split(".")[0];
   };
 
-  const filteredArticles = articles.filter(article => {
-    const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         article.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTopic = selectedTopic === "all" || getTopicForSkill(article.skill) === selectedTopic;
-    return matchesSearch && matchesTopic;
-  });
+  // Get subtopics for a main topic
+  const getSubtopicsForMainTopic = (mainTopicNum: string) => {
+    return mappings.filter(mapping => 
+      getMainTopicNumber(mapping.topic) === mainTopicNum
+    );
+  };
 
-  const articlesByTopic = topics.reduce((acc, topic) => {
-    acc[topic] = filteredArticles.filter(article => getTopicForSkill(article.skill) === topic);
-    return acc;
-  }, {} as Record<string, Article[]>);
+  // Get skill name by ID
+  const getSkillNameById = (skillId: number): string => {
+    const skill = skills.find(s => s.id === skillId);
+    return skill ? skill.skill : `Навык ${skillId}`;
+  };
+
+  // Get articles for a specific skill
+  const getArticlesForSkill = (skillId: number) => {
+    return articles.filter(article => article.skill === skillId);
+  };
+
+  // Filter articles based on current selection
+  const getFilteredArticles = () => {
+    let filtered = articles;
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(article => 
+        article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        article.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getSkillNameById(article.skill).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filter by main topic
+    if (selectedTopic !== "all") {
+      const subtopics = getSubtopicsForMainTopic(selectedTopic);
+      const relevantSkills = subtopics.flatMap(subtopic => subtopic.skills);
+      filtered = filtered.filter(article => relevantSkills.includes(article.skill));
+    }
+
+    // Filter by subtopic
+    if (selectedSubtopic !== "all") {
+      const subtopic = mappings.find(m => m.topic === selectedSubtopic);
+      if (subtopic) {
+        filtered = filtered.filter(article => subtopic.skills.includes(article.skill));
+      }
+    }
+
+    return filtered;
+  };
 
   const toggleBookmark = (articleId: string) => {
     const newBookmarks = new Set(bookmarkedArticles);
@@ -121,7 +162,21 @@ const DigitalTextbook = () => {
     setExpandedTopics(newExpanded);
   };
 
+  const handleTopicSelect = (topicNum: string) => {
+    setSelectedTopic(topicNum);
+    setSelectedSubtopic("all");
+  };
+
+  const handleSubtopicSelect = (subtopicId: string) => {
+    setSelectedSubtopic(subtopicId);
+  };
+
   if (selectedArticle) {
+    const skillName = getSkillNameById(selectedArticle.skill);
+    const subtopic = mappings.find(mapping => mapping.skills.includes(selectedArticle.skill));
+    const mainTopicNum = subtopic ? getMainTopicNumber(subtopic.topic) : "1";
+    const mainTopicName = mainTopics[mainTopicNum as keyof typeof mainTopics] || "Общие";
+
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -138,9 +193,19 @@ const DigitalTextbook = () => {
             <Card className="mb-6">
               <CardHeader className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Badge variant="secondary">
-                    {mathSkillsMapping[selectedArticle.skill] || "Общие"}
-                  </Badge>
+                  <div className="flex flex-col gap-2">
+                    <Badge variant="secondary">
+                      {mainTopicName}
+                    </Badge>
+                    {subtopic && (
+                      <Badge variant="outline">
+                        {subtopic.name}
+                      </Badge>
+                    )}
+                    <Badge variant="outline" className="text-xs">
+                      {skillName}
+                    </Badge>
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -175,6 +240,8 @@ const DigitalTextbook = () => {
     );
   }
 
+  const filteredArticles = getFilteredArticles();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -186,7 +253,7 @@ const DigitalTextbook = () => {
               Электронный учебник
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Изучайте математику с помощью наших подробных статей и материалов
+              Изучайте математику с помощью наших подробных статей и материалов по 180 навыкам ОГЭ
             </p>
           </div>
 
@@ -195,7 +262,7 @@ const DigitalTextbook = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="Поиск статей..."
+                placeholder="Поиск статей и навыков..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -214,46 +281,73 @@ const DigitalTextbook = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="space-y-2">
-                    <Button
-                      variant={selectedTopic === "all" ? "default" : "ghost"}
-                      className="w-full justify-start"
-                      onClick={() => setSelectedTopic("all")}
-                    >
-                      Все разделы
-                    </Button>
-                    
-                    {topics.map((topic) => (
-                      <Collapsible 
-                        key={topic}
-                        open={expandedTopics.has(topic)}
-                        onOpenChange={() => toggleTopic(topic)}
+                  <ScrollArea className="h-96">
+                    <div className="space-y-2 p-4">
+                      <Button
+                        variant={selectedTopic === "all" ? "default" : "ghost"}
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setSelectedTopic("all");
+                          setSelectedSubtopic("all");
+                        }}
                       >
-                        <CollapsibleTrigger asChild>
-                          <Button
-                            variant={selectedTopic === topic ? "default" : "ghost"}
-                            className="w-full justify-between"
-                            onClick={() => setSelectedTopic(topic)}
+                        Все разделы
+                      </Button>
+                      
+                      {Object.entries(mainTopics).map(([topicNum, topicName]) => {
+                        const subtopics = getSubtopicsForMainTopic(topicNum);
+                        const hasArticles = subtopics.some(subtopic => 
+                          subtopic.skills.some(skillId => 
+                            articles.some(article => article.skill === skillId)
+                          )
+                        );
+
+                        return (
+                          <Collapsible 
+                            key={topicNum}
+                            open={expandedTopics.has(topicNum)}
+                            onOpenChange={() => toggleTopic(topicNum)}
                           >
-                            <span>{topic}</span>
-                            {expandedTopics.has(topic) ? 
-                              <ChevronDown className="w-4 h-4" /> : 
-                              <ChevronRight className="w-4 h-4" />
-                            }
-                          </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="space-y-1 ml-4 mt-1">
-                          {Object.entries(mathSkillsMapping)
-                            .filter(([_, skillName]) => topicMapping[skillName] === topic)
-                            .map(([skillId, skillName]) => (
-                              <div key={skillId} className="text-sm text-gray-600 py-1">
-                                {skillName}
-                              </div>
-                            ))}
-                        </CollapsibleContent>
-                      </Collapsible>
-                    ))}
-                  </div>
+                            <CollapsibleTrigger asChild>
+                              <Button
+                                variant={selectedTopic === topicNum ? "default" : "ghost"}
+                                className="w-full justify-between text-sm"
+                                onClick={() => handleTopicSelect(topicNum)}
+                              >
+                                <span className="text-left flex-1">
+                                  {topicNum}. {topicName}
+                                </span>
+                                {expandedTopics.has(topicNum) ? 
+                                  <ChevronDown className="w-4 h-4" /> : 
+                                  <ChevronRight className="w-4 h-4" />
+                                }
+                              </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="space-y-1 ml-2 mt-1">
+                              {subtopics.map((subtopic) => {
+                                const hasSubtopicArticles = subtopic.skills.some(skillId => 
+                                  articles.some(article => article.skill === skillId)
+                                );
+                                
+                                return (
+                                  <Button
+                                    key={subtopic.topic}
+                                    variant={selectedSubtopic === subtopic.topic ? "default" : "ghost"}
+                                    className="w-full justify-start text-xs"
+                                    size="sm"
+                                    onClick={() => handleSubtopicSelect(subtopic.topic)}
+                                    disabled={!hasSubtopicArticles}
+                                  >
+                                    {subtopic.topic} {subtopic.name}
+                                  </Button>
+                                );
+                              })}
+                            </CollapsibleContent>
+                          </Collapsible>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
                 </CardContent>
               </Card>
             </div>
@@ -267,64 +361,29 @@ const DigitalTextbook = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {selectedTopic === "all" ? (
-                    // Show all articles grouped by topic
-                    topics.map((topic) => (
-                      <div key={topic}>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-4">{topic}</h2>
-                        <div className="grid gap-4 mb-8">
-                          {articlesByTopic[topic].map((article) => (
-                            <Card 
-                              key={article.id} 
-                              className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
-                              onClick={() => {
-                                setSelectedArticle(article);
-                                markAsRead(article.id);
-                              }}
-                            >
-                              <CardHeader>
-                                <div className="flex items-center justify-between">
-                                  <Badge variant="secondary">
-                                    {mathSkillsMapping[article.skill] || "Общие"}
-                                  </Badge>
-                                  <div className="flex items-center gap-2">
-                                    {readArticles.has(article.id) && (
-                                      <Badge variant="outline" className="text-xs">
-                                        Прочитано
-                                      </Badge>
-                                    )}
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleBookmark(article.id);
-                                      }}
-                                    >
-                                      <Star 
-                                        className={`w-4 h-4 ${
-                                          bookmarkedArticles.has(article.id) 
-                                            ? 'fill-yellow-400 text-yellow-400' 
-                                            : 'text-gray-400'
-                                        }`} 
-                                      />
-                                    </Button>
-                                  </div>
-                                </div>
-                                <CardTitle className="text-lg">{article.title}</CardTitle>
-                                <CardDescription>
-                                  {article.content.substring(0, 150)}...
-                                </CardDescription>
-                              </CardHeader>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    // Show articles for selected topic
-                    <div className="grid gap-4">
-                      {filteredArticles.map((article) => (
+                  {/* Show current selection info */}
+                  {selectedTopic !== "all" && (
+                    <div className="mb-6">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                        {selectedTopic}. {mainTopics[selectedTopic as keyof typeof mainTopics]}
+                      </h2>
+                      {selectedSubtopic !== "all" && (
+                        <p className="text-gray-600">
+                          {mappings.find(m => m.topic === selectedSubtopic)?.name}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Articles Grid */}
+                  <div className="grid gap-4">
+                    {filteredArticles.map((article) => {
+                      const skillName = getSkillNameById(article.skill);
+                      const subtopic = mappings.find(mapping => mapping.skills.includes(article.skill));
+                      const mainTopicNum = subtopic ? getMainTopicNumber(subtopic.topic) : "1";
+                      const mainTopicName = mainTopics[mainTopicNum as keyof typeof mainTopics] || "Общие";
+
+                      return (
                         <Card 
                           key={article.id} 
                           className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
@@ -335,9 +394,16 @@ const DigitalTextbook = () => {
                         >
                           <CardHeader>
                             <div className="flex items-center justify-between">
-                              <Badge variant="secondary">
-                                {mathSkillsMapping[article.skill] || "Общие"}
-                              </Badge>
+                              <div className="flex flex-wrap gap-1">
+                                <Badge variant="secondary" className="text-xs">
+                                  {mainTopicName}
+                                </Badge>
+                                {subtopic && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {subtopic.name}
+                                  </Badge>
+                                )}
+                              </div>
                               <div className="flex items-center gap-2">
                                 {readArticles.has(article.id) && (
                                   <Badge variant="outline" className="text-xs">
@@ -363,14 +429,17 @@ const DigitalTextbook = () => {
                               </div>
                             </div>
                             <CardTitle className="text-lg">{article.title}</CardTitle>
+                            <CardDescription className="text-sm">
+                              <span className="font-medium">Навык:</span> {skillName}
+                            </CardDescription>
                             <CardDescription>
-                              {article.content.substring(0, 150)}...
+                              {article.content.replace(/<[^>]*>/g, '').substring(0, 150)}...
                             </CardDescription>
                           </CardHeader>
                         </Card>
-                      ))}
-                    </div>
-                  )}
+                      );
+                    })}
+                  </div>
 
                   {filteredArticles.length === 0 && !loading && (
                     <div className="text-center py-12">
@@ -379,7 +448,10 @@ const DigitalTextbook = () => {
                         Статьи не найдены
                       </h3>
                       <p className="text-gray-600">
-                        Попробуйте изменить поисковый запрос или выбрать другой раздел
+                        {searchTerm 
+                          ? "Попробуйте изменить поисковый запрос или выбрать другой раздел"
+                          : "В выбранном разделе пока нет статей"
+                        }
                       </p>
                     </div>
                   )}
