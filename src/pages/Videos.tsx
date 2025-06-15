@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { Play, Clock, BookOpen, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
+import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
 
 const Videos = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,7 +66,7 @@ const Videos = () => {
 
   const categories = ["Все", "Алгебра", "Геометрия", "Статистика"];
   const [selectedCategory, setSelectedCategory] = useState("Все");
-  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState<any>(null);
 
   const filteredVideos = videos.filter(video => {
     const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -105,17 +105,25 @@ const Videos = () => {
             </p>
           </div>
 
-          {/* Video Player Section */}
+          {/* Video Player with Chat Section */}
           {selectedVideo && (
+            <VideoPlayerWithChat 
+              video={selectedVideo} 
+              onClose={() => setSelectedVideo(null)} 
+            />
+          )}
+
+          {/* YouTube Channel Embed */}
+          {!selectedVideo && (
             <div className="mb-12">
               <Card className="max-w-4xl mx-auto">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Play className="w-6 h-6 text-red-600" />
-                    {selectedVideo.title}
+                    OnLock Learning - Официальный канал
                   </CardTitle>
                   <CardDescription>
-                    {selectedVideo.description}
+                    Подписывайтесь на канал для получения новых видеоуроков
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -123,60 +131,31 @@ const Videos = () => {
                     <iframe
                       width="100%"
                       height="100%"
-                      src={`https://www.youtube.com/embed/${selectedVideo.videoId}`}
-                      title={selectedVideo.title}
+                      src="https://www.youtube.com/embed/videoseries?list=UU8butISFwT-Wl7EV0hUK0BQ"
+                      title="OnLock Learning Videos"
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="rounded-lg"
                     ></iframe>
                   </div>
+                  <div className="mt-4 text-center">
+                    <Button asChild variant="outline">
+                      <a 
+                        href="https://www.youtube.com/@onlocklearning/videos" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2"
+                      >
+                        <Play className="w-4 h-4" />
+                        Смотреть на YouTube
+                      </a>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
           )}
-
-          {/* YouTube Channel Embed */}
-          <div className="mb-12">
-            <Card className="max-w-4xl mx-auto">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Play className="w-6 h-6 text-red-600" />
-                  OnLock Learning - Официальный канал
-                </CardTitle>
-                <CardDescription>
-                  Подписывайтесь на канал для получения новых видеоуроков
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="aspect-video w-full">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src="https://www.youtube.com/embed/videoseries?list=UU8butISFwT-Wl7EV0hUK0BQ"
-                    title="OnLock Learning Videos"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="rounded-lg"
-                  ></iframe>
-                </div>
-                <div className="mt-4 text-center">
-                  <Button asChild variant="outline">
-                    <a 
-                      href="https://www.youtube.com/@onlocklearning/videos" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2"
-                    >
-                      <Play className="w-4 h-4" />
-                      Смотреть на YouTube
-                    </a>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
           {/* Search and Filters */}
           <div className="mb-8">
