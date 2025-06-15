@@ -18,7 +18,8 @@ const Videos = () => {
       duration: "12:34",
       thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
       category: "Алгебра",
-      difficulty: "Базовый"
+      difficulty: "Базовый",
+      videoId: "dQw4w9WgXcQ"
     },
     {
       id: "2",
@@ -27,7 +28,8 @@ const Videos = () => {
       duration: "15:22",
       thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
       category: "Геометрия",
-      difficulty: "Средний"
+      difficulty: "Средний",
+      videoId: "dQw4w9WgXcQ"
     },
     {
       id: "3",
@@ -36,7 +38,8 @@ const Videos = () => {
       duration: "18:45",
       thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
       category: "Алгебра",
-      difficulty: "Продвинутый"
+      difficulty: "Продвинутый",
+      videoId: "dQw4w9WgXcQ"
     },
     {
       id: "4",
@@ -45,12 +48,25 @@ const Videos = () => {
       duration: "10:15",
       thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
       category: "Статистика",
-      difficulty: "Базовый"
+      difficulty: "Базовый",
+      videoId: "dQw4w9WgXcQ"
+    },
+    {
+      id: "5",
+      title: "Математические концепции - Shorts",
+      description: "Быстрое объяснение математических концепций",
+      duration: "0:59",
+      thumbnail: "https://img.youtube.com/vi/41jbWBks74A/maxresdefault.jpg",
+      category: "Алгебра",
+      difficulty: "Базовый",
+      videoId: "41jbWBks74A",
+      isShorts: true
     }
   ];
 
   const categories = ["Все", "Алгебра", "Геометрия", "Статистика"];
   const [selectedCategory, setSelectedCategory] = useState("Все");
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
   const filteredVideos = videos.filter(video => {
     const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,6 +82,10 @@ const Videos = () => {
       case "Продвинутый": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const handleVideoClick = (video: any) => {
+    setSelectedVideo(video);
   };
 
   return (
@@ -84,6 +104,37 @@ const Videos = () => {
               Подготовка к ОГЭ стала проще и интереснее!
             </p>
           </div>
+
+          {/* Video Player Section */}
+          {selectedVideo && (
+            <div className="mb-12">
+              <Card className="max-w-4xl mx-auto">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Play className="w-6 h-6 text-red-600" />
+                    {selectedVideo.title}
+                  </CardTitle>
+                  <CardDescription>
+                    {selectedVideo.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="aspect-video w-full">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${selectedVideo.videoId}`}
+                      title={selectedVideo.title}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="rounded-lg"
+                    ></iframe>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* YouTube Channel Embed */}
           <div className="mb-12">
@@ -159,7 +210,11 @@ const Videos = () => {
           {/* Video Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVideos.map((video) => (
-              <Card key={video.id} className="group hover:shadow-lg transition-shadow cursor-pointer">
+              <Card 
+                key={video.id} 
+                className="group hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => handleVideoClick(video)}
+              >
                 <CardContent className="p-0">
                   <div className="relative">
                     <img
@@ -174,6 +229,11 @@ const Videos = () => {
                       <Clock className="w-3 h-3" />
                       {video.duration}
                     </div>
+                    {video.isShorts && (
+                      <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">
+                        SHORTS
+                      </div>
+                    )}
                   </div>
                   
                   <div className="p-4">
