@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Book, Search, Star, ChevronRight, ChevronDown, FileText, Highlighter } from "lucide-react";
+import { Book, Search, Star, ChevronRight, ChevronDown, FileText, Highlighter, MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import LatexRenderer from "@/components/chat/LatexRenderer";
+import ChatMessages from "@/components/chat/ChatMessages";
+import ChatInput from "@/components/chat/ChatInput";
+import { useChatContext } from "@/contexts/ChatContext";
+import { sendChatMessage } from "@/services/chatService";
 import { supabase } from "@/integrations/supabase/client";
 import mathSkillsData from "../../documentation/math_skills_full.json";
 import topicSkillMapping from "../../documentation/topic_skill_mapping_with_names.json";
@@ -51,9 +55,10 @@ const DigitalTextbook = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loadingArticle, setLoadingArticle] = useState(false);
   const [isSelecterActive, setIsSelecterActive] = useState(false);
+  const [selectedText, setSelectedText] = useState("");
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
-  const skills = mathSkillsData as MathSkill[];
-  const mappings = topicSkillMapping as TopicMapping[];
+  const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
 
   // Fetch articles from Supabase
   useEffect(() => {
@@ -146,23 +151,73 @@ const DigitalTextbook = () => {
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
-    if (selection && selection.toString().trim() && isSelecterActive) {
-      const range = selection.getRangeAt(0);
-      const span = document.createElement('span');
-      span.style.backgroundColor = 'yellow';
-      span.style.padding = '1px 2px';
+    if (selection && selection.toString().trim()) {
+      const text = selection.toString().trim();
+      setSelectedText(text);
       
-      try {
-        range.surroundContents(span);
-        selection.removeAllRanges();
-      } catch (error) {
-        // If we can't surround contents (e.g., selection spans multiple elements),
-        // extract and wrap the content
-        const contents = range.extractContents();
-        span.appendChild(contents);
-        range.insertNode(span);
-        selection.removeAllRanges();
+      if (isSelecterActive) {
+        const range = selection.getRangeAt(0);
+        const span = document.createElement('span');
+        span.style.backgroundColor = 'yellow';
+        span.style.padding = '1px 2px';
+        
+        try {
+          range.surroundContents(span);
+          selection.removeAllRanges();
+        } catch (error) {
+          const contents = range.extractContents();
+          span.appendChild(contents);
+          range.insertNode(span);
+          selection.removeAllRanges();
+        }
       }
+    }
+  };
+
+  const handleAskEzhik = async () => {
+    if (!selectedText) return;
+    
+    setIsChatOpen(true);
+    
+    // Add user message with selected text
+    const newUserMessage = {
+      id: Date.now(),
+      text: `Объясни мне это: "${selectedText}"`,
+      isUser: true,
+      timestamp: new Date()
+    };
+    
+    addMessage(newUserMessage);
+    setIsTyping(true);
+
+    try {
+      // Send message to AI and get response
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
+      addMessage(aiResponse);
+    } finally {
+      setIsTyping(false);
+    }
+    
+    // Clear selected text
+    setSelectedText("");
+  };
+
+  const handleSendChatMessage = async (userInput: string) => {
+    const newUserMessage = {
+      id: Date.now(),
+      text: userInput,
+      isUser: true,
+      timestamp: new Date()
+    };
+    
+    addMessage(newUserMessage);
+    setIsTyping(true);
+
+    try {
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
+      addMessage(aiResponse);
+    } finally {
+      setIsTyping(false);
     }
   };
 
@@ -206,7 +261,97 @@ const DigitalTextbook = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Selected Text and Ask Ёжик Button */}
+          {selectedText && (
+            <div className="fixed top-24 right-4 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-md">
+              <div className="flex items-start gap-2 mb-3">
+                <MessageCircle className="w-4 h-4 text-blue-600 mt-1 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 mb-1">Выделенный текст:</p>
+                  <p className="text-sm text-gray-600 line-clamp-3">"{selectedText}"</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedText("")}
+                  className="p-1 h-auto"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+              <Button 
+                onClick={handleAskEzhik}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                size="sm"
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Спросить Ёжика
+              </Button>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 relative">
+            {/* Chat Window */}
+            {isChatOpen && (
+              <div className="fixed left-4 top-24 bottom-4 w-80 z-40 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5 text-blue-600" />
+                    <h3 className="font-medium text-gray-900">Чат с Ёжиком</h3>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsChatOpen(false)}
+                    className="p-1 h-auto"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <div className="flex-1 flex flex-col min-h-0">
+                  <ScrollArea className="flex-1 p-4">
+                    <div className="space-y-4">
+                      {messages.map(message => (
+                        <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
+                          <div 
+                            className={`max-w-[85%] p-3 rounded-lg text-sm ${
+                              message.isUser 
+                                ? "bg-blue-600 text-white rounded-tr-none" 
+                                : "bg-gray-100 text-gray-900 rounded-tl-none"
+                            }`}
+                          >
+                            <LatexRenderer content={message.text} />
+                            <div className={`text-xs mt-1 ${message.isUser ? "text-blue-100" : "text-gray-500"}`}>
+                              {message.timestamp.toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {isTyping && (
+                        <div className="flex justify-start">
+                          <div className="bg-gray-100 text-gray-900 rounded-lg rounded-tl-none p-3 text-sm">
+                            <div className="flex items-center gap-1">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                  
+                  <div className="border-t p-4">
+                    <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Sidebar */}
             <div className="lg:col-span-1">
               <Card className="sticky top-24">
