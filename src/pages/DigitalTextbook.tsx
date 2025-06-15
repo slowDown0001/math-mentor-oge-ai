@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Book, Search, Star, ChevronRight, ChevronDown, FileText } from "lucide-react";
+import { Book, Search, Star, ChevronRight, ChevronDown, FileText, Highlighter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +50,7 @@ const DigitalTextbook = () => {
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["1"]));
   const [articles, setArticles] = useState<Article[]>([]);
   const [loadingArticle, setLoadingArticle] = useState(false);
+  const [isSelecterActive, setIsSelecterActive] = useState(false);
 
   const skills = mathSkillsData as MathSkill[];
   const mappings = topicSkillMapping as TopicMapping[];
@@ -138,6 +139,42 @@ const DigitalTextbook = () => {
   const handleGoToExercise = (skillId: number) => {
     navigate(`/mcq-practice?skill=${skillId}`);
   };
+
+  const toggleSelecter = () => {
+    setIsSelecterActive(!isSelecterActive);
+  };
+
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim() && isSelecterActive) {
+      const range = selection.getRangeAt(0);
+      const span = document.createElement('span');
+      span.style.backgroundColor = 'yellow';
+      span.style.padding = '1px 2px';
+      
+      try {
+        range.surroundContents(span);
+        selection.removeAllRanges();
+      } catch (error) {
+        // If we can't surround contents (e.g., selection spans multiple elements),
+        // extract and wrap the content
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+        selection.removeAllRanges();
+      }
+    }
+  };
+
+  // Add event listener for text selection when selecter is active
+  useEffect(() => {
+    if (isSelecterActive) {
+      document.addEventListener('mouseup', handleTextSelection);
+      return () => {
+        document.removeEventListener('mouseup', handleTextSelection);
+      };
+    }
+  }, [isSelecterActive]);
 
   const filteredSkills = getFilteredSkills();
 
@@ -252,25 +289,49 @@ const DigitalTextbook = () => {
                 /* Selected Skill Page */
                 <Card className="min-h-[600px] bg-white">
                   <CardHeader className="border-b">
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-6 h-6 text-blue-600" />
-                      <div>
-                        <CardTitle className="text-xl">
-                          Навык {selectedSkill.id}: {selectedSkill.skill}
-                        </CardTitle>
-                        <CardDescription>
-                          Изучение математического навыка
-                        </CardDescription>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-6 h-6 text-blue-600" />
+                        <div>
+                          <CardTitle className="text-xl">
+                            Навык {selectedSkill.id}: {selectedSkill.skill}
+                          </CardTitle>
+                          <CardDescription>
+                            Изучение математического навыка
+                          </CardDescription>
+                        </div>
                       </div>
+                      
+                      {/* Selecter Button */}
+                      <Button
+                        variant={isSelecterActive ? "default" : "outline"}
+                        size="sm"
+                        onClick={toggleSelecter}
+                        className={`flex items-center gap-2 ${
+                          isSelecterActive ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''
+                        }`}
+                      >
+                        <Highlighter className="w-4 h-4" />
+                        Selecter {isSelecterActive ? 'ON' : 'OFF'}
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedSkill(null)}
-                      className="self-start mt-2"
-                    >
-                      ← Назад к списку
-                    </Button>
+                    
+                    <div className="flex gap-2 mt-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedSkill(null)}
+                      >
+                        ← Назад к списку
+                      </Button>
+                      
+                      {isSelecterActive && (
+                        <p className="text-sm text-yellow-600 flex items-center gap-1 px-2 py-1 bg-yellow-50 rounded">
+                          <Highlighter className="w-3 h-3" />
+                          Выделите текст для создания заметок
+                        </p>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent className="p-8">
                     {loadingArticle ? (
@@ -285,7 +346,12 @@ const DigitalTextbook = () => {
                           if (articleContent) {
                             return (
                               <>
-                                <div className="prose max-w-none">
+                                <div 
+                                  className={`prose max-w-none ${
+                                    isSelecterActive ? 'cursor-text select-text' : ''
+                                  }`}
+                                  style={{ userSelect: isSelecterActive ? 'text' : 'auto' }}
+                                >
                                   <LatexRenderer content={articleContent} />
                                 </div>
                                 <div className="flex justify-center pt-6 border-t">
