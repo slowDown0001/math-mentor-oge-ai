@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Book, Search, Star, ChevronRight, ChevronDown, FileText, Highlighter, MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,10 @@ const mainTopics = {
   "7": "Геометрия",
   "8": "Вероятность и статистика"
 };
+
+// Extract skills and mappings from imported data
+const skills: MathSkill[] = mathSkillsData;
+const mappings: TopicMapping[] = topicSkillMapping;
 
 interface MathSkill {
   skill: string;
