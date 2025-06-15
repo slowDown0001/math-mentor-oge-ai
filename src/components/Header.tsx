@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LogOut, User, BookOpen, ScanLine } from "lucide-react";
+import { Menu, X, LogOut, User, BookOpen, ScanLine, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "./auth/AuthModal";
@@ -44,6 +44,16 @@ const Header = () => {
             >
               <BookOpen className="w-4 h-4" />
               <span>Учебник</span>
+            </Link>
+            
+            <Link 
+              to="/videos" 
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                isActive('/videos') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+              }`}
+            >
+              <Play className="w-4 h-4" />
+              <span>Видео</span>
             </Link>
             
             <Link 
@@ -130,6 +140,17 @@ const Header = () => {
               >
                 <BookOpen className="w-4 h-4" />
                 <span>Учебник</span>
+              </Link>
+              
+              <Link 
+                to="/videos" 
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/videos') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Play className="w-4 h-4" />
+                <span>Видео</span>
               </Link>
               
               <Link 
