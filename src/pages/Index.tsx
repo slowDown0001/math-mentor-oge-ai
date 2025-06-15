@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
@@ -13,16 +13,17 @@ import { useAuth } from "@/contexts/AuthContext";
 const Index = () => {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    // If user is logged in and not loading, redirect to dashboard
-    if (!isLoading && user) {
+    // Only redirect if user is logged in, not loading, and specifically on the home page
+    if (!isLoading && user && location.pathname === "/") {
       navigate("/dashboard");
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, navigate, location.pathname]);
 
-  // Don't render the landing page if user is logged in
-  if (!isLoading && user) {
+  // Don't render the landing page if user is logged in and on home page
+  if (!isLoading && user && location.pathname === "/") {
     return null;
   }
 
