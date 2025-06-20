@@ -1,15 +1,16 @@
-
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Image as ImageIcon, Calculator, BookOpen } from "lucide-react";
+import { ChevronRight, Image as ImageIcon, Calculator, BookOpen, Brain, PenTool } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import LatexRenderer from "@/components/chat/LatexRenderer";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
 
 interface Problem {
   question_id: string;
@@ -23,10 +24,22 @@ interface Problem {
   calculator_allowed?: boolean;
 }
 
+interface MCQQuestion {
+  question_id: string;
+  problem_text: string;
+  answer: string;
+  skills: number;
+  option1: string;
+  option2: string;
+  option3: string;
+  option4: string;
+}
+
 interface SubTopic {
   id: string;
   name: string;
   problems: Problem[];
+  mcqCount: number;
 }
 
 interface MainTopic {
@@ -36,7 +49,9 @@ interface MainTopic {
 }
 
 const PracticeExercise = () => {
+  const navigate = useNavigate();
   const [problems, setProblems] = useState<Problem[]>([]);
+  const [mcqCounts, setMcqCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
   const [expandedStates, setExpandedStates] = useState<{
@@ -55,86 +70,87 @@ const PracticeExercise = () => {
       id: "1",
       name: "Числа и вычисления",
       subtopics: [
-        { id: "1.1", name: "Натуральные и целые числа", problems: [] },
-        { id: "1.2", name: "Дроби и проценты", problems: [] },
-        { id: "1.3", name: "Рациональные числа и арифметические действия", problems: [] },
-        { id: "1.4", name: "Действительные числа", problems: [] },
-        { id: "1.5", name: "Приближённые вычисления", problems: [] },
-        { id: "1.6", name: "Работа с данными и графиками", problems: [] },
-        { id: "1.7", name: "Прикладная геометрия: площади и расстояния в жизни", problems: [] }
+        { id: "1.1", name: "Натуральные и целые числа", problems: [], mcqCount: 0 },
+        { id: "1.2", name: "Дроби и проценты", problems: [], mcqCount: 0 },
+        { id: "1.3", name: "Рациональные числа и арифметические действия", problems: [], mcqCount: 0 },
+        { id: "1.4", name: "Действительные числа", problems: [], mcqCount: 0 },
+        { id: "1.5", name: "Приближённые вычисления", problems: [], mcqCount: 0 },
+        { id: "1.6", name: "Работа с данными и графиками", problems: [], mcqCount: 0 },
+        { id: "1.7", name: "Прикладная геометрия: площади и расстояния в жизни", problems: [], mcqCount: 0 }
       ]
     },
     {
       id: "2",
       name: "Алгебраические выражения",
       subtopics: [
-        { id: "2.1", name: "Буквенные выражения", problems: [] },
-        { id: "2.2", name: "Степени", problems: [] },
-        { id: "2.3", name: "Многочлены", problems: [] },
-        { id: "2.4", name: "Алгебраические дроби", problems: [] },
-        { id: "2.5", name: "Арифметические корни", problems: [] }
+        { id: "2.1", name: "Буквенные выражения", problems: [], mcqCount: 0 },
+        { id: "2.2", name: "Степени", problems: [], mcqCount: 0 },
+        { id: "2.3", name: "Многочлены", problems: [], mcqCount: 0 },
+        { id: "2.4", name: "Алгебраические дроби", problems: [], mcqCount: 0 },
+        { id: "2.5", name: "Арифметические корни", problems: [], mcqCount: 0 }
       ]
     },
     {
       id: "3",
       name: "Уравнения и неравенства",
       subtopics: [
-        { id: "3.1", name: "Уравнения и системы", problems: [] },
-        { id: "3.2", name: "Неравенства и системы", problems: [] },
-        { id: "3.3", name: "Текстовые задачи", problems: [] }
+        { id: "3.1", name: "Уравнения и системы", problems: [], mcqCount: 0 },
+        { id: "3.2", name: "Неравенства и системы", problems: [], mcqCount: 0 },
+        { id: "3.3", name: "Текстовые задачи", problems: [], mcqCount: 0 }
       ]
     },
     {
       id: "4",
       name: "Числовые последовательности",
       subtopics: [
-        { id: "4.1", name: "Последовательности", problems: [] },
-        { id: "4.2", name: "Арифметическая и геометрическая прогрессии", problems: [] }
+        { id: "4.1", name: "Последовательности", problems: [], mcqCount: 0 },
+        { id: "4.2", name: "Арифметическая и геометрическая прогрессии", problems: [], mcqCount: 0 }
       ]
     },
     {
       id: "5",
       name: "Функции",
       subtopics: [
-        { id: "5.1", name: "Свойства и графики функций", problems: [] }
+        { id: "5.1", name: "Свойства и графики функций", problems: [], mcqCount: 0 }
       ]
     },
     {
       id: "6",
       name: "Координаты на прямой и плоскости",
       subtopics: [
-        { id: "6.1", name: "Координатная прямая", problems: [] },
-        { id: "6.2", name: "Декартовы координаты", problems: [] }
+        { id: "6.1", name: "Координатная прямая", problems: [], mcqCount: 0 },
+        { id: "6.2", name: "Декартовы координаты", problems: [], mcqCount: 0 }
       ]
     },
     {
       id: "7",
       name: "Геометрия",
       subtopics: [
-        { id: "7.1", name: "Геометрические фигуры", problems: [] },
-        { id: "7.2", name: "Треугольники", problems: [] },
-        { id: "7.3", name: "Многоугольники", problems: [] },
-        { id: "7.4", name: "Окружность и круг", problems: [] },
-        { id: "7.5", name: "Измерения", problems: [] },
-        { id: "7.6", name: "Векторы", problems: [] },
-        { id: "7.7", name: "Дополнительные темы по геометрии", problems: [] }
+        { id: "7.1", name: "Геометрические фигуры", problems: [], mcqCount: 0 },
+        { id: "7.2", name: "Треугольники", problems: [], mcqCount: 0 },
+        { id: "7.3", name: "Многоугольники", problems: [], mcqCount: 0 },
+        { id: "7.4", name: "Окружность и круг", problems: [], mcqCount: 0 },
+        { id: "7.5", name: "Измерения", problems: [], mcqCount: 0 },
+        { id: "7.6", name: "Векторы", problems: [], mcqCount: 0 },
+        { id: "7.7", name: "Дополнительные темы по геометрии", problems: [], mcqCount: 0 }
       ]
     },
     {
       id: "8",
       name: "Вероятность и статистика",
       subtopics: [
-        { id: "8.1", name: "Описательная статистика", problems: [] },
-        { id: "8.2", name: "Вероятность", problems: [] },
-        { id: "8.3", name: "Комбинаторика", problems: [] },
-        { id: "8.4", name: "Множества", problems: [] },
-        { id: "8.5", name: "Графы", problems: [] }
+        { id: "8.1", name: "Описательная статистика", problems: [], mcqCount: 0 },
+        { id: "8.2", name: "Вероятность", problems: [], mcqCount: 0 },
+        { id: "8.3", name: "Комбинаторика", problems: [], mcqCount: 0 },
+        { id: "8.4", name: "Множества", problems: [], mcqCount: 0 },
+        { id: "8.5", name: "Графы", problems: [], mcqCount: 0 }
       ]
     }
   ];
 
   useEffect(() => {
     fetchProblems();
+    fetchMCQCounts();
   }, []);
 
   const fetchProblems = async () => {
@@ -151,7 +167,6 @@ const PracticeExercise = () => {
 
       if (data) {
         setProblems(data);
-        // Set first problem as selected if available
         if (data.length > 0) {
           setSelectedProblem(data[0]);
         }
@@ -163,12 +178,38 @@ const PracticeExercise = () => {
     }
   };
 
-  // Group problems by topics and subtopics
+  const fetchMCQCounts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('mcq_with_options')
+        .select('skills')
+        .not('skills', 'is', null);
+
+      if (error) {
+        console.error('Error fetching MCQ counts:', error);
+        return;
+      }
+
+      if (data) {
+        const counts: Record<string, number> = {};
+        data.forEach(item => {
+          const skillId = item.skills.toString();
+          counts[skillId] = (counts[skillId] || 0) + 1;
+        });
+        setMcqCounts(counts);
+      }
+    } catch (error) {
+      console.error('Error fetching MCQ counts:', error);
+    }
+  };
+
+  // Group problems by topics and subtopics with MCQ counts
   const organizedTopics = mainTopics.map(topic => ({
     ...topic,
     subtopics: topic.subtopics.map(subtopic => ({
       ...subtopic,
-      problems: problems.filter(problem => problem.code === subtopic.id)
+      problems: problems.filter(problem => problem.code === subtopic.id),
+      mcqCount: mcqCounts[subtopic.id] || 0
     }))
   }));
 
@@ -179,6 +220,10 @@ const PracticeExercise = () => {
       solution: false,
       expanded: false
     });
+  };
+
+  const handleMCQPractice = (subtopicId: string) => {
+    navigate(`/mcq-practice?skill=${subtopicId}`);
   };
 
   const toggleSection = (section: 'answer' | 'solution' | 'expanded') => {
@@ -212,6 +257,16 @@ const PracticeExercise = () => {
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Выберите тему и навык для практики. Задачи организованы по официальному кодификатору ОГЭ.
           </p>
+          <div className="flex items-center justify-center gap-4 mt-4">
+            <div className="flex items-center gap-2">
+              <PenTool className="h-5 w-5 text-blue-600" />
+              <span className="text-sm font-medium text-gray-700">FRQ - Развёрнутые ответы</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-green-600" />
+              <span className="text-sm font-medium text-gray-700">MCQ - Тесты</span>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -221,7 +276,7 @@ const PracticeExercise = () => {
               <div className="p-6 border-b bg-gradient-to-r from-primary to-primary/90 text-white rounded-t-lg">
                 <h2 className="text-xl font-semibold">Темы и навыки</h2>
                 <p className="text-sm text-primary-foreground/80 mt-1">
-                  {problems.length} задач доступно
+                  {problems.length} FRQ задач и {Object.values(mcqCounts).reduce((sum, count) => sum + count, 0)} MCQ доступно
                 </p>
               </div>
               
@@ -229,6 +284,7 @@ const PracticeExercise = () => {
                 <Accordion type="single" collapsible className="w-full space-y-2">
                   {organizedTopics.map((topic) => {
                     const totalProblems = topic.subtopics.reduce((sum, subtopic) => sum + subtopic.problems.length, 0);
+                    const totalMCQ = topic.subtopics.reduce((sum, subtopic) => sum + subtopic.mcqCount, 0);
                     
                     return (
                       <AccordionItem key={topic.id} value={topic.id} className="border rounded-lg overflow-hidden">
@@ -240,9 +296,14 @@ const PracticeExercise = () => {
                               </span>
                               <span className="font-medium text-gray-800">{topic.name}</span>
                             </div>
-                            <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
-                              {totalProblems}
-                            </span>
+                            <div className="flex gap-2">
+                              <Badge variant="secondary" className="text-xs">
+                                {totalProblems} FRQ
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {totalMCQ} MCQ
+                              </Badge>
+                            </div>
                           </div>
                         </AccordionTrigger>
                         
@@ -250,17 +311,41 @@ const PracticeExercise = () => {
                           <div className="space-y-3 mt-2">
                             {topic.subtopics.map((subtopic) => (
                               <div key={subtopic.id} className="border-l-2 border-gray-200 pl-4">
-                                <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center justify-between mb-3">
                                   <h4 className="font-medium text-sm text-gray-700">
                                     {subtopic.id}. {subtopic.name}
                                   </h4>
-                                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                    {subtopic.problems.length}
-                                  </span>
+                                  <div className="flex gap-2">
+                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                      {subtopic.problems.length} FRQ
+                                    </span>
+                                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                      {subtopic.mcqCount} MCQ
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Practice Options */}
+                                <div className="space-y-2 mb-3">
+                                  {subtopic.mcqCount > 0 && (
+                                    <Button
+                                      onClick={() => handleMCQPractice(subtopic.id)}
+                                      variant="outline"
+                                      size="sm"
+                                      className="w-full justify-start text-xs h-8 bg-green-50 border-green-200 hover:bg-green-100"
+                                    >
+                                      <Brain className="h-3 w-3 mr-2 text-green-600" />
+                                      <span className="text-green-700">Тестовая практика ({subtopic.mcqCount})</span>
+                                    </Button>
+                                  )}
                                 </div>
                                 
                                 {subtopic.problems.length > 0 ? (
                                   <div className="space-y-1">
+                                    <div className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                                      <PenTool className="h-3 w-3" />
+                                      FRQ Задачи:
+                                    </div>
                                     {subtopic.problems.map((problem) => (
                                       <button
                                         key={problem.question_id}
@@ -296,7 +381,7 @@ const PracticeExercise = () => {
                                     ))}
                                   </div>
                                 ) : (
-                                  <p className="text-xs text-gray-500 italic py-2">Задачи не найдены</p>
+                                  <p className="text-xs text-gray-500 italic py-2">FRQ задачи не найдены</p>
                                 )}
                               </div>
                             ))}
@@ -319,6 +404,10 @@ const PracticeExercise = () => {
                     <span className="font-mono text-lg bg-white/20 text-white px-3 py-1 rounded">
                       {selectedProblem.code}
                     </span>
+                    <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                      <PenTool className="h-3 w-3 mr-1" />
+                      FRQ
+                    </Badge>
                     {selectedProblem.calculator_allowed && (
                       <span className="text-xs bg-white/20 text-white px-2 py-1 rounded">
                         Калькулятор разрешён
@@ -436,9 +525,21 @@ const PracticeExercise = () => {
                     <h3 className="text-2xl font-semibold text-gray-600 mb-3">
                       Выберите задачу для решения
                     </h3>
-                    <p className="text-gray-500 text-lg leading-relaxed">
+                    <p className="text-gray-500 text-lg leading-relaxed mb-6">
                       Выберите тему и задачу из списка слева, чтобы начать практику решения задач ОГЭ
                     </p>
+                    <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+                      <div className="text-center p-4 bg-blue-50 rounded-lg">
+                        <PenTool className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                        <div className="text-sm font-medium text-blue-800">FRQ</div>
+                        <div className="text-xs text-blue-600">Развёрнутые ответы</div>
+                      </div>
+                      <div className="text-center p-4 bg-green-50 rounded-lg">
+                        <Brain className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                        <div className="text-sm font-medium text-green-800">MCQ</div>
+                        <div className="text-xs text-green-600">Тестовые вопросы</div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
