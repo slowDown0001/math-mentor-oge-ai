@@ -1,6 +1,5 @@
 
-import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
@@ -8,23 +7,13 @@ import ResourcesSection from "@/components/ResourcesSection";
 import TestimonialSection from "@/components/TestimonialSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
-import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const { user, isLoading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
 
-  useEffect(() => {
-    // Only redirect if user is logged in, not loading, and specifically on the home page
-    if (!isLoading && user && location.pathname === "/") {
-      navigate("/dashboard");
-    }
-  }, [user, isLoading, navigate, location.pathname]);
-
-  // Don't render the landing page if user is logged in and on home page
-  if (!isLoading && user && location.pathname === "/") {
-    return null;
+  // Show loading while authentication state is being determined
+  if (isLoading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
   return (
