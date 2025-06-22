@@ -20,6 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,7 +30,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (event === 'SIGNED_IN') {
+        // Only navigate on actual login events, not on initial session restoration
+        if (event === 'SIGNED_IN' && hasInitialized) {
           toast.success('Вы успешно вошли в систему!');
           navigate('/dashboard');
         }
@@ -53,6 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         setSession(session);
         setUser(session?.user ?? null);
+        setHasInitialized(true);
       } catch (error) {
         console.error('Error in getInitialSession:', error);
       } finally {
@@ -65,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, hasInitialized]);
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
