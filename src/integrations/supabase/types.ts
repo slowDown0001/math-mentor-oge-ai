@@ -24,6 +24,21 @@ export type Database = {
         }
         Relationships: []
       }
+      articles2: {
+        Row: {
+          art: string | null
+          skill: number
+        }
+        Insert: {
+          art?: string | null
+          skill?: number
+        }
+        Update: {
+          art?: string | null
+          skill?: number
+        }
+        Relationships: []
+      }
       copy: {
         Row: {
           answer: string | null

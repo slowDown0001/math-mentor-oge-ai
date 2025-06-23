@@ -65,11 +65,11 @@ const DigitalTextbook = () => {
 
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
 
-  // Fetch articles from Supabase
+  // Fetch articles from Supabase articles2 table
   useEffect(() => {
     const fetchArticles = async () => {
       const { data, error } = await supabase
-        .from('articles')
+        .from('articles2')
         .select('skill, art');
       
       if (error) {
