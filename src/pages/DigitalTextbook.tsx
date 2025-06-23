@@ -117,6 +117,11 @@ const DigitalTextbook = () => {
     );
   };
 
+  // Count total skills across all topics
+  const getTotalSkillsCount = () => {
+    return skills.length;
+  };
+
   const toggleTopic = (topic: string) => {
     const newExpanded = new Set(expandedTopics);
     if (newExpanded.has(topic)) {
@@ -249,7 +254,7 @@ const DigitalTextbook = () => {
               Электронный учебник
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              180 навыков математики для подготовки к ОГЭ
+              {getTotalSkillsCount()} навыков математики для подготовки к ОГЭ
             </p>
           </div>
 
@@ -374,7 +379,7 @@ const DigitalTextbook = () => {
                         className="w-full justify-start"
                         onClick={() => handleTopicSelect("all")}
                       >
-                        Все навыки (180)
+                        Все навыки ({getTotalSkillsCount()})
                       </Button>
                       
                       {Object.entries(mainTopics).map(([topicNum, topicName]) => {
