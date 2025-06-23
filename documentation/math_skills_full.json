@@ -721,18 +721,18 @@
   },
   {
     "skill": "Calculator skills",
-    "id": s1
+    "id": 1001
   },
   {
     "skill": "Time management",
-    "id": s2
+    "id": 1002
   },
   {
     "skill": "Learning Velocity",
-    "id": s3
+    "id": 1003
   }
     {
     "skill": "Knowledge Amortization",
-    "id": s4
+    "id": 1004
   }
 ]
