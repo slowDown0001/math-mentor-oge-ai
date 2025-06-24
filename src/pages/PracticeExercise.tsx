@@ -150,6 +150,12 @@ const PracticeExercise = () => {
     }
   };
 
+  const handleQuestionTypeChange = (value: string) => {
+    if (value && (value === "frq" || value === "mcq" || value === "both")) {
+      setQuestionType(value as "frq" | "mcq" | "both");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
@@ -251,7 +257,7 @@ const PracticeExercise = () => {
                     <ToggleGroup 
                       type="single" 
                       value={questionType} 
-                      onValueChange={(value) => value && setQuestionType(value)}
+                      onValueChange={handleQuestionTypeChange}
                       className="bg-white/20 rounded-lg p-1"
                     >
                       <ToggleGroupItem value="frq" className="text-white data-[state=on]:bg-white data-[state=on]:text-gray-900">
