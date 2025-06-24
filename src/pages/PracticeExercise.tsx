@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import LatexRenderer from "@/components/chat/LatexRenderer";
 
 // Import the topic mapping data - use relative path
-import topicMapping from "../documentation/topic_skill_mapping_with_names.json";
+import topicMapping from "../../documentation/topic_skill_mapping_with_names.json";
 
 interface FRQProblem {
   question_id: string;
@@ -48,14 +48,14 @@ interface SubTopic {
   skills: number[];
 }
 
-type QuestionType = "frq" | "mcq" | "both";
+type QuestionType = "frq" | "mcq";
 
 const PracticeExercise = () => {
   const [frqProblems, setFrqProblems] = useState<FRQProblem[]>([]);
   const [mcqProblems, setMcqProblems] = useState<MCQProblem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubtopic, setSelectedSubtopic] = useState<SubTopic | null>(null);
-  const [questionType, setQuestionType] = useState<QuestionType>("both");
+  const [questionType, setQuestionType] = useState<QuestionType>("frq");
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [checkedAnswers, setCheckedAnswers] = useState<Record<string, boolean>>({});
   const [selectedMCQAnswers, setSelectedMCQAnswers] = useState<Record<string, string>>({});
@@ -152,7 +152,7 @@ const PracticeExercise = () => {
   };
 
   const handleQuestionTypeChange = (value: string | undefined) => {
-    if (value && (value === "frq" || value === "mcq" || value === "both")) {
+    if (value && (value === "frq" || value === "mcq")) {
       setQuestionType(value as QuestionType);
     }
   };
@@ -269,9 +269,6 @@ const PracticeExercise = () => {
                         <Brain className="h-4 w-4 mr-2" />
                         MCQ
                       </ToggleGroupItem>
-                      <ToggleGroupItem value="both" className="text-white data-[state=on]:bg-white data-[state=on]:text-gray-900">
-                        Все
-                      </ToggleGroupItem>
                     </ToggleGroup>
                   </div>
                 </div>
@@ -280,7 +277,7 @@ const PracticeExercise = () => {
                   <ScrollArea className="h-[calc(100vh-350px)]">
                     <div className="space-y-6">
                       {/* FRQ Questions */}
-                      {(questionType === "frq" || questionType === "both") && (
+                      {questionType === "frq" && (
                         <div>
                           {getFilteredFRQProblems().length > 0 && (
                             <div className="mb-6">
@@ -395,7 +392,7 @@ const PracticeExercise = () => {
                       )}
 
                       {/* MCQ Questions */}
-                      {(questionType === "mcq" || questionType === "both") && (
+                      {questionType === "mcq" && (
                         <div>
                           {getFilteredMCQProblems().length > 0 && (
                             <div>
@@ -493,8 +490,8 @@ const PracticeExercise = () => {
                       )}
 
                       {/* No questions found */}
-                      {((questionType === "frq" || questionType === "both") && getFilteredFRQProblems().length === 0) &&
-                       ((questionType === "mcq" || questionType === "both") && getFilteredMCQProblems().length === 0) && (
+                      {((questionType === "frq" && getFilteredFRQProblems().length === 0) ||
+                        (questionType === "mcq" && getFilteredMCQProblems().length === 0)) && (
                         <div className="text-center py-12">
                           <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                           <h3 className="text-xl font-semibold text-gray-600 mb-2">
