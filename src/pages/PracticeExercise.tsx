@@ -1,175 +1,107 @@
+
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Image as ImageIcon, Calculator, BookOpen, Brain, PenTool } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { ChevronRight, Calculator, BookOpen, Brain, PenTool, Check, X } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import LatexRenderer from "@/components/chat/LatexRenderer";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Badge } from "@/components/ui/badge";
+import topicMapping from "/documentation/topic_skill_mapping_with_names.json";
 
-interface Problem {
+interface FRQProblem {
   question_id: string;
   problem_text: string;
   answer: string;
   solution_text: string;
-  solutiontextexpanded: string;
+  solutiontextexpanded?: string;
   problem_image?: string;
   code: string;
   difficulty?: string;
   calculator_allowed?: boolean;
 }
 
-interface MCQQuestion {
+interface MCQProblem {
   question_id: string;
   problem_text: string;
   answer: string;
-  skills: number;
   option1: string;
   option2: string;
   option3: string;
   option4: string;
+  skills: number;
+  problem_image?: string;
 }
 
 interface SubTopic {
-  id: string;
+  topic: string;
   name: string;
-  problems: Problem[];
-  mcqCount: number;
-}
-
-interface MainTopic {
-  id: string;
-  name: string;
-  subtopics: SubTopic[];
+  skills: number[];
 }
 
 const PracticeExercise = () => {
-  const navigate = useNavigate();
-  const [problems, setProblems] = useState<Problem[]>([]);
-  const [mcqCounts, setMcqCounts] = useState<Record<string, number>>({});
+  const [frqProblems, setFrqProblems] = useState<FRQProblem[]>([]);
+  const [mcqProblems, setMcqProblems] = useState<MCQProblem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
-  const [expandedStates, setExpandedStates] = useState<{
-    answer: boolean;
-    solution: boolean;
-    expanded: boolean;
-  }>({
-    answer: false,
-    solution: false,
-    expanded: false
-  });
+  const [selectedSubtopic, setSelectedSubtopic] = useState<SubTopic | null>(null);
+  const [questionType, setQuestionType] = useState<string>("both");
+  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
+  const [checkedAnswers, setCheckedAnswers] = useState<Record<string, boolean>>({});
+  const [selectedMCQAnswers, setSelectedMCQAnswers] = useState<Record<string, string>>({});
 
-  // Main topic definitions with subtopics
-  const mainTopics: MainTopic[] = [
-    {
-      id: "1",
-      name: "Числа и вычисления",
-      subtopics: [
-        { id: "1.1", name: "Натуральные и целые числа", problems: [], mcqCount: 0 },
-        { id: "1.2", name: "Дроби и проценты", problems: [], mcqCount: 0 },
-        { id: "1.3", name: "Рациональные числа и арифметические действия", problems: [], mcqCount: 0 },
-        { id: "1.4", name: "Действительные числа", problems: [], mcqCount: 0 },
-        { id: "1.5", name: "Приближённые вычисления", problems: [], mcqCount: 0 },
-        { id: "1.6", name: "Работа с данными и графиками", problems: [], mcqCount: 0 },
-        { id: "1.7", name: "Прикладная геометрия: площади и расстояния в жизни", problems: [], mcqCount: 0 }
-      ]
-    },
-    {
-      id: "2",
-      name: "Алгебраические выражения",
-      subtopics: [
-        { id: "2.1", name: "Буквенные выражения", problems: [], mcqCount: 0 },
-        { id: "2.2", name: "Степени", problems: [], mcqCount: 0 },
-        { id: "2.3", name: "Многочлены", problems: [], mcqCount: 0 },
-        { id: "2.4", name: "Алгебраические дроби", problems: [], mcqCount: 0 },
-        { id: "2.5", name: "Арифметические корни", problems: [], mcqCount: 0 }
-      ]
-    },
-    {
-      id: "3",
-      name: "Уравнения и неравенства",
-      subtopics: [
-        { id: "3.1", name: "Уравнения и системы", problems: [], mcqCount: 0 },
-        { id: "3.2", name: "Неравенства и системы", problems: [], mcqCount: 0 },
-        { id: "3.3", name: "Текстовые задачи", problems: [], mcqCount: 0 }
-      ]
-    },
-    {
-      id: "4",
-      name: "Числовые последовательности",
-      subtopics: [
-        { id: "4.1", name: "Последовательности", problems: [], mcqCount: 0 },
-        { id: "4.2", name: "Арифметическая и геометрическая прогрессии", problems: [], mcqCount: 0 }
-      ]
-    },
-    {
-      id: "5",
-      name: "Функции",
-      subtopics: [
-        { id: "5.1", name: "Свойства и графики функций", problems: [], mcqCount: 0 }
-      ]
-    },
-    {
-      id: "6",
-      name: "Координаты на прямой и плоскости",
-      subtopics: [
-        { id: "6.1", name: "Координатная прямая", problems: [], mcqCount: 0 },
-        { id: "6.2", name: "Декартовы координаты", problems: [], mcqCount: 0 }
-      ]
-    },
-    {
-      id: "7",
-      name: "Геометрия",
-      subtopics: [
-        { id: "7.1", name: "Геометрические фигуры", problems: [], mcqCount: 0 },
-        { id: "7.2", name: "Треугольники", problems: [], mcqCount: 0 },
-        { id: "7.3", name: "Многоугольники", problems: [], mcqCount: 0 },
-        { id: "7.4", name: "Окружность и круг", problems: [], mcqCount: 0 },
-        { id: "7.5", name: "Измерения", problems: [], mcqCount: 0 },
-        { id: "7.6", name: "Векторы", problems: [], mcqCount: 0 },
-        { id: "7.7", name: "Дополнительные темы по геометрии", problems: [], mcqCount: 0 }
-      ]
-    },
-    {
-      id: "8",
-      name: "Вероятность и статистика",
-      subtopics: [
-        { id: "8.1", name: "Описательная статистика", problems: [], mcqCount: 0 },
-        { id: "8.2", name: "Вероятность", problems: [], mcqCount: 0 },
-        { id: "8.3", name: "Комбинаторика", problems: [], mcqCount: 0 },
-        { id: "8.4", name: "Множества", problems: [], mcqCount: 0 },
-        { id: "8.5", name: "Графы", problems: [], mcqCount: 0 }
-      ]
-    }
+  // Main topics from topics.md
+  const mainTopics = [
+    { id: "1", name: "Числа и вычисления" },
+    { id: "2", name: "Алгебраические выражения" },
+    { id: "3", name: "Уравнения и неравенства" },
+    { id: "4", name: "Числовые последовательности" },
+    { id: "5", name: "Функции" },
+    { id: "6", name: "Координаты на прямой и плоскости" },
+    { id: "7", name: "Геометрия" },
+    { id: "8", name: "Вероятность и статистика" }
   ];
+
+  // Get subtopics for each main topic
+  const getSubtopicsForTopic = (topicId: string): SubTopic[] => {
+    return topicMapping.filter(item => item.topic.startsWith(topicId + "."));
+  };
 
   useEffect(() => {
     fetchProblems();
-    fetchMCQCounts();
   }, []);
 
   const fetchProblems = async () => {
     try {
-      const { data, error } = await supabase
-        .from('copy')
+      // Fetch FRQ problems
+      const { data: frqData, error: frqError } = await supabase
+        .from('OGE_SHFIPI_problems_1_25')
         .select('question_id, problem_text, answer, solution_text, solutiontextexpanded, problem_image, code, difficulty, calculator_allowed')
         .order('code');
 
-      if (error) {
-        console.error('Error fetching problems:', error);
-        return;
+      if (frqError) {
+        console.error('Error fetching FRQ problems:', frqError);
+      } else if (frqData) {
+        setFrqProblems(frqData);
       }
 
-      if (data) {
-        setProblems(data);
-        if (data.length > 0) {
-          setSelectedProblem(data[0]);
-        }
+      // Fetch MCQ problems
+      const { data: mcqData, error: mcqError } = await supabase
+        .from('mcq_with_options')
+        .select('question_id, problem_text, answer, option1, option2, option3, option4, skills, problem_image')
+        .not('skills', 'is', null);
+
+      if (mcqError) {
+        console.error('Error fetching MCQ problems:', mcqError);
+      } else if (mcqData) {
+        setMcqProblems(mcqData);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -178,59 +110,37 @@ const PracticeExercise = () => {
     }
   };
 
-  const fetchMCQCounts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('mcq_with_options')
-        .select('skills')
-        .not('skills', 'is', null);
+  const getFilteredFRQProblems = (): FRQProblem[] => {
+    if (!selectedSubtopic) return [];
+    return frqProblems.filter(problem => problem.code === selectedSubtopic.topic);
+  };
 
-      if (error) {
-        console.error('Error fetching MCQ counts:', error);
-        return;
-      }
+  const getFilteredMCQProblems = (): MCQProblem[] => {
+    if (!selectedSubtopic) return [];
+    return mcqProblems.filter(problem => 
+      selectedSubtopic.skills.includes(problem.skills)
+    );
+  };
 
-      if (data) {
-        const counts: Record<string, number> = {};
-        data.forEach(item => {
-          const skillId = item.skills.toString();
-          counts[skillId] = (counts[skillId] || 0) + 1;
-        });
-        setMcqCounts(counts);
-      }
-    } catch (error) {
-      console.error('Error fetching MCQ counts:', error);
+  const handleFRQAnswerCheck = (questionId: string) => {
+    const problem = frqProblems.find(p => p.question_id === questionId);
+    const userAnswer = userAnswers[questionId]?.trim().toLowerCase();
+    const correctAnswer = problem?.answer?.trim().toLowerCase();
+    
+    if (userAnswer && correctAnswer) {
+      const isCorrect = userAnswer === correctAnswer;
+      setCheckedAnswers(prev => ({ ...prev, [questionId]: isCorrect }));
     }
   };
 
-  // Group problems by topics and subtopics with MCQ counts
-  const organizedTopics = mainTopics.map(topic => ({
-    ...topic,
-    subtopics: topic.subtopics.map(subtopic => ({
-      ...subtopic,
-      problems: problems.filter(problem => problem.code === subtopic.id),
-      mcqCount: mcqCounts[subtopic.id] || 0
-    }))
-  }));
-
-  const handleProblemSelect = (problem: Problem) => {
-    setSelectedProblem(problem);
-    setExpandedStates({
-      answer: false,
-      solution: false,
-      expanded: false
-    });
-  };
-
-  const handleMCQPractice = (subtopicId: string) => {
-    navigate(`/mcq-practice?skill=${subtopicId}`);
-  };
-
-  const toggleSection = (section: 'answer' | 'solution' | 'expanded') => {
-    setExpandedStates(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+  const handleMCQAnswerSelect = (questionId: string, selectedOption: string) => {
+    setSelectedMCQAnswers(prev => ({ ...prev, [questionId]: selectedOption }));
+    
+    const problem = mcqProblems.find(p => p.question_id === questionId);
+    if (problem) {
+      const isCorrect = selectedOption === problem.answer;
+      setCheckedAnswers(prev => ({ ...prev, [questionId]: isCorrect }));
+    }
   };
 
   if (loading) {
@@ -255,135 +165,61 @@ const PracticeExercise = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-3 text-gray-900">Практические задачи ОГЭ</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Выберите тему и навык для практики. Задачи организованы по официальному кодификатору ОГЭ.
+            Выберите тему и подтему для практики. Решайте задачи с развернутыми ответами и тестовые вопросы.
           </p>
-          <div className="flex items-center justify-center gap-4 mt-4">
-            <div className="flex items-center gap-2">
-              <PenTool className="h-5 w-5 text-blue-600" />
-              <span className="text-sm font-medium text-gray-700">FRQ - Развёрнутые ответы</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-medium text-gray-700">MCQ - Тесты</span>
-            </div>
-          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Side - Topics and Problems Navigation */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Left Window - Topics & Subtopics */}
           <div className="lg:col-span-1">
             <Card className="shadow-lg border-0">
               <div className="p-6 border-b bg-gradient-to-r from-primary to-primary/90 text-white rounded-t-lg">
-                <h2 className="text-xl font-semibold">Темы и навыки</h2>
+                <h2 className="text-xl font-semibold">Темы ОГЭ</h2>
                 <p className="text-sm text-primary-foreground/80 mt-1">
-                  {problems.length} FRQ задач и {Object.values(mcqCounts).reduce((sum, count) => sum + count, 0)} MCQ доступно
+                  Выберите раздел для изучения
                 </p>
               </div>
               
-              <ScrollArea className="h-[calc(100vh-350px)] p-4">
+              <ScrollArea className="h-[calc(100vh-300px)] p-4">
                 <Accordion type="single" collapsible className="w-full space-y-2">
-                  {organizedTopics.map((topic) => {
-                    const totalProblems = topic.subtopics.reduce((sum, subtopic) => sum + subtopic.problems.length, 0);
-                    const totalMCQ = topic.subtopics.reduce((sum, subtopic) => sum + subtopic.mcqCount, 0);
+                  {mainTopics.map((topic) => {
+                    const subtopics = getSubtopicsForTopic(topic.id);
                     
                     return (
                       <AccordionItem key={topic.id} value={topic.id} className="border rounded-lg overflow-hidden">
                         <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 text-left">
-                          <div className="flex items-center justify-between w-full mr-4">
-                            <div className="flex items-center gap-3">
-                              <span className="bg-primary text-white text-sm font-medium px-2 py-1 rounded">
-                                {topic.id}
-                              </span>
-                              <span className="font-medium text-gray-800">{topic.name}</span>
-                            </div>
-                            <div className="flex gap-2">
-                              <Badge variant="secondary" className="text-xs">
-                                {totalProblems} FRQ
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">
-                                {totalMCQ} MCQ
-                              </Badge>
-                            </div>
+                          <div className="flex items-center gap-3">
+                            <span className="bg-primary text-white text-sm font-medium px-2 py-1 rounded">
+                              {topic.id}
+                            </span>
+                            <span className="font-medium text-gray-800">{topic.name}</span>
                           </div>
                         </AccordionTrigger>
                         
                         <AccordionContent className="px-4 pb-4">
-                          <div className="space-y-3 mt-2">
-                            {topic.subtopics.map((subtopic) => (
-                              <div key={subtopic.id} className="border-l-2 border-gray-200 pl-4">
-                                <div className="flex items-center justify-between mb-3">
-                                  <h4 className="font-medium text-sm text-gray-700">
-                                    {subtopic.id}. {subtopic.name}
-                                  </h4>
-                                  <div className="flex gap-2">
-                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                      {subtopic.problems.length} FRQ
-                                    </span>
-                                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                                      {subtopic.mcqCount} MCQ
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Practice Options */}
-                                <div className="space-y-2 mb-3">
-                                  {subtopic.mcqCount > 0 && (
-                                    <Button
-                                      onClick={() => handleMCQPractice(subtopic.id)}
-                                      variant="outline"
-                                      size="sm"
-                                      className="w-full justify-start text-xs h-8 bg-green-50 border-green-200 hover:bg-green-100"
-                                    >
-                                      <Brain className="h-3 w-3 mr-2 text-green-600" />
-                                      <span className="text-green-700">Тестовая практика ({subtopic.mcqCount})</span>
-                                    </Button>
-                                  )}
-                                </div>
-                                
-                                {subtopic.problems.length > 0 ? (
-                                  <div className="space-y-1">
-                                    <div className="text-xs text-gray-500 mb-2 flex items-center gap-1">
-                                      <PenTool className="h-3 w-3" />
-                                      FRQ Задачи:
+                          <div className="space-y-2 mt-2">
+                            {subtopics.map((subtopic) => (
+                              <button
+                                key={subtopic.topic}
+                                onClick={() => setSelectedSubtopic(subtopic)}
+                                className={`w-full text-left p-3 rounded-lg transition-all text-sm border ${
+                                  selectedSubtopic?.topic === subtopic.topic
+                                    ? "bg-primary/10 border-primary/30 shadow-sm"
+                                    : "bg-white hover:bg-gray-50 border-gray-200"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <div className="font-medium text-gray-800">
+                                      {subtopic.topic}
                                     </div>
-                                    {subtopic.problems.map((problem) => (
-                                      <button
-                                        key={problem.question_id}
-                                        onClick={() => handleProblemSelect(problem)}
-                                        className={`w-full text-left p-3 rounded-lg transition-all text-sm border ${
-                                          selectedProblem?.question_id === problem.question_id
-                                            ? "bg-primary/10 border-primary/30 shadow-sm"
-                                            : "bg-white hover:bg-gray-50 border-gray-200"
-                                        }`}
-                                      >
-                                        <div className="flex items-start justify-between">
-                                          <div className="flex-grow">
-                                            <div className="flex items-center gap-2 mb-2">
-                                              {problem.calculator_allowed && (
-                                                <Calculator className="h-3 w-3 text-blue-500" />
-                                              )}
-                                              {problem.problem_image && (
-                                                <ImageIcon className="h-3 w-3 text-green-500" />
-                                              )}
-                                              {problem.difficulty && (
-                                                <span className="text-xs bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded">
-                                                  {problem.difficulty}
-                                                </span>
-                                              )}
-                                            </div>
-                                            <p className="text-gray-600 line-clamp-2 text-xs">
-                                              {problem.problem_text?.substring(0, 80)}...
-                                            </p>
-                                          </div>
-                                          <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
-                                        </div>
-                                      </button>
-                                    ))}
+                                    <div className="text-xs text-gray-600 mt-1">
+                                      {subtopic.name}
+                                    </div>
                                   </div>
-                                ) : (
-                                  <p className="text-xs text-gray-500 italic py-2">FRQ задачи не найдены</p>
-                                )}
-                              </div>
+                                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                                </div>
+                              </button>
                             ))}
                           </div>
                         </AccordionContent>
@@ -395,124 +231,266 @@ const PracticeExercise = () => {
             </Card>
           </div>
 
-          {/* Right Side - Problem Detail */}
-          <div className="lg:col-span-2">
-            {selectedProblem ? (
+          {/* Right Window - Question Viewer */}
+          <div className="lg:col-span-3">
+            {selectedSubtopic ? (
               <Card className="shadow-lg border-0">
                 <div className="bg-gradient-to-r from-secondary to-accent text-white p-6 rounded-t-lg">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="font-mono text-lg bg-white/20 text-white px-3 py-1 rounded">
-                      {selectedProblem.code}
-                    </span>
-                    <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                      <PenTool className="h-3 w-3 mr-1" />
-                      FRQ
-                    </Badge>
-                    {selectedProblem.calculator_allowed && (
-                      <span className="text-xs bg-white/20 text-white px-2 py-1 rounded">
-                        Калькулятор разрешён
-                      </span>
-                    )}
-                    {selectedProblem.difficulty && (
-                      <span className="text-xs bg-white/20 text-white px-2 py-1 rounded">
-                        {selectedProblem.difficulty}
-                      </span>
-                    )}
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-semibold">{selectedSubtopic.topic}</h3>
+                      <p className="text-secondary-foreground/80">{selectedSubtopic.name}</p>
+                    </div>
+                    <ToggleGroup 
+                      type="single" 
+                      value={questionType} 
+                      onValueChange={(value) => value && setQuestionType(value)}
+                      className="bg-white/20 rounded-lg p-1"
+                    >
+                      <ToggleGroupItem value="frq" className="text-white data-[state=on]:bg-white data-[state=on]:text-gray-900">
+                        <PenTool className="h-4 w-4 mr-2" />
+                        FRQ
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="mcq" className="text-white data-[state=on]:bg-white data-[state=on]:text-gray-900">
+                        <Brain className="h-4 w-4 mr-2" />
+                        MCQ
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="both" className="text-white data-[state=on]:bg-white data-[state=on]:text-gray-900">
+                        Все
+                      </ToggleGroupItem>
+                    </ToggleGroup>
                   </div>
-                  <h3 className="text-xl font-semibold">Задача для решения</h3>
                 </div>
                 
                 <CardContent className="p-6">
-                  <ScrollArea className="h-[calc(100vh-420px)] min-h-[400px]">
+                  <ScrollArea className="h-[calc(100vh-350px)]">
                     <div className="space-y-6">
-                      {/* Problem Image */}
-                      {selectedProblem.problem_image && (
-                        <div className="flex justify-center bg-gray-50 p-4 rounded-lg">
-                          <img
-                            src={selectedProblem.problem_image}
-                            alt="Изображение задачи"
-                            className="max-w-full h-auto rounded-lg shadow-sm"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
+                      {/* FRQ Questions */}
+                      {(questionType === "frq" || questionType === "both") && (
+                        <div>
+                          {getFilteredFRQProblems().length > 0 && (
+                            <div className="mb-6">
+                              <div className="flex items-center gap-2 mb-4">
+                                <PenTool className="h-5 w-5 text-blue-600" />
+                                <h4 className="text-lg font-semibold text-gray-800">
+                                  Развернутые ответы ({getFilteredFRQProblems().length})
+                                </h4>
+                              </div>
+                              <div className="space-y-4">
+                                {getFilteredFRQProblems().map((problem) => (
+                                  <Card key={problem.question_id} className="border-l-4 border-l-blue-500">
+                                    <CardContent className="p-6">
+                                      <Tabs defaultValue="zadanie" className="w-full">
+                                        <TabsList className="grid w-full grid-cols-2">
+                                          <TabsTrigger value="zadanie">Задание</TabsTrigger>
+                                          <TabsTrigger value="reshenie">Решение</TabsTrigger>
+                                        </TabsList>
+                                        
+                                        <TabsContent value="zadanie" className="space-y-4">
+                                          {problem.problem_image && (
+                                            <div className="flex justify-center bg-gray-50 p-4 rounded-lg">
+                                              <img
+                                                src={problem.problem_image}
+                                                alt="Изображение задачи"
+                                                className="max-w-full h-auto rounded-lg shadow-sm"
+                                              />
+                                            </div>
+                                          )}
+                                          
+                                          <div className="bg-gray-50 p-4 rounded-lg">
+                                            <LatexRenderer content={problem.problem_text || ""} />
+                                          </div>
+                                          
+                                          <div className="flex items-center gap-2 mb-4">
+                                            {problem.calculator_allowed && (
+                                              <Badge variant="secondary">
+                                                <Calculator className="h-3 w-3 mr-1" />
+                                                Калькулятор разрешён
+                                              </Badge>
+                                            )}
+                                            {problem.difficulty && (
+                                              <Badge variant="outline">{problem.difficulty}</Badge>
+                                            )}
+                                          </div>
+                                          
+                                          <div className="space-y-3">
+                                            <Label htmlFor={`answer-${problem.question_id}`}>Ваш ответ:</Label>
+                                            <div className="flex gap-2">
+                                              <Input
+                                                id={`answer-${problem.question_id}`}
+                                                value={userAnswers[problem.question_id] || ""}
+                                                onChange={(e) => setUserAnswers(prev => ({
+                                                  ...prev,
+                                                  [problem.question_id]: e.target.value
+                                                }))}
+                                                placeholder="Введите ответ..."
+                                                className="flex-grow"
+                                              />
+                                              <Button 
+                                                onClick={() => handleFRQAnswerCheck(problem.question_id)}
+                                                disabled={!userAnswers[problem.question_id]?.trim()}
+                                              >
+                                                Проверить ответ
+                                              </Button>
+                                            </div>
+                                            {checkedAnswers[problem.question_id] !== undefined && (
+                                              <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                                                checkedAnswers[problem.question_id] 
+                                                  ? 'bg-green-50 text-green-800' 
+                                                  : 'bg-red-50 text-red-800'
+                                              }`}>
+                                                {checkedAnswers[problem.question_id] ? (
+                                                  <Check className="h-4 w-4" />
+                                                ) : (
+                                                  <X className="h-4 w-4" />
+                                                )}
+                                                <span className="font-medium">
+                                                  {checkedAnswers[problem.question_id] ? 'Правильно!' : 'Неправильно'}
+                                                </span>
+                                                {!checkedAnswers[problem.question_id] && (
+                                                  <span className="ml-2">
+                                                    Правильный ответ: {problem.answer}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </TabsContent>
+                                        
+                                        <TabsContent value="reshenie" className="space-y-4">
+                                          <div className="bg-blue-50 p-4 rounded-lg">
+                                            <h5 className="font-semibold text-blue-800 mb-2">Решение:</h5>
+                                            <LatexRenderer content={problem.solution_text || "Решение не указано"} />
+                                          </div>
+                                          
+                                          {problem.solutiontextexpanded && (
+                                            <div className="bg-purple-50 p-4 rounded-lg">
+                                              <h5 className="font-semibold text-purple-800 mb-2">Подробное объяснение:</h5>
+                                              <LatexRenderer content={problem.solutiontextexpanded} />
+                                            </div>
+                                          )}
+                                        </TabsContent>
+                                      </Tabs>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
-                      {/* Problem Text */}
-                      <div className="prose max-w-none">
-                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-800">
-                          <BookOpen className="h-5 w-5 text-primary" />
-                          Условие задачи
-                        </h3>
-                        <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-primary">
-                          <LatexRenderer content={selectedProblem.problem_text || ""} />
+                      {/* MCQ Questions */}
+                      {(questionType === "mcq" || questionType === "both") && (
+                        <div>
+                          {getFilteredMCQProblems().length > 0 && (
+                            <div>
+                              <div className="flex items-center gap-2 mb-4">
+                                <Brain className="h-5 w-5 text-green-600" />
+                                <h4 className="text-lg font-semibold text-gray-800">
+                                  Тестовые вопросы ({getFilteredMCQProblems().length})
+                                </h4>
+                              </div>
+                              <div className="space-y-4">
+                                {getFilteredMCQProblems().map((problem) => (
+                                  <Card key={problem.question_id} className="border-l-4 border-l-green-500">
+                                    <CardContent className="p-6">
+                                      {problem.problem_image && (
+                                        <div className="flex justify-center bg-gray-50 p-4 rounded-lg mb-4">
+                                          <img
+                                            src={problem.problem_image}
+                                            alt="Изображение задачи"
+                                            className="max-w-full h-auto rounded-lg shadow-sm"
+                                          />
+                                        </div>
+                                      )}
+                                      
+                                      <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                                        <LatexRenderer content={problem.problem_text || ""} />
+                                      </div>
+                                      
+                                      <RadioGroup
+                                        value={selectedMCQAnswers[problem.question_id] || ""}
+                                        onValueChange={(value) => handleMCQAnswerSelect(problem.question_id, value)}
+                                        className="space-y-3"
+                                      >
+                                        {[problem.option1, problem.option2, problem.option3, problem.option4].map((option, index) => {
+                                          const optionLabel = String.fromCharCode(65 + index); // A, B, C, D
+                                          const isSelected = selectedMCQAnswers[problem.question_id] === optionLabel;
+                                          const isCorrect = problem.answer === optionLabel;
+                                          const showResult = selectedMCQAnswers[problem.question_id] !== undefined;
+                                          
+                                          return (
+                                            <div 
+                                              key={index}
+                                              className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${
+                                                showResult && isSelected && isCorrect
+                                                  ? 'bg-green-50 border-green-200'
+                                                  : showResult && isSelected && !isCorrect
+                                                  ? 'bg-red-50 border-red-200'
+                                                  : showResult && !isSelected && isCorrect
+                                                  ? 'bg-green-50 border-green-200'
+                                                  : 'bg-white border-gray-200 hover:bg-gray-50'
+                                              }`}
+                                            >
+                                              <RadioGroupItem value={optionLabel} id={`${problem.question_id}-${optionLabel}`} />
+                                              <Label htmlFor={`${problem.question_id}-${optionLabel}`} className="flex-grow cursor-pointer">
+                                                <span className="font-medium mr-2">{optionLabel})</span>
+                                                <LatexRenderer content={option || ""} />
+                                              </Label>
+                                              {showResult && isSelected && (
+                                                isCorrect ? (
+                                                  <Check className="h-4 w-4 text-green-600" />
+                                                ) : (
+                                                  <X className="h-4 w-4 text-red-600" />
+                                                )
+                                              )}
+                                              {showResult && !isSelected && isCorrect && (
+                                                <Check className="h-4 w-4 text-green-600" />
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </RadioGroup>
+                                      
+                                      {checkedAnswers[problem.question_id] !== undefined && (
+                                        <div className={`mt-4 p-3 rounded-lg ${
+                                          checkedAnswers[problem.question_id] 
+                                            ? 'bg-green-50 text-green-800' 
+                                            : 'bg-red-50 text-red-800'
+                                        }`}>
+                                          <span className="font-medium">
+                                            {checkedAnswers[problem.question_id] ? 'Правильно! ✓' : 'Неправильно ✗'}
+                                          </span>
+                                          {!checkedAnswers[problem.question_id] && (
+                                            <span className="ml-2">
+                                              Правильный ответ: {problem.answer}
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      )}
 
-                      {/* Action Buttons */}
-                      <div className="space-y-4">
-                        <Button
-                          onClick={() => toggleSection('answer')}
-                          variant="outline"
-                          className="w-full justify-start h-12 text-left bg-green-50 border-green-200 hover:bg-green-100"
-                        >
-                          <span className="text-green-700">📋 Показать ответ</span>
-                        </Button>
-                        
-                        <Collapsible open={expandedStates.answer} onOpenChange={() => toggleSection('answer')}>
-                          <CollapsibleContent>
-                            <div className="bg-green-50 border border-green-200 p-6 rounded-lg mt-2">
-                              <h4 className="font-semibold text-green-800 mb-3 text-lg">✅ Ответ:</h4>
-                              <div className="text-green-900 text-lg">
-                                <LatexRenderer content={selectedProblem.answer || "Ответ не указан"} />
-                              </div>
-                            </div>
-                          </CollapsibleContent>
-                        </Collapsible>
-
-                        <Button
-                          onClick={() => toggleSection('solution')}
-                          variant="outline"
-                          className="w-full justify-start h-12 text-left bg-blue-50 border-blue-200 hover:bg-blue-100"
-                        >
-                          <span className="text-blue-700">💡 Показать решение</span>
-                        </Button>
-                        
-                        <Collapsible open={expandedStates.solution} onOpenChange={() => toggleSection('solution')}>
-                          <CollapsibleContent>
-                            <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg mt-2">
-                              <h4 className="font-semibold text-blue-800 mb-3 text-lg">🔍 Решение:</h4>
-                              <div className="text-blue-900">
-                                <LatexRenderer content={selectedProblem.solution_text || "Решение не указано"} />
-                              </div>
-                            </div>
-                          </CollapsibleContent>
-                        </Collapsible>
-
-                        {selectedProblem.solutiontextexpanded && (
-                          <>
-                            <Button
-                              onClick={() => toggleSection('expanded')}
-                              variant="outline"
-                              className="w-full justify-start h-12 text-left bg-purple-50 border-purple-200 hover:bg-purple-100"
-                            >
-                              <span className="text-purple-700">🔎 Я всё ещё не понял(а). Покажи подробнее.</span>
-                            </Button>
-                            
-                            <Collapsible open={expandedStates.expanded} onOpenChange={() => toggleSection('expanded')}>
-                              <CollapsibleContent>
-                                <div className="bg-purple-50 border border-purple-200 p-6 rounded-lg mt-2">
-                                  <h4 className="font-semibold text-purple-800 mb-3 text-lg">📚 Подробное объяснение:</h4>
-                                  <div className="text-purple-900">
-                                    <LatexRenderer content={selectedProblem.solutiontextexpanded} />
-                                  </div>
-                                </div>
-                              </CollapsibleContent>
-                            </Collapsible>
-                          </>
-                        )}
-                      </div>
+                      {/* No questions found */}
+                      {((questionType === "frq" || questionType === "both") && getFilteredFRQProblems().length === 0) &&
+                       ((questionType === "mcq" || questionType === "both") && getFilteredMCQProblems().length === 0) && (
+                        <div className="text-center py-12">
+                          <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                          <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                            Задачи не найдены
+                          </h3>
+                          <p className="text-gray-500">
+                            Для выбранной подтемы пока нет доступных задач
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </ScrollArea>
                 </CardContent>
@@ -520,27 +498,13 @@ const PracticeExercise = () => {
             ) : (
               <Card className="shadow-lg border-0">
                 <CardContent className="p-12 text-center">
-                  <div className="max-w-md mx-auto">
-                    <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-6" />
-                    <h3 className="text-2xl font-semibold text-gray-600 mb-3">
-                      Выберите задачу для решения
-                    </h3>
-                    <p className="text-gray-500 text-lg leading-relaxed mb-6">
-                      Выберите тему и задачу из списка слева, чтобы начать практику решения задач ОГЭ
-                    </p>
-                    <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
-                      <div className="text-center p-4 bg-blue-50 rounded-lg">
-                        <PenTool className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                        <div className="text-sm font-medium text-blue-800">FRQ</div>
-                        <div className="text-xs text-blue-600">Развёрнутые ответы</div>
-                      </div>
-                      <div className="text-center p-4 bg-green-50 rounded-lg">
-                        <Brain className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                        <div className="text-sm font-medium text-green-800">MCQ</div>
-                        <div className="text-xs text-green-600">Тестовые вопросы</div>
-                      </div>
-                    </div>
-                  </div>
+                  <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-6" />
+                  <h3 className="text-2xl font-semibold text-gray-600 mb-3">
+                    Выберите подтему для практики
+                  </h3>
+                  <p className="text-gray-500 text-lg">
+                    Выберите тему и подтему из списка слева, чтобы начать решение задач ОГЭ
+                  </p>
                 </CardContent>
               </Card>
             )}
