@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -17,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import LatexRenderer from "@/components/chat/LatexRenderer";
 
 // Import the topic mapping data - use relative path
-import topicMapping from "../../documentation/topic_skill_mapping_with_names.json";
+import topicMapping from "../documentation/topic_skill_mapping_with_names.json";
 
 interface FRQProblem {
   question_id: string;
@@ -49,12 +48,14 @@ interface SubTopic {
   skills: number[];
 }
 
+type QuestionType = "frq" | "mcq" | "both";
+
 const PracticeExercise = () => {
   const [frqProblems, setFrqProblems] = useState<FRQProblem[]>([]);
   const [mcqProblems, setMcqProblems] = useState<MCQProblem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubtopic, setSelectedSubtopic] = useState<SubTopic | null>(null);
-  const [questionType, setQuestionType] = useState<"frq" | "mcq" | "both">("both");
+  const [questionType, setQuestionType] = useState<QuestionType>("both");
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [checkedAnswers, setCheckedAnswers] = useState<Record<string, boolean>>({});
   const [selectedMCQAnswers, setSelectedMCQAnswers] = useState<Record<string, string>>({});
@@ -150,9 +151,9 @@ const PracticeExercise = () => {
     }
   };
 
-  const handleQuestionTypeChange = (value: string) => {
+  const handleQuestionTypeChange = (value: string | undefined) => {
     if (value && (value === "frq" || value === "mcq" || value === "both")) {
-      setQuestionType(value as "frq" | "mcq" | "both");
+      setQuestionType(value as QuestionType);
     }
   };
 
