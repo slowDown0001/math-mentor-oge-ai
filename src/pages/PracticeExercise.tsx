@@ -15,6 +15,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import LatexRenderer from "@/components/chat/LatexRenderer";
+
+// Import the topic mapping data - use relative path from public directory
 import topicMapping from "/documentation/topic_skill_mapping_with_names.json";
 
 interface FRQProblem {
@@ -89,7 +91,12 @@ const PracticeExercise = () => {
       if (frqError) {
         console.error('Error fetching FRQ problems:', frqError);
       } else if (frqData) {
-        setFrqProblems(frqData);
+        // Convert code from number to string to match interface
+        const formattedFrqData = frqData.map(problem => ({
+          ...problem,
+          code: problem.code?.toString() || ''
+        }));
+        setFrqProblems(formattedFrqData);
       }
 
       // Fetch MCQ problems
