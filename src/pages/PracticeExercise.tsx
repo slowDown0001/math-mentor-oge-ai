@@ -425,7 +425,7 @@ const PracticeExercise = () => {
                                       className="space-y-3"
                                     >
                                       {[problem.option1, problem.option2, problem.option3, problem.option4].map((option, index) => {
-                                        const optionLabel = String.fromCharCode(65 + index); // A, B, C, D
+                                        const optionLabel = ['А', 'Б', 'В', 'Г'][index]; // Changed to Cyrillic letters
                                         const isSelected = selectedMCQAnswers[problem.question_id] === optionLabel;
                                         const isCorrect = problem.answer === optionLabel;
                                         const showResult = selectedMCQAnswers[problem.question_id] !== undefined;
