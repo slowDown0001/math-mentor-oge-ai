@@ -194,7 +194,7 @@ const PracticeExercise = () => {
                 </p>
               </div>
               
-              <ScrollArea className="h-[calc(100vh-300px)] p-4">
+              <div className="p-4">
                 <Accordion type="single" collapsible className="w-full space-y-2">
                   {mainTopics.map((topic) => {
                     const subtopics = getSubtopicsForTopic(topic.id);
@@ -241,7 +241,7 @@ const PracticeExercise = () => {
                     );
                   })}
                 </Accordion>
-              </ScrollArea>
+              </div>
             </Card>
           </div>
 
@@ -274,236 +274,234 @@ const PracticeExercise = () => {
                 </div>
                 
                 <CardContent className="p-6">
-                  <ScrollArea className="h-[calc(100vh-350px)]">
-                    <div className="space-y-6">
-                      {/* FRQ Questions */}
-                      {questionType === "frq" && (
-                        <div>
-                          {getFilteredFRQProblems().length > 0 && (
-                            <div className="mb-6">
-                              <div className="flex items-center gap-2 mb-4">
-                                <PenTool className="h-5 w-5 text-blue-600" />
-                                <h4 className="text-lg font-semibold text-gray-800">
-                                  Развернутые ответы ({getFilteredFRQProblems().length})
-                                </h4>
-                              </div>
-                              <div className="space-y-4">
-                                {getFilteredFRQProblems().map((problem) => (
-                                  <Card key={problem.question_id} className="border-l-4 border-l-blue-500">
-                                    <CardContent className="p-6">
-                                      <Tabs defaultValue="zadanie" className="w-full">
-                                        <TabsList className="grid w-full grid-cols-2">
-                                          <TabsTrigger value="zadanie">Задание</TabsTrigger>
-                                          <TabsTrigger value="reshenie">Решение</TabsTrigger>
-                                        </TabsList>
-                                        
-                                        <TabsContent value="zadanie" className="space-y-4">
-                                          {problem.problem_image && (
-                                            <div className="flex justify-center bg-gray-50 p-4 rounded-lg">
-                                              <img
-                                                src={problem.problem_image}
-                                                alt="Изображение задачи"
-                                                className="max-w-full h-auto rounded-lg shadow-sm"
-                                              />
-                                            </div>
-                                          )}
-                                          
-                                          <div className="bg-gray-50 p-4 rounded-lg">
-                                            <LatexRenderer content={problem.problem_text || ""} />
-                                          </div>
-                                          
-                                          <div className="flex items-center gap-2 mb-4">
-                                            {problem.calculator_allowed && (
-                                              <Badge variant="secondary">
-                                                <Calculator className="h-3 w-3 mr-1" />
-                                                Калькулятор разрешён
-                                              </Badge>
-                                            )}
-                                            {problem.difficulty && (
-                                              <Badge variant="outline">{problem.difficulty}</Badge>
-                                            )}
-                                          </div>
-                                          
-                                          <div className="space-y-3">
-                                            <Label htmlFor={`answer-${problem.question_id}`}>Ваш ответ:</Label>
-                                            <div className="flex gap-2">
-                                              <Input
-                                                id={`answer-${problem.question_id}`}
-                                                value={userAnswers[problem.question_id] || ""}
-                                                onChange={(e) => setUserAnswers(prev => ({
-                                                  ...prev,
-                                                  [problem.question_id]: e.target.value
-                                                }))}
-                                                placeholder="Введите ответ..."
-                                                className="flex-grow"
-                                              />
-                                              <Button 
-                                                onClick={() => handleFRQAnswerCheck(problem.question_id)}
-                                                disabled={!userAnswers[problem.question_id]?.trim()}
-                                              >
-                                                Проверить ответ
-                                              </Button>
-                                            </div>
-                                            {checkedAnswers[problem.question_id] !== undefined && (
-                                              <div className={`flex items-center gap-2 p-3 rounded-lg ${
-                                                checkedAnswers[problem.question_id] 
-                                                  ? 'bg-green-50 text-green-800' 
-                                                  : 'bg-red-50 text-red-800'
-                                              }`}>
-                                                {checkedAnswers[problem.question_id] ? (
-                                                  <Check className="h-4 w-4" />
-                                                ) : (
-                                                  <X className="h-4 w-4" />
-                                                )}
-                                                <span className="font-medium">
-                                                  {checkedAnswers[problem.question_id] ? 'Правильно!' : 'Неправильно'}
-                                                </span>
-                                                {!checkedAnswers[problem.question_id] && (
-                                                  <span className="ml-2">
-                                                    Правильный ответ: {problem.answer}
-                                                  </span>
-                                                )}
-                                              </div>
-                                            )}
-                                          </div>
-                                        </TabsContent>
-                                        
-                                        <TabsContent value="reshenie" className="space-y-4">
-                                          <div className="bg-blue-50 p-4 rounded-lg">
-                                            <h5 className="font-semibold text-blue-800 mb-2">Решение:</h5>
-                                            <LatexRenderer content={problem.solution_text || "Решение не указано"} />
-                                          </div>
-                                          
-                                          {problem.solutiontextexpanded && (
-                                            <div className="bg-purple-50 p-4 rounded-lg">
-                                              <h5 className="font-semibold text-purple-800 mb-2">Подробное объяснение:</h5>
-                                              <LatexRenderer content={problem.solutiontextexpanded} />
-                                            </div>
-                                          )}
-                                        </TabsContent>
-                                      </Tabs>
-                                    </CardContent>
-                                  </Card>
-                                ))}
-                              </div>
+                  <div className="space-y-6">
+                    {/* FRQ Questions */}
+                    {questionType === "frq" && (
+                      <div>
+                        {getFilteredFRQProblems().length > 0 && (
+                          <div className="mb-6">
+                            <div className="flex items-center gap-2 mb-4">
+                              <PenTool className="h-5 w-5 text-blue-600" />
+                              <h4 className="text-lg font-semibold text-gray-800">
+                                Развернутые ответы ({getFilteredFRQProblems().length})
+                              </h4>
                             </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* MCQ Questions */}
-                      {questionType === "mcq" && (
-                        <div>
-                          {getFilteredMCQProblems().length > 0 && (
-                            <div>
-                              <div className="flex items-center gap-2 mb-4">
-                                <Brain className="h-5 w-5 text-green-600" />
-                                <h4 className="text-lg font-semibold text-gray-800">
-                                  Тестовые вопросы ({getFilteredMCQProblems().length})
-                                </h4>
-                              </div>
-                              <div className="space-y-4">
-                                {getFilteredMCQProblems().map((problem) => (
-                                  <Card key={problem.question_id} className="border-l-4 border-l-green-500">
-                                    <CardContent className="p-6">
-                                      {problem.problem_image && (
-                                        <div className="flex justify-center bg-gray-50 p-4 rounded-lg mb-4">
-                                          <img
-                                            src={problem.problem_image}
-                                            alt="Изображение задачи"
-                                            className="max-w-full h-auto rounded-lg shadow-sm"
-                                          />
+                            <div className="space-y-4">
+                              {getFilteredFRQProblems().map((problem) => (
+                                <Card key={problem.question_id} className="border-l-4 border-l-blue-500">
+                                  <CardContent className="p-6">
+                                    <Tabs defaultValue="zadanie" className="w-full">
+                                      <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="zadanie">Задание</TabsTrigger>
+                                        <TabsTrigger value="reshenie">Решение</TabsTrigger>
+                                      </TabsList>
+                                      
+                                      <TabsContent value="zadanie" className="space-y-4">
+                                        {problem.problem_image && (
+                                          <div className="flex justify-center bg-gray-50 p-4 rounded-lg">
+                                            <img
+                                              src={problem.problem_image}
+                                              alt="Изображение задачи"
+                                              className="max-w-full h-auto rounded-lg shadow-sm"
+                                            />
+                                          </div>
+                                        )}
+                                        
+                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                          <LatexRenderer content={problem.problem_text || ""} />
                                         </div>
-                                      )}
-                                      
-                                      <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                                        <LatexRenderer content={problem.problem_text || ""} />
-                                      </div>
-                                      
-                                      <RadioGroup
-                                        value={selectedMCQAnswers[problem.question_id] || ""}
-                                        onValueChange={(value) => handleMCQAnswerSelect(problem.question_id, value)}
-                                        className="space-y-3"
-                                      >
-                                        {[problem.option1, problem.option2, problem.option3, problem.option4].map((option, index) => {
-                                          const optionLabel = String.fromCharCode(65 + index); // A, B, C, D
-                                          const isSelected = selectedMCQAnswers[problem.question_id] === optionLabel;
-                                          const isCorrect = problem.answer === optionLabel;
-                                          const showResult = selectedMCQAnswers[problem.question_id] !== undefined;
-                                          
-                                          return (
-                                            <div 
-                                              key={index}
-                                              className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${
-                                                showResult && isSelected && isCorrect
-                                                  ? 'bg-green-50 border-green-200'
-                                                  : showResult && isSelected && !isCorrect
-                                                  ? 'bg-red-50 border-red-200'
-                                                  : showResult && !isSelected && isCorrect
-                                                  ? 'bg-green-50 border-green-200'
-                                                  : 'bg-white border-gray-200 hover:bg-gray-50'
-                                              }`}
+                                        
+                                        <div className="flex items-center gap-2 mb-4">
+                                          {problem.calculator_allowed && (
+                                            <Badge variant="secondary">
+                                              <Calculator className="h-3 w-3 mr-1" />
+                                              Калькулятор разрешён
+                                            </Badge>
+                                          )}
+                                          {problem.difficulty && (
+                                            <Badge variant="outline">{problem.difficulty}</Badge>
+                                          )}
+                                        </div>
+                                        
+                                        <div className="space-y-3">
+                                          <Label htmlFor={`answer-${problem.question_id}`}>Ваш ответ:</Label>
+                                          <div className="flex gap-2">
+                                            <Input
+                                              id={`answer-${problem.question_id}`}
+                                              value={userAnswers[problem.question_id] || ""}
+                                              onChange={(e) => setUserAnswers(prev => ({
+                                                ...prev,
+                                                [problem.question_id]: e.target.value
+                                              }))}
+                                              placeholder="Введите ответ..."
+                                              className="flex-grow"
+                                            />
+                                            <Button 
+                                              onClick={() => handleFRQAnswerCheck(problem.question_id)}
+                                              disabled={!userAnswers[problem.question_id]?.trim()}
                                             >
-                                              <RadioGroupItem value={optionLabel} id={`${problem.question_id}-${optionLabel}`} />
-                                              <Label htmlFor={`${problem.question_id}-${optionLabel}`} className="flex-grow cursor-pointer">
-                                                <span className="font-medium mr-2">{optionLabel})</span>
-                                                <LatexRenderer content={option || ""} />
-                                              </Label>
-                                              {showResult && isSelected && (
-                                                isCorrect ? (
-                                                  <Check className="h-4 w-4 text-green-600" />
-                                                ) : (
-                                                  <X className="h-4 w-4 text-red-600" />
-                                                )
+                                              Проверить ответ
+                                            </Button>
+                                          </div>
+                                          {checkedAnswers[problem.question_id] !== undefined && (
+                                            <div className={`flex items-center gap-2 p-3 rounded-lg ${
+                                              checkedAnswers[problem.question_id] 
+                                                ? 'bg-green-50 text-green-800' 
+                                                : 'bg-red-50 text-red-800'
+                                            }`}>
+                                              {checkedAnswers[problem.question_id] ? (
+                                                <Check className="h-4 w-4" />
+                                              ) : (
+                                                <X className="h-4 w-4" />
                                               )}
-                                              {showResult && !isSelected && isCorrect && (
-                                                <Check className="h-4 w-4 text-green-600" />
+                                              <span className="font-medium">
+                                                {checkedAnswers[problem.question_id] ? 'Правильно!' : 'Неправильно'}
+                                              </span>
+                                              {!checkedAnswers[problem.question_id] && (
+                                                <span className="ml-2">
+                                                  Правильный ответ: {problem.answer}
+                                                </span>
                                               )}
                                             </div>
-                                          );
-                                        })}
-                                      </RadioGroup>
-                                      
-                                      {checkedAnswers[problem.question_id] !== undefined && (
-                                        <div className={`mt-4 p-3 rounded-lg ${
-                                          checkedAnswers[problem.question_id] 
-                                            ? 'bg-green-50 text-green-800' 
-                                            : 'bg-red-50 text-red-800'
-                                        }`}>
-                                          <span className="font-medium">
-                                            {checkedAnswers[problem.question_id] ? 'Правильно! ✓' : 'Неправильно ✗'}
-                                          </span>
-                                          {!checkedAnswers[problem.question_id] && (
-                                            <span className="ml-2">
-                                              Правильный ответ: {problem.answer}
-                                            </span>
                                           )}
                                         </div>
-                                      )}
-                                    </CardContent>
-                                  </Card>
-                                ))}
-                              </div>
+                                      </TabsContent>
+                                      
+                                      <TabsContent value="reshenie" className="space-y-4">
+                                        <div className="bg-blue-50 p-4 rounded-lg">
+                                          <h5 className="font-semibold text-blue-800 mb-2">Решение:</h5>
+                                          <LatexRenderer content={problem.solution_text || "Решение не указано"} />
+                                        </div>
+                                        
+                                        {problem.solutiontextexpanded && (
+                                          <div className="bg-purple-50 p-4 rounded-lg">
+                                            <h5 className="font-semibold text-purple-800 mb-2">Подробное объяснение:</h5>
+                                            <LatexRenderer content={problem.solutiontextexpanded} />
+                                          </div>
+                                        )}
+                                      </TabsContent>
+                                    </Tabs>
+                                  </CardContent>
+                                </Card>
+                              ))}
                             </div>
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                      {/* No questions found */}
-                      {((questionType === "frq" && getFilteredFRQProblems().length === 0) ||
-                        (questionType === "mcq" && getFilteredMCQProblems().length === 0)) && (
-                        <div className="text-center py-12">
-                          <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                          <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                            Задачи не найдены
-                          </h3>
-                          <p className="text-gray-500">
-                            Для выбранной подтемы пока нет доступных задач
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
+                    {/* MCQ Questions */}
+                    {questionType === "mcq" && (
+                      <div>
+                        {getFilteredMCQProblems().length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-4">
+                              <Brain className="h-5 w-5 text-green-600" />
+                              <h4 className="text-lg font-semibold text-gray-800">
+                                Тестовые вопросы ({getFilteredMCQProblems().length})
+                              </h4>
+                            </div>
+                            <div className="space-y-4">
+                              {getFilteredMCQProblems().map((problem) => (
+                                <Card key={problem.question_id} className="border-l-4 border-l-green-500">
+                                  <CardContent className="p-6">
+                                    {problem.problem_image && (
+                                      <div className="flex justify-center bg-gray-50 p-4 rounded-lg mb-4">
+                                        <img
+                                          src={problem.problem_image}
+                                          alt="Изображение задачи"
+                                          className="max-w-full h-auto rounded-lg shadow-sm"
+                                        />
+                                      </div>
+                                    )}
+                                    
+                                    <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                                      <LatexRenderer content={problem.problem_text || ""} />
+                                    </div>
+                                    
+                                    <RadioGroup
+                                      value={selectedMCQAnswers[problem.question_id] || ""}
+                                      onValueChange={(value) => handleMCQAnswerSelect(problem.question_id, value)}
+                                      className="space-y-3"
+                                    >
+                                      {[problem.option1, problem.option2, problem.option3, problem.option4].map((option, index) => {
+                                        const optionLabel = String.fromCharCode(65 + index); // A, B, C, D
+                                        const isSelected = selectedMCQAnswers[problem.question_id] === optionLabel;
+                                        const isCorrect = problem.answer === optionLabel;
+                                        const showResult = selectedMCQAnswers[problem.question_id] !== undefined;
+                                        
+                                        return (
+                                          <div 
+                                            key={index}
+                                            className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${
+                                              showResult && isSelected && isCorrect
+                                                ? 'bg-green-50 border-green-200'
+                                                : showResult && isSelected && !isCorrect
+                                                ? 'bg-red-50 border-red-200'
+                                                : showResult && !isSelected && isCorrect
+                                                ? 'bg-green-50 border-green-200'
+                                                : 'bg-white border-gray-200 hover:bg-gray-50'
+                                            }`}
+                                          >
+                                            <RadioGroupItem value={optionLabel} id={`${problem.question_id}-${optionLabel}`} />
+                                            <Label htmlFor={`${problem.question_id}-${optionLabel}`} className="flex-grow cursor-pointer">
+                                              <span className="font-medium mr-2">{optionLabel})</span>
+                                              <LatexRenderer content={option || ""} />
+                                            </Label>
+                                            {showResult && isSelected && (
+                                              isCorrect ? (
+                                                <Check className="h-4 w-4 text-green-600" />
+                                              ) : (
+                                                <X className="h-4 w-4 text-red-600" />
+                                              )
+                                            )}
+                                            {showResult && !isSelected && isCorrect && (
+                                              <Check className="h-4 w-4 text-green-600" />
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                    </RadioGroup>
+                                    
+                                    {checkedAnswers[problem.question_id] !== undefined && (
+                                      <div className={`mt-4 p-3 rounded-lg ${
+                                        checkedAnswers[problem.question_id] 
+                                          ? 'bg-green-50 text-green-800' 
+                                          : 'bg-red-50 text-red-800'
+                                      }`}>
+                                        <span className="font-medium">
+                                          {checkedAnswers[problem.question_id] ? 'Правильно! ✓' : 'Неправильно ✗'}
+                                        </span>
+                                        {!checkedAnswers[problem.question_id] && (
+                                          <span className="ml-2">
+                                            Правильный ответ: {problem.answer}
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* No questions found */}
+                    {((questionType === "frq" && getFilteredFRQProblems().length === 0) ||
+                      (questionType === "mcq" && getFilteredMCQProblems().length === 0)) && (
+                      <div className="text-center py-12">
+                        <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                          Задачи не найдены
+                        </h3>
+                        <p className="text-gray-500">
+                          Для выбранной подтемы пока нет доступных задач
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ) : (
