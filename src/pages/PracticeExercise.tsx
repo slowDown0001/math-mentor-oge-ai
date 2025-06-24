@@ -16,8 +16,8 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import LatexRenderer from "@/components/chat/LatexRenderer";
 
-// Import the topic mapping data - use relative path from public directory
-import topicMapping from "/documentation/topic_skill_mapping_with_names.json";
+// Import the topic mapping data - use relative path
+import topicMapping from "../../documentation/topic_skill_mapping_with_names.json";
 
 interface FRQProblem {
   question_id: string;
@@ -54,7 +54,7 @@ const PracticeExercise = () => {
   const [mcqProblems, setMcqProblems] = useState<MCQProblem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubtopic, setSelectedSubtopic] = useState<SubTopic | null>(null);
-  const [questionType, setQuestionType] = useState<string>("both");
+  const [questionType, setQuestionType] = useState<"frq" | "mcq" | "both">("both");
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [checkedAnswers, setCheckedAnswers] = useState<Record<string, boolean>>({});
   const [selectedMCQAnswers, setSelectedMCQAnswers] = useState<Record<string, string>>({});
