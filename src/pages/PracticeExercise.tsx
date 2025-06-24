@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -425,7 +424,7 @@ const PracticeExercise = () => {
                                       className="space-y-3"
                                     >
                                       {[problem.option1, problem.option2, problem.option3, problem.option4].map((option, index) => {
-                                        const optionLabel = ['А', 'Б', 'В', 'Г'][index]; // Changed to Cyrillic letters
+                                        const optionLabel = ['А', 'Б', 'В', 'Г'][index];
                                         const isSelected = selectedMCQAnswers[problem.question_id] === optionLabel;
                                         const isCorrect = problem.answer === optionLabel;
                                         const showResult = selectedMCQAnswers[problem.question_id] !== undefined;
@@ -444,9 +443,11 @@ const PracticeExercise = () => {
                                             }`}
                                           >
                                             <RadioGroupItem value={optionLabel} id={`${problem.question_id}-${optionLabel}`} />
-                                            <Label htmlFor={`${problem.question_id}-${optionLabel}`} className="flex-grow cursor-pointer">
+                                            <Label htmlFor={`${problem.question_id}-${optionLabel}`} className="flex-grow cursor-pointer flex items-center">
                                               <span className="font-medium mr-2">{optionLabel})</span>
-                                              <LatexRenderer content={option || ""} />
+                                              <div className="inline">
+                                                <LatexRenderer content={option || ""} />
+                                              </div>
                                             </Label>
                                             {showResult && isSelected && (
                                               isCorrect ? (
