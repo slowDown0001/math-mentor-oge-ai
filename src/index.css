@@ -136,26 +136,24 @@
 }
 
 /* MathJax inline rendering fixes */
-.math-content .inline {
-  @apply inline;
-}
-
-.math-content .MathJax {
-  @apply inline-block;
-}
-
-.math-content .MathJax_Display {
-  @apply block my-4;
-}
-
-/* Ensure inline math stays inline */
 .math-content span[data-mathml] {
-  @apply inline;
+  display: inline !important;
 }
 
-/* MathJax styling */
+/* MathJax styling - ensure inline math stays inline */
 .MathJax {
   @apply text-gray-800;
+  display: inline-block !important;
+}
+
+.MathJax_Display {
+  @apply block my-4;
+  text-align: center !important;
+}
+
+/* Force inline for span containers */
+span.MathJax {
+  display: inline !important;
 }
 
 /* Custom scrollbar */
