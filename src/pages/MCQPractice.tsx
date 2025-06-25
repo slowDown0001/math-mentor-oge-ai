@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, CheckCircle, XCircle } from "lucide-react";
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
-import LatexRenderer from "@/components/chat/LatexRenderer";
+import MathRenderer from "@/components/MathRenderer";
 import { supabase } from "@/integrations/supabase/client";
 import mathSkillsData from "../../documentation/math_skills_full.json";
 
@@ -211,8 +212,8 @@ const MCQPractice = () => {
                 <CardTitle>Вопрос {currentQuestionIndex + 1}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="math-content mb-6">
-                  <LatexRenderer content={currentQuestion.problem_text} />
+                <div className="mb-6">
+                  <MathRenderer text={currentQuestion.problem_text} className="math-content" />
                 </div>
 
                 {/* Answer Options */}
@@ -251,8 +252,8 @@ const MCQPractice = () => {
                           <span className="font-bold text-blue-600 mr-3 text-lg">
                             {optionLetter}.
                           </span>
-                          <div className="flex-1 math-content">
-                            <LatexRenderer content={option} inline={true} />
+                          <div className="flex-1">
+                            <MathRenderer text={option} className="math-content inline-block" />
                           </div>
                           {isAnswered && isCorrect && (
                             <CheckCircle className="w-5 h-5 text-green-600 ml-2" />
