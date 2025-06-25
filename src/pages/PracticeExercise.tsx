@@ -296,6 +296,13 @@ const PracticeExercise = () => {
                                       </TabsList>
                                       
                                       <TabsContent value="zadanie" className="space-y-4">
+                                        {/* Question ID display */}
+                                        <div className="bg-blue-50 px-3 py-2 rounded-lg border-l-4 border-blue-500">
+                                          <span className="text-blue-800 font-medium text-sm">
+                                            ID: {problem.question_id}
+                                          </span>
+                                        </div>
+                                        
                                         {problem.problem_image && (
                                           <div className="flex justify-center bg-gray-50 p-4 rounded-lg">
                                             <img
@@ -404,6 +411,13 @@ const PracticeExercise = () => {
                               {getFilteredMCQProblems().map((problem) => (
                                 <Card key={problem.question_id} className="border-l-4 border-l-green-500">
                                   <CardContent className="p-6">
+                                    {/* Question ID display */}
+                                    <div className="bg-green-50 px-3 py-2 rounded-lg border-l-4 border-green-500 mb-4">
+                                      <span className="text-green-800 font-medium text-sm">
+                                        ID: {problem.question_id}
+                                      </span>
+                                    </div>
+                                    
                                     {problem.problem_image && (
                                       <div className="flex justify-center bg-gray-50 p-4 rounded-lg mb-4">
                                         <img
