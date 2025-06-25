@@ -12,7 +12,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
-import MathRenderer from "@/components/MathRenderer";
 
 // Import the topic mapping data - use relative path
 import topicMapping from "../../documentation/topic_skill_mapping_with_names.json";
@@ -314,7 +313,7 @@ const PracticeExercise = () => {
                                         )}
                                         
                                         <div className="bg-gray-50 p-4 rounded-lg">
-                                          <MathRenderer text={problem.problem_text || ""} className="math-content" />
+                                          <div className="math-content">{problem.problem_text || ""}</div>
                                         </div>
                                         
                                         <div className="flex items-center gap-2 mb-4">
@@ -376,13 +375,13 @@ const PracticeExercise = () => {
                                       <TabsContent value="reshenie" className="space-y-4">
                                         <div className="bg-blue-50 p-4 rounded-lg">
                                           <h5 className="font-semibold text-blue-800 mb-2">Решение:</h5>
-                                          <MathRenderer text={problem.solution_text || "Решение не указано"} className="math-content" />
+                                          <div className="math-content">{problem.solution_text || "Решение не указано"}</div>
                                         </div>
                                         
                                         {problem.solutiontextexpanded && (
                                           <div className="bg-purple-50 p-4 rounded-lg">
                                             <h5 className="font-semibold text-purple-800 mb-2">Подробное объяснение:</h5>
-                                            <MathRenderer text={problem.solutiontextexpanded} className="math-content" />
+                                            <div className="math-content">{problem.solutiontextexpanded}</div>
                                           </div>
                                         )}
                                       </TabsContent>
@@ -429,7 +428,7 @@ const PracticeExercise = () => {
                                     )}
                                     
                                     <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                                      <MathRenderer text={problem.problem_text || ""} className="math-content" />
+                                      <div className="math-content">{problem.problem_text || ""}</div>
                                     </div>
                                     
                                     <RadioGroup
@@ -438,9 +437,9 @@ const PracticeExercise = () => {
                                       className="space-y-3"
                                     >
                                       {[problem.option1, problem.option2, problem.option3, problem.option4].map((option, index) => {
-                                        const optionLabel = ['А', 'Б', 'В', 'Г'][index];
-                                        const isSelected = selectedMCQAnswers[problem.question_id] === optionLabel;
-                                        const isCorrect = problem.answer === optionLabel;
+                                        const optionLetter = ['А', 'Б', 'В', 'Г'][index];
+                                        const isSelected = selectedMCQAnswers[problem.question_id] === optionLetter;
+                                        const isCorrect = problem.answer === optionLetter;
                                         const showResult = selectedMCQAnswers[problem.question_id] !== undefined;
                                         
                                         return (
@@ -456,11 +455,11 @@ const PracticeExercise = () => {
                                                 : 'bg-white border-gray-200 hover:bg-gray-50'
                                             }`}
                                           >
-                                            <RadioGroupItem value={optionLabel} id={`${problem.question_id}-${optionLabel}`} />
-                                            <Label htmlFor={`${problem.question_id}-${optionLabel}`} className="flex-grow cursor-pointer flex items-center">
-                                              <span className="font-medium mr-2">{optionLabel})</span>
+                                            <RadioGroupItem value={optionLetter} id={`${problem.question_id}-${optionLetter}`} />
+                                            <Label htmlFor={`${problem.question_id}-${optionLetter}`} className="flex-grow cursor-pointer flex items-center">
+                                              <span className="font-medium mr-2">{optionLetter})</span>
                                               <span className="inline-block">
-                                                <MathRenderer text={option || ""} className="math-content inline-block" />
+                                                <div className="math-content inline-block">{option || ""}</div>
                                               </span>
                                             </Label>
                                             {showResult && isSelected && (

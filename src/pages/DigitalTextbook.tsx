@@ -15,7 +15,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Moon, Sun } from "lucide-react";
 import Header from "@/components/Header";
-import { useTheme } from "@/components/theme-provider"
 
 interface Article {
   id: number;
@@ -36,7 +35,6 @@ const DigitalTextbook = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { setTheme } = useTheme();
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
@@ -200,7 +198,6 @@ const DigitalTextbook = () => {
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
-    setTheme(isDarkMode ? "light" : "dark");
   };
 
   return (
