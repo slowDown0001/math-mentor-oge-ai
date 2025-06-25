@@ -211,7 +211,7 @@ const MCQPractice = () => {
                 <CardTitle>Вопрос {currentQuestionIndex + 1}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose max-w-none mb-6">
+                <div className="math-content mb-6">
                   <LatexRenderer content={currentQuestion.problem_text} />
                 </div>
 
@@ -251,8 +251,8 @@ const MCQPractice = () => {
                           <span className="font-bold text-blue-600 mr-3 text-lg">
                             {optionLetter}.
                           </span>
-                          <div className="flex-1">
-                            <LatexRenderer content={option} />
+                          <div className="flex-1 math-content">
+                            <LatexRenderer content={option} inline={true} />
                           </div>
                           {isAnswered && isCorrect && (
                             <CheckCircle className="w-5 h-5 text-green-600 ml-2" />

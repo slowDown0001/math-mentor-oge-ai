@@ -135,6 +135,24 @@
   @apply border-l-4 border-primary pl-4 italic text-gray-700 mb-4;
 }
 
+/* MathJax inline rendering fixes */
+.math-content .inline {
+  @apply inline;
+}
+
+.math-content .MathJax {
+  @apply inline-block;
+}
+
+.math-content .MathJax_Display {
+  @apply block my-4;
+}
+
+/* Ensure inline math stays inline */
+.math-content span[data-mathml] {
+  @apply inline;
+}
+
 /* MathJax styling */
 .MathJax {
   @apply text-gray-800;

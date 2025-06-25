@@ -3,10 +3,11 @@ import { useEffect, useRef } from 'react';
 
 interface LatexRendererProps {
   content: string;
+  inline?: boolean;
 }
 
-const LatexRenderer = ({ content }: LatexRendererProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+const LatexRenderer = ({ content, inline }: LatexRendererProps) => {
+  const containerRef = useRef<HTMLSpanElement | HTMLDivElement>(null);
   
   useEffect(() => {
     const tryRender = async () => {
@@ -25,9 +26,17 @@ const LatexRenderer = ({ content }: LatexRendererProps) => {
     return () => clearTimeout(timeout);
   }, [content]);
 
+  // Auto-detect if content should be inline or block
+  const shouldBeInline = inline !== undefined 
+    ? inline 
+    : content.includes('\\(') && content.includes('\\)') && !content.includes('\\[') && !content.includes('\\]');
+
+  const Container = shouldBeInline ? 'span' : 'div';
+
   return (
-    <div 
-      ref={containerRef} 
+    <Container 
+      ref={containerRef as any}
+      className={shouldBeInline ? 'inline' : ''}
       dangerouslySetInnerHTML={{ __html: content }}
     />
   );

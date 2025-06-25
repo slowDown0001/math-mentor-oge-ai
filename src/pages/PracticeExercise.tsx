@@ -313,7 +313,7 @@ const PracticeExercise = () => {
                                           </div>
                                         )}
                                         
-                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                        <div className="bg-gray-50 p-4 rounded-lg math-content">
                                           <LatexRenderer content={problem.problem_text || ""} />
                                         </div>
                                         
@@ -374,13 +374,13 @@ const PracticeExercise = () => {
                                       </TabsContent>
                                       
                                       <TabsContent value="reshenie" className="space-y-4">
-                                        <div className="bg-blue-50 p-4 rounded-lg">
+                                        <div className="bg-blue-50 p-4 rounded-lg math-content">
                                           <h5 className="font-semibold text-blue-800 mb-2">Решение:</h5>
                                           <LatexRenderer content={problem.solution_text || "Решение не указано"} />
                                         </div>
                                         
                                         {problem.solutiontextexpanded && (
-                                          <div className="bg-purple-50 p-4 rounded-lg">
+                                          <div className="bg-purple-50 p-4 rounded-lg math-content">
                                             <h5 className="font-semibold text-purple-800 mb-2">Подробное объяснение:</h5>
                                             <LatexRenderer content={problem.solutiontextexpanded} />
                                           </div>
@@ -428,7 +428,7 @@ const PracticeExercise = () => {
                                       </div>
                                     )}
                                     
-                                    <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                                    <div className="bg-gray-50 p-4 rounded-lg mb-4 math-content">
                                       <LatexRenderer content={problem.problem_text || ""} />
                                     </div>
                                     
@@ -459,9 +459,9 @@ const PracticeExercise = () => {
                                             <RadioGroupItem value={optionLabel} id={`${problem.question_id}-${optionLabel}`} />
                                             <Label htmlFor={`${problem.question_id}-${optionLabel}`} className="flex-grow cursor-pointer flex items-center">
                                               <span className="font-medium mr-2">{optionLabel})</span>
-                                              <div className="inline">
-                                                <LatexRenderer content={option || ""} />
-                                              </div>
+                                              <span className="inline math-content">
+                                                <LatexRenderer content={option || ""} inline={true} />
+                                              </span>
                                             </Label>
                                             {showResult && isSelected && (
                                               isCorrect ? (
