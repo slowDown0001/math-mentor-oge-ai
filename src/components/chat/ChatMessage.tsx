@@ -2,6 +2,7 @@
 import { type Message } from "../ChatSection";
 import { useEffect, useState } from "react";
 import { getMathProblemById, type MathProblem } from "@/services/mathProblemsService";
+import MathRenderer from "@/components/MathRenderer";
 
 interface ChatMessageProps {
   message: Message;
@@ -45,7 +46,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
           </div>
         )}
         
-        <div className="math-content">{message.text}</div>
+        <MathRenderer text={message.text} />
         <div className={`text-xs mt-1 ${message.isUser ? "text-primary-foreground/80" : "text-gray-400"}`}>
           {message.timestamp.toLocaleTimeString([], {
             hour: '2-digit',

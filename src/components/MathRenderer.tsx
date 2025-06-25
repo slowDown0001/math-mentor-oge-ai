@@ -1,0 +1,40 @@
+
+import React, { useEffect, useRef } from 'react';
+
+interface MathRendererProps {
+  text: string;
+  className?: string;
+}
+
+const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current || !text) return;
+    
+    try {
+      // Set the text content first
+      containerRef.current.innerHTML = text;
+      
+      // Then let MathJax process it
+      if (window.MathJax) {
+        window.MathJax.typesetPromise([containerRef.current]).catch((err) => {
+          console.error('MathJax error:', err);
+        });
+      }
+    } catch (error) {
+      console.error('Error rendering math:', error);
+      if (containerRef.current) {
+        containerRef.current.textContent = text;
+      }
+    }
+  }, [text]);
+
+  return (
+    <div ref={containerRef} className={className}>
+      {!text && ''}
+    </div>
+  );
+};
+
+export default MathRenderer;
