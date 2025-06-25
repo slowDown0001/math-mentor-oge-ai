@@ -29,7 +29,6 @@ const LatexRenderer = ({ content }: LatexRendererProps) => {
     <div 
       ref={containerRef} 
       dangerouslySetInnerHTML={{ __html: content }}
-      className="whitespace-pre-wrap"
     />
   );
 };
