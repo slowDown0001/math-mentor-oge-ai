@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
-import LatexRenderer from "@/components/chat/LatexRenderer";
+import LatexRenderer from "@/components/chat/LatexRenderer.tsx";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
