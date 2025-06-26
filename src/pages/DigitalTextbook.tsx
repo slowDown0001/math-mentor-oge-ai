@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
-import LatexRenderer from "@/components/chat/LatexRenderer";
+import MathRenderer from "@/components/MathRenderer";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
@@ -330,7 +330,7 @@ const DigitalTextbook = () => {
                                 : "bg-gray-100 text-gray-900 rounded-tl-none"
                             }`}
                           >
-                            <LatexRenderer content={message.text} />
+                            <MathRenderer text={message.text} />
                             <div className={`text-xs mt-1 ${message.isUser ? "text-blue-100" : "text-gray-500"}`}>
                               {message.timestamp.toLocaleTimeString([], {
                                 hour: '2-digit',
@@ -506,7 +506,7 @@ const DigitalTextbook = () => {
                                   }`}
                                   style={{ userSelect: isSelecterActive ? 'text' : 'auto' }}
                                 >
-                                  <LatexRenderer content={articleContent} />
+                                  <MathRenderer text={articleContent} />
                                 </div>
                                 <div className="flex justify-center pt-6 border-t">
                                   <Button 
