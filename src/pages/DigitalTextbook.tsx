@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Book, Search, Star, ChevronRight, ChevronDown, FileText, Highlighter, MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
-import LatexRenderer from "@/components/chat/LatexRenderer.tsx";
+import LatexRenderer from "@/components/chat/LatexRenderer";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
