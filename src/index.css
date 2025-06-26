@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap');
 @tailwind base;
 @tailwind components;
@@ -138,6 +137,38 @@
 /* MathJax styling */
 .MathJax {
   @apply text-gray-800;
+}
+
+/* Math Renderer specific styles */
+.math-renderer.math-inline {
+  display: inline !important;
+  white-space: nowrap;
+}
+
+.math-renderer.math-inline .MathJax {
+  display: inline !important;
+  margin: 0 !important;
+}
+
+.math-renderer.math-display {
+  display: block;
+  margin: 0.5em 0;
+}
+
+.math-renderer.math-display .MathJax {
+  display: block !important;
+  text-align: center;
+}
+
+/* Ensure MathJax inline elements don't break */
+.math-renderer.math-inline mjx-container {
+  display: inline !important;
+  margin: 0 !important;
+}
+
+.math-renderer.math-display mjx-container {
+  display: block !important;
+  margin: 0.5em auto !important;
 }
 
 /* Custom scrollbar */
