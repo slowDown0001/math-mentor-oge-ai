@@ -7,7 +7,8 @@ interface MathRendererProps {
 }
 
 const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
-  const containerRef = useRef<HTMLElement>(null);
+  const divRef = useRef<HTMLDivElement>(null);
+  const spanRef = useRef<HTMLSpanElement>(null);
 
   // Detect different LaTeX formats
   const hasDisplayMathBrackets = text.includes('\\[') && text.includes('\\]');
@@ -24,25 +25,26 @@ const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
   const Tag = isInlineOnly ? 'span' : 'div';
 
   useEffect(() => {
-    if (!containerRef.current || !text) return;
+    const containerRef = isInlineOnly ? spanRef.current : divRef.current;
+    if (!containerRef || !text) return;
     
     try {
       // Set the text content first
-      containerRef.current.innerHTML = text;
+      containerRef.innerHTML = text;
       
       // Then let MathJax process it
       if (window.MathJax) {
-        window.MathJax.typesetPromise([containerRef.current]).catch((err) => {
+        window.MathJax.typesetPromise([containerRef]).catch((err) => {
           console.error('MathJax error:', err);
         });
       }
     } catch (error) {
       console.error('Error rendering math:', error);
-      if (containerRef.current) {
-        containerRef.current.textContent = text;
+      if (containerRef) {
+        containerRef.textContent = text;
       }
     }
-  }, [text]);
+  }, [text, isInlineOnly]);
 
   // Determine styling class based on math type
   const mathTypeClass = isInlineOnly ? 'math-inline' : 'math-display';
@@ -56,13 +58,24 @@ const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
     ? `${combinedClassName} text-center`
     : combinedClassName;
 
+  if (isInlineOnly) {
+    return (
+      <span 
+        ref={spanRef} 
+        className={finalClassName}
+      >
+        {!text && ''}
+      </span>
+    );
+  }
+
   return (
-    <Tag 
-      ref={containerRef as React.RefObject<HTMLElement>} 
+    <div 
+      ref={divRef} 
       className={finalClassName}
     >
       {!text && ''}
-    </Tag>
+    </div>
   );
 };
 
