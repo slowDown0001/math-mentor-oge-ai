@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LogOut, User, BookOpen, ScanLine, Play } from "lucide-react";
+import { Menu, X, LogOut, User, BookOpen, ScanLine, Play, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "./auth/AuthModal";
@@ -75,6 +75,15 @@ const Header = () => {
                   }`}
                 >
                   Главная
+                </Link>
+                <Link 
+                  to="/diagnostic" 
+                  className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                    isActive('/diagnostic') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+                  }`}
+                >
+                  <ClipboardList className="w-4 h-4" />
+                  <span>Тест</span>
                 </Link>
                 <Link 
                   to="/practice" 
@@ -174,6 +183,16 @@ const Header = () => {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Главная
+                  </Link>
+                  <Link 
+                    to="/diagnostic" 
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/diagnostic') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <ClipboardList className="w-4 h-4" />
+                    <span>Тест</span>
                   </Link>
                   <Link 
                     to="/practice" 
