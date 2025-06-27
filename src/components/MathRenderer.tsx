@@ -1,4 +1,6 @@
+
 import React, { useEffect, useRef } from 'react';
+import { useMathJaxInitializer } from '../hooks/useMathJaxInitializer';
 
 interface MathRendererProps {
   text: string;
@@ -7,54 +9,39 @@ interface MathRendererProps {
 
 const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
   const divRef = useRef<HTMLDivElement>(null);
-  const spanRef = useRef<HTMLSpanElement>(null);
+  const isMathJaxReady = useMathJaxInitializer();
 
-  // Detect LaTeX formats
-  const hasDisplayMathBrackets = text.includes('\\[') && text.includes('\\]');
-  const hasDisplayMathDollar = text.includes('$$');
-  const hasInlineMathParens = text.includes('\\(') && text.includes('\\)');
-  const hasInlineMathDollar = text.match(/(?<!\$)\$(?!\$)[^$]+\$(?!\$)/);
-
-  const hasDisplayMath = hasDisplayMathBrackets || hasDisplayMathDollar;
-  const hasInlineMath = hasInlineMathParens || hasInlineMathDollar;
-
-  const isInlineOnly = hasInlineMath && !hasDisplayMath;
-
-  // Determine if it's a pure display math block (nothing but $$...$$ or \[...\])
-  const isPureDisplayBlock = text.trim().match(/^(\$\$[\s\S]*\$\$|\\\[.*\\\])$/);
+  // Check if content is standalone display math
+  const isStandaloneDisplayMath = text.trim().match(/^(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])$/);
 
   useEffect(() => {
-    const containerRef = isInlineOnly ? spanRef.current : divRef.current;
-    if (!containerRef || !text) return;
+    if (!divRef.current || !text || !isMathJaxReady) return;
 
     try {
-      containerRef.innerHTML = text;
-      if (window.MathJax) {
-        window.MathJax.typesetPromise([containerRef]).catch((err) => {
+      divRef.current.innerHTML = text;
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([divRef.current]).catch((err: any) => {
           console.error('MathJax error:', err);
         });
       }
     } catch (error) {
       console.error('Error rendering math:', error);
-      if (containerRef) {
-        containerRef.textContent = text;
+      if (divRef.current) {
+        divRef.current.textContent = text;
       }
     }
-  }, [text, isInlineOnly]);
+  }, [text, isMathJaxReady]);
 
-  const mathTypeClass = isInlineOnly ? 'math-inline' : 'math-display';
-  const finalClassName = `${mathTypeClass} math-renderer ${className}`.trim();
-
-  const Tag = isInlineOnly ? 'span' : 'div';
-  const ref = isInlineOnly ? spanRef : divRef;
+  const finalClassName = `math-renderer ${className}`.trim();
+  const centerClass = isStandaloneDisplayMath ? 'text-center' : '';
 
   return (
-    <Tag
-      ref={ref as any}
-      className={isPureDisplayBlock ? `${finalClassName} text-center` : finalClassName}
+    <div
+      ref={divRef}
+      className={`${finalClassName} ${centerClass}`.trim()}
     >
       {!text && ''}
-    </Tag>
+    </div>
   );
 };
 
