@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { useMathJaxInitializer } from '../hooks/useMathJaxInitializer';
 
@@ -8,38 +7,34 @@ interface MathRendererProps {
 }
 
 const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
-  const divRef = useRef<HTMLDivElement>(null);
-  const isMathJaxReady = useMathJaxInitializer();
-
-  // Check if content is standalone display math
-  const isStandaloneDisplayMath = text.trim().match(/^(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])$/);
+  const containerRef = useRef<HTMLDivElement>(null);
+  // Initialize MathJax - this is redundant since we already initialize it in Index.tsx,
+  // but keeping it here for component isolation
+  useMathJaxInitializer();
 
   useEffect(() => {
-    if (!divRef.current || !text || !isMathJaxReady) return;
-
+    if (!containerRef.current || !text) return;
+    
     try {
-      divRef.current.innerHTML = text;
-      if (window.MathJax && window.MathJax.typesetPromise) {
-        window.MathJax.typesetPromise([divRef.current]).catch((err: any) => {
+      // Set the text content first
+      containerRef.current.innerHTML = text;
+      
+      // Then let MathJax process it
+      if (window.MathJax) {
+        window.MathJax.typesetPromise([containerRef.current]).catch((err) => {
           console.error('MathJax error:', err);
         });
       }
     } catch (error) {
       console.error('Error rendering math:', error);
-      if (divRef.current) {
-        divRef.current.textContent = text;
+      if (containerRef.current) {
+        containerRef.current.textContent = text;
       }
     }
-  }, [text, isMathJaxReady]);
-
-  const finalClassName = `math-renderer ${className}`.trim();
-  const centerClass = isStandaloneDisplayMath ? 'text-center' : '';
+  }, [text]);
 
   return (
-    <div
-      ref={divRef}
-      className={`${finalClassName} ${centerClass}`.trim()}
-    >
+    <div ref={containerRef} className={className}>
       {!text && ''}
     </div>
   );
