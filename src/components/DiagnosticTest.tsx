@@ -16,7 +16,7 @@ interface MCQQuestion {
   option3: string;
   option4: string;
   answer: string;
-  skill: number;
+  skills: number;
   difficulty: number;
 }
 
@@ -26,6 +26,14 @@ interface DiagnosticTestProps {
 
 const SKILLS_TO_TEST = [1, 6, 15, 17, 36, 37, 38, 39, 50, 58, 69, 103, 110, 113, 118, 180];
 const MAX_QUESTIONS = 15;
+
+// Map Russian letters to option numbers
+const RUSSIAN_TO_OPTION: Record<string, string> = {
+  'А': 'option1',
+  'Б': 'option2', 
+  'В': 'option3',
+  'Г': 'option4'
+};
 
 export const DiagnosticTest: React.FC<DiagnosticTestProps> = ({ onComplete }) => {
   const { user } = useAuth();
@@ -72,7 +80,7 @@ export const DiagnosticTest: React.FC<DiagnosticTestProps> = ({ onComplete }) =>
         option3: q.option3 || '',
         option4: q.option4 || '',
         answer: q.answer || '',
-        skill: q.skills || 0,
+        skills: q.skills || 0,
         difficulty: q.difficulty || 1
       }));
 
@@ -96,14 +104,24 @@ export const DiagnosticTest: React.FC<DiagnosticTestProps> = ({ onComplete }) =>
     if (!selectedOption || !questions[currentQuestionIndex]) return;
 
     const currentQuestion = questions[currentQuestionIndex];
-    const isCorrect = selectedOption === currentQuestion.answer;
+    
+    // Convert Russian letter answer to option format for comparison
+    const correctOption = RUSSIAN_TO_OPTION[currentQuestion.answer] || currentQuestion.answer;
+    const isCorrect = selectedOption === correctOption;
+    
+    console.log('Answer check:', {
+      userAnswer: selectedOption,
+      correctAnswer: currentQuestion.answer,
+      correctOption: correctOption,
+      isCorrect: isCorrect
+    });
     
     // Save answer
     const newAnswer = {
       questionId: currentQuestion.question_id,
       selectedOption,
       correct: isCorrect,
-      skill: currentQuestion.skill
+      skill: currentQuestion.skills
     };
     
     setAnswers(prev => [...prev, newAnswer]);
