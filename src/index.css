@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap');
 @tailwind base;
 @tailwind components;
@@ -139,36 +140,68 @@
   @apply text-gray-800;
 }
 
-/* Math Renderer specific styles */
+/* Math Renderer specific styles - Enhanced for better LaTeX support */
 .math-renderer.math-inline {
   display: inline !important;
   white-space: nowrap;
+  vertical-align: baseline;
 }
 
 .math-renderer.math-inline .MathJax {
   display: inline !important;
   margin: 0 !important;
+  vertical-align: baseline !important;
 }
 
 .math-renderer.math-display {
   display: block;
-  margin: 0.5em 0;
+  margin: 0.75em 0;
+  text-align: center;
 }
 
 .math-renderer.math-display .MathJax {
   display: block !important;
   text-align: center;
+  margin: 0.5em auto !important;
 }
 
-/* Ensure MathJax inline elements don't break */
+/* Enhanced MathJax container styling for better alignment */
 .math-renderer.math-inline mjx-container {
   display: inline !important;
   margin: 0 !important;
+  vertical-align: baseline !important;
+  line-height: 1 !important;
 }
 
 .math-renderer.math-display mjx-container {
   display: block !important;
   margin: 0.5em auto !important;
+  text-align: center !important;
+}
+
+/* Prevent unwanted line breaks in inline math */
+.math-renderer.math-inline mjx-math {
+  display: inline !important;
+  white-space: nowrap !important;
+}
+
+/* Ensure proper spacing for display math */
+.math-renderer.math-display mjx-math {
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+/* Fix for MathJax in lists and paragraphs */
+li .math-renderer.math-inline,
+p .math-renderer.math-inline {
+  display: inline !important;
+  vertical-align: baseline !important;
+}
+
+/* Warning: Avoid placing MathRenderer inside <p> tags for display math */
+p .math-renderer.math-display {
+  display: block !important;
+  margin: 0.5em 0 !important;
 }
 
 /* Custom scrollbar */

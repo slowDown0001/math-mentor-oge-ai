@@ -9,12 +9,19 @@ interface MathRendererProps {
 const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
   const containerRef = useRef<HTMLElement>(null);
 
-  // Detect if the text contains display math (\[...\]) or only inline math (\(...\))
-  const hasDisplayMath = text.includes('\\[') && text.includes('\\]');
-  const hasInlineMath = text.includes('\\(') && text.includes('\\)');
+  // Detect different LaTeX formats
+  const hasDisplayMathBrackets = text.includes('\\[') && text.includes('\\]');
+  const hasDisplayMathDollar = text.includes('$$');
+  const hasInlineMathParens = text.includes('\\(') && text.includes('\\)');
+  const hasInlineMathDollar = text.match(/(?<!\$)\$(?!\$)[^$]+\$(?!\$)/);
   
-  // Use div for display math, span for inline math or mixed content
+  // Determine if we have display math
+  const hasDisplayMath = hasDisplayMathBrackets || hasDisplayMathDollar;
+  const hasInlineMath = hasInlineMathParens || hasInlineMathDollar;
+  
+  // Use span for inline-only math, div for display math or mixed content
   const isInlineOnly = hasInlineMath && !hasDisplayMath;
+  const Tag = isInlineOnly ? 'span' : 'div';
 
   useEffect(() => {
     if (!containerRef.current || !text) return;
@@ -37,21 +44,25 @@ const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
     }
   }, [text]);
 
-  const combinedClassName = `math-renderer ${isInlineOnly ? 'math-inline' : 'math-display'} ${className}`.trim();
+  // Determine styling class based on math type
+  const mathTypeClass = isInlineOnly ? 'math-inline' : 'math-display';
+  const combinedClassName = `math-renderer ${mathTypeClass} ${className}`.trim();
 
-  // Use span for inline math, div for display math
-  if (isInlineOnly) {
-    return (
-      <span ref={containerRef as React.RefObject<HTMLSpanElement>} className={combinedClassName}>
-        {!text && ''}
-      </span>
-    );
-  }
+  // Check if content is all display math for centering
+  const isAllDisplayMath = hasDisplayMath && !hasInlineMath && 
+    (text.trim().startsWith('\\[') || text.trim().startsWith('$$'));
+
+  const finalClassName = isAllDisplayMath 
+    ? `${combinedClassName} text-center`
+    : combinedClassName;
 
   return (
-    <div ref={containerRef as React.RefObject<HTMLDivElement>} className={combinedClassName}>
+    <Tag 
+      ref={containerRef as React.RefObject<HTMLElement>} 
+      className={finalClassName}
+    >
       {!text && ''}
-    </div>
+    </Tag>
   );
 };
 
