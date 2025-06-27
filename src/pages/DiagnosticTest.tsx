@@ -1,14 +1,14 @@
 
 import React from 'react';
-import { DiagnosticTest } from '@/components/diagnostic/DiagnosticTest';
+import DiagnosticTest from '@/components/DiagnosticTest';
 import { useNavigate } from 'react-router-dom';
 
 const DiagnosticTestPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const handleTestComplete = (results: Record<string, number>) => {
+  const handleTestComplete = (results: { totalQuestions: number; correctAnswers: number; testedSkills: number[] }) => {
     console.log('Diagnostic test completed with results:', results);
-    // Navigate to dashboard or statistics page
+    // Navigate to dashboard
     navigate('/dashboard');
   };
 
@@ -20,8 +20,7 @@ const DiagnosticTestPage: React.FC = () => {
             Диагностический тест
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Этот тест поможет оценить ваш уровень знаний по математике. 
-            Результаты будут использованы для персонализации вашего обучения.
+            Этот тест поможет оценить ваш уровень базовых математических знаний.
           </p>
         </div>
         
