@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,10 +15,6 @@ import topicMapping from '../../../documentation/topic_skill_mapping_with_names.
 interface PracticeQuestion {
   question_id: string;
   problem_text: string;
-  option1?: string;
-  option2?: string;
-  option3?: string;
-  option4?: string;
   answer: string;
   solution_text?: string;
   code: number;
@@ -26,7 +23,8 @@ interface PracticeQuestion {
 
 interface UserAnswer {
   questionId: string;
-  selectedOption: string;
+  userAnswer: string;
+  correctAnswer: string;
   isCorrect: boolean;
 }
 
@@ -41,7 +39,7 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
   const [questions, setQuestions] = useState<PracticeQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
-  const [selectedOption, setSelectedOption] = useState<string>('');
+  const [userInput, setUserInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSolution, setShowSolution] = useState<{ [key: string]: boolean }>({});
 
@@ -91,7 +89,7 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
       setQuestions(selectedQuestions);
       setCurrentQuestionIndex(0);
       setUserAnswers([]);
-      setSelectedOption('');
+      setUserInput('');
       setCurrentPhase('practicing');
     } catch (error) {
       console.error('Error starting practice:', error);
@@ -101,19 +99,30 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
     }
   };
 
+  // Check if user answer is correct
+  const checkAnswer = (userAnswer: string, correctAnswer: string): boolean => {
+    // Normalize both answers for comparison
+    const normalizeAnswer = (answer: string) => {
+      return answer.toLowerCase().trim().replace(/\s+/g, ' ');
+    };
+    
+    return normalizeAnswer(userAnswer) === normalizeAnswer(correctAnswer);
+  };
+
   // Handle answer submission
   const submitAnswer = () => {
-    if (!selectedOption) {
-      alert('Пожалуйста, выберите ответ');
+    if (!userInput.trim()) {
+      alert('Пожалуйста, введите ответ');
       return;
     }
 
     const currentQuestion = questions[currentQuestionIndex];
-    const isCorrect = selectedOption === currentQuestion.answer;
+    const isCorrect = checkAnswer(userInput, currentQuestion.answer);
 
     const newAnswer: UserAnswer = {
       questionId: currentQuestion.question_id,
-      selectedOption,
+      userAnswer: userInput,
+      correctAnswer: currentQuestion.answer,
       isCorrect
     };
 
@@ -122,7 +131,7 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
     // Move to next question or finish
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
-      setSelectedOption('');
+      setUserInput('');
     } else {
       // Practice completed
       setCurrentPhase('results');
@@ -142,7 +151,7 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
     setQuestions([]);
     setCurrentQuestionIndex(0);
     setUserAnswers([]);
-    setSelectedOption('');
+    setUserInput('');
     setShowSolution({});
   };
 
@@ -249,39 +258,33 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
             )}
           </div>
 
-          {/* Answer Options */}
+          {/* Answer Input */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Выберите ответ:</Label>
-            {[
-              { key: 'А', value: currentQuestion.option1 },
-              { key: 'Б', value: currentQuestion.option2 },
-              { key: 'В', value: currentQuestion.option3 },
-              { key: 'Г', value: currentQuestion.option4 }
-            ].map(({ key, value }) => (
-              value && (
-                <div key={key} className="flex items-start space-x-3">
-                  <input
-                    type="radio"
-                    id={`option-${key}`}
-                    name="answer"
-                    value={key}
-                    checked={selectedOption === key}
-                    onChange={(e) => setSelectedOption(e.target.value)}
-                    className="mt-1"
-                  />
-                  <Label htmlFor={`option-${key}`} className="flex-1 cursor-pointer">
-                    <span className="font-semibold">{key}) </span>
-                    <MathRenderer text={value} />
-                  </Label>
-                </div>
-              )
-            ))}
+            <Label htmlFor="userAnswer" className="text-base font-semibold">
+              Введите ваш ответ:
+            </Label>
+            <Input
+              id="userAnswer"
+              type="text"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              placeholder="Введите ответ здесь..."
+              className="text-lg"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  submitAnswer();
+                }
+              }}
+            />
+            <p className="text-sm text-gray-600">
+              Нажмите Enter или кнопку "Ответить" для отправки ответа
+            </p>
           </div>
 
           {/* Submit Button */}
           <Button 
             onClick={submitAnswer} 
-            disabled={!selectedOption}
+            disabled={!userInput.trim()}
             className="w-full"
           >
             {currentQuestionIndex < questions.length - 1 ? 'Следующий вопрос' : 'Завершить тест'}
@@ -345,12 +348,12 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
                       <div>
                         <span className="font-semibold">Ваш ответ: </span>
                         <span className={userAnswer.isCorrect ? 'text-green-600' : 'text-red-600'}>
-                          {userAnswer.selectedOption}
+                          {userAnswer.userAnswer}
                         </span>
                       </div>
                       <div>
                         <span className="font-semibold">Правильный ответ: </span>
-                        <span className="text-green-600">{question.answer}</span>
+                        <span className="text-green-600">{userAnswer.correctAnswer}</span>
                       </div>
                     </div>
 
