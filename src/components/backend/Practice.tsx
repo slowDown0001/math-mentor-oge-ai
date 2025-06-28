@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,7 @@ interface PracticeQuestion {
   option4?: string;
   answer: string;
   solution_text?: string;
-  code: string;
+  code: number;
   problem_image?: string;
 }
 
@@ -68,7 +67,7 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
       let query = supabase.from('OGE_SHFIPI_problems_1_25').select('*');
       
       if (selectedTopics.length > 0) {
-        const topicConditions = selectedTopics.map(topic => `code.like.${topic}%`).join(',');
+        const topicConditions = selectedTopics.map(topic => `code.eq.${parseFloat(topic)}`).join(',');
         query = query.or(topicConditions);
       }
 
