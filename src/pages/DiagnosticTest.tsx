@@ -1,6 +1,6 @@
 
 import React from 'react';
-import DiagnosticTest from '@/components/DiagnosticTest';
+import DiagnosticTest from '@/components/backend/DiagnosticTest';
 import { useNavigate } from 'react-router-dom';
 
 const DiagnosticTestPage: React.FC = () => {
