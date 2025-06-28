@@ -66,6 +66,16 @@ const Header = () => {
               <span>Сканер</span>
             </Link>
 
+            <Link 
+              to="/new-practice" 
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                isActive('/new-practice') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+              }`}
+            >
+              <ClipboardList className="w-4 h-4" />
+              <span>Тесты</span>
+            </Link>
+
             {user && (
               <>
                 <Link 
@@ -83,7 +93,7 @@ const Header = () => {
                   }`}
                 >
                   <ClipboardList className="w-4 h-4" />
-                  <span>Тест</span>
+                  <span>Диагностика</span>
                 </Link>
                 <Link 
                   to="/practice" 
@@ -173,6 +183,17 @@ const Header = () => {
                 <span>Сканер</span>
               </Link>
 
+              <Link 
+                to="/new-practice" 
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/new-practice') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <ClipboardList className="w-4 h-4" />
+                <span>Тесты</span>
+              </Link>
+
               {user && (
                 <>
                   <Link 
@@ -192,7 +213,7 @@ const Header = () => {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <ClipboardList className="w-4 h-4" />
-                    <span>Тест</span>
+                    <span>Диагностика</span>
                   </Link>
                   <Link 
                     to="/practice" 
