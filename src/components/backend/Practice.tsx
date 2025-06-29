@@ -60,32 +60,59 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
 
     setIsLoading(true);
     try {
-      // Build query to get questions from selected topics
-      let query = supabase.from('OGE_SHFIPI_problems_1_25').select('*');
+      // Fetch questions for each selected topic separately to ensure representation
+      const allQuestions: PracticeQuestion[] = [];
+      const questionsPerTopic = Math.ceil(questionCount / selectedTopics.length);
       
-      if (selectedTopics.length > 0) {
-        const topicConditions = selectedTopics.map(topic => `code.eq.${parseFloat(topic)}`).join(',');
-        query = query.or(topicConditions);
+      for (const topic of selectedTopics) {
+        const { data, error } = await supabase
+          .from('OGE_SHFIPI_problems_1_25')
+          .select('*')
+          .eq('code', parseFloat(topic))
+          .limit(questionsPerTopic * 2); // Get more to have variety
+
+        if (error) {
+          console.error(`Error fetching questions for topic ${topic}:`, error);
+          continue;
+        }
+
+        if (data && data.length > 0) {
+          // Shuffle and take the required number for this topic
+          const shuffled = data.sort(() => 0.5 - Math.random());
+          const selectedForTopic = shuffled.slice(0, Math.min(questionsPerTopic, shuffled.length));
+          allQuestions.push(...selectedForTopic);
+        }
       }
 
-      const { data, error } = await query.limit(questionCount * 3); // Get more to have variety
+      // If we don't have enough questions, try to get more from any selected topic
+      if (allQuestions.length < questionCount) {
+        const remainingNeeded = questionCount - allQuestions.length;
+        const usedQuestionIds = new Set(allQuestions.map(q => q.question_id));
 
-      if (error) {
-        console.error('Error fetching questions:', error);
-        alert('Ошибка при загрузке вопросов');
-        return;
+        const { data: additionalData, error: additionalError } = await supabase
+          .from('OGE_SHFIPI_problems_1_25')
+          .select('*')
+          .in('code', selectedTopics.map(t => parseFloat(t)))
+          .not('question_id', 'in', `(${Array.from(usedQuestionIds).map(id => `'${id}'`).join(',')})`)
+          .limit(remainingNeeded);
+
+        if (!additionalError && additionalData) {
+          const shuffledAdditional = additionalData.sort(() => 0.5 - Math.random());
+          allQuestions.push(...shuffledAdditional.slice(0, remainingNeeded));
+        }
       }
 
-      if (!data || data.length === 0) {
+      if (allQuestions.length === 0) {
         alert('Не найдено вопросов для выбранных тем');
         return;
       }
 
-      // Shuffle and select the required number of questions
-      const shuffled = data.sort(() => 0.5 - Math.random());
-      const selectedQuestions = shuffled.slice(0, Math.min(questionCount, shuffled.length));
+      // Final shuffle and trim to exact count
+      const finalQuestions = allQuestions
+        .sort(() => 0.5 - Math.random())
+        .slice(0, Math.min(questionCount, allQuestions.length));
 
-      setQuestions(selectedQuestions);
+      setQuestions(finalQuestions);
       setCurrentQuestionIndex(0);
       setUserAnswers([]);
       setUserInput('');
