@@ -73,7 +73,7 @@ const Header = () => {
               }`}
             >
               <ClipboardList className="w-4 h-4" />
-              <span>Тесты</span>
+              <span>Экзамены</span>
             </Link>
 
             {user && (
@@ -191,7 +191,7 @@ const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <ClipboardList className="w-4 h-4" />
-                <span>Тесты</span>
+                <span>Экзамены</span>
               </Link>
 
               {user && (
