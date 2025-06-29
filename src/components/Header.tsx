@@ -100,7 +100,7 @@ const Header = () => {
                     isActive('/practice') ? 'text-primary' : 'text-gray-600 hover:text-primary'
                   }`}
                 >
-                  Voprosi
+                  Questions
                 </Link>
                 <Link 
                   to="/statistics" 
@@ -221,7 +221,7 @@ const Header = () => {
                     }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Voprosi
+                    Questions
                   </Link>
                   <Link 
                     to="/statistics" 
