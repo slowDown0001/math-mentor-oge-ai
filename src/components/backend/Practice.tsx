@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -246,16 +245,20 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
           <Progress value={progress} className="w-full" />
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Question Text */}
+          {/* Question Content */}
           <div className="space-y-4">
-            <MathRenderer text={currentQuestion.problem_text || ''} className="text-lg" />
+            {/* Show image first if it exists */}
             {currentQuestion.problem_image && (
-              <img 
-                src={currentQuestion.problem_image} 
-                alt="Изображение задачи" 
-                className="max-w-full h-auto rounded-lg"
-              />
+              <div className="flex justify-center">
+                <img 
+                  src={currentQuestion.problem_image} 
+                  alt="Изображение задачи" 
+                  className="max-w-full h-auto rounded-lg border shadow-sm"
+                />
+              </div>
             )}
+            {/* Question text below the image */}
+            <MathRenderer text={currentQuestion.problem_text || ''} className="text-lg" />
           </div>
 
           {/* Answer Input */}
@@ -341,6 +344,17 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
                       </div>
                       <Badge variant="outline">{question.code}</Badge>
                     </div>
+                    
+                    {/* Show image first if it exists in results */}
+                    {question.problem_image && (
+                      <div className="flex justify-center mb-3">
+                        <img 
+                          src={question.problem_image} 
+                          alt="Изображение задачи" 
+                          className="max-w-full h-auto rounded-lg border shadow-sm"
+                        />
+                      </div>
+                    )}
                     
                     <MathRenderer text={question.problem_text || ''} className="mb-3" />
                     
