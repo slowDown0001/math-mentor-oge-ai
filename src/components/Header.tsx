@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, LogOut, User, BookOpen, ScanLine, Play, ClipboardList } from "lucide-react";
@@ -101,7 +100,7 @@ const Header = () => {
                     isActive('/practice') ? 'text-primary' : 'text-gray-600 hover:text-primary'
                   }`}
                 >
-                  Упражнения
+                  Voprosi
                 </Link>
                 <Link 
                   to="/statistics" 
@@ -222,7 +221,7 @@ const Header = () => {
                     }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Упражнения
+                    Voprosi
                   </Link>
                   <Link 
                     to="/statistics" 
