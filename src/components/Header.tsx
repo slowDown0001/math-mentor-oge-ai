@@ -1,9 +1,11 @@
+
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, LogOut, User, BookOpen, ScanLine, Play, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "./auth/AuthModal";
+import { StreakDisplay } from "./streak/StreakDisplay";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -114,8 +116,10 @@ const Header = () => {
             )}
           </nav>
 
-          {/* Auth Section */}
+          {/* Streak Display and Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
+            {user && <StreakDisplay />}
+            
             {user ? (
               <div className="flex items-center space-x-2">
                 <Link to="/profile">
@@ -148,6 +152,13 @@ const Header = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
+            {/* Mobile Streak Display */}
+            {user && (
+              <div className="px-3 py-2 mb-2">
+                <StreakDisplay />
+              </div>
+            )}
+            
             <nav className="flex flex-col space-y-2">
               <Link 
                 to="/textbook" 
