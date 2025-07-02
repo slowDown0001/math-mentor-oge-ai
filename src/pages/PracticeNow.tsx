@@ -26,6 +26,7 @@ interface FRQQuestion {
   problem_text: string;
   answer: string;
   solution_text: string;
+  problem_image?: string;
 }
 
 type Question = MCQQuestion | FRQQuestion;
@@ -65,7 +66,7 @@ const PracticeNow = () => {
       // Fetch FRQ questions
       const { data: frqData, error: frqError } = await supabase
         .from('OGE_SHFIPI_problems_1_25')
-        .select('question_id, problem_text, answer, solution_text')
+        .select('question_id, problem_text, answer, solution_text, problem_image')
         .limit(10);
 
       if (frqError) throw frqError;
@@ -232,6 +233,15 @@ const PracticeNow = () => {
             <CardContent className="space-y-6">
               {/* Question Text */}
               <div className="bg-gray-50 p-4 rounded-lg">
+                {currentQuestion.type === 'frq' && currentQuestion.problem_image && (
+                  <div className="mb-4">
+                    <img 
+                      src={currentQuestion.problem_image} 
+                      alt="Problem illustration" 
+                      className="max-w-full h-auto rounded border"
+                    />
+                  </div>
+                )}
                 <MathRenderer text={currentQuestion.problem_text || ''} />
               </div>
 
