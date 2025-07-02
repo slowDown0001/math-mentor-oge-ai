@@ -77,6 +77,16 @@ const Header = () => {
               <span>Экзамены</span>
             </Link>
 
+            <Link 
+              to="/practice-now" 
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                isActive('/practice-now') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+              }`}
+            >
+              <Play className="w-4 h-4" />
+              <span>Practice Now</span>
+            </Link>
+
             {user && (
               <>
                 <Link 
@@ -202,6 +212,17 @@ const Header = () => {
               >
                 <ClipboardList className="w-4 h-4" />
                 <span>Экзамены</span>
+              </Link>
+
+              <Link 
+                to="/practice-now" 
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/practice-now') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Play className="w-4 h-4" />
+                <span>Practice Now</span>
               </Link>
 
               {user && (
