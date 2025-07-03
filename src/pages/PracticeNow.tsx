@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import MathRenderer from "@/components/MathRenderer";
 import Header from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
+import { StreakDisplay } from "@/components/streak/StreakDisplay";
+import { useStreakTracking } from "@/hooks/useStreakTracking";
 
 interface MCQQuestion {
   type: 'mcq';
@@ -49,6 +51,7 @@ const PracticeNow = () => {
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { trackActivity } = useStreakTracking();
 
   const currentQuestion = questions[currentIndex];
 
@@ -145,6 +148,11 @@ const PracticeNow = () => {
       selected: true,
       isCorrect
     });
+
+    // Track activity if correct answer
+    if (isCorrect) {
+      trackActivity('problem', 1);
+    }
   };
 
   const nextQuestion = () => {
@@ -216,8 +224,11 @@ const PracticeNow = () => {
         <div className="max-w-4xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-3xl font-bold text-gray-900">Practice Now</h1>
-            <div className="text-sm text-gray-600">
-              Вопрос {currentIndex + 1} из {questions.length}
+            <div className="flex items-center gap-4">
+              <StreakDisplay />
+              <div className="text-sm text-gray-600">
+                Вопрос {currentIndex + 1} из {questions.length}
+              </div>
             </div>
           </div>
 
