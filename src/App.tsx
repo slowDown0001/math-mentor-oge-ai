@@ -18,6 +18,7 @@ const DetailedStatistics = lazy(() => import("./pages/DetailedStatistics"));
 const PracticeExercise = lazy(() => import("./pages/PracticeExercise"));
 const NewPractice = lazy(() => import("./pages/NewPractice"));
 const PracticeNow = lazy(() => import("./pages/PracticeNow"));
+const PracticeByNumber = lazy(() => import("./pages/PracticeByNumber"));
 const DigitalTextbook = lazy(() => import("./pages/DigitalTextbook"));
 const MCQPractice = lazy(() => import("./pages/MCQPractice"));
 const Scanner = lazy(() => import("./pages/Scanner"));
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/questions" element={<Questions />} />
                 <Route path="/new-practice" element={<NewPractice />} />
                 <Route path="/practice-now" element={<PracticeNow />} />
+                <Route path="/practice-by-number" element={<PracticeByNumber />} />
                 <Route element={<PrivateRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/profile" element={<Profile />} />

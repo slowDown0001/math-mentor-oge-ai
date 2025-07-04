@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardList, Play, Database, Activity } from "lucide-react";
+import { ClipboardList, Play, Database, Activity, Hash } from "lucide-react";
 import Header from "@/components/Header";
 
 const Questions = () => {
@@ -25,6 +25,13 @@ const Questions = () => {
       icon: Database,
       link: "/practice",
       color: "bg-purple-50 hover:bg-purple-100 border-purple-200"
+    },
+    {
+      title: "По номеру вопроса",
+      description: "Практика всех вопросов выбранного номера (1-25)",
+      icon: Hash,
+      link: "/practice-by-number",
+      color: "bg-indigo-50 hover:bg-indigo-100 border-indigo-200"
     },
     {
       title: "Диагностика",
