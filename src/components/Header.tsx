@@ -68,23 +68,13 @@ const Header = () => {
             </Link>
 
             <Link 
-              to="/new-practice" 
+              to="/questions" 
               className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                isActive('/new-practice') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+                isActive('/questions') ? 'text-primary' : 'text-gray-600 hover:text-primary'
               }`}
             >
               <ClipboardList className="w-4 h-4" />
-              <span>Экзамены</span>
-            </Link>
-
-            <Link 
-              to="/practice-now" 
-              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                isActive('/practice-now') ? 'text-primary' : 'text-gray-600 hover:text-primary'
-              }`}
-            >
-              <Play className="w-4 h-4" />
-              <span>Practice Now</span>
+              <span>Вопросы</span>
             </Link>
 
             {user && (
@@ -96,23 +86,6 @@ const Header = () => {
                   }`}
                 >
                   Главная
-                </Link>
-                <Link 
-                  to="/diagnostic" 
-                  className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                    isActive('/diagnostic') ? 'text-primary' : 'text-gray-600 hover:text-primary'
-                  }`}
-                >
-                  <ClipboardList className="w-4 h-4" />
-                  <span>Диагностика</span>
-                </Link>
-                <Link 
-                  to="/practice" 
-                  className={`text-sm font-medium transition-colors ${
-                    isActive('/practice') ? 'text-primary' : 'text-gray-600 hover:text-primary'
-                  }`}
-                >
-                  Questions
                 </Link>
                 <Link 
                   to="/statistics" 
@@ -204,25 +177,14 @@ const Header = () => {
               </Link>
 
               <Link 
-                to="/new-practice" 
+                to="/questions" 
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-                  isActive('/new-practice') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                  isActive('/questions') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 <ClipboardList className="w-4 h-4" />
-                <span>Экзамены</span>
-              </Link>
-
-              <Link 
-                to="/practice-now" 
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-                  isActive('/practice-now') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Play className="w-4 h-4" />
-                <span>Practice Now</span>
+                <span>Вопросы</span>
               </Link>
 
               {user && (
@@ -235,25 +197,6 @@ const Header = () => {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Главная
-                  </Link>
-                  <Link 
-                    to="/diagnostic" 
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-                      isActive('/diagnostic') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <ClipboardList className="w-4 h-4" />
-                    <span>Диагностика</span>
-                  </Link>
-                  <Link 
-                    to="/practice" 
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      isActive('/practice') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Questions
                   </Link>
                   <Link 
                     to="/statistics" 

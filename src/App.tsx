@@ -22,6 +22,7 @@ const DigitalTextbook = lazy(() => import("./pages/DigitalTextbook"));
 const MCQPractice = lazy(() => import("./pages/MCQPractice"));
 const Scanner = lazy(() => import("./pages/Scanner"));
 const Videos = lazy(() => import("./pages/Videos"));
+const Questions = lazy(() => import("./pages/Questions"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
                 <Route path="/mcq-practice" element={<MCQPractice />} />
                 <Route path="/scanner" element={<Scanner />} />
                 <Route path="/videos" element={<Videos />} />
+                <Route path="/questions" element={<Questions />} />
                 <Route path="/new-practice" element={<NewPractice />} />
                 <Route path="/practice-now" element={<PracticeNow />} />
                 <Route element={<PrivateRoute />}>
