@@ -10,6 +10,10 @@ import { CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import MathRenderer from '@/components/MathRenderer';
 import topicMapping from '../../../documentation/topic_skill_mapping_with_names.json';
+import { useAuth } from '@/contexts/AuthContext';
+import { awardStreakPoints, calculateStreakReward, getCurrentStreakData } from '@/services/streakPointsService';
+import { StreakRingAnimation } from '@/components/streak/StreakRingAnimation';
+import { toast } from 'sonner';
 
 interface PracticeQuestion {
   question_id: string;
@@ -18,6 +22,7 @@ interface PracticeQuestion {
   solution_text?: string;
   code: number;
   problem_image?: string;
+  difficulty?: string | number;
 }
 
 interface UserAnswer {
@@ -32,6 +37,7 @@ interface PracticeProps {
 }
 
 const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
+  const { user } = useAuth();
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [questionCount, setQuestionCount] = useState<number>(5);
   const [currentPhase, setCurrentPhase] = useState<'setup' | 'practicing' | 'results'>('setup');
@@ -41,6 +47,14 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
   const [userInput, setUserInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSolution, setShowSolution] = useState<{ [key: string]: boolean }>({});
+  
+  // Streak animation state
+  const [showStreakAnimation, setShowStreakAnimation] = useState(false);
+  const [streakData, setStreakData] = useState({
+    currentMinutes: 0,
+    targetMinutes: 30,
+    addedMinutes: 0
+  });
 
   // Handle topic selection
   const handleTopicToggle = (topicCode: string, checked: boolean) => {
@@ -136,14 +150,29 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
   };
 
   // Handle answer submission
-  const submitAnswer = () => {
-    if (!userInput.trim()) {
-      alert('Пожалуйста, введите ответ');
+  const submitAnswer = async () => {
+    if (!userInput.trim() || !user) {
+      toast.error('Пожалуйста, введите ответ');
       return;
     }
 
     const currentQuestion = questions[currentQuestionIndex];
     const isCorrect = checkAnswer(userInput, currentQuestion.answer);
+
+    // Award streak points immediately (regardless of correctness)
+    const reward = calculateStreakReward(currentQuestion.difficulty || 'medium');
+    const currentStreakInfo = await getCurrentStreakData(user.id);
+    
+    if (currentStreakInfo) {
+      setStreakData({
+        currentMinutes: currentStreakInfo.todayMinutes,
+        targetMinutes: currentStreakInfo.goalMinutes,
+        addedMinutes: reward.minutes
+      });
+      setShowStreakAnimation(true);
+    }
+    
+    await awardStreakPoints(user.id, reward);
 
     const newAnswer: UserAnswer = {
       questionId: currentQuestion.question_id,
@@ -153,6 +182,12 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
     };
 
     setUserAnswers(prev => [...prev, newAnswer]);
+
+    if (isCorrect) {
+      toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
+    } else {
+      toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
+    }
 
     // Move to next question or finish
     if (currentQuestionIndex < questions.length - 1) {
@@ -429,8 +464,19 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
       </Card>
     );
   }
-
-  return null;
+  
+  return (
+    <>
+      {/* Streak Animation */}
+      <StreakRingAnimation
+        currentMinutes={streakData.currentMinutes}
+        targetMinutes={streakData.targetMinutes}
+        addedMinutes={streakData.addedMinutes}
+        isVisible={showStreakAnimation}
+        onAnimationComplete={() => setShowStreakAnimation(false)}
+      />
+    </>
+  );
 };
 
 export default Practice;

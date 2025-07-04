@@ -11,6 +11,8 @@ import Header from "@/components/Header";
 import MathRenderer from "@/components/MathRenderer";
 import { useStreakTracking } from "@/hooks/useStreakTracking";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
+import { StreakRingAnimation } from "@/components/streak/StreakRingAnimation";
+import { awardStreakPoints, calculateStreakReward, getCurrentStreakData } from "@/services/streakPointsService";
 import { toast } from "sonner";
 
 interface Question {
@@ -18,6 +20,7 @@ interface Question {
   problem_text: string;
   answer: string;
   solution_text: string;
+  difficulty?: string | number;
 }
 
 const PracticeByNumber = () => {
@@ -32,6 +35,14 @@ const PracticeByNumber = () => {
   const [showSolution, setShowSolution] = useState(false);
   const [solutionViewedBeforeAnswer, setSolutionViewedBeforeAnswer] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Streak animation state
+  const [showStreakAnimation, setShowStreakAnimation] = useState(false);
+  const [streakData, setStreakData] = useState({
+    currentMinutes: 0,
+    targetMinutes: 30,
+    addedMinutes: 0
+  });
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -76,21 +87,32 @@ const PracticeByNumber = () => {
     fetchQuestions(value);
   };
 
-  const checkAnswer = () => {
-    if (!currentQuestion || !userAnswer.trim()) return;
+  const checkAnswer = async () => {
+    if (!currentQuestion || !userAnswer.trim() || !user) return;
 
     const correct = userAnswer.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
     setIsCorrect(correct);
     setIsAnswered(true);
 
+    // Award streak points immediately (regardless of correctness)
+    const reward = calculateStreakReward(currentQuestion.difficulty);
+    const currentStreakInfo = await getCurrentStreakData(user.id);
+    
+    if (currentStreakInfo) {
+      setStreakData({
+        currentMinutes: currentStreakInfo.todayMinutes,
+        targetMinutes: currentStreakInfo.goalMinutes,
+        addedMinutes: reward.minutes
+      });
+      setShowStreakAnimation(true);
+    }
+    
+    await awardStreakPoints(user.id, reward);
+
     if (correct) {
-      toast.success("Правильно!");
-      // Award streak points only if solution wasn't viewed before answering
-      if (!solutionViewedBeforeAnswer) {
-        trackActivity('problem', 1);
-      }
+      toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
     } else {
-      toast.error("Неправильно");
+      toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
     }
   };
 
@@ -277,6 +299,15 @@ const PracticeByNumber = () => {
           )}
         </div>
       </div>
+      
+      {/* Streak Animation */}
+      <StreakRingAnimation
+        currentMinutes={streakData.currentMinutes}
+        targetMinutes={streakData.targetMinutes}
+        addedMinutes={streakData.addedMinutes}
+        isVisible={showStreakAnimation}
+        onAnimationComplete={() => setShowStreakAnimation(false)}
+      />
     </div>
   );
 };
