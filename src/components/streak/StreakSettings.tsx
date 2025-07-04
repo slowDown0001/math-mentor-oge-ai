@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
 import { Target, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -68,11 +69,6 @@ export const StreakSettings = () => {
     }
   };
 
-  const goals = [
-    { minutes: 5, label: '5 минут', description: 'Для начинающих' },
-    { minutes: 30, label: '30 минут', description: 'Рекомендуемая цель' }
-  ];
-
   return (
     <Card className="p-6">
       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -80,37 +76,36 @@ export const StreakSettings = () => {
         Настройки дневных целей
       </h3>
       
-      <p className="text-gray-600 mb-6">
+      <p className="text-muted-foreground mb-6">
         Выберите, сколько времени в день вы хотите уделять изучению математики:
       </p>
 
-      <div className="space-y-3 mb-6">
-        {goals.map((goal) => (
-          <div
-            key={goal.minutes}
-            className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-              selectedGoal === goal.minutes
-                ? 'border-primary bg-primary/5'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-            onClick={() => setSelectedGoal(goal.minutes)}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  {goal.label}
-                </div>
-                <div className="text-sm text-gray-500">{goal.description}</div>
-              </div>
-              <div className={`w-4 h-4 rounded-full border-2 ${
-                selectedGoal === goal.minutes
-                  ? 'border-primary bg-primary'
-                  : 'border-gray-300'
-              }`} />
+      <div className="space-y-6 mb-6">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-medium">
+              <Clock className="h-4 w-4" />
+              Дневная цель
+            </div>
+            <div className="text-lg font-semibold text-primary">
+              {selectedGoal} {selectedGoal === 1 ? 'минута' : selectedGoal < 5 ? 'минуты' : 'минут'}
             </div>
           </div>
-        ))}
+          
+          <Slider
+            value={[selectedGoal]}
+            onValueChange={(value) => setSelectedGoal(value[0])}
+            max={90}
+            min={1}
+            step={1}
+            className="w-full"
+          />
+          
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>1 мин</span>
+            <span>90 мин</span>
+          </div>
+        </div>
       </div>
 
       <Button 
