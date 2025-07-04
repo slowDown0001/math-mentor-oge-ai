@@ -6,6 +6,12 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { BarChart3 } from "lucide-react";
 
+interface TopicProgress {
+  topic: string;
+  name: string;
+  averageScore: number;
+}
+
 interface UserData {
   progress: {
     overall: number;
@@ -13,6 +19,7 @@ interface UserData {
     geometry: number;
     probability: number;
   };
+  topicProgress: TopicProgress[];
   completedLessons: number;
   practiceProblems: number;
   quizzesCompleted: number;
@@ -55,29 +62,15 @@ export const UserProfileCard = ({ userName, userEmail, joinedDate, userData }: U
               <Progress value={userData.progress.overall} className="h-2 bg-primary/20" />
             </div>
             
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm text-gray-700">Алгебра</span>
-                <span className="text-sm font-medium text-primary">{userData.progress.algebra}%</span>
+            {userData.topicProgress.slice(0, 7).map((topic) => (
+              <div key={topic.topic}>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm text-gray-700">{topic.name}</span>
+                  <span className="text-sm font-medium text-primary">{topic.averageScore}%</span>
+                </div>
+                <Progress value={topic.averageScore} className="h-2 bg-primary/20" />
               </div>
-              <Progress value={userData.progress.algebra} className="h-2 bg-primary/20" />
-            </div>
-            
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm text-gray-700">Геометрия</span>
-                <span className="text-sm font-medium text-primary">{userData.progress.geometry}%</span>
-              </div>
-              <Progress value={userData.progress.geometry} className="h-2 bg-primary/20" />
-            </div>
-            
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm text-gray-700">Теория вероятностей</span>
-                <span className="text-sm font-medium text-primary">{userData.progress.probability}%</span>
-              </div>
-              <Progress value={userData.progress.probability} className="h-2 bg-primary/20" />
-            </div>
+            ))}
           </div>
         </div>
         

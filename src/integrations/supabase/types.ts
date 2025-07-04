@@ -1730,6 +1730,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_statistics: {
+        Row: {
+          average_score: number
+          completed_lessons: number
+          created_at: string
+          id: string
+          practice_problems: number
+          quizzes_completed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          average_score?: number
+          completed_lessons?: number
+          created_at?: string
+          id?: string
+          practice_problems?: number
+          quizzes_completed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          average_score?: number
+          completed_lessons?: number
+          created_at?: string
+          id?: string
+          practice_problems?: number
+          quizzes_completed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_streaks: {
         Row: {
           created_at: string | null
