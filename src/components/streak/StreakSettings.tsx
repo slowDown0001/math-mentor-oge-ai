@@ -48,6 +48,8 @@ export const StreakSettings = () => {
         .upsert({
           user_id: user.id,
           daily_goal_minutes: minutes
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;

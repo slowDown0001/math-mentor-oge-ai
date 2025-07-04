@@ -62,7 +62,7 @@ export const UserProfileCard = ({ userName, userEmail, joinedDate, userData }: U
               <Progress value={userData.progress.overall} className="h-2 bg-primary/20" />
             </div>
             
-            {userData.topicProgress.slice(0, 7).map((topic) => (
+            {userData.topicProgress?.slice(0, 7).map((topic) => (
               <div key={topic.topic}>
                 <div className="flex justify-between mb-1">
                   <span className="text-sm text-gray-700">{topic.name}</span>
@@ -70,7 +70,7 @@ export const UserProfileCard = ({ userName, userEmail, joinedDate, userData }: U
                 </div>
                 <Progress value={topic.averageScore} className="h-2 bg-primary/20" />
               </div>
-            ))}
+            )) || []}
           </div>
         </div>
         
