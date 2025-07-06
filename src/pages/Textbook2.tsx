@@ -185,16 +185,11 @@ const Textbook2 = () => {
 
   const renderSubunitOverview = (unit: any) => (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" onClick={handleBackToUnits}>
-          ← Все модули
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Модуль {selectedUnit}: {unit.title}
-          </h1>
-          <p className="text-gray-600">{unit.description}</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">
+          Модуль {selectedUnit}: {unit.title}
+        </h1>
+        <p className="text-gray-600">{unit.description}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -396,12 +391,15 @@ const Textbook2 = () => {
   );
 
   const ModuleSidebar = () => (
-    <Sidebar className="w-64">
-      <SidebarContent>
+    <Sidebar className="w-72 border-r bg-background">
+      <SidebarContent className="p-4">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-foreground mb-2">Учебник 2.0</h2>
+          <p className="text-sm text-muted-foreground">Выберите модуль для изучения</p>
+        </div>
         <SidebarGroup>
-          <SidebarGroupLabel>Модули</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-2">
               {Object.entries(courseStructure).map(([unitNum, unit]) => {
                 const unitNumber = parseInt(unitNum);
                 const progress = calculateUnitProgress(unitNumber);
@@ -411,19 +409,32 @@ const Textbook2 = () => {
                   <SidebarMenuItem key={unitNum}>
                     <SidebarMenuButton 
                       onClick={() => handleUnitSelect(unitNumber)}
-                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
-                        selectedUnit === unitNumber ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+                      className={`w-full p-4 rounded-xl transition-all duration-200 ${
+                        selectedUnit === unitNumber 
+                          ? 'bg-primary/10 text-primary border-2 border-primary/20 shadow-sm' 
+                          : 'hover:bg-muted/50 border-2 border-transparent hover:shadow-sm'
                       }`}
                     >
-                      <div className={`w-8 h-8 ${unit.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                        <BookOpen className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm">Модуль {unitNum}</div>
-                        <div className="text-xs text-muted-foreground truncate">{unit.title}</div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Progress value={progress} className="h-1 flex-1" />
-                          <span className="text-xs">{Math.round(progress)}%</span>
+                      <div className="flex items-start gap-3 w-full">
+                        <div className={`w-10 h-10 ${unit.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                          <BookOpen className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="font-semibold text-sm mb-1">Модуль {unitNum}</div>
+                          <div className="text-xs text-muted-foreground mb-2 leading-tight">{unit.title}</div>
+                          <div className="flex items-center gap-2">
+                            <Progress value={progress} className="h-2 flex-1" />
+                            <span className="text-xs font-medium min-w-0">{Math.round(progress)}%</span>
+                          </div>
+                          <Badge 
+                            variant={masteryLevel === 'mastered' ? 'default' : 'secondary'}
+                            className="text-xs mt-2"
+                          >
+                            {masteryLevel === 'mastered' ? 'Освоено' : 
+                             masteryLevel === 'proficient' ? 'Хорошо' :
+                             masteryLevel === 'familiar' ? 'Знаком' :
+                             masteryLevel === 'attempted' ? 'Начато' : 'Новое'}
+                          </Badge>
                         </div>
                       </div>
                     </SidebarMenuButton>
