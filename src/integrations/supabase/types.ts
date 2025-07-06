@@ -1730,6 +1730,78 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activities: {
+        Row: {
+          activity_id: string
+          activity_type: string
+          completed_at: string
+          id: string
+          points_earned: number
+          subunit_number: number | null
+          time_spent_minutes: number | null
+          unit_number: number
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          activity_type: string
+          completed_at?: string
+          id?: string
+          points_earned?: number
+          subunit_number?: number | null
+          time_spent_minutes?: number | null
+          unit_number: number
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          activity_type?: string
+          completed_at?: string
+          id?: string
+          points_earned?: number
+          subunit_number?: number | null
+          time_spent_minutes?: number | null
+          unit_number?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_mastery: {
+        Row: {
+          created_at: string
+          id: string
+          mastery_level: string
+          mastery_points: number
+          subunit_number: number | null
+          total_possible_points: number
+          unit_number: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mastery_level?: string
+          mastery_points?: number
+          subunit_number?: number | null
+          total_possible_points?: number
+          unit_number: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mastery_level?: string
+          mastery_points?: number
+          subunit_number?: number | null
+          total_possible_points?: number
+          unit_number?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_statistics: {
         Row: {
           average_score: number
