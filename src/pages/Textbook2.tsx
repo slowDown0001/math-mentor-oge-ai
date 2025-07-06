@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from "@/components/ui/sidebar";
 import Header from "@/components/Header";
 import { useMasterySystem } from "@/hooks/useMasterySystem";
 
@@ -394,6 +395,48 @@ const Textbook2 = () => {
     </div>
   );
 
+  const ModuleSidebar = () => (
+    <Sidebar className="w-64">
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Модули</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {Object.entries(courseStructure).map(([unitNum, unit]) => {
+                const unitNumber = parseInt(unitNum);
+                const progress = calculateUnitProgress(unitNumber);
+                const masteryLevel = getMasteryLevel(progress);
+                
+                return (
+                  <SidebarMenuItem key={unitNum}>
+                    <SidebarMenuButton 
+                      onClick={() => handleUnitSelect(unitNumber)}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
+                        selectedUnit === unitNumber ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
+                      }`}
+                    >
+                      <div className={`w-8 h-8 ${unit.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                        <BookOpen className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm">Модуль {unitNum}</div>
+                        <div className="text-xs text-muted-foreground truncate">{unit.title}</div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Progress value={progress} className="h-1 flex-1" />
+                          <span className="text-xs">{Math.round(progress)}%</span>
+                        </div>
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
+
   const currentUnit = selectedUnit ? courseStructure[selectedUnit as keyof typeof courseStructure] : null;
   const currentSubunit = selectedSubunit && currentUnit ? 
     currentUnit.subunits.find(sub => sub.id === selectedSubunit) : null;
@@ -401,13 +444,30 @@ const Textbook2 = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="pt-20 pb-8">
-        <div className="container mx-auto px-4">
-          {!selectedUnit && renderUnitOverview()}
-          {selectedUnit && !selectedSubunit && currentUnit && renderSubunitOverview(currentUnit)}
-          {selectedUnit && selectedSubunit && currentUnit && currentSubunit && 
-            renderSubunitContent(currentUnit, currentSubunit)}
-        </div>
+      <div className="pt-20">
+        <SidebarProvider>
+          <div className="flex min-h-screen w-full">
+            <ModuleSidebar />
+            <main className="flex-1 p-6">
+              {!selectedUnit && (
+                <div className="text-center mb-8">
+                  <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                    Учебник 2.0
+                  </h1>
+                  <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Интерактивный курс математики для подготовки к ОГЭ с системой мастерства
+                  </p>
+                  <p className="text-gray-500 mt-4">
+                    Выберите модуль в левом меню для начала изучения
+                  </p>
+                </div>
+              )}
+              {selectedUnit && !selectedSubunit && currentUnit && renderSubunitOverview(currentUnit)}
+              {selectedUnit && selectedSubunit && currentUnit && currentSubunit && 
+                renderSubunitContent(currentUnit, currentSubunit)}
+            </main>
+          </div>
+        </SidebarProvider>
       </div>
     </div>
   );
