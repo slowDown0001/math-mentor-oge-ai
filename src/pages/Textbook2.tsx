@@ -9,94 +9,117 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import Header from "@/components/Header";
 import { useMasterySystem } from "@/hooks/useMasterySystem";
 
-// Course structure - 8 units matching the main topics
-const courseStructure = {
-  1: {
-    title: "Числа и вычисления",
-    description: "Основы работы с числами, дроби, проценты",
-    color: "bg-blue-500",
-    subunits: [
-      { id: "1.1", title: "Натуральные числа", skills: [1, 2, 3, 4] },
-      { id: "1.2", title: "Обыкновенные дроби", skills: [5, 6, 7, 8] },
-      { id: "1.3", title: "Десятичные дроби", skills: [9, 10, 11] },
-      { id: "1.4", title: "Проценты", skills: [12, 13, 14] },
-      { id: "1.5", title: "Отношения и пропорции", skills: [15, 16, 17] }
-    ]
-  },
-  2: {
-    title: "Алгебраические выражения",
-    description: "Работа с переменными и алгебраическими выражениями",
-    color: "bg-green-500",
-    subunits: [
-      { id: "2.1", title: "Буквенные выражения", skills: [18, 19, 20] },
-      { id: "2.2", title: "Преобразование выражений", skills: [21, 22, 23] },
-      { id: "2.3", title: "Формулы сокращенного умножения", skills: [24, 25, 26] }
-    ]
-  },
-  3: {
-    title: "Уравнения и неравенства",
-    description: "Решение различных типов уравнений и неравенств",
-    color: "bg-purple-500",
-    subunits: [
-      { id: "3.1", title: "Линейные уравнения", skills: [27, 28, 29] },
-      { id: "3.2", title: "Квадратные уравнения", skills: [30, 31, 32] },
-      { id: "3.3", title: "Системы уравнений", skills: [33, 34, 35] },
-      { id: "3.4", title: "Неравенства", skills: [36, 37, 38] }
-    ]
-  },
-  4: {
-    title: "Числовые последовательности",
-    description: "Арифметические и геометрические прогрессии",
-    color: "bg-orange-500",
-    subunits: [
-      { id: "4.1", title: "Арифметическая прогрессия", skills: [39, 40, 41] },
-      { id: "4.2", title: "Геометрическая прогрессия", skills: [42, 43, 44] }
-    ]
-  },
-  5: {
-    title: "Функции",
-    description: "Изучение различных функций и их графиков",
-    color: "bg-red-500",
-    subunits: [
-      { id: "5.1", title: "Понятие функции", skills: [45, 46, 47] },
-      { id: "5.2", title: "Линейная функция", skills: [48, 49, 50] },
-      { id: "5.3", title: "Квадратичная функция", skills: [51, 52, 53] },
-      { id: "5.4", title: "Функция обратной пропорциональности", skills: [54, 55] }
-    ]
-  },
-  6: {
-    title: "Координаты на прямой и плоскости",
-    description: "Работа с координатной плоскостью",
-    color: "bg-teal-500",
-    subunits: [
-      { id: "6.1", title: "Координатная прямая", skills: [56, 57] },
-      { id: "6.2", title: "Координатная плоскость", skills: [58, 59, 60] },
-      { id: "6.3", title: "Графики функций", skills: [61, 62, 63] }
-    ]
-  },
-  7: {
-    title: "Геометрия",
-    description: "Планиметрия: фигуры, площади, теоремы",
-    color: "bg-indigo-500",
-    subunits: [
-      { id: "7.1", title: "Основные понятия", skills: [64, 65, 66] },
-      { id: "7.2", title: "Треугольники", skills: [67, 68, 69, 70] },
-      { id: "7.3", title: "Четырехугольники", skills: [71, 72, 73] },
-      { id: "7.4", title: "Окружность", skills: [74, 75, 76] },
-      { id: "7.5", title: "Площади фигур", skills: [77, 78, 79] }
-    ]
-  },
-  8: {
-    title: "Вероятность и статистика",
-    description: "Основы теории вероятности и статистики",
-    color: "bg-pink-500",
-    subunits: [
-      { id: "8.1", title: "Описательная статистика", skills: [80, 81, 82] },
-      { id: "8.2", title: "Случайные события", skills: [83, 84, 85] },
-      { id: "8.3", title: "Вероятность", skills: [86, 87, 88] }
-    ]
-  }
+// Topic mapping data embedded directly
+const topicMapping = [
+  { "topic": "1.1", "name": "Натуральные и целые числа", "skills": [1,2,3,4,5] },
+  { "topic": "1.2", "name": "Дроби и проценты", "skills": [6,7,8,9,10] },
+  { "topic": "1.3", "name": "Рациональные числа и арифметические действия", "skills": [11,12,13,14,15,16,17,180] },
+  { "topic": "1.4", "name": "Действительные числа", "skills": [18,19,20] },
+  { "topic": "1.5", "name": "Приближённые вычисления", "skills": [21,22,23] },
+  { "topic": "1.6", "name": "Работа с данными и графиками", "skills": [24,25,26,27,28,29,30,31] },
+  { "topic": "1.7", "name": "Прикладная геометрия: площади и расстояния в жизни", "skills": [32,33,34] },
+  { "topic": "2.1", "name": "Буквенные выражения", "skills": [35,36,37,38] },
+  { "topic": "2.2", "name": "Степени", "skills": [39,40,41,42,43,44] },
+  { "topic": "2.3", "name": "Многочлены", "skills": [45,46,47,48,49,179] },
+  { "topic": "2.4", "name": "Алгебраические дроби", "skills": [50,51,52,53] },
+  { "topic": "2.5", "name": "Арифметические корни", "skills": [54,55,56,57] },
+  { "topic": "3.1", "name": "Уравнения и системы", "skills": [58,59,60,61,62] },
+  { "topic": "3.2", "name": "Неравенства и системы", "skills": [63,64,65,66,67,68] },
+  { "topic": "3.3", "name": "Текстовые задачи", "skills": [69,70,71,72,73,74,75] },
+  { "topic": "4.1", "name": "Последовательности", "skills": [76,77,78,79] },
+  { "topic": "4.2", "name": "Арифметическая и геометрическая прогрессии. Формула сложных процентов", "skills": [80,81,82,83,84,85,86,87,88] },
+  { "topic": "5.1", "name": "Свойства и графики функций", "skills": [89,90,91,92,93,94,95,96,97,98,99,100,101,102] },
+  { "topic": "6.1", "name": "Координатная прямая", "skills": [103,104,105,106,107,108,109] },
+  { "topic": "6.2", "name": "Декартовы координаты", "skills": [110,111] },
+  { "topic": "7.1", "name": "Геометрические фигуры", "skills": [112,113,114,115,116] },
+  { "topic": "7.2", "name": "Треугольники", "skills": [117,118,119,120,121,122,123,124] },
+  { "topic": "7.3", "name": "Многоугольники", "skills": [125,126,127,128,129,130,131,132,133,134] },
+  { "topic": "7.4", "name": "Окружность и круг", "skills": [135,136,137,138] },
+  { "topic": "7.5", "name": "Измерения", "skills": [139,140,141,142,143,144,145,146,147,148,149,150,151,152,153] },
+  { "topic": "7.6", "name": "Векторы", "skills": [154,155,156,157] },
+  { "topic": "7.7", "name": "Дополнительные темы по геометрии", "skills": [158,159,160,161] },
+  { "topic": "8.1", "name": "Описательная статистика", "skills": [162,163,164,165] },
+  { "topic": "8.2", "name": "Вероятность", "skills": [166,167,168] },
+  { "topic": "8.3", "name": "Комбинаторика", "skills": [169,170,171,172] },
+  { "topic": "8.4", "name": "Множества", "skills": [173,174] },
+  { "topic": "8.5", "name": "Графы", "skills": [175,176,177,178] }
+];
+
+// TypeScript interfaces
+interface Subunit {
+  id: string;
+  title: string;
+  skills: number[];
+}
+
+interface Unit {
+  title: string;
+  description: string;
+  color: string;
+  subunits: Subunit[];
+}
+
+interface CourseStructure {
+  [key: number]: Unit;
+}
+
+// Create course structure from topic mapping
+const createCourseStructure = (): CourseStructure => {
+  const structure: CourseStructure = {};
+  const unitColors = [
+    "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500",
+    "bg-red-500", "bg-teal-500", "bg-indigo-500", "bg-pink-500"
+  ];
+  
+  const unitTitles = {
+    1: "Числа и вычисления",
+    2: "Алгебраические выражения", 
+    3: "Уравнения и неравенства",
+    4: "Числовые последовательности",
+    5: "Функции",
+    6: "Координаты на прямой и плоскости",
+    7: "Геометрия",
+    8: "Элементы комбинаторики, статистики и теории вероятностей"
+  };
+  
+  const unitDescriptions = {
+    1: "Натуральные и целые числа, дроби, рациональные и действительные числа",
+    2: "Буквенные выражения, степени, многочлены, алгебраические дроби, корни",
+    3: "Решение уравнений, неравенств и их систем, текстовые задачи",
+    4: "Арифметические и геометрические прогрессии, формула сложных процентов",
+    5: "Свойства и графики функций",
+    6: "Координатная прямая и декартовы координаты",
+    7: "Геометрические фигуры, треугольники, многоугольники, окружности, измерения",
+    8: "Статистика, вероятность, комбинаторика, множества, графы"
+  };
+
+  // Process topic mapping
+  topicMapping.forEach(topic => {
+    if (topic.topic === "Special") return; // Skip special topics
+    
+    const [unitNum, subunitNum] = topic.topic.split('.');
+    const unitId = parseInt(unitNum);
+    
+    if (!structure[unitId]) {
+      structure[unitId] = {
+        title: unitTitles[unitId as keyof typeof unitTitles] || `Раздел ${unitId}`,
+        description: unitDescriptions[unitId as keyof typeof unitDescriptions] || `Описание раздела ${unitId}`,
+        color: unitColors[unitId - 1] || "bg-gray-500",
+        subunits: []
+      };
+    }
+    
+    structure[unitId].subunits.push({
+      id: topic.topic,
+      title: topic.name,
+      skills: topic.skills
+    });
+  });
+  
+  return structure;
 };
+
+const courseStructure = createCourseStructure();
 
 const Textbook2 = () => {
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
