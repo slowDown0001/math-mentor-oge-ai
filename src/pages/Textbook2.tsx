@@ -123,25 +123,14 @@ const courseStructure = createCourseStructure();
 
 const Textbook2 = () => {
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
-  const [selectedSubunit, setSelectedSubunit] = useState<string | null>(null);
   const { getUserMastery, calculateUnitProgress, getMasteryLevel } = useMasterySystem();
 
   const handleUnitSelect = (unitNumber: number) => {
     setSelectedUnit(unitNumber);
-    setSelectedSubunit(null);
-  };
-
-  const handleSubunitSelect = (subunitId: string) => {
-    setSelectedSubunit(subunitId);
   };
 
   const handleBackToUnits = () => {
     setSelectedUnit(null);
-    setSelectedSubunit(null);
-  };
-
-  const handleBackToSubunits = () => {
-    setSelectedSubunit(null);
   };
 
   const renderUnitOverview = () => (
@@ -206,8 +195,8 @@ const Textbook2 = () => {
     </div>
   );
 
-  const renderSubunitOverview = (unit: any) => (
-    <div className="space-y-8">
+  const renderUnitContent = (unit: any) => (
+    <div className="space-y-12">
       <div className="mb-8">
         <Button variant="outline" onClick={handleBackToUnits} className="mb-4">
           ← Все модули
@@ -218,203 +207,131 @@ const Textbook2 = () => {
         <p className="text-xl text-gray-600">{unit.description}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-        {unit.subunits.map((subunit: any) => {
-          const progress = calculateUnitProgress(selectedUnit!, subunit.id);
-          
-          return (
-            <Card 
-              key={subunit.id}
-              className="cursor-pointer hover:shadow-lg transition-all"
-              onClick={() => handleSubunitSelect(subunit.id)}
-            >
+      {unit.subunits.map((subunit: any, index: number) => (
+        <div key={subunit.id}>
+          {/* Subunit Block */}
+          <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              {subunit.id} {subunit.title}
+            </h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Side: Videos and Articles */}
+              <div className="space-y-6">
+                {/* Videos */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-red-600">
+                      <Play className="w-5 h-5" />
+                      Видео
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {subunit.skills.map((skillId: number) => (
+                      <div key={skillId} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
+                        <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+                          <Play className="w-3 h-3 text-red-600" />
+                        </div>
+                        <span className="text-sm">Навык {skillId}</span>
+                        <Badge variant="outline" className="ml-auto">
+                          5 мин
+                        </Badge>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                {/* Articles */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-blue-600">
+                      <FileText className="w-5 h-5" />
+                      Статьи
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {subunit.skills.map((skillId: number) => (
+                      <div key={skillId} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                          <FileText className="w-3 h-3 text-blue-600" />
+                        </div>
+                        <span className="text-sm">Теория {skillId}</span>
+                        <Badge variant="outline" className="ml-auto">
+                          10 мин
+                        </Badge>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right Side: Practice Exercises */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-green-600">
+                    <PenTool className="w-5 h-5" />
+                    Упражнения
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {[1, 2, 3].map((exerciseNum) => (
+                    <div key={exerciseNum} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <PenTool className="w-3 h-3 text-green-600" />
+                      </div>
+                      <span className="text-sm">Упражнение {exerciseNum}</span>
+                      <Badge variant="outline" className="ml-auto">
+                        3 задачи
+                      </Badge>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Quiz Block after each subunit */}
+          <div className="mb-8">
+            <Card className="border-2 border-yellow-200 bg-yellow-50">
               <CardHeader>
-                <CardTitle className="text-lg">
-                  {subunit.id} {subunit.title}
+                <CardTitle className="flex items-center gap-2">
+                  <HelpCircle className="w-5 h-5 text-yellow-600" />
+                  Викторина {index + 1}
                 </CardTitle>
-                <div className="flex justify-between text-sm">
-                  <span>Прогресс</span>
-                  <span>{Math.round(progress)}%</span>
-                </div>
-                <Progress value={progress} className="h-2" />
+                <CardDescription>
+                  Проверь себя по теме "{subunit.title}"
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <ActivityItem 
-                    icon={Play} 
-                    label="Видео" 
-                    count={subunit.skills.length} 
-                    color="text-red-600"
-                  />
-                  <ActivityItem 
-                    icon={FileText} 
-                    label="Статьи" 
-                    count={subunit.skills.length} 
-                    color="text-blue-600"
-                  />
-                  <ActivityItem 
-                    icon={PenTool} 
-                    label="Упражнения" 
-                    count={3} 
-                    color="text-green-600"
-                  />
-                </div>
+                <Button className="w-full bg-yellow-600 hover:bg-yellow-700">
+                  Начать викторину {index + 1}
+                </Button>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
-
-      {/* Unit Quiz and Test */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        <Card className="border-2 border-yellow-200 bg-yellow-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-yellow-600" />
-              Викторина по модулю
-            </CardTitle>
-            <CardDescription>
-              5-7 вопросов для закрепления материала
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="w-full bg-yellow-600 hover:bg-yellow-700">
-              Начать викторину
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-red-600" />
-              Контрольная работа
-            </CardTitle>
-            <CardDescription>
-              12-15 вопросов для проверки знаний
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="w-full bg-red-600 hover:bg-red-700">
-              Начать тест
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const renderSubunitContent = (unit: any, subunit: any) => (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" onClick={handleBackToSubunits}>
-          ← {unit.title}
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {subunit.id} {subunit.title}
-          </h1>
+          </div>
         </div>
-      </div>
+      ))}
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-4 gap-8">
-        {/* Videos */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <Play className="w-5 h-5" />
-              Видео
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {subunit.skills.map((skillId: number, index: number) => (
-              <div key={skillId} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
-                <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
-                  <Play className="w-3 h-3 text-red-600" />
-                </div>
-                <span className="text-sm">Навык {skillId}</span>
-                <Badge variant="outline" className="ml-auto">
-                  5 мин
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Articles */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-600">
-              <FileText className="w-5 h-5" />
-              Статьи
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {subunit.skills.map((skillId: number) => (
-              <div key={skillId} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
-                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                  <FileText className="w-3 h-3 text-blue-600" />
-                </div>
-                <span className="text-sm">Теория {skillId}</span>
-                <Badge variant="outline" className="ml-auto">
-                  10 мин
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Practice */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-600">
-              <PenTool className="w-5 h-5" />
-              Упражнения
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {[1, 2, 3].map((exerciseNum) => (
-              <div key={exerciseNum} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
-                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                  <PenTool className="w-3 h-3 text-green-600" />
-                </div>
-                <span className="text-sm">Упражнение {exerciseNum}</span>
-                <Badge variant="outline" className="ml-auto">
-                  3 задачи
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Mastery Progress */}
-        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-purple-600">
-              <Star className="w-5 h-5" />
-              Мастерство
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-2">
-                  0/100
-                </div>
-                <div className="text-sm text-gray-600">
-                  Очки мастерства
-                </div>
-              </div>
-              <Progress value={0} className="h-3" />
-              <div className="text-xs text-gray-500 text-center">
-                Освойте все материалы для получения мастерства
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Final Unit Test */}
+      <Card className="border-2 border-red-200 bg-red-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="w-5 h-5 text-red-600" />
+            Итоговый тест модуля
+          </CardTitle>
+          <CardDescription>
+            12-15 вопросов для проверки знаний всего модуля
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button className="w-full bg-red-600 hover:bg-red-700">
+            Начать итоговый тест
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
+
 
   const ModuleSidebar = () => (
     <Sidebar className="w-72 border-r bg-background/95 backdrop-blur-sm fixed left-0 top-20 h-[calc(100vh-5rem)] z-10">
@@ -470,8 +387,6 @@ const Textbook2 = () => {
   );
 
   const currentUnit = selectedUnit ? courseStructure[selectedUnit as keyof typeof courseStructure] : null;
-  const currentSubunit = selectedSubunit && currentUnit ? 
-    currentUnit.subunits.find(sub => sub.id === selectedSubunit) : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -480,14 +395,15 @@ const Textbook2 = () => {
         <SidebarProvider>
           <div className="flex min-h-screen w-full">
             <ModuleSidebar />
-            <main className="flex-1 overflow-y-auto pl-12 pr-12 py-8">
-              <ScrollArea className="h-full">
-                {!selectedUnit && renderUnitOverview()}
-                {selectedUnit && !selectedSubunit && currentUnit && renderSubunitOverview(currentUnit)}
-                {selectedUnit && selectedSubunit && currentUnit && currentSubunit && 
-                  renderSubunitContent(currentUnit, currentSubunit)}
-              </ScrollArea>
-            </main>
+        <main className="flex-1 overflow-y-auto pl-12 pr-12 py-8">
+          <ScrollArea className="h-full">
+            {!selectedUnit ? (
+              renderUnitOverview()
+            ) : (
+              renderUnitContent(courseStructure[selectedUnit])
+            )}
+          </ScrollArea>
+        </main>
           </div>
         </SidebarProvider>
       </div>
