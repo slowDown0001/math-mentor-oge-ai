@@ -329,6 +329,8 @@ const Textbook2 = () => {
   const [isSelecterActive, setIsSelecterActive] = useState(false);
   const [selectedText, setSelectedText] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string>("");
   const { getUserMastery, calculateUnitProgress, getMasteryLevel } = useMasterySystem();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
 
@@ -377,6 +379,16 @@ const Textbook2 = () => {
     setSelectedText("");
     setIsChatOpen(false);
     setIsSelecterActive(false);
+  };
+
+  // Handle video click
+  const handleVideoClick = (topicName: string) => {
+    setSelectedVideo(topicName);
+    
+    // Set the video URL based on the topic
+    if (topicName === "Натуральные и целые числа") {
+      setVideoUrl("https://www.youtube.com/embed/xFsJeBJsB6c");
+    }
   };
 
   // Selector tool functions
@@ -560,18 +572,20 @@ const Textbook2 = () => {
                     </CardTitle>
                   </CardHeader>
                     <CardContent className="space-y-3">
-                     {subunit.skills.map((skillId: number) => (
-                       <div key={skillId} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
-                         <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
-                           <Play className="w-3 h-3 text-red-600" />
-                         </div>
-                         <span className="text-sm">{skillNames[skillId] || `Навык ${skillId}`}</span>
-                         <Badge variant="outline" className="ml-auto">
-                           5 мин
-                         </Badge>
-                       </div>
-                     ))}
-                   </CardContent>
+                      <div 
+                        key={subunit.title} 
+                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => handleVideoClick(subunit.title)}
+                      >
+                        <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+                          <Play className="w-3 h-3 text-red-600" />
+                        </div>
+                        <span className="text-sm">{subunit.title}</span>
+                        <Badge variant="outline" className="ml-auto">
+                          5 мин
+                        </Badge>
+                      </div>
+                    </CardContent>
                 </Card>
 
                 {/* Articles */}
@@ -724,6 +738,43 @@ const Textbook2 = () => {
   );
 
   const currentUnit = selectedUnit ? courseStructure[selectedUnit as keyof typeof courseStructure] : null;
+
+  // Video view
+  if (selectedVideo) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="pt-20">
+          <div className="container mx-auto px-4 py-8">
+            <Button 
+              onClick={() => setSelectedVideo(null)} 
+              variant="outline" 
+              className="mb-6"
+            >
+              ← Назад к учебнику
+            </Button>
+            
+            <Card className="max-w-4xl mx-auto">
+              <CardHeader>
+                <CardTitle className="text-2xl">{selectedVideo}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="aspect-video w-full">
+                  <iframe
+                    src={videoUrl}
+                    title={selectedVideo}
+                    className="w-full h-full rounded-lg"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Article view
   if (selectedArticle) {
