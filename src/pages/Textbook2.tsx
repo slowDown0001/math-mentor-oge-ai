@@ -429,15 +429,6 @@ const Textbook2 = () => {
                               <Progress value={progress} className="h-1 flex-1" />
                               <span className="text-xs font-medium min-w-fit">{Math.round(progress)}%</span>
                             </div>
-                            <Badge 
-                              variant={masteryLevel === 'mastered' ? 'default' : 'secondary'}
-                              className="text-xs px-2 py-0.5 h-5"
-                            >
-                               {masteryLevel === 'mastered' ? 'Освоено' : 
-                                masteryLevel === 'proficient' ? 'Хорошо' :
-                                masteryLevel === 'familiar' ? 'Знаком' :
-                                masteryLevel === 'attempted' ? 'Начато' : 'Не начато'}
-                            </Badge>
                           </div>
                         </div>
                       </div>
