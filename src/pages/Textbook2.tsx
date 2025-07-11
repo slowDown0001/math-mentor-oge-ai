@@ -457,7 +457,7 @@ const Textbook2 = () => {
         <SidebarProvider>
           <div className="flex min-h-screen w-full">
             <ModuleSidebar />
-            <main className="flex-1 overflow-y-auto pl-80 pr-80 py-8">
+            <main className="flex-1 overflow-y-auto pl-12 pr-12 py-8">
               <ScrollArea className="h-full">
                 {!selectedUnit && renderUnitOverview()}
                 {selectedUnit && !selectedSubunit && currentUnit && renderSubunitOverview(currentUnit)}
