@@ -394,8 +394,8 @@ const Textbook2 = () => {
     <Sidebar className="w-96 border-r bg-background/95 backdrop-blur-sm">
       <SidebarContent className="p-6">
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-foreground mb-3">Учебник 2.0</h2>
-          <p className="text-base text-muted-foreground">Выберите модуль для изучения</p>
+          <h2 className="text-xl font-bold text-foreground mb-3">Модули курса</h2>
+          <p className="text-base text-muted-foreground">Все 8 модулей всегда доступны</p>
         </div>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -463,23 +463,25 @@ const Textbook2 = () => {
         <SidebarProvider>
           <div className="flex min-h-screen w-full">
             <ModuleSidebar />
-            <main className="flex-1 p-6">
-              {!selectedUnit && (
-                <div className="text-center mb-8">
-                  <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                    Учебник 2.0
-                  </h1>
-                  <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Интерактивный курс математики для подготовки к ОГЭ с системой мастерства
-                  </p>
-                  <p className="text-gray-500 mt-4">
-                    Выберите модуль в левом меню для начала изучения
-                  </p>
-                </div>
-              )}
-              {selectedUnit && !selectedSubunit && currentUnit && renderSubunitOverview(currentUnit)}
-              {selectedUnit && selectedSubunit && currentUnit && currentSubunit && 
-                renderSubunitContent(currentUnit, currentSubunit)}
+            <main className="flex-1 p-8 overflow-y-auto">
+              <ScrollArea className="h-full">
+                {!selectedUnit && (
+                  <div className="text-center py-16">
+                    <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                      Учебник 2.0
+                    </h1>
+                    <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
+                      Интерактивный курс математики для подготовки к ОГЭ с системой мастерства
+                    </p>
+                    <p className="text-gray-500 text-lg">
+                      Выберите модуль в левом меню для начала изучения
+                    </p>
+                  </div>
+                )}
+                {selectedUnit && !selectedSubunit && currentUnit && renderSubunitOverview(currentUnit)}
+                {selectedUnit && selectedSubunit && currentUnit && currentSubunit && 
+                  renderSubunitContent(currentUnit, currentSubunit)}
+              </ScrollArea>
             </main>
           </div>
         </SidebarProvider>

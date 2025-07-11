@@ -91,10 +91,11 @@ const PracticeExercise = () => {
       if (frqError) {
         console.error('Error fetching FRQ problems:', frqError);
       } else if (frqData) {
-        // Convert code from number to string to match interface
+        // Convert code from number to string and difficulty to string to match interface
         const formattedFrqData = frqData.map(problem => ({
           ...problem,
-          code: problem.code?.toString() || ''
+          code: problem.code?.toString() || '',
+          difficulty: problem.difficulty?.toString() || ''
         }));
         setFrqProblems(formattedFrqData);
       }

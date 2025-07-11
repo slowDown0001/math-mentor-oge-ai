@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       articles: {
@@ -979,6 +984,207 @@ export type Database = {
           checked: boolean | null
           code: number | null
           corrected: boolean | null
+          difficulty: number | null
+          problem_image: string | null
+          problem_number: string | null
+          problem_text: string | null
+          question_id: string
+          rec_time: string | null
+          skills: string | null
+          skills_for_step_1: string | null
+          skills_for_step_10: string | null
+          skills_for_step_11: string | null
+          skills_for_step_12: string | null
+          skills_for_step_13: string | null
+          skills_for_step_14: string | null
+          skills_for_step_15: string | null
+          skills_for_step_2: string | null
+          skills_for_step_3: string | null
+          skills_for_step_4: string | null
+          skills_for_step_5: string | null
+          skills_for_step_6: string | null
+          skills_for_step_7: string | null
+          skills_for_step_8: string | null
+          skills_for_step_9: string | null
+          solution_image: string | null
+          solution_text: string | null
+          solutiontextexpanded: string | null
+          source: string | null
+          step1_expanded_text: string | null
+          step1_text: string | null
+          step10_expanded_text: string | null
+          step10_text: string | null
+          step11_expanded_text: string | null
+          step11_text: string | null
+          step12_expanded_text: string | null
+          step12_text: string | null
+          step13_expanded_text: string | null
+          step13_text: string | null
+          step14_expanded_text: string | null
+          step14_text: string | null
+          step15_expanded_text: string | null
+          step15_text: string | null
+          step2_expanded_text: string | null
+          step2_text: string | null
+          step3_expanded_text: string | null
+          step3_text: string | null
+          step4_expanded_text: string | null
+          step4_text: string | null
+          step5_expanded_text: string | null
+          step5_text: string | null
+          step6_expanded_text: string | null
+          step6_text: string | null
+          step7_expanded_text: string | null
+          step7_text: string | null
+          step8_expanded_text: string | null
+          step8_text: string | null
+          step9_expanded_text: string | null
+          step9_text: string | null
+          steps_number: number | null
+          type: string | null
+        }
+        Insert: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: boolean | null
+          checked?: boolean | null
+          code?: number | null
+          corrected?: boolean | null
+          difficulty?: number | null
+          problem_image?: string | null
+          problem_number?: string | null
+          problem_text?: string | null
+          question_id: string
+          rec_time?: string | null
+          skills?: string | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Update: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: boolean | null
+          checked?: boolean | null
+          code?: number | null
+          corrected?: boolean | null
+          difficulty?: number | null
+          problem_image?: string | null
+          problem_number?: string | null
+          problem_text?: string | null
+          question_id?: string
+          rec_time?: string | null
+          skills?: string | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      OGE_SHFIPI_problems_1_25_old: {
+        Row: {
+          answer: string | null
+          calculation_required: string | null
+          calculator_allowed: boolean | null
+          checked: boolean | null
+          code: number | null
+          corrected: boolean | null
           difficulty: string | null
           problem_image: string | null
           problem_number: string | null
@@ -1884,21 +2090,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -1916,14 +2126,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -1939,14 +2151,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -1962,14 +2176,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -1977,14 +2193,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
