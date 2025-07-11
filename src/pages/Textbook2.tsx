@@ -63,6 +63,21 @@ interface CourseStructure {
   [key: number]: Unit;
 }
 
+// Create skill to topic name mapping
+const createSkillToTopicMapping = (): { [skillId: number]: string } => {
+  const skillToTopic: { [skillId: number]: string } = {};
+  
+  topicMapping.forEach(topic => {
+    if (topic.topic !== "Special") {
+      topic.skills.forEach(skillId => {
+        skillToTopic[skillId] = `${topic.topic} ${topic.name}`;
+      });
+    }
+  });
+  
+  return skillToTopic;
+};
+
 // Create course structure from topic mapping
 const createCourseStructure = (): CourseStructure => {
   const structure: CourseStructure = {};
@@ -120,6 +135,7 @@ const createCourseStructure = (): CourseStructure => {
 };
 
 const courseStructure = createCourseStructure();
+const skillToTopicName = createSkillToTopicMapping();
 
 const Textbook2 = () => {
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
@@ -226,19 +242,19 @@ const Textbook2 = () => {
                       Видео
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    {subunit.skills.map((skillId: number) => (
-                      <div key={skillId} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
-                        <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
-                          <Play className="w-3 h-3 text-red-600" />
-                        </div>
-                        <span className="text-sm">Навык {skillId}</span>
-                        <Badge variant="outline" className="ml-auto">
-                          5 мин
-                        </Badge>
-                      </div>
-                    ))}
-                  </CardContent>
+                   <CardContent className="space-y-3">
+                     {subunit.skills.map((skillId: number) => (
+                       <div key={skillId} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
+                         <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+                           <Play className="w-3 h-3 text-red-600" />
+                         </div>
+                         <span className="text-sm">{skillToTopicName[skillId] || `Навык ${skillId}`}</span>
+                         <Badge variant="outline" className="ml-auto">
+                           5 мин
+                         </Badge>
+                       </div>
+                     ))}
+                   </CardContent>
                 </Card>
 
                 {/* Articles */}
@@ -249,19 +265,19 @@ const Textbook2 = () => {
                       Статьи
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    {subunit.skills.map((skillId: number) => (
-                      <div key={skillId} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                          <FileText className="w-3 h-3 text-blue-600" />
-                        </div>
-                        <span className="text-sm">Теория {skillId}</span>
-                        <Badge variant="outline" className="ml-auto">
-                          10 мин
-                        </Badge>
-                      </div>
-                    ))}
-                  </CardContent>
+                   <CardContent className="space-y-3">
+                     {subunit.skills.map((skillId: number) => (
+                       <div key={skillId} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
+                         <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                           <FileText className="w-3 h-3 text-blue-600" />
+                         </div>
+                         <span className="text-sm">{skillToTopicName[skillId] || `Теория ${skillId}`}</span>
+                         <Badge variant="outline" className="ml-auto">
+                           10 мин
+                         </Badge>
+                       </div>
+                     ))}
+                   </CardContent>
                 </Card>
               </div>
 
