@@ -137,6 +137,10 @@ const createCourseStructure = (): CourseStructure => {
 const courseStructure = createCourseStructure();
 const skillToTopicName = createSkillToTopicMapping();
 
+// Debug: Log the mapping to see if it's working correctly
+console.log('Skill to Topic Name mapping:', skillToTopicName);
+console.log('First few mappings:', Object.entries(skillToTopicName).slice(0, 20));
+
 const Textbook2 = () => {
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
   const { getUserMastery, calculateUnitProgress, getMasteryLevel } = useMasterySystem();
