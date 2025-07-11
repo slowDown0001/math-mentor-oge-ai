@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle } from "lucide-react";
+import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -8,6 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from "@/components/ui/sidebar";
 import Header from "@/components/Header";
 import { useMasterySystem } from "@/hooks/useMasterySystem";
+import MathRenderer from "@/components/MathRenderer";
+import { supabase } from "@/integrations/supabase/client";
 
 // Topic mapping data embedded directly
 const topicMapping = [
@@ -317,6 +319,9 @@ const skillNames = createSkillNameMapping();
 
 const Textbook2 = () => {
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
+  const [selectedArticle, setSelectedArticle] = useState<{skillId: number, skillName: string} | null>(null);
+  const [articleContent, setArticleContent] = useState<string>("");
+  const [loadingArticle, setLoadingArticle] = useState(false);
   const { getUserMastery, calculateUnitProgress, getMasteryLevel } = useMasterySystem();
 
   const handleUnitSelect = (unitNumber: number) => {
@@ -325,6 +330,42 @@ const Textbook2 = () => {
 
   const handleBackToUnits = () => {
     setSelectedUnit(null);
+  };
+
+  // Function to fetch article content
+  const fetchArticleContent = async (skillId: number) => {
+    setLoadingArticle(true);
+    try {
+      const { data, error } = await supabase
+        .from('articles2')
+        .select('art')
+        .eq('skill', skillId)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching article:', error);
+        setArticleContent("");
+      } else {
+        setArticleContent(data?.art || "");
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setArticleContent("");
+    } finally {
+      setLoadingArticle(false);
+    }
+  };
+
+  // Handle article click
+  const handleArticleClick = (skillId: number, skillName: string) => {
+    setSelectedArticle({ skillId, skillName });
+    fetchArticleContent(skillId);
+  };
+
+  // Handle back to textbook
+  const handleBackToTextbook = () => {
+    setSelectedArticle(null);
+    setArticleContent("");
   };
 
   const renderUnitOverview = () => (
@@ -444,17 +485,21 @@ const Textbook2 = () => {
                     </CardTitle>
                   </CardHeader>
                     <CardContent className="space-y-3">
-                     {subunit.skills.map((skillId: number) => (
-                       <div key={skillId} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
-                         <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                           <FileText className="w-3 h-3 text-blue-600" />
-                         </div>
-                         <span className="text-sm">{skillNames[skillId] || `Теория ${skillId}`}</span>
-                         <Badge variant="outline" className="ml-auto">
-                           10 мин
-                         </Badge>
-                       </div>
-                     ))}
+                      {subunit.skills.map((skillId: number) => (
+                        <div 
+                          key={skillId} 
+                          className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={() => handleArticleClick(skillId, skillNames[skillId] || `Теория ${skillId}`)}
+                        >
+                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                            <FileText className="w-3 h-3 text-blue-600" />
+                          </div>
+                          <span className="text-sm">{skillNames[skillId] || `Теория ${skillId}`}</span>
+                          <Badge variant="outline" className="ml-auto">
+                            10 мин
+                          </Badge>
+                        </div>
+                      ))}
                    </CardContent>
                 </Card>
               </div>
@@ -581,6 +626,55 @@ const Textbook2 = () => {
   );
 
   const currentUnit = selectedUnit ? courseStructure[selectedUnit as keyof typeof courseStructure] : null;
+
+  // Article view
+  if (selectedArticle) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="pt-20">
+          <div className="container mx-auto px-4 py-8">
+            <Button 
+              onClick={handleBackToTextbook}
+              variant="outline" 
+              className="mb-6"
+            >
+              ← Назад к учебнику
+            </Button>
+            
+            <Card className="max-w-4xl mx-auto">
+              <CardHeader>
+                <CardTitle className="text-2xl">
+                  {selectedArticle.skillName}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingArticle ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-2 text-muted-foreground">Загружаем статью...</p>
+                  </div>
+                ) : articleContent ? (
+                  <MathRenderer 
+                    text={articleContent} 
+                    className="prose prose-lg max-w-none"
+                  />
+                ) : (
+                  <div className="text-center py-12">
+                    <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Статья скоро появится</h3>
+                    <p className="text-muted-foreground">
+                      Мы работаем над созданием материала по этой теме
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
