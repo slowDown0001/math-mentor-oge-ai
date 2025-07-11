@@ -391,7 +391,7 @@ const Textbook2 = () => {
   );
 
   const ModuleSidebar = () => (
-    <Sidebar className="w-64 border-r bg-background/95 backdrop-blur-sm fixed left-0 top-20 h-[calc(100vh-5rem)] z-10">
+    <Sidebar className="w-72 border-r bg-background/95 backdrop-blur-sm fixed left-0 top-20 h-[calc(100vh-5rem)] z-10">
       <SidebarContent className="p-6">
         <div className="mb-8">
           <h2 className="text-xl font-bold text-foreground mb-3">Модули курса</h2>
@@ -454,7 +454,7 @@ const Textbook2 = () => {
         <SidebarProvider>
           <div className="flex min-h-screen w-full">
             <ModuleSidebar />
-            <main className="flex-1 p-8 overflow-y-auto ml-64">
+            <main className="flex-1 p-8 overflow-y-auto ml-72">
               <ScrollArea className="h-full">
                 {!selectedUnit && (
                   <div className="text-center py-16">
