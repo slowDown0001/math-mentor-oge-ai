@@ -454,7 +454,7 @@ const Textbook2 = () => {
         <SidebarProvider>
           <div className="flex min-h-screen w-full">
             <ModuleSidebar />
-            <main className="flex-1 p-8 overflow-y-auto pl-76 pr-8">
+            <main className="flex-1 p-8 overflow-y-auto pl-78 pr-8">
               <ScrollArea className="h-full">
                 {!selectedUnit && (
                   <div className="text-center py-16">
