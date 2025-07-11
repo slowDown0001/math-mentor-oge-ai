@@ -409,29 +409,29 @@ const Textbook2 = () => {
                   <SidebarMenuItem key={unitNum}>
                     <SidebarMenuButton 
                       onClick={() => handleUnitSelect(unitNumber)}
-                      className={`w-full p-8 rounded-3xl transition-all duration-300 border-2 min-h-[140px] ${
+                      className={`w-full p-6 rounded-2xl transition-all duration-300 border-2 min-h-[120px] ${
                         selectedUnit === unitNumber 
                           ? 'bg-primary/10 text-primary border-primary/30 shadow-lg scale-[1.02]' 
                           : 'hover:bg-muted/60 border-border/50 hover:shadow-md hover:scale-[1.01] hover:border-primary/20'
                       }`}
                     >
-                      <div className="flex items-start gap-5 w-full">
-                        <div className={`w-16 h-16 ${unit.color} rounded-3xl flex items-center justify-center flex-shrink-0 shadow-xl`}>
-                          <BookOpen className="w-8 h-8 text-white" />
+                      <div className="flex items-start gap-4 w-full">
+                        <div className={`w-12 h-12 ${unit.color} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                          <BookOpen className="w-6 h-6 text-white" />
                         </div>
-                        <div className="flex-1 min-w-0 text-left space-y-4">
+                        <div className="flex-1 min-w-0 text-left space-y-3">
                           <div>
-                            <div className="font-bold text-lg mb-2">Модуль {unitNum}</div>
-                            <div className="text-base text-muted-foreground leading-relaxed">{unit.title}</div>
+                            <div className="font-bold text-base mb-1">Модуль {unitNum}</div>
+                            <div className="text-sm text-muted-foreground leading-relaxed">{unit.title}</div>
                           </div>
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                              <Progress value={progress} className="h-3 flex-1" />
-                              <span className="text-base font-semibold min-w-fit">{Math.round(progress)}%</span>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Progress value={progress} className="h-2 flex-1" />
+                              <span className="text-sm font-semibold min-w-fit">{Math.round(progress)}%</span>
                             </div>
                             <Badge 
                               variant={masteryLevel === 'mastered' ? 'default' : 'secondary'}
-                              className="text-sm px-4 py-1.5"
+                              className="text-xs px-3 py-1"
                             >
                               {masteryLevel === 'mastered' ? 'Освоено' : 
                                masteryLevel === 'proficient' ? 'Хорошо' :
