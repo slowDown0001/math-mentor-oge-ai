@@ -404,7 +404,9 @@ const Textbook2 = () => {
 
   // Handle exercise click
   const handleExerciseClick = async (skillIds: number[]) => {
+    console.log('Exercise clicked with skillIds:', skillIds);
     const skillName = skillIds.map(id => skillNames[id]).join(", ");
+    console.log('Skill name:', skillName);
     setSelectedExercise(skillName);
     
     // Fetch questions from mcq_with_options table for these skills
@@ -717,7 +719,10 @@ const Textbook2 = () => {
                     <div 
                       key={skillId}
                       className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => handleExerciseClick([skillId])}
+                      onClick={() => {
+                        console.log('Clicked on exercise link with skillId:', skillId);
+                        handleExerciseClick([skillId]);
+                      }}
                     >
                       <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
                         <PenTool className="w-3 h-3 text-green-600" />
