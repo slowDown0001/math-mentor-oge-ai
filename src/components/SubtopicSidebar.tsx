@@ -136,7 +136,7 @@ export function SubtopicSidebar({
                         onExerciseClick(item.skills);
                       }
                     }}
-                    className={isActive(item) ? "bg-muted text-primary font-medium" : "hover:bg-muted/50"}
+                    className={isActive(item) ? "bg-primary text-primary-foreground font-medium shadow-sm" : "hover:bg-muted/50"}
                   >
                     {getIcon(item.type)}
                     {!isCollapsed && <span className="truncate">{item.name}</span>}
