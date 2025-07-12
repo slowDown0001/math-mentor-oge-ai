@@ -57,28 +57,40 @@ export function SubtopicSidebar({
     
     const items: Array<{type: 'video' | 'article' | 'exercise', name: string, skillId?: number, skills?: number[]}> = [];
     
-    // Add videos for each skill that has one
+    // Add ALL videos for each skill (whether they exist or not)
     currentSubunit.skills.forEach(skillId => {
-      if (videoTitles[skillId]) {
-        items.push({
-          type: 'video',
-          name: videoTitles[skillId],
-          skillId
-        });
-      }
-      
-      // Add article for each skill
+      const skillName = skillNames[skillId] || `Навык ${skillId}`;
       items.push({
-        type: 'article', 
-        name: skillNames[skillId] || `Навык ${skillId}`,
+        type: 'video',
+        name: `Видео: ${skillName}`,
         skillId
       });
     });
     
-    // Add exercise for the whole subtopic
+    // Add ALL articles for each skill
+    currentSubunit.skills.forEach(skillId => {
+      const skillName = skillNames[skillId] || `Навык ${skillId}`;
+      items.push({
+        type: 'article', 
+        name: `Статья: ${skillName}`,
+        skillId
+      });
+    });
+    
+    // Add ALL exercises for each skill individually
+    currentSubunit.skills.forEach(skillId => {
+      const skillName = skillNames[skillId] || `Навык ${skillId}`;
+      items.push({
+        type: 'exercise',
+        name: `Упражнения: ${skillName}`,
+        skills: [skillId]
+      });
+    });
+    
+    // Also add one combined exercise for all skills
     items.push({
       type: 'exercise',
-      name: `Упражнения: ${currentSubunit.title}`,
+      name: `Упражнения: ${currentSubunit.title} (все навыки)`,
       skills: currentSubunit.skills
     });
     
