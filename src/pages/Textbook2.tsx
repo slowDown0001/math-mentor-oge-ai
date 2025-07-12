@@ -382,12 +382,14 @@ const Textbook2 = () => {
   };
 
   // Handle video click
-  const handleVideoClick = (topicName: string) => {
-    setSelectedVideo(topicName);
+  const handleVideoClick = (skillName: string) => {
+    setSelectedVideo(skillName);
     
-    // Set the video URL based on the topic
-    if (topicName === "Натуральные и целые числа") {
+    // Set the video URL based on the skill
+    if (skillName === "Натуральные и целые числа") {
       setVideoUrl("https://www.youtube.com/embed/xFsJeBJsB6c");
+    } else {
+      setVideoUrl(""); // No video URL for "coming soon" videos
     }
   };
 
@@ -572,19 +574,21 @@ const Textbook2 = () => {
                     </CardTitle>
                   </CardHeader>
                     <CardContent className="space-y-3">
-                      <div 
-                        key={subunit.title} 
-                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
-                        onClick={() => handleVideoClick(subunit.title)}
-                      >
-                        <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
-                          <Play className="w-3 h-3 text-red-600" />
+                      {subunit.skills.map((skillId: number) => (
+                        <div 
+                          key={skillId} 
+                          className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={() => handleVideoClick(skillNames[skillId] || `Видео ${skillId}`)}
+                        >
+                          <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+                            <Play className="w-3 h-3 text-red-600" />
+                          </div>
+                          <span className="text-sm">{skillNames[skillId] || `Видео ${skillId}`}</span>
+                          <Badge variant="outline" className="ml-auto">
+                            {skillNames[skillId] === "Натуральные и целые числа" ? "5 мин" : "Скоро"}
+                          </Badge>
                         </div>
-                        <span className="text-sm">{subunit.title}</span>
-                        <Badge variant="outline" className="ml-auto">
-                          5 мин
-                        </Badge>
-                      </div>
+                      ))}
                     </CardContent>
                 </Card>
 
@@ -759,15 +763,25 @@ const Textbook2 = () => {
                 <CardTitle className="text-2xl">{selectedVideo}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="aspect-video w-full">
-                  <iframe
-                    src={videoUrl}
-                    title={selectedVideo}
-                    className="w-full h-full rounded-lg"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
+                {videoUrl ? (
+                  <div className="aspect-video w-full">
+                    <iframe
+                      src={videoUrl}
+                      title={selectedVideo}
+                      className="w-full h-full rounded-lg"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Play className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Видео скоро появится</h3>
+                    <p className="text-muted-foreground">
+                      Мы работаем над созданием видеоматериала по этой теме
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
