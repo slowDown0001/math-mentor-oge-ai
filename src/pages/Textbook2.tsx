@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle, ArrowLeft, Highlighter, MessageCircle, X, Trophy, PartyPopper } from "lucide-react";
+import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle, ArrowLeft, Highlighter, MessageCircle, X, Trophy, PartyPopper, Menu } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import Header from "@/components/Header";
 import { useMasterySystem } from "@/hooks/useMasterySystem";
 import MathRenderer from "@/components/MathRenderer";
@@ -14,6 +14,7 @@ import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
 import { sendChatMessage } from "@/services/chatService";
+import { SubtopicSidebar } from "@/components/SubtopicSidebar";
 
 // Topic mapping data embedded directly
 const topicMapping = [
@@ -332,6 +333,7 @@ const Textbook2 = () => {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
+  const [currentSubunit, setCurrentSubunit] = useState<Subunit | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -376,8 +378,9 @@ const Textbook2 = () => {
   };
 
   // Handle article click
-  const handleArticleClick = (skillId: number, skillName: string) => {
+  const handleArticleClick = (skillId: number, skillName: string, subunit?: Subunit) => {
     setSelectedArticle({ skillId, skillName });
+    if (subunit) setCurrentSubunit(subunit);
     fetchArticleContent(skillId);
   };
 
@@ -391,8 +394,9 @@ const Textbook2 = () => {
   };
 
   // Handle video click
-  const handleVideoClick = (skillName: string) => {
+  const handleVideoClick = (skillName: string, subunit?: Subunit) => {
     setSelectedVideo(skillName);
+    if (subunit) setCurrentSubunit(subunit);
     
     // Set the video URL based on the skill
     if (skillName === "Натуральные и целые числа") {
@@ -403,7 +407,7 @@ const Textbook2 = () => {
   };
 
   // Handle exercise click
-  const handleExerciseClick = async (skillIds: number[]) => {
+  const handleExerciseClick = async (skillIds: number[], subunit?: Subunit) => {
     const skillName = skillIds.map(id => skillNames[id]).join(", ");
     
     // Clear any other modals first
@@ -411,6 +415,7 @@ const Textbook2 = () => {
     setSelectedArticle(null);
     
     setSelectedExercise(skillName);
+    if (subunit) setCurrentSubunit(subunit);
     
     // Fetch questions from mcq_with_options table for these skills
     try {
@@ -667,7 +672,7 @@ const Textbook2 = () => {
                         <div 
                           key={skillId} 
                           className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
-                          onClick={() => handleVideoClick(skillNames[skillId] || `Видео ${skillId}`)}
+                          onClick={() => handleVideoClick(skillNames[skillId] || `Видео ${skillId}`, subunit)}
                         >
                           <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
                             <Play className="w-3 h-3 text-red-600" />
@@ -694,7 +699,7 @@ const Textbook2 = () => {
                         <div 
                           key={skillId} 
                           className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
-                          onClick={() => handleArticleClick(skillId, skillNames[skillId] || `Теория ${skillId}`)}
+                          onClick={() => handleArticleClick(skillId, skillNames[skillId] || `Теория ${skillId}`, subunit)}
                         >
                           <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
                             <FileText className="w-3 h-3 text-blue-600" />
@@ -722,7 +727,7 @@ const Textbook2 = () => {
                     <div 
                       key={skillId}
                       className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => handleExerciseClick([skillId])}
+                      onClick={() => handleExerciseClick([skillId], subunit)}
                     >
                       <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
                         <PenTool className="w-3 h-3 text-green-600" />
@@ -842,6 +847,27 @@ const Textbook2 = () => {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="pt-20">
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full">
+              <SidebarTrigger className="fixed top-24 left-4 z-50" />
+              <SubtopicSidebar
+                currentSubunit={currentSubunit}
+                onVideoClick={() => {
+                  setSelectedExercise(null);
+                  if (currentSubunit && currentSubunit.skills.length > 0) {
+                    handleVideoClick(currentSubunit.title, currentSubunit);
+                  }
+                }}
+                onArticleClick={() => {
+                  setSelectedExercise(null);
+                  if (currentSubunit && currentSubunit.skills.length > 0) {
+                    handleArticleClick(currentSubunit.skills[0], currentSubunit.title, currentSubunit);
+                  }
+                }}
+                onExerciseClick={() => {/* already on exercise view */}}
+                currentView="exercise"
+              />
+              <main className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-4 py-8 max-w-4xl">
             <Button 
               variant="ghost" 
@@ -1020,7 +1046,10 @@ const Textbook2 = () => {
                 ) : null}
               </CardContent>
             </Card>
-          </div>
+                </div>
+              </main>
+            </div>
+          </SidebarProvider>
         </div>
       </div>
     );
@@ -1032,44 +1061,67 @@ const Textbook2 = () => {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="pt-20">
-          <div className="container mx-auto px-4 py-8">
-            <Button 
-              onClick={() => setSelectedVideo(null)} 
-              variant="outline" 
-              className="mb-6"
-            >
-              ← Назад к учебнику
-            </Button>
-            
-            <Card className="max-w-4xl mx-auto">
-              <CardHeader>
-                <CardTitle className="text-2xl">{selectedVideo}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {videoUrl ? (
-                  <div className="aspect-video w-full">
-                    <iframe
-                      src={videoUrl}
-                      title={selectedVideo}
-                      className="w-full h-full rounded-lg"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <Play className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">Видео скоро появится</h3>
-                    <p className="text-muted-foreground">
-                      Мы работаем над созданием видеоматериала по этой теме
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full">
+              <SidebarTrigger className="fixed top-24 left-4 z-50" />
+              <SubtopicSidebar
+                currentSubunit={currentSubunit}
+                onVideoClick={() => {/* already on video view */}}
+                onArticleClick={() => {
+                  setSelectedVideo(null);
+                  if (currentSubunit && currentSubunit.skills.length > 0) {
+                    handleArticleClick(currentSubunit.skills[0], currentSubunit.title, currentSubunit);
+                  }
+                }}
+                onExerciseClick={() => {
+                  setSelectedVideo(null);
+                  if (currentSubunit) {
+                    handleExerciseClick(currentSubunit.skills, currentSubunit);
+                  }
+                }}
+                currentView="video"
+              />
+              <main className="flex-1 overflow-y-auto">
+                <div className="container mx-auto px-4 py-8">
+                  <Button 
+                    onClick={() => setSelectedVideo(null)} 
+                    variant="outline" 
+                    className="mb-6"
+                  >
+                    ← Назад к учебнику
+                  </Button>
+                  
+                  <Card className="max-w-4xl mx-auto">
+                    <CardHeader>
+                      <CardTitle className="text-2xl">{selectedVideo}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {videoUrl ? (
+                        <div className="aspect-video w-full">
+                          <iframe
+                            src={videoUrl}
+                            title={selectedVideo}
+                            className="w-full h-full rounded-lg"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      ) : (
+                        <div className="text-center py-12">
+                          <Play className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                          <h3 className="text-xl font-semibold mb-2">Видео скоро появится</h3>
+                          <p className="text-muted-foreground">
+                            Мы работаем над созданием видеоматериала по этой теме
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </main>
+            </div>
+          </SidebarProvider>
         </div>
-
       </div>
     );
   }
@@ -1079,148 +1131,171 @@ const Textbook2 = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        
-        {/* Selected Text and Ask Ёжик Button */}
-        {selectedText && (
-          <div className="fixed top-24 right-4 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-md">
-            <div className="flex items-start gap-2 mb-3">
-              <MessageCircle className="w-4 h-4 text-blue-600 mt-1 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 mb-1">Выделенный текст:</p>
-                <p className="text-sm text-gray-600 line-clamp-3">"{selectedText}"</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedText("")}
-                className="p-1 h-auto"
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            </div>
-            <Button 
-              onClick={handleAskEzhik}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              size="sm"
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Спросить Ёжика
-            </Button>
-          </div>
-        )}
-
-        {/* Chat Window */}
-        {isChatOpen && (
-          <div className="fixed left-4 top-24 bottom-4 w-80 z-40 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-blue-600" />
-                <h3 className="font-medium text-gray-900">Чат с Ёжиком</h3>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsChatOpen(false)}
-                className="p-1 h-auto"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            <div className="flex-1 flex flex-col min-h-0">
-              <ScrollArea className="flex-1 p-4">
-                <div className="space-y-4">
-                  {messages.map(message => (
-                    <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
-                      <div 
-                        className={`max-w-[85%] p-3 rounded-lg text-sm ${
-                          message.isUser 
-                            ? "bg-blue-600 text-white rounded-tr-none" 
-                            : "bg-gray-100 text-gray-900 rounded-tl-none"
-                        }`}
-                      >
-                        <MathRenderer text={message.text} />
-                        <div className={`text-xs mt-1 ${message.isUser ? "text-blue-100" : "text-gray-500"}`}>
-                          {message.timestamp.toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {isTyping && (
-                    <div className="flex justify-start">
-                      <div className="bg-gray-100 text-gray-900 rounded-lg rounded-tl-none p-3 text-sm">
-                        <div className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-              
-              <div className="border-t p-4">
-                <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
-              </div>
-            </div>
-          </div>
-        )}
-
         <div className="pt-20">
-          <div className="container mx-auto px-4 py-8">
-            <div className="flex items-center gap-4 mb-6">
-              <Button 
-                onClick={handleBackToTextbook}
-                variant="outline"
-              >
-                ← Назад к учебнику
-              </Button>
-              
-              <Button
-                onClick={toggleSelecter}
-                variant={isSelecterActive ? "default" : "outline"}
-                className="flex items-center gap-2"
-              >
-                <Highlighter className="w-4 h-4" />
-                {isSelecterActive ? "Отключить селектор" : "Включить селектор"}
-              </Button>
-            </div>
-            
-            <Card className="max-w-4xl mx-auto">
-              <CardHeader>
-                <CardTitle className="text-2xl">
-                  {selectedArticle.skillName}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingArticle ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                    <p className="mt-2 text-muted-foreground">Загружаем статью...</p>
-                  </div>
-                ) : articleContent ? (
-                  <div className={isSelecterActive ? "cursor-text" : ""}>
-                    <MathRenderer 
-                      text={articleContent} 
-                      className="prose prose-lg max-w-none"
-                    />
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">Статья скоро появится</h3>
-                    <p className="text-muted-foreground">
-                      Мы работаем над созданием материала по этой теме
-                    </p>
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full">
+              <SidebarTrigger className="fixed top-24 left-4 z-50" />
+              <SubtopicSidebar
+                currentSubunit={currentSubunit}
+                onVideoClick={() => {
+                  setSelectedArticle(null);
+                  if (currentSubunit && currentSubunit.skills.length > 0) {
+                    handleVideoClick(currentSubunit.title, currentSubunit);
+                  }
+                }}
+                onArticleClick={() => {/* already on article view */}}
+                onExerciseClick={() => {
+                  setSelectedArticle(null);
+                  if (currentSubunit) {
+                    handleExerciseClick(currentSubunit.skills, currentSubunit);
+                  }
+                }}
+                currentView="article"
+              />
+              <main className="flex-1 overflow-y-auto">
+                {/* Selected Text and Ask Ёжик Button */}
+                {selectedText && (
+                  <div className="fixed top-24 right-4 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-md">
+                    <div className="flex items-start gap-2 mb-3">
+                      <MessageCircle className="w-4 h-4 text-blue-600 mt-1 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 mb-1">Выделенный текст:</p>
+                        <p className="text-sm text-gray-600 line-clamp-3">"{selectedText}"</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedText("")}
+                        className="p-1 h-auto"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <Button 
+                      onClick={handleAskEzhik}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      size="sm"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Спросить Ёжика
+                    </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </div>
+
+                {/* Chat Window */}
+                {isChatOpen && (
+                  <div className="fixed left-4 top-24 bottom-4 w-80 z-40 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col">
+                    <div className="flex items-center justify-between p-4 border-b">
+                      <div className="flex items-center gap-2">
+                        <MessageCircle className="w-5 h-5 text-blue-600" />
+                        <h3 className="font-medium text-gray-900">Чат с Ёжиком</h3>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsChatOpen(false)}
+                        className="p-1 h-auto"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="flex-1 flex flex-col min-h-0">
+                      <ScrollArea className="flex-1 p-4">
+                        <div className="space-y-4">
+                          {messages.map(message => (
+                            <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
+                              <div 
+                                className={`max-w-[85%] p-3 rounded-lg text-sm ${
+                                  message.isUser 
+                                    ? "bg-blue-600 text-white rounded-tr-none" 
+                                    : "bg-gray-100 text-gray-900 rounded-tl-none"
+                                }`}
+                              >
+                                <MathRenderer text={message.text} />
+                                <div className={`text-xs mt-1 ${message.isUser ? "text-blue-100" : "text-gray-500"}`}>
+                                  {message.timestamp.toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {isTyping && (
+                            <div className="flex justify-start">
+                              <div className="bg-gray-100 text-gray-900 rounded-lg rounded-tl-none p-3 text-sm">
+                                <div className="flex items-center gap-1">
+                                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </ScrollArea>
+                      
+                      <div className="border-t p-4">
+                        <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="container mx-auto px-4 py-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Button 
+                      onClick={handleBackToTextbook}
+                      variant="outline"
+                    >
+                      ← Назад к учебнику
+                    </Button>
+                    
+                    <Button
+                      onClick={toggleSelecter}
+                      variant={isSelecterActive ? "default" : "outline"}
+                      className="flex items-center gap-2"
+                    >
+                      <Highlighter className="w-4 h-4" />
+                      {isSelecterActive ? "Отключить селектор" : "Включить селектор"}
+                    </Button>
+                  </div>
+                  
+                  <Card className="max-w-4xl mx-auto">
+                    <CardHeader>
+                      <CardTitle className="text-2xl">
+                        {selectedArticle.skillName}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {loadingArticle ? (
+                        <div className="text-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                          <p className="mt-2 text-muted-foreground">Загружаем статью...</p>
+                        </div>
+                      ) : articleContent ? (
+                        <div className={isSelecterActive ? "cursor-text" : ""}>
+                          <MathRenderer 
+                            text={articleContent} 
+                            className="prose prose-lg max-w-none"
+                          />
+                        </div>
+                      ) : (
+                        <div className="text-center py-12">
+                          <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                          <h3 className="text-xl font-semibold mb-2">Статья скоро появится</h3>
+                          <p className="text-muted-foreground">
+                            Мы работаем над созданием материала по этой теме
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </main>
+            </div>
+          </SidebarProvider>
         </div>
       </div>
     );
