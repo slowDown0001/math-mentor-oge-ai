@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle, ArrowLeft, Highlighter, MessageCircle, X } from "lucide-react";
+import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle, ArrowLeft, Highlighter, MessageCircle, X, Trophy, PartyPopper } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -331,6 +331,15 @@ const Textbook2 = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>("");
+  const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<any>(null);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showResult, setShowResult] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
+  const [score, setScore] = useState({ correct: 0, total: 0 });
+  const [showAnimation, setShowAnimation] = useState(false);
   const { getUserMastery, calculateUnitProgress, getMasteryLevel } = useMasterySystem();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
 
@@ -391,6 +400,81 @@ const Textbook2 = () => {
     } else {
       setVideoUrl(""); // No video URL for "coming soon" videos
     }
+  };
+
+  // Handle exercise click
+  const handleExerciseClick = async (skillIds: number[]) => {
+    const skillName = skillIds.map(id => skillNames[id]).join(", ");
+    setSelectedExercise(skillName);
+    
+    // Fetch questions from mcq_with_options table for these skills
+    try {
+      const { data, error } = await supabase
+        .from('mcq_with_options')
+        .select('*')
+        .in('skills', skillIds)
+        .limit(10);
+      
+      if (error) {
+        console.error('Error fetching questions:', error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        setQuestions(data);
+        setCurrentQuestionIndex(0);
+        setCurrentQuestion(data[0]);
+        setSelectedAnswer(null);
+        setShowResult(false);
+        setShowSolution(false);
+        setScore({ correct: 0, total: 0 });
+      } else {
+        // No questions found
+        setQuestions([]);
+        setCurrentQuestion(null);
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
+  };
+
+  // Handle answer selection
+  const handleAnswerSelect = (answer: string) => {
+    if (showResult) return;
+    setSelectedAnswer(answer);
+  };
+
+  // Submit answer
+  const handleSubmitAnswer = () => {
+    if (!selectedAnswer || !currentQuestion) return;
+    
+    const isCorrect = selectedAnswer === currentQuestion.answer;
+    setShowResult(true);
+    
+    if (isCorrect) {
+      setScore(prev => ({ correct: prev.correct + 1, total: prev.total + 1 }));
+      setShowAnimation(true);
+      setTimeout(() => setShowAnimation(false), 2000);
+    } else {
+      setScore(prev => ({ correct: prev.correct, total: prev.total + 1 }));
+    }
+  };
+
+  // Next question
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      setCurrentQuestion(questions[nextIndex]);
+      setSelectedAnswer(null);
+      setShowResult(false);
+      setShowSolution(false);
+    }
+  };
+
+  // Show solution
+  const handleShowSolution = () => {
+    setShowSolution(true);
   };
 
   // Selector tool functions
@@ -629,17 +713,18 @@ const Textbook2 = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {[1, 2, 3].map((exerciseNum) => (
-                    <div key={exerciseNum} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                        <PenTool className="w-3 h-3 text-green-600" />
-                      </div>
-                      <span className="text-sm">Упражнение {exerciseNum}</span>
-                      <Badge variant="outline" className="ml-auto">
-                        3 задачи
-                      </Badge>
+                  <div 
+                    className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => handleExerciseClick(subunit.skills)}
+                  >
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                      <PenTool className="w-3 h-3 text-green-600" />
                     </div>
-                  ))}
+                    <span className="text-sm">{subunit.title}</span>
+                    <Badge variant="outline" className="ml-auto">
+                      {subunit.skills?.length || 0} заданий
+                    </Badge>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -786,6 +871,192 @@ const Textbook2 = () => {
             </Card>
           </div>
         </div>
+
+        {/* Exercise Page */}
+        {selectedExercise && (
+          <div className="fixed inset-0 bg-background z-50 overflow-auto">
+            <Header />
+            <div className="container mx-auto px-4 py-8 max-w-4xl">
+              <Button 
+                variant="ghost" 
+                onClick={() => setSelectedExercise(null)}
+                className="mb-4"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Назад к учебнику
+              </Button>
+
+              {/* Success Animation */}
+              {showAnimation && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                  <div className="text-center animate-pulse">
+                    <PartyPopper className="h-24 w-24 text-yellow-500 mx-auto mb-4 animate-bounce" />
+                    <div className="text-4xl font-bold text-white animate-fade-in">Правильно!</div>
+                    <Trophy className="h-12 w-12 text-yellow-500 mx-auto mt-4 animate-bounce" />
+                  </div>
+                </div>
+              )}
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl">{selectedExercise}</CardTitle>
+                  {questions.length > 0 && (
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-muted-foreground">
+                        Вопрос {currentQuestionIndex + 1} из {questions.length}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Правильно: {score.correct} из {score.total}
+                      </div>
+                    </div>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {questions.length === 0 ? (
+                    <div className="text-center py-12">
+                      <PenTool className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">Упражнения скоро появятся</h3>
+                      <p className="text-muted-foreground">
+                        Мы работаем над созданием упражнений по этой теме
+                      </p>
+                    </div>
+                  ) : currentQuestion ? (
+                    <div className="space-y-6">
+                      {/* Question */}
+                      <div className="prose max-w-none">
+                        <MathRenderer text={currentQuestion.problem_text || ""} />
+                      </div>
+
+                      {/* Image if available */}
+                      {currentQuestion.problem_image && (
+                        <div className="text-center">
+                          <img 
+                            src={currentQuestion.problem_image} 
+                            alt="Условие задачи" 
+                            className="max-w-full h-auto mx-auto rounded-lg"
+                          />
+                        </div>
+                      )}
+
+                      {/* Answer Options */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[
+                          { key: 'А', value: currentQuestion.option1 },
+                          { key: 'Б', value: currentQuestion.option2 },
+                          { key: 'В', value: currentQuestion.option3 },
+                          { key: 'Г', value: currentQuestion.option4 }
+                        ].filter(option => option.value).map((option) => (
+                          <Card 
+                            key={option.key}
+                            className={`cursor-pointer transition-all hover:shadow-md ${
+                              selectedAnswer === option.key 
+                                ? showResult 
+                                  ? option.key === currentQuestion.answer
+                                    ? 'bg-green-100 border-green-500' 
+                                    : 'bg-red-100 border-red-500'
+                                  : 'bg-blue-100 border-blue-500'
+                                : 'hover:bg-gray-50'
+                            } ${showResult && option.key === currentQuestion.answer ? 'bg-green-100 border-green-500' : ''}`}
+                            onClick={() => handleAnswerSelect(option.key)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-3">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                  selectedAnswer === option.key 
+                                    ? showResult 
+                                      ? option.key === currentQuestion.answer
+                                        ? 'bg-green-500 text-white' 
+                                        : 'bg-red-500 text-white'
+                                      : 'bg-blue-500 text-white'
+                                    : 'bg-gray-200 text-gray-700'
+                                } ${showResult && option.key === currentQuestion.answer ? 'bg-green-500 text-white' : ''}`}>
+                                  {option.key}
+                                </div>
+                                <div className="flex-1">
+                                  <MathRenderer text={option.value || ""} />
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-4 justify-center">
+                        {!showResult ? (
+                          <Button 
+                            onClick={handleSubmitAnswer}
+                            disabled={!selectedAnswer}
+                            className="px-8"
+                          >
+                            Ответить
+                          </Button>
+                        ) : (
+                          <div className="flex gap-4">
+                            <Button 
+                              variant="outline"
+                              onClick={handleShowSolution}
+                            >
+                              Посмотреть решение
+                            </Button>
+                            {currentQuestionIndex < questions.length - 1 && (
+                              <Button onClick={handleNextQuestion}>
+                                Следующий вопрос
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Result */}
+                      {showResult && (
+                        <div className={`text-center p-4 rounded-lg ${
+                          selectedAnswer === currentQuestion.answer 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          <div className="text-lg font-semibold">
+                            {selectedAnswer === currentQuestion.answer ? '✅ Правильно!' : '❌ Неправильно'}
+                          </div>
+                          <div className="text-sm mt-1">
+                            Правильный ответ: {currentQuestion.answer}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Solution */}
+                      {showSolution && currentQuestion.solution_text && (
+                        <Card className="bg-blue-50 border-blue-200">
+                          <CardHeader>
+                            <CardTitle className="text-lg">Решение</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="prose max-w-none">
+                              <MathRenderer text={currentQuestion.solution_text} />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Final Results */}
+                      {currentQuestionIndex === questions.length - 1 && showResult && (
+                        <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                          <CardContent className="p-6 text-center">
+                            <Trophy className="h-12 w-12 mx-auto mb-4" />
+                            <h3 className="text-2xl font-bold mb-2">Упражнение завершено!</h3>
+                            <p className="text-lg">
+                              Ваш результат: {score.correct} из {score.total} ({Math.round((score.correct / score.total) * 100)}%)
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
