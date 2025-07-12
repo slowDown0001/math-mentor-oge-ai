@@ -713,18 +713,21 @@ const Textbook2 = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div 
-                    className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => handleExerciseClick(subunit.skills)}
-                  >
-                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                      <PenTool className="w-3 h-3 text-green-600" />
+                  {subunit.skills.map((skillId: number) => (
+                    <div 
+                      key={skillId}
+                      className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => handleExerciseClick([skillId])}
+                    >
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <PenTool className="w-3 h-3 text-green-600" />
+                      </div>
+                      <span className="text-sm">{skillNames[skillId] || `Упражнение ${skillId}`}</span>
+                      <Badge variant="outline" className="ml-auto">
+                        Тест
+                      </Badge>
                     </div>
-                    <span className="text-sm">{subunit.title}</span>
-                    <Badge variant="outline" className="ml-auto">
-                      {subunit.skills?.length || 0} заданий
-                    </Badge>
-                  </div>
+                  ))}
                 </CardContent>
               </Card>
             </div>
