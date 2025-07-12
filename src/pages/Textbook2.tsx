@@ -399,7 +399,7 @@ const Textbook2 = () => {
     if (subunit) setCurrentSubunit(subunit);
     
     // Set the video URL based on the skill
-    if (skillName === "Натуральные и целые числа") {
+    if (skillName === "Натуральные и целые числа" || skillName === "Подстановка значений") {
       setVideoUrl("https://www.youtube.com/embed/xFsJeBJsB6c");
     } else {
       setVideoUrl(""); // No video URL for "coming soon" videos
@@ -852,20 +852,20 @@ const Textbook2 = () => {
               <SidebarTrigger className="fixed top-24 left-4 z-50" />
               <SubtopicSidebar
                 currentSubunit={currentSubunit}
-                onVideoClick={() => {
+                onVideoClick={(skillName) => {
                   setSelectedExercise(null);
-                  if (currentSubunit && currentSubunit.skills.length > 0) {
-                    handleVideoClick(currentSubunit.title, currentSubunit);
-                  }
+                  handleVideoClick(skillName, currentSubunit);
                 }}
-                onArticleClick={() => {
+                onArticleClick={(skillId, skillName) => {
                   setSelectedExercise(null);
-                  if (currentSubunit && currentSubunit.skills.length > 0) {
-                    handleArticleClick(currentSubunit.skills[0], currentSubunit.title, currentSubunit);
-                  }
+                  handleArticleClick(skillId, skillName, currentSubunit);
                 }}
-                onExerciseClick={() => {/* already on exercise view */}}
+                onExerciseClick={(skillIds) => {
+                  // Already on exercise view, but allow switching to different exercises
+                  handleExerciseClick(skillIds, currentSubunit);
+                }}
                 currentView="exercise"
+                currentContent={selectedExercise}
               />
               <main className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -1066,20 +1066,20 @@ const Textbook2 = () => {
               <SidebarTrigger className="fixed top-24 left-4 z-50" />
               <SubtopicSidebar
                 currentSubunit={currentSubunit}
-                onVideoClick={() => {/* already on video view */}}
-                onArticleClick={() => {
-                  setSelectedVideo(null);
-                  if (currentSubunit && currentSubunit.skills.length > 0) {
-                    handleArticleClick(currentSubunit.skills[0], currentSubunit.title, currentSubunit);
-                  }
+                onVideoClick={(skillName) => {
+                  // Allow switching to different videos
+                  handleVideoClick(skillName, currentSubunit);
                 }}
-                onExerciseClick={() => {
+                onArticleClick={(skillId, skillName) => {
                   setSelectedVideo(null);
-                  if (currentSubunit) {
-                    handleExerciseClick(currentSubunit.skills, currentSubunit);
-                  }
+                  handleArticleClick(skillId, skillName, currentSubunit);
+                }}
+                onExerciseClick={(skillIds) => {
+                  setSelectedVideo(null);
+                  handleExerciseClick(skillIds, currentSubunit);
                 }}
                 currentView="video"
+                currentContent={selectedVideo}
               />
               <main className="flex-1 overflow-y-auto">
                 <div className="container mx-auto px-4 py-8">
@@ -1137,20 +1137,20 @@ const Textbook2 = () => {
               <SidebarTrigger className="fixed top-24 left-4 z-50" />
               <SubtopicSidebar
                 currentSubunit={currentSubunit}
-                onVideoClick={() => {
+                onVideoClick={(skillName) => {
                   setSelectedArticle(null);
-                  if (currentSubunit && currentSubunit.skills.length > 0) {
-                    handleVideoClick(currentSubunit.title, currentSubunit);
-                  }
+                  handleVideoClick(skillName, currentSubunit);
                 }}
-                onArticleClick={() => {/* already on article view */}}
-                onExerciseClick={() => {
+                onArticleClick={(skillId, skillName) => {
+                  // Allow switching to different articles
+                  handleArticleClick(skillId, skillName, currentSubunit);
+                }}
+                onExerciseClick={(skillIds) => {
                   setSelectedArticle(null);
-                  if (currentSubunit) {
-                    handleExerciseClick(currentSubunit.skills, currentSubunit);
-                  }
+                  handleExerciseClick(skillIds, currentSubunit);
                 }}
                 currentView="article"
+                currentContent={selectedArticle?.skillName}
               />
               <main className="flex-1 overflow-y-auto">
                 {/* Selected Text and Ask Ёжик Button */}

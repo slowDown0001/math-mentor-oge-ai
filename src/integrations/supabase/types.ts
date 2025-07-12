@@ -1378,6 +1378,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ogemath_fipi_bank: {
+        Row: {
+          answer: string | null
+          checked: string | null
+          comments: string | null
+          corrected: string | null
+          problem_image: string | null
+          problem_link: string | null
+          problem_number_type: number | null
+          problem_text: string | null
+          question_id: number
+          solution_text: string | null
+          solutiontextexpanded: string | null
+        }
+        Insert: {
+          answer?: string | null
+          checked?: string | null
+          comments?: string | null
+          corrected?: string | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: number | null
+          problem_text?: string | null
+          question_id: number
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+        }
+        Update: {
+          answer?: string | null
+          checked?: string | null
+          comments?: string | null
+          corrected?: string | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: number | null
+          problem_text?: string | null
+          question_id?: number
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+        }
+        Relationships: []
+      }
       student_skills: {
         Row: {
           created_at: string | null

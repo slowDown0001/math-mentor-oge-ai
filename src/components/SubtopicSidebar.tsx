@@ -1,16 +1,41 @@
 import { FileText, Play, PenTool } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 
+// Skill names mapping
+const skillNames: { [key: number]: string } = {
+  1: "Натуральные и целые числа", 2: "Запись и сравнение целых чисел", 3: "Арифметические действия с целыми числами", 4: "Делимость чисел", 5: "Признаки делимости",
+  6: "Обыкновенные дроби", 7: "Арифметические действия с обыкновенными дробями", 8: "Десятичные дроби", 9: "Арифметические действия с десятичными дробями", 10: "Проценты",
+  11: "Положительные и отрицательные числа", 12: "Модуль числа", 13: "Сравнение рациональных чисел", 14: "Арифметические действия с рациональными числами", 15: "Свойства действий с рациональными числами", 16: "Числовые выражения", 17: "Порядок действий", 180: "Координатная прямая",
+  18: "Квадратный корень", 19: "Иррациональные числа", 20: "Действительные числа",
+  21: "Округление чисел", 22: "Прикидка результата", 23: "Оценка результата",
+  24: "Представление данных в виде таблиц", 25: "Представление данных в виде диаграмм", 26: "Представление данных в виде графиков", 27: "Среднее арифметическое", 28: "Размах", 29: "Мода", 30: "Медиана", 31: "Анализ данных",
+  32: "Единицы измерения длины", 33: "Единицы измерения площади", 34: "Единицы измерения объёма",
+  35: "Буквенные выражения", 36: "Подстановка значений", 37: "Тождественно равные выражения", 38: "Допустимые значения переменных",
+  39: "Степень с натуральным показателем", 40: "Свойства степеней", 41: "Степень с целым показателем", 42: "Стандартный вид числа", 43: "Преобразование выражений со степенями", 44: "Сравнение степеней",
+  45: "Одночлены", 46: "Многочлены", 47: "Сложение и вычитание многочленов", 48: "Умножение одночлена на многочлен", 49: "Умножение многочлена на многочлен", 179: "Формулы сокращённого умножения",
+  50: "Алгебраические дроби", 51: "Сокращение алгебраических дробей", 52: "Сложение и вычитание алгебраических дробей", 53: "Умножение и деление алгебраических дробей",
+  54: "Квадратные корни", 55: "Арифметический квадратный корень", 56: "Свойства квадратных корней", 57: "Преобразование выражений с квадратными корнями"
+};
+
+// Video titles for skills
+const videoTitles: { [key: number]: string } = {
+  35: "Буквенные выражения",
+  36: "Подстановка значений",
+  37: "Тождественно равные выражения", 
+  38: "Допустимые значения переменных"
+};
+
 interface SubtopicSidebarProps {
   currentSubunit: {
     id: string;
     title: string;
     skills: number[];
   } | null;
-  onVideoClick: () => void;
-  onArticleClick: () => void;
-  onExerciseClick: () => void;
+  onVideoClick: (skillName: string) => void;
+  onArticleClick: (skillId: number, skillName: string) => void;
+  onExerciseClick: (skillIds: number[]) => void;
   currentView: string;
+  currentContent?: string; // Current video/article/exercise name
 }
 
 export function SubtopicSidebar({ 
@@ -18,16 +43,61 @@ export function SubtopicSidebar({
   onVideoClick, 
   onArticleClick, 
   onExerciseClick,
-  currentView 
+  currentView,
+  currentContent 
 }: SubtopicSidebarProps) {
   const { state } = useSidebar();
 
   if (!currentSubunit) return null;
 
-  const getNavCls = (view: string) => 
-    currentView === view ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
-
   const isCollapsed = state === "collapsed";
+
+  const getContentItems = () => {
+    if (!currentSubunit) return [];
+    
+    const items: Array<{type: 'video' | 'article' | 'exercise', name: string, skillId?: number, skills?: number[]}> = [];
+    
+    // Add videos for each skill that has one
+    currentSubunit.skills.forEach(skillId => {
+      if (videoTitles[skillId]) {
+        items.push({
+          type: 'video',
+          name: videoTitles[skillId],
+          skillId
+        });
+      }
+      
+      // Add article for each skill
+      items.push({
+        type: 'article', 
+        name: skillNames[skillId] || `Навык ${skillId}`,
+        skillId
+      });
+    });
+    
+    // Add exercise for the whole subtopic
+    items.push({
+      type: 'exercise',
+      name: `Упражнения: ${currentSubunit.title}`,
+      skills: currentSubunit.skills
+    });
+    
+    return items;
+  };
+
+  const contentItems = getContentItems();
+
+  const getIcon = (type: 'video' | 'article' | 'exercise') => {
+    switch(type) {
+      case 'video': return <Play className="h-4 w-4" />;
+      case 'article': return <FileText className="h-4 w-4" />;
+      case 'exercise': return <PenTool className="h-4 w-4" />;
+    }
+  };
+
+  const isActive = (item: any) => {
+    return currentContent === item.name;
+  };
 
   return (
     <Sidebar 
@@ -37,40 +107,30 @@ export function SubtopicSidebar({
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className={isCollapsed ? "text-xs" : ""}>
-            {isCollapsed ? "Навигация" : currentSubunit.title}
+            {isCollapsed ? "Содержание" : currentSubunit.title}
           </SidebarGroupLabel>
           
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={onVideoClick}
-                  className={getNavCls('video')}
-                >
-                  <Play className="h-4 w-4" />
-                  {!isCollapsed && <span>Видео</span>}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={onArticleClick}
-                  className={getNavCls('article')}
-                >
-                  <FileText className="h-4 w-4" />
-                  {!isCollapsed && <span>Статья</span>}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={onExerciseClick}
-                  className={getNavCls('exercise')}
-                >
-                  <PenTool className="h-4 w-4" />
-                  {!isCollapsed && <span>Упражнения</span>}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {contentItems.map((item, index) => (
+                <SidebarMenuItem key={index}>
+                  <SidebarMenuButton
+                    onClick={() => {
+                      if (item.type === 'video') {
+                        onVideoClick(item.name);
+                      } else if (item.type === 'article' && item.skillId) {
+                        onArticleClick(item.skillId, item.name);
+                      } else if (item.type === 'exercise' && item.skills) {
+                        onExerciseClick(item.skills);
+                      }
+                    }}
+                    className={isActive(item) ? "bg-muted text-primary font-medium" : "hover:bg-muted/50"}
+                  >
+                    {getIcon(item.type)}
+                    {!isCollapsed && <span className="truncate">{item.name}</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
