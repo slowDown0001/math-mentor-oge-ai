@@ -617,11 +617,12 @@ const Textbook2 = () => {
   }, [isSelecterActive]);
 
   const renderUnitOverview = () => (
-    <UnitProgressSummary 
-      courseStructure={courseStructure} 
-      onUnitSelect={handleUnitSelect}
-      onExerciseClick={handleExerciseClick}
-    />
+            <UnitProgressSummary 
+              courseStructure={courseStructure} 
+              onUnitSelect={handleUnitSelect}
+              onExerciseClick={handleExerciseClick}
+              mathSkills={mathSkills}
+            />
   );
 
   const renderUnitContent = (unit: any) => (

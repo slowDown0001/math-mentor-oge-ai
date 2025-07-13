@@ -7,33 +7,10 @@ interface UnitProgressSummaryProps {
   courseStructure: any;
   onUnitSelect?: (unitNumber: number) => void;
   onExerciseClick?: (skillIds: number[], subunit?: any) => void;
+  mathSkills: Array<{ skill: string; id: number }>;
 }
 
-// Math skills data for skill name mapping
-const mathSkills = [
-  { "skill": "Натуральные числа", "id": 1 },
-  { "skill": "Целые числа", "id": 2 },
-  { "skill": "Дроби", "id": 3 },
-  { "skill": "Проценты", "id": 4 },
-  { "skill": "Рациональные числа", "id": 5 },
-  { "skill": "Арифметические действия", "id": 6 },
-  { "skill": "Действительные числа", "id": 7 },
-  { "skill": "Приближённые вычисления", "id": 8 },
-  { "skill": "Работа с данными", "id": 9 },
-  { "skill": "Алгебраические выражения", "id": 10 },
-  { "skill": "Одночлены и многочлены", "id": 11 },
-  { "skill": "Формулы сокращенного умножения", "id": 12 },
-  { "skill": "Алгебраические дроби", "id": 13 },
-  { "skill": "Степени и корни", "id": 14 },
-  { "skill": "Уравнения", "id": 15 },
-  { "skill": "Системы уравнений", "id": 16 },
-  { "skill": "Неравенства", "id": 17 },
-  { "skill": "Функции", "id": 18 },
-  { "skill": "Геометрические фигуры", "id": 19 },
-  { "skill": "Треугольники", "id": 20 },
-];
-
-const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick }: UnitProgressSummaryProps) => {
+const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, mathSkills }: UnitProgressSummaryProps) => {
   const { calculateUnitProgress, getUserMastery } = useMasterySystem();
 
   // Create skill name mapping
