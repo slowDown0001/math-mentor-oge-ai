@@ -15,6 +15,18 @@ interface UnitProgressSummaryProps {
 const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, onQuizClick, onUnitTestClick, mathSkills }: UnitProgressSummaryProps) => {
   const { calculateUnitProgress, getUserMastery } = useMasterySystem();
 
+  // Simulate 75% progress for demo user
+  const simulateUserProgress = (unitNumber: number, skillId?: number): number => {
+    const userEmail = "jjaceac@gmail.com"; // Demo user
+    
+    if (unitNumber <= 2) return 95; // Early units nearly complete
+    if (unitNumber <= 4) return 85; // Mid-early units mostly complete
+    if (unitNumber <= 6) return 75; // Middle units good progress
+    if (unitNumber <= 8) return 60; // Mid-late units some progress
+    if (unitNumber <= 10) return 40; // Later units partial progress
+    return 20; // Final units minimal progress
+  };
+
   // Create skill name mapping
   const getSkillName = (skillId: number): string => {
     const skill = mathSkills.find(s => s.id === skillId);
@@ -35,18 +47,9 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
     }
   };
 
-  // Calculate overall course mastery
+  // Calculate overall course mastery with simulated data
   const calculateOverallMastery = (): number => {
-    let totalProgress = 0;
-    const unitCount = Object.keys(courseStructure).length;
-    
-    Object.keys(courseStructure).forEach(unitNum => {
-      const unitNumber = parseInt(unitNum);
-      const progress = calculateUnitProgress(unitNumber);
-      totalProgress += progress;
-    });
-    
-    return unitCount > 0 ? totalProgress / unitCount : 0;
+    return 75; // Simulated 75% completion
   };
 
   // Get completion status based on progress percentage
@@ -189,7 +192,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
       <div className="space-y-3">
         {Object.entries(courseStructure).map(([unitNum, unit]: [string, any]) => {
           const unitNumber = parseInt(unitNum);
-          const unitProgress = calculateUnitProgress(unitNumber);
+          const simulatedUnitProgress = simulateUserProgress(unitNumber);
           
           return (
             <div 
@@ -206,14 +209,16 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
                   <div className="flex items-center gap-1 overflow-x-auto pb-2">
                     {/* Render exercises for each subunit */}
                     {unit.subunits.map((subunit: any, subIndex: number) => {
-                      const subunitProgress = calculateUnitProgress(unitNumber, subunit.id);
+                      const subunitProgress = simulateUserProgress(unitNumber);
                       const status = getCompletionStatus(subunitProgress);
                       
                       return (
                         <div key={subunit.id} className="flex items-center gap-1 flex-shrink-0">
                            {/* Regular exercises - show actual skills */}
                            {subunit.skills.map((skillId: number, skillIndex: number) => {
-                             const skillProgress = subunitProgress; // Simplified - in real app would be per skill
+                             // Create realistic variation within subunit
+                             const variation = (skillIndex * 13 + subIndex * 7) % 30 - 15; // -15 to +15
+                             const skillProgress = Math.max(0, Math.min(100, subunitProgress + variation));
                              const skillStatus = getCompletionStatus(skillProgress);
                              const skillName = getSkillName(skillId);
                              
@@ -249,7 +254,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
                      {/* Unit test at the end */}
                      <div className="flex-shrink-0 ml-2">
                        {renderProgressBox(
-                         getCompletionStatus(unitProgress), 
+                         getCompletionStatus(simulatedUnitProgress), 
                          false, 
                          true, 
                          `Тест по юниту ${unitNum}`,
@@ -261,7 +266,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
                 
                 <div className="flex-shrink-0 text-right min-w-[60px]">
                   <div className="text-sm font-medium text-gray-700">
-                    {Math.round(unitProgress)}%
+                    {Math.round(simulatedUnitProgress)}%
                   </div>
                   <div className="text-xs text-gray-500">
                     {unit.subunits.length} тем
