@@ -377,10 +377,39 @@ const Textbook2 = () => {
     }
   };
 
+  // Helper function to find subtopic by skill ID
+  const findSubtopicBySkillId = (skillId: number): Subunit | null => {
+    for (const unitKey in courseStructure) {
+      const unitNumber = parseInt(unitKey);
+      const unit = courseStructure[unitNumber];
+      for (const subunit of unit.subunits) {
+        if (subunit.skills.includes(skillId)) {
+          return subunit;
+        }
+      }
+    }
+    return null;
+  };
+
+  // Helper function to find subtopic by skill name
+  const findSubtopicBySkillName = (skillName: string): Subunit | null => {
+    const skillEntry = mathSkills.find(skill => skill.skill === skillName);
+    if (skillEntry) {
+      return findSubtopicBySkillId(skillEntry.id);
+    }
+    return null;
+  };
+
   // Handle article click
   const handleArticleClick = (skillId: number, skillName: string, subunit?: Subunit) => {
     setSelectedArticle({ skillId, skillName });
-    if (subunit) setCurrentSubunit(subunit);
+    // Always determine the correct subtopic based on the skill ID
+    const correctSubunit = findSubtopicBySkillId(skillId);
+    if (correctSubunit) {
+      setCurrentSubunit(correctSubunit);
+    } else if (subunit) {
+      setCurrentSubunit(subunit);
+    }
     fetchArticleContent(skillId);
   };
 
@@ -396,7 +425,13 @@ const Textbook2 = () => {
   // Handle video click
   const handleVideoClick = (skillName: string, subunit?: Subunit) => {
     setSelectedVideo(skillName);
-    if (subunit) setCurrentSubunit(subunit);
+    // Always determine the correct subtopic based on the skill name
+    const correctSubunit = findSubtopicBySkillName(skillName);
+    if (correctSubunit) {
+      setCurrentSubunit(correctSubunit);
+    } else if (subunit) {
+      setCurrentSubunit(subunit);
+    }
     
     // Set the video URL based on the skill
     if (skillName === "Натуральные и целые числа" || skillName === "Подстановка значений") {
@@ -415,7 +450,13 @@ const Textbook2 = () => {
     setSelectedArticle(null);
     
     setSelectedExercise(skillName);
-    if (subunit) setCurrentSubunit(subunit);
+    // Always determine the correct subtopic based on the first skill ID
+    const correctSubunit = findSubtopicBySkillId(skillIds[0]);
+    if (correctSubunit) {
+      setCurrentSubunit(correctSubunit);
+    } else if (subunit) {
+      setCurrentSubunit(subunit);
+    }
     
     // Fetch questions from mcq_with_options table for these skills
     try {
@@ -849,7 +890,9 @@ const Textbook2 = () => {
         <div className="pt-20">
           <SidebarProvider>
             <div className="flex min-h-screen w-full">
-              <SidebarTrigger className="fixed top-24 left-4 z-50" />
+              <div className="fixed top-24 left-4 z-50 bg-white/90 backdrop-blur-sm border border-border rounded-lg p-2 shadow-lg">
+                <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-colors" />
+              </div>
               <SubtopicSidebar
                 currentSubunit={currentSubunit}
                 onVideoClick={(skillName) => {
@@ -1063,7 +1106,9 @@ const Textbook2 = () => {
         <div className="pt-20">
           <SidebarProvider>
             <div className="flex min-h-screen w-full">
-              <SidebarTrigger className="fixed top-24 left-4 z-50" />
+              <div className="fixed top-24 left-4 z-50 bg-white/90 backdrop-blur-sm border border-border rounded-lg p-2 shadow-lg">
+                <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-colors" />
+              </div>
               <SubtopicSidebar
                 currentSubunit={currentSubunit}
                 onVideoClick={(skillName) => {
@@ -1134,7 +1179,9 @@ const Textbook2 = () => {
         <div className="pt-20">
           <SidebarProvider>
             <div className="flex min-h-screen w-full">
-              <SidebarTrigger className="fixed top-24 left-4 z-50" />
+              <div className="fixed top-24 left-4 z-50 bg-white/90 backdrop-blur-sm border border-border rounded-lg p-2 shadow-lg">
+                <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-colors" />
+              </div>
               <SubtopicSidebar
                 currentSubunit={currentSubunit}
                 onVideoClick={(skillName) => {
