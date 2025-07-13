@@ -7,16 +7,32 @@ interface UnitProgressSummaryProps {
   courseStructure: any;
   onUnitSelect?: (unitNumber: number) => void;
   onExerciseClick?: (skillIds: number[], subunit?: any) => void;
+  onQuizClick?: (unitNumber: number, subunit: any) => void;
+  onUnitTestClick?: (unitNumber: number, unit: any) => void;
   mathSkills: Array<{ skill: string; id: number }>;
 }
 
-const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, mathSkills }: UnitProgressSummaryProps) => {
+const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, onQuizClick, onUnitTestClick, mathSkills }: UnitProgressSummaryProps) => {
   const { calculateUnitProgress, getUserMastery } = useMasterySystem();
 
   // Create skill name mapping
   const getSkillName = (skillId: number): string => {
     const skill = mathSkills.find(s => s.id === skillId);
     return skill ? skill.skill : `Exercise ${skillId}`;
+  };
+
+  // Handle quiz click
+  const handleQuizClick = (unitNumber: number, subunit: any) => {
+    if (onQuizClick) {
+      onQuizClick(unitNumber, subunit);
+    }
+  };
+
+  // Handle unit test click  
+  const handleUnitTestClick = (unitNumber: number, unit: any) => {
+    if (onUnitTestClick) {
+      onUnitTestClick(unitNumber, unit);
+    }
   };
 
   // Calculate overall course mastery
@@ -69,10 +85,10 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, m
     exerciseName?: string,
     onClick?: () => void
   ) => {
-    const statusText = status === 'not_started' ? 'Not started' : 
-                      status === 'attempted' ? 'Attempted' : 
-                      status === 'partial' ? 'Familiar' : 
-                      status === 'good' ? 'Proficient' : 'Mastered';
+    const statusText = status === 'not_started' ? 'Не начато' : 
+                      status === 'attempted' ? 'В процессе' : 
+                      status === 'partial' ? 'Знаком' : 
+                      status === 'good' ? 'Владею' : 'Освоено';
     
     const box = (
       <div 
@@ -96,18 +112,18 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, m
           <TooltipContent className="max-w-xs">
             <div className="p-2">
               <div className="font-semibold text-sm mb-1">
-                Exercise: {exerciseName}
+                Упражнение: {exerciseName}
               </div>
               <div className="text-xs text-muted-foreground mb-2">
                 {statusText}
               </div>
               <img 
                 src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=200&h=120&fit=crop" 
-                alt="Exercise preview" 
+                alt="Предпросмотр упражнения" 
                 className="w-40 h-24 object-cover rounded"
               />
               <div className="text-xs mt-1 text-muted-foreground">
-                Click to start exercise
+                Нажмите, чтобы начать упражнение
               </div>
             </div>
           </TooltipContent>
@@ -126,10 +142,10 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, m
       {/* Header */}
       <div className="mb-12">
         <h1 className="text-5xl font-bold text-gray-900 mb-6">
-          Pre-algebra
+          ОГЭ
         </h1>
         <div className="text-xl text-gray-600 mb-4">
-          Course mastery: <span className="font-semibold">{Math.round(overallMastery)}%</span>
+          Освоение курса: <span className="font-semibold">{Math.round(overallMastery)}%</span>
         </div>
       </div>
 
@@ -139,31 +155,31 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, m
           <div className="flex flex-wrap gap-6 text-sm">
             <div className="flex items-center gap-2">
               {renderProgressBox('mastered')}
-              <span>Mastered</span>
+              <span>Освоено</span>
             </div>
             <div className="flex items-center gap-2">
               {renderProgressBox('good')}
-              <span>Proficient</span>
+              <span>Владею</span>
             </div>
             <div className="flex items-center gap-2">
               {renderProgressBox('partial')}
-              <span>Familiar</span>
+              <span>Знаком</span>
             </div>
             <div className="flex items-center gap-2">
               {renderProgressBox('attempted')}
-              <span>Attempted</span>
+              <span>В процессе</span>
             </div>
             <div className="flex items-center gap-2">
               {renderProgressBox('not_started')}
-              <span>Not started</span>
+              <span>Не начато</span>
             </div>
             <div className="flex items-center gap-2">
               {renderProgressBox('mastered', true)}
-              <span>Quiz</span>
+              <span>Викторина</span>
             </div>
             <div className="flex items-center gap-2">
               {renderProgressBox('mastered', false, true)}
-              <span>Unit test</span>
+              <span>Тест по юниту</span>
             </div>
           </div>
         </CardContent>
@@ -183,7 +199,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, m
             >
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0 w-16">
-                  <span className="text-sm font-medium text-gray-700">Unit {unitNum}</span>
+                  <span className="text-sm font-medium text-gray-700">Юнит {unitNum}</span>
                 </div>
                 
                 <div className="flex-1 min-w-0">
@@ -217,7 +233,13 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, m
                            {/* Quiz after some exercises */}
                            {subIndex % 2 === 1 && (
                              <div className="flex-shrink-0 ml-1">
-                               {renderProgressBox(status, true, false, `${subunit.name} Quiz`)}
+                               {renderProgressBox(
+                                 status, 
+                                 true, 
+                                 false, 
+                                 `Викторина: ${subunit.name}`,
+                                 () => handleQuizClick(unitNumber, subunit)
+                               )}
                              </div>
                            )}
                         </div>
@@ -226,7 +248,13 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, m
                     
                      {/* Unit test at the end */}
                      <div className="flex-shrink-0 ml-2">
-                       {renderProgressBox(getCompletionStatus(unitProgress), false, true, `Unit ${unitNum} Test`)}
+                       {renderProgressBox(
+                         getCompletionStatus(unitProgress), 
+                         false, 
+                         true, 
+                         `Тест по юниту ${unitNum}`,
+                         () => handleUnitTestClick(unitNumber, unit)
+                       )}
                      </div>
                   </div>
                 </div>
@@ -236,7 +264,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, m
                     {Math.round(unitProgress)}%
                   </div>
                   <div className="text-xs text-gray-500">
-                    {unit.subunits.length} topics
+                    {unit.subunits.length} тем
                   </div>
                 </div>
               </div>
@@ -250,15 +278,15 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, m
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-blue-800">
             <Star className="w-5 h-5" />
-            COURSE CHALLENGE
+            ИТОГОВЫЙ ВЫЗОВ
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-blue-700 mb-4">
-            Test your knowledge of the skills in this course.
+            Проверьте свои знания навыков этого курса.
           </p>
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors">
-            Start Course challenge
+            Начать итоговый вызов
           </button>
         </CardContent>
       </Card>

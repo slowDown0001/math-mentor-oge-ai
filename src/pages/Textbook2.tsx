@@ -490,6 +490,109 @@ const Textbook2 = () => {
     }
   };
 
+  // Handle quiz click (12 random questions from subunit)
+  const handleQuizClick = async (unitNumber: number, subunit: any) => {
+    console.log("Quiz clicked:", unitNumber, subunit);
+    const skillName = `Викторина: ${subunit.name}`;
+    
+    // Clear any other modals first
+    setSelectedVideo(null);
+    setSelectedArticle(null);
+    
+    setSelectedExercise(skillName);
+    setCurrentSubunit(subunit);
+    
+    // Get all skill IDs from the subunit
+    const subunitSkills = subunit.skills || [];
+    
+    // Fetch random questions from mcq_with_options table for these skills
+    try {
+      const { data, error } = await supabase
+        .from('mcq_with_options')
+        .select('*')
+        .in('skills', subunitSkills)
+        .limit(50); // Get more to randomize from
+      
+      if (error) {
+        console.error('Error fetching quiz questions:', error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        // Randomly select 12 questions
+        const shuffled = data.sort(() => 0.5 - Math.random());
+        const selectedQuestions = shuffled.slice(0, Math.min(12, data.length));
+        
+        setQuestions(selectedQuestions);
+        setCurrentQuestionIndex(0);
+        setCurrentQuestion(selectedQuestions[0]);
+        setSelectedAnswer(null);
+        setShowResult(false);
+        setShowSolution(false);
+        setScore({ correct: 0, total: 0 });
+      } else {
+        // No questions found
+        setQuestions([]);
+        setCurrentQuestion(null);
+      }
+    } catch (error) {
+      console.error('Error fetching quiz questions:', error);
+    }
+  };
+
+  // Handle unit test click (16 random questions from entire unit)
+  const handleUnitTestClick = async (unitNumber: number, unit: any) => {
+    console.log("Unit test clicked:", unitNumber, unit);
+    const skillName = `Тест по юниту ${unitNumber}`;
+    
+    // Clear any other modals first
+    setSelectedVideo(null);
+    setSelectedArticle(null);
+    
+    setSelectedExercise(skillName);
+    // Set the first subunit as current for context
+    if (unit.subunits && unit.subunits.length > 0) {
+      setCurrentSubunit(unit.subunits[0]);
+    }
+    
+    // Get all skill IDs from all subunits in the unit
+    const unitSkills = unit.subunits.flatMap((subunit: any) => subunit.skills || []);
+    
+    // Fetch random questions from mcq_with_options table for these skills
+    try {
+      const { data, error } = await supabase
+        .from('mcq_with_options')
+        .select('*')
+        .in('skills', unitSkills)
+        .limit(80); // Get more to randomize from
+      
+      if (error) {
+        console.error('Error fetching unit test questions:', error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        // Randomly select 16 questions
+        const shuffled = data.sort(() => 0.5 - Math.random());
+        const selectedQuestions = shuffled.slice(0, Math.min(16, data.length));
+        
+        setQuestions(selectedQuestions);
+        setCurrentQuestionIndex(0);
+        setCurrentQuestion(selectedQuestions[0]);
+        setSelectedAnswer(null);
+        setShowResult(false);
+        setShowSolution(false);
+        setScore({ correct: 0, total: 0 });
+      } else {
+        // No questions found
+        setQuestions([]);
+        setCurrentQuestion(null);
+      }
+    } catch (error) {
+      console.error('Error fetching unit test questions:', error);
+    }
+  };
+
   // Handle answer selection
   const handleAnswerSelect = (answer: string) => {
     if (showResult) return;
@@ -621,6 +724,8 @@ const Textbook2 = () => {
               courseStructure={courseStructure} 
               onUnitSelect={handleUnitSelect}
               onExerciseClick={handleExerciseClick}
+              onQuizClick={handleQuizClick}
+              onUnitTestClick={handleUnitTestClick}
               mathSkills={mathSkills}
             />
   );
