@@ -15,6 +15,7 @@ import ChatInput from "@/components/chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
 import { sendChatMessage } from "@/services/chatService";
 import { SubtopicSidebar } from "@/components/SubtopicSidebar";
+import UnitProgressSummary from "@/components/UnitProgressSummary";
 
 // Topic mapping data embedded directly
 const topicMapping = [
@@ -616,65 +617,10 @@ const Textbook2 = () => {
   }, [isSelecterActive]);
 
   const renderUnitOverview = () => (
-    <div className="space-y-8">
-      <div className="mb-12">
-        <h1 className="text-5xl font-bold text-gray-900 mb-6">
-          Учебник 2.0
-        </h1>
-        <p className="text-2xl text-gray-600 max-w-4xl leading-relaxed">
-          Интерактивный курс математики для подготовки к ОГЭ с системой мастерства
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-        {Object.entries(courseStructure).map(([unitNum, unit]) => {
-          const unitNumber = parseInt(unitNum);
-          const progress = calculateUnitProgress(unitNumber);
-          const masteryLevel = getMasteryLevel(progress);
-          
-          return (
-            <Card 
-              key={unitNum}
-              className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-              onClick={() => handleUnitSelect(unitNumber)}
-            >
-              <CardHeader className="pb-4">
-                <div className={`w-12 h-12 ${unit.color} rounded-lg flex items-center justify-center mb-3`}>
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-                <CardTitle className="text-lg font-semibold">
-                  Модуль {unitNum}
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  {unit.title}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 mb-4">
-                  {unit.description}
-                </p>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Прогресс</span>
-                    <span>{Math.round(progress)}%</span>
-                  </div>
-                  <Progress value={progress} className="h-2" />
-                  <Badge 
-                    variant={masteryLevel === 'mastered' ? 'default' : 'secondary'}
-                    className="text-xs"
-                  >
-                    {masteryLevel === 'mastered' ? 'Освоено' : 
-                     masteryLevel === 'proficient' ? 'Хорошо' :
-                     masteryLevel === 'familiar' ? 'Знаком' :
-                     masteryLevel === 'attempted' ? 'Начато' : 'Не начато'}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
+    <UnitProgressSummary 
+      courseStructure={courseStructure} 
+      onUnitSelect={handleUnitSelect}
+    />
   );
 
   const renderUnitContent = (unit: any) => (
