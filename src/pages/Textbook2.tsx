@@ -620,6 +620,7 @@ const Textbook2 = () => {
     <UnitProgressSummary 
       courseStructure={courseStructure} 
       onUnitSelect={handleUnitSelect}
+      onExerciseClick={handleExerciseClick}
     />
   );
 

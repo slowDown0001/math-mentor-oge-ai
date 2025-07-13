@@ -6,11 +6,41 @@ import { Zap, Star } from "lucide-react";
 interface UnitProgressSummaryProps {
   courseStructure: any;
   onUnitSelect?: (unitNumber: number) => void;
-  onExerciseClick?: (skillIds: number[], skillName: string) => void;
+  onExerciseClick?: (skillIds: number[], subunit?: any) => void;
 }
+
+// Math skills data for skill name mapping
+const mathSkills = [
+  { "skill": "Натуральные числа", "id": 1 },
+  { "skill": "Целые числа", "id": 2 },
+  { "skill": "Дроби", "id": 3 },
+  { "skill": "Проценты", "id": 4 },
+  { "skill": "Рациональные числа", "id": 5 },
+  { "skill": "Арифметические действия", "id": 6 },
+  { "skill": "Действительные числа", "id": 7 },
+  { "skill": "Приближённые вычисления", "id": 8 },
+  { "skill": "Работа с данными", "id": 9 },
+  { "skill": "Алгебраические выражения", "id": 10 },
+  { "skill": "Одночлены и многочлены", "id": 11 },
+  { "skill": "Формулы сокращенного умножения", "id": 12 },
+  { "skill": "Алгебраические дроби", "id": 13 },
+  { "skill": "Степени и корни", "id": 14 },
+  { "skill": "Уравнения", "id": 15 },
+  { "skill": "Системы уравнений", "id": 16 },
+  { "skill": "Неравенства", "id": 17 },
+  { "skill": "Функции", "id": 18 },
+  { "skill": "Геометрические фигуры", "id": 19 },
+  { "skill": "Треугольники", "id": 20 },
+];
 
 const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick }: UnitProgressSummaryProps) => {
   const { calculateUnitProgress, getUserMastery } = useMasterySystem();
+
+  // Create skill name mapping
+  const getSkillName = (skillId: number): string => {
+    const skill = mathSkills.find(s => s.id === skillId);
+    return skill ? skill.skill : `Exercise ${skillId}`;
+  };
 
   // Calculate overall course mastery
   const calculateOverallMastery = (): number => {
@@ -188,31 +218,39 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick }:
                       
                       return (
                         <div key={subunit.id} className="flex items-center gap-1 flex-shrink-0">
-                          {/* Regular exercises - show 3-4 boxes per subunit */}
-                          {Array.from({ length: Math.min(4, subunit.skills.length) }, (_, skillIndex) => {
-                            const skillProgress = subunitProgress; // Simplified - in real app would be per skill
-                            const skillStatus = getCompletionStatus(skillProgress);
-                            return (
-                              <div key={skillIndex} className="flex-shrink-0">
-                                {renderProgressBox(skillStatus)}
-                              </div>
-                            );
-                          })}
+                           {/* Regular exercises - show actual skills */}
+                           {subunit.skills.map((skillId: number, skillIndex: number) => {
+                             const skillProgress = subunitProgress; // Simplified - in real app would be per skill
+                             const skillStatus = getCompletionStatus(skillProgress);
+                             const skillName = getSkillName(skillId);
+                             
+                             return (
+                               <div key={skillId} className="flex-shrink-0">
+                                 {renderProgressBox(
+                                   skillStatus, 
+                                   false, 
+                                   false,
+                                   skillName,
+                                   () => onExerciseClick?.([skillId], subunit)
+                                 )}
+                               </div>
+                             );
+                           })}
                           
-                          {/* Quiz after some exercises */}
-                          {subIndex % 2 === 1 && (
-                            <div className="flex-shrink-0 ml-1">
-                              {renderProgressBox(status, true)}
-                            </div>
-                          )}
+                           {/* Quiz after some exercises */}
+                           {subIndex % 2 === 1 && (
+                             <div className="flex-shrink-0 ml-1">
+                               {renderProgressBox(status, true, false, `${subunit.name} Quiz`)}
+                             </div>
+                           )}
                         </div>
                       );
                     })}
                     
-                    {/* Unit test at the end */}
-                    <div className="flex-shrink-0 ml-2">
-                      {renderProgressBox(getCompletionStatus(unitProgress), false, true)}
-                    </div>
+                     {/* Unit test at the end */}
+                     <div className="flex-shrink-0 ml-2">
+                       {renderProgressBox(getCompletionStatus(unitProgress), false, true, `Unit ${unitNum} Test`)}
+                     </div>
                   </div>
                 </div>
                 
