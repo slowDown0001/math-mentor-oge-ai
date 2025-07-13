@@ -1,13 +1,15 @@
 import { useMasterySystem } from "@/hooks/useMasterySystem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Zap, Star } from "lucide-react";
 
 interface UnitProgressSummaryProps {
   courseStructure: any;
   onUnitSelect?: (unitNumber: number) => void;
+  onExerciseClick?: (skillIds: number[], skillName: string) => void;
 }
 
-const UnitProgressSummary = ({ courseStructure, onUnitSelect }: UnitProgressSummaryProps) => {
+const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick }: UnitProgressSummaryProps) => {
   const { calculateUnitProgress, getUserMastery } = useMasterySystem();
 
   // Calculate overall course mastery
@@ -53,19 +55,67 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect }: UnitProgressSumm
     }
   };
 
-  const renderProgressBox = (status: string, isQuiz: boolean = false, isUnitTest: boolean = false) => {
-    return (
-      <div className={getBoxStyling(status)}>
+  const renderProgressBox = (
+    status: string, 
+    isQuiz: boolean = false, 
+    isUnitTest: boolean = false,
+    exerciseName?: string,
+    onClick?: () => void
+  ) => {
+    const statusText = status === 'not_started' ? 'Not started' : 
+                      status === 'attempted' ? 'Attempted' : 
+                      status === 'partial' ? 'Familiar' : 
+                      status === 'good' ? 'Proficient' : 'Mastered';
+    
+    const box = (
+      <div 
+        className={`${getBoxStyling(status)} cursor-pointer hover:shadow-md transition-all`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick?.();
+        }}
+      >
         {isQuiz && <Zap className="w-3 h-3 text-yellow-500" />}
         {isUnitTest && <Star className="w-3 h-3 text-yellow-500" />}
       </div>
     );
+
+    if (exerciseName) {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {box}
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            <div className="p-2">
+              <div className="font-semibold text-sm mb-1">
+                Exercise: {exerciseName}
+              </div>
+              <div className="text-xs text-muted-foreground mb-2">
+                {statusText}
+              </div>
+              <img 
+                src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=200&h=120&fit=crop" 
+                alt="Exercise preview" 
+                className="w-40 h-24 object-cover rounded"
+              />
+              <div className="text-xs mt-1 text-muted-foreground">
+                Click to start exercise
+              </div>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return box;
   };
 
   const overallMastery = calculateOverallMastery();
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
+    <TooltipProvider>
+      <div className="space-y-8 max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-12">
         <h1 className="text-5xl font-bold text-gray-900 mb-6">
@@ -198,6 +248,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect }: UnitProgressSumm
         </CardContent>
       </Card>
     </div>
+    </TooltipProvider>
   );
 };
 
