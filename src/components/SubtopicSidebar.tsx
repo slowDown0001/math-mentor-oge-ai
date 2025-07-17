@@ -1,3 +1,4 @@
+
 import { FileText, Play, PenTool } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 
@@ -36,6 +37,7 @@ interface SubtopicSidebarProps {
   onExerciseClick: (skillIds: number[]) => void;
   currentView: string;
   currentContent?: string; // Current video/article/exercise name
+  currentUnitNumber?: number; // Add this prop to match main page progress
 }
 
 export function SubtopicSidebar({ 
@@ -44,9 +46,51 @@ export function SubtopicSidebar({
   onArticleClick, 
   onExerciseClick,
   currentView,
-  currentContent 
+  currentContent,
+  currentUnitNumber = 1
 }: SubtopicSidebarProps) {
   const { state } = useSidebar();
+
+  // Same simulation function as in main page
+  const simulateUserProgress = (unitNumber: number, skillId?: number): number => {
+    const userEmail = "jjaceac@gmail.com"; // Demo user
+    
+    if (unitNumber <= 2) return 95; // Early units nearly complete
+    if (unitNumber <= 4) return 85; // Mid-early units mostly complete
+    if (unitNumber <= 6) return 75; // Middle units good progress
+    if (unitNumber <= 8) return 60; // Mid-late units some progress
+    if (unitNumber <= 10) return 40; // Later units partial progress
+    return 20; // Final units minimal progress
+  };
+
+  // Get completion status based on progress percentage
+  const getCompletionStatus = (progress: number): 'not_started' | 'attempted' | 'partial' | 'good' | 'mastered' => {
+    if (progress >= 90) return 'mastered';
+    if (progress >= 70) return 'good';
+    if (progress >= 40) return 'partial';
+    if (progress >= 20) return 'attempted';
+    return 'not_started';
+  };
+
+  // Get progress indicator for sidebar items
+  const getProgressIndicator = (skillId: number) => {
+    const unitProgress = simulateUserProgress(currentUnitNumber);
+    const variation = (skillId * 13) % 30 - 15; // -15 to +15
+    const skillProgress = Math.max(0, Math.min(100, unitProgress + variation));
+    const status = getCompletionStatus(skillProgress);
+    
+    const colors = {
+      'not_started': 'bg-blue-100 border-blue-300',
+      'attempted': 'bg-red-100 border-red-300', 
+      'partial': 'bg-orange-300 border-orange-400',
+      'good': 'bg-blue-400 border-blue-500',
+      'mastered': 'bg-blue-600 border-blue-700'
+    };
+    
+    return (
+      <div className={`w-3 h-3 border rounded-sm ${colors[status]} flex-shrink-0`} />
+    );
+  };
 
   if (!currentSubunit) return null;
 
@@ -138,8 +182,15 @@ export function SubtopicSidebar({
                     }}
                     className={isActive(item) ? "bg-primary text-primary-foreground font-medium shadow-sm" : "hover:bg-muted/50"}
                   >
-                    {getIcon(item.type)}
-                    {!isCollapsed && <span className="truncate">{item.name}</span>}
+                    <div className="flex items-center gap-2 w-full">
+                      {getIcon(item.type)}
+                      {!isCollapsed && (
+                        <>
+                          <span className="truncate flex-1">{item.name}</span>
+                          {item.skillId && getProgressIndicator(item.skillId)}
+                        </>
+                      )}
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

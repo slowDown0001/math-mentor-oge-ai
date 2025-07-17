@@ -1,3 +1,4 @@
+
 import { useMasterySystem } from "@/hooks/useMasterySystem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -182,7 +183,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
             </div>
             <div className="flex items-center gap-2">
               {renderProgressBox('mastered', false, true)}
-              <span>Тест по юниту</span>
+              <span>Тест по модулю</span>
             </div>
           </div>
         </CardContent>
@@ -202,7 +203,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
             >
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0 w-16">
-                  <span className="text-sm font-medium text-gray-700">Юнит {unitNum}</span>
+                  <span className="text-sm font-medium text-gray-700">Модуль {unitNum}</span>
                 </div>
                 
                 <div className="flex-1 min-w-0">
@@ -257,7 +258,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
                          getCompletionStatus(simulatedUnitProgress), 
                          false, 
                          true, 
-                         `Тест по юниту ${unitNum}`,
+                         `Тест по модулю ${unitNum}`,
                          () => handleUnitTestClick(unitNumber, unit)
                        )}
                      </div>
