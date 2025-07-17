@@ -51,7 +51,7 @@ export function SubtopicSidebar({
 }: SubtopicSidebarProps) {
   const { state } = useSidebar();
 
-  // Same simulation function as in main page
+  // Same simulation function as in main page - EXACTLY matching UnitProgressSummary
   const simulateUserProgress = (unitNumber: number, skillId?: number): number => {
     const userEmail = "jjaceac@gmail.com"; // Demo user
     
@@ -63,7 +63,7 @@ export function SubtopicSidebar({
     return 20; // Final units minimal progress
   };
 
-  // Get completion status based on progress percentage
+  // Get completion status based on progress percentage - EXACTLY matching UnitProgressSummary
   const getCompletionStatus = (progress: number): 'not_started' | 'attempted' | 'partial' | 'good' | 'mastered' => {
     if (progress >= 90) return 'mastered';
     if (progress >= 70) return 'good';
@@ -72,10 +72,10 @@ export function SubtopicSidebar({
     return 'not_started';
   };
 
-  // Get progress indicator for sidebar items
+  // Get progress indicator for sidebar items - EXACTLY matching UnitProgressSummary logic
   const getProgressIndicator = (skillId: number) => {
     const unitProgress = simulateUserProgress(currentUnitNumber);
-    const variation = (skillId * 13) % 30 - 15; // -15 to +15
+    const variation = (skillId * 13) % 30 - 15; // -15 to +15 - SAME as main page
     const skillProgress = Math.max(0, Math.min(100, unitProgress + variation));
     const status = getCompletionStatus(skillProgress);
     
