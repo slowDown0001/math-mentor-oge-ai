@@ -55,14 +55,14 @@ const Dashboard = () => {
         topicsToImprove.forEach((topic, index) => {
           const topicNumber = topic.topic;
           recommendationMessage += `${index + 1}. **${topic.name}** (${topic.averageScore}%)\n`;
-          recommendationMessage += `   📖 [Изучить материал](/textbook2?skill=${topicNumber})\n\n`;
+          recommendationMessage += `   📖 [Изучить материал](/textbook?topic=${topicNumber})\n\n`;
         });
 
         recommendationMessage += `Начни с изучения теории, а затем переходи к практическим заданиям. Удачи! 🚀`;
       } else {
         recommendationMessage = `Отлично! Все основные темы у тебя на хорошем уровне. Рекомендую:\n\n`;
         recommendationMessage += `• 🎯 [Ежедневная практика](/daily-practice) для поддержания навыков\n`;
-        recommendationMessage += `• 📺 [Видеоуроки](/resources?tab=videos) для углубления знаний\n`;
+        recommendationMessage += `• 📺 [Видеоуроки](/videos) для углубления знаний\n`;
         recommendationMessage += `• 📝 [Практические задания](/practice) для закрепления`;
       }
 
@@ -141,7 +141,7 @@ const Dashboard = () => {
                   
                   <div className="mt-6 flex space-x-3">
                     <Button variant="outline" asChild className="flex gap-2 border-primary/70 text-primary">
-                      <Link to="/resources"><BookOpen className="w-4 h-4" /> Учебные материалы</Link>
+                      <Link to="/textbook"><BookOpen className="w-4 h-4" /> Учебные материалы</Link>
                     </Button>
                     <Button asChild className="flex gap-2 bg-primary">
                       <Link to="/practice"><CheckCircle className="w-4 h-4" /> Практика</Link>
@@ -159,13 +159,13 @@ const Dashboard = () => {
                       </Link>
                     </Button>
                     <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/textbook2">
+                      <Link to="/textbook">
                         <BookOpen className="w-4 h-4 mr-2" />
                         Учебник
                       </Link>
                     </Button>
                     <Button variant="outline" asChild className="w-full justify-start">
-                      <Link to="/resources?tab=videos">
+                      <Link to="/videos">
                         <Video className="w-4 h-4 mr-2" />
                         Видеоуроки
                       </Link>

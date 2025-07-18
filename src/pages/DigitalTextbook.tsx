@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import MathRenderer from "@/components/MathRenderer";
 import ChatMessages from "@/components/chat/ChatMessages";
@@ -51,6 +51,7 @@ interface Article {
 
 const DigitalTextbook = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
   const [selectedSubtopic, setSelectedSubtopic] = useState<string | null>(null);
@@ -63,6 +64,15 @@ const DigitalTextbook = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
+
+  // Handle URL parameters for direct navigation to topics
+  useEffect(() => {
+    const topicParam = searchParams.get('topic');
+    if (topicParam && mainTopics[topicParam as keyof typeof mainTopics]) {
+      setSelectedTopic(topicParam);
+      setExpandedTopics(prev => new Set([...prev, topicParam]));
+    }
+  }, [searchParams]);
 
   // Fetch articles from Supabase articles2 table
   useEffect(() => {
