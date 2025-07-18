@@ -64,37 +64,39 @@ const DailyPractice = () => {
       setShowResult(false);
       setShowSolution(false);
 
-      // Smart question selection - mix of different strategies
-      const strategies = [
-        'recent_topics',
-        'incorrect_answers', 
-        'level_appropriate'
-      ];
-      
-      const strategy = strategies[Math.floor(Math.random() * strategies.length)];
-      
-      let query = supabase
+      // Get total count first
+      const { count } = await supabase
         .from('mcq_with_options')
-        .select('question_id, problem_text, answer, option1, option2, option3, option4, difficulty')
+        .select('*', { count: 'exact', head: true })
         .not('problem_text', 'is', null)
         .not('option1', 'is', null)
         .not('option2', 'is', null)
         .not('option3', 'is', null)
         .not('option4', 'is', null);
 
-      // Apply strategy-based filtering
-      if (strategy === 'level_appropriate') {
-        // Questions slightly above current level
-        query = query.gte('difficulty', 1).lte('difficulty', 3);
-      } else if (strategy === 'recent_topics') {
-        // Random selection for now - could be enhanced with topic tracking
-        query = query.gte('difficulty', 1).lte('difficulty', 4);
+      if (!count || count === 0) {
+        toast({
+          title: "Ошибка",
+          description: "Вопросы не найдены",
+          variant: "destructive"
+        });
+        return;
       }
 
-      const { data, error } = await query
-        .order('RANDOM()')
-        .limit(1)
-        .single();
+      // Generate random offset
+      const randomOffset = Math.floor(Math.random() * count);
+
+      // Fetch one question with the random offset
+      const { data, error } = await supabase
+        .from('mcq_with_options')
+        .select('question_id, problem_text, answer, option1, option2, option3, option4, difficulty')
+        .not('problem_text', 'is', null)
+        .not('option1', 'is', null)
+        .not('option2', 'is', null)
+        .not('option3', 'is', null)
+        .not('option4', 'is', null)
+        .range(randomOffset, randomOffset)
+        .limit(1);
 
       if (error) {
         console.error('Error loading question:', error);
@@ -106,9 +108,22 @@ const DailyPractice = () => {
         return;
       }
 
-      setCurrentQuestion(data);
+      if (data && data.length > 0) {
+        setCurrentQuestion(data[0]);
+      } else {
+        toast({
+          title: "Ошибка",
+          description: "Вопрос не найден",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error loading question:', error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при загрузке вопроса",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
