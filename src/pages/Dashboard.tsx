@@ -24,30 +24,66 @@ interface Message {
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { generalPreparedness, isLoading } = useStudentSkills();
+  const { topicProgress, generalPreparedness, isLoading } = useStudentSkills();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
   
   // Initialize welcome messages if chat is empty
   useEffect(() => {
-    if (messages.length === 0) {
+    if (messages.length === 0 && !isLoading && topicProgress.length > 0) {
+      // Find topics that need improvement (below 70%)
+      const topicsToImprove = topicProgress
+        .filter(topic => topic.averageScore < 70)
+        .sort((a, b) => a.averageScore - b.averageScore)
+        .slice(0, 3);
+
+      let welcomeMessage = `Привет, ${userName}! Рад видеть тебя снова. `;
+      
+      if (generalPreparedness >= 80) {
+        welcomeMessage += `Отличный прогресс — ${generalPreparedness}%! Ты на правильном пути к успеху на ОГЭ. 🎯`;
+      } else if (generalPreparedness >= 60) {
+        welcomeMessage += `У тебя хороший прогресс — ${generalPreparedness}%. Продолжай в том же духе! 💪`;
+      } else {
+        welcomeMessage += `Твой текущий прогресс — ${generalPreparedness}%. Есть над чем поработать, но я помогу тебе улучшить результаты! 📚`;
+      }
+
+      let recommendationMessage = "";
+      
+      if (topicsToImprove.length > 0) {
+        recommendationMessage = `**Рекомендую сегодня поработать над этими темами:**\n\n`;
+        
+        topicsToImprove.forEach((topic, index) => {
+          const topicNumber = topic.topic;
+          recommendationMessage += `${index + 1}. **${topic.name}** (${topic.averageScore}%)\n`;
+          recommendationMessage += `   📖 [Изучить материал](/textbook2?skill=${topicNumber})\n\n`;
+        });
+
+        recommendationMessage += `Начни с изучения теории, а затем переходи к практическим заданиям. Удачи! 🚀`;
+      } else {
+        recommendationMessage = `Отлично! Все основные темы у тебя на хорошем уровне. Рекомендую:\n\n`;
+        recommendationMessage += `• 🎯 [Ежедневная практика](/daily-practice) для поддержания навыков\n`;
+        recommendationMessage += `• 📺 [Видеоуроки](/resources?tab=videos) для углубления знаний\n`;
+        recommendationMessage += `• 📝 [Практические задания](/practice) для закрепления`;
+      }
+
       const welcomeMessages = [
         {
           id: 1,
-          text: `Здравствуйте, ${userName}! Рад видеть вас снова. У вас хороший прогресс подготовки к ОГЭ — ${generalPreparedness}%. Продолжайте в том же духе!`,
+          text: welcomeMessage,
           isUser: false,
           timestamp: new Date()
         },
         {
           id: 2,
-          text: "На сегодня я рекомендую вам изучить тему по геометрии: 'Подобие треугольников'. Хотите посмотреть видеоурок или сразу перейти к практическим заданиям?",
+          text: recommendationMessage,
           isUser: false,
           timestamp: new Date()
         }
       ];
+      
       setMessages(welcomeMessages);
     }
-  }, [messages.length, userName, generalPreparedness, setMessages]);
+  }, [messages.length, userName, generalPreparedness, topicProgress, isLoading, setMessages]);
   
   const handleSendMessage = async (userInput: string) => {
     if (userInput.trim() === "") return;
@@ -114,19 +150,27 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Рекомендация на сегодня</h2>
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="bg-primary/10 p-2 rounded-lg">
-                      <Video className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-800">Геометрия: Подобие треугольников</h3>
-                      <p className="text-sm text-gray-600 mt-1">Видеоурок, 15 минут</p>
-                    </div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Быстрые действия</h2>
+                  <div className="space-y-3">
+                    <Button asChild className="w-full bg-primary justify-start">
+                      <Link to="/daily-practice">
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Ежедневная практика
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/textbook2">
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        Учебник
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild className="w-full justify-start">
+                      <Link to="/resources?tab=videos">
+                        <Video className="w-4 h-4 mr-2" />
+                        Видеоуроки
+                      </Link>
+                    </Button>
                   </div>
-                  <Button asChild className="w-full bg-primary">
-                    <Link to="/resources?tab=videos">Смотреть видеоурок</Link>
-                  </Button>
                 </div>
               </div>
               
