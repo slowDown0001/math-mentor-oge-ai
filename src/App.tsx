@@ -25,6 +25,7 @@ const MCQPractice = lazy(() => import("./pages/MCQPractice"));
 const Scanner = lazy(() => import("./pages/Scanner"));
 const Videos = lazy(() => import("./pages/Videos"));
 const Questions = lazy(() => import("./pages/Questions"));
+const DailyPractice = lazy(() => import("./pages/DailyPractice"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
                 <Route path="/new-practice" element={<NewPractice />} />
                 <Route path="/practice-now" element={<PracticeNow />} />
                 <Route path="/practice-by-number" element={<PracticeByNumber />} />
+                <Route path="/daily-practice" element={<DailyPractice />} />
                 <Route element={<PrivateRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/profile" element={<Profile />} />
