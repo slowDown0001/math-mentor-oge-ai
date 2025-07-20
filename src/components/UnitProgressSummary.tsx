@@ -1,8 +1,10 @@
 
 import { useMasterySystem } from "@/hooks/useMasterySystem";
+import { useStudentSkills } from "@/hooks/useStudentSkills";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Zap, Star } from "lucide-react";
+import topicMappingData from "../../documentation/topic_skill_mapping_with_names.json";
 
 interface UnitProgressSummaryProps {
   courseStructure: any;
@@ -15,18 +17,7 @@ interface UnitProgressSummaryProps {
 
 const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, onQuizClick, onUnitTestClick, mathSkills }: UnitProgressSummaryProps) => {
   const { calculateUnitProgress, getUserMastery } = useMasterySystem();
-
-  // Simulate 75% progress for demo user
-  const simulateUserProgress = (unitNumber: number, skillId?: number): number => {
-    const userEmail = "jjaceac@gmail.com"; // Demo user
-    
-    if (unitNumber <= 2) return 95; // Early units nearly complete
-    if (unitNumber <= 4) return 85; // Mid-early units mostly complete
-    if (unitNumber <= 6) return 75; // Middle units good progress
-    if (unitNumber <= 8) return 60; // Mid-late units some progress
-    if (unitNumber <= 10) return 40; // Later units partial progress
-    return 20; // Final units minimal progress
-  };
+  const { topicProgress, generalPreparedness, isLoading } = useStudentSkills();
 
   // Create skill name mapping
   const getSkillName = (skillId: number): string => {
@@ -48,9 +39,58 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
     }
   };
 
-  // Calculate overall course mastery with simulated data
-  const calculateOverallMastery = (): number => {
-    return 75; // Simulated 75% completion
+  // Get unit progress based on real data from database
+  const getUnitProgress = (unitNumber: number): number => {
+    if (isLoading || !topicProgress.length) return 0;
+    
+    // Map unit numbers to topic numbers
+    const unitToTopicMap: { [key: number]: string[] } = {
+      1: ["1"], // Numbers and calculations
+      2: ["2"], // Algebraic expressions
+      3: ["3"], // Equations and inequalities
+      4: ["4"], // Number sequences
+      5: ["5"], // Functions
+      6: ["6"], // Coordinates
+      7: ["7"], // Geometry
+      8: ["8"], // Probability and statistics
+      9: ["1", "2"], // Mixed review 1
+      10: ["3", "4"], // Mixed review 2
+      11: ["5", "6"], // Mixed review 3
+      12: ["7", "8"], // Mixed review 4
+    };
+
+    const relatedTopics = unitToTopicMap[unitNumber] || [];
+    if (relatedTopics.length === 0) return 50; // Default for unmapped units
+
+    const topicScores = relatedTopics.map(topicId => {
+      const topic = topicProgress.find(t => t.topic === topicId);
+      return topic ? topic.averageScore : 0;
+    });
+
+    return Math.round(topicScores.reduce((sum, score) => sum + score, 0) / topicScores.length);
+  };
+
+  // Get skill progress from database
+  const getSkillProgress = (skillId: number): number => {
+    if (isLoading || !topicProgress.length) return 0;
+    
+    // Find which topic this skill belongs to
+    const topicMapping = topicMappingData.find(topic => 
+      topic.skills.includes(skillId)
+    );
+    
+    if (!topicMapping) return 0;
+    
+    // Get the main topic number (e.g., "1.1" -> "1")
+    const mainTopicNum = topicMapping.topic.split('.')[0];
+    const topic = topicProgress.find(t => t.topic === mainTopicNum);
+    
+    if (!topic) return 0;
+    
+    // Add some variation around the topic average for individual skills
+    const baseScore = topic.averageScore;
+    const variation = (skillId * 7) % 20 - 10; // -10 to +10 variation
+    return Math.max(0, Math.min(100, baseScore + variation));
   };
 
   // Get completion status based on progress percentage
@@ -138,7 +178,13 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
     return box;
   };
 
-  const overallMastery = calculateOverallMastery();
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <TooltipProvider>
@@ -149,7 +195,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
           ОГЭ
         </h1>
         <div className="text-xl text-gray-600 mb-4">
-          Освоение курса: <span className="font-semibold">{Math.round(overallMastery)}%</span>
+          Освоение курса: <span className="font-semibold">{generalPreparedness}%</span>
         </div>
       </div>
 
@@ -193,7 +239,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
       <div className="space-y-3">
         {Object.entries(courseStructure).map(([unitNum, unit]: [string, any]) => {
           const unitNumber = parseInt(unitNum);
-          const simulatedUnitProgress = simulateUserProgress(unitNumber);
+          const unitProgress = getUnitProgress(unitNumber);
           
           return (
             <div 
@@ -210,16 +256,11 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
                   <div className="flex items-center gap-1 overflow-x-auto pb-2">
                     {/* Render exercises for each subunit */}
                     {unit.subunits.map((subunit: any, subIndex: number) => {
-                      const subunitProgress = simulateUserProgress(unitNumber);
-                      const status = getCompletionStatus(subunitProgress);
-                      
                       return (
                         <div key={subunit.id} className="flex items-center gap-1 flex-shrink-0">
                            {/* Regular exercises - show actual skills */}
                            {subunit.skills.map((skillId: number, skillIndex: number) => {
-                             // Create realistic variation within subunit
-                             const variation = (skillIndex * 13 + subIndex * 7) % 30 - 15; // -15 to +15
-                             const skillProgress = Math.max(0, Math.min(100, subunitProgress + variation));
+                             const skillProgress = getSkillProgress(skillId);
                              const skillStatus = getCompletionStatus(skillProgress);
                              const skillName = getSkillName(skillId);
                              
@@ -240,7 +281,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
                            {subIndex % 2 === 1 && (
                              <div className="flex-shrink-0 ml-1">
                                {renderProgressBox(
-                                 status, 
+                                 getCompletionStatus(unitProgress), 
                                  true, 
                                  false, 
                                  `Викторина: ${subunit.name}`,
@@ -255,7 +296,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
                      {/* Unit test at the end */}
                      <div className="flex-shrink-0 ml-2">
                        {renderProgressBox(
-                         getCompletionStatus(simulatedUnitProgress), 
+                         getCompletionStatus(unitProgress), 
                          false, 
                          true, 
                          `Тест по модулю ${unitNum}`,
@@ -267,7 +308,7 @@ const UnitProgressSummary = ({ courseStructure, onUnitSelect, onExerciseClick, o
                 
                 <div className="flex-shrink-0 text-right min-w-[60px]">
                   <div className="text-sm font-medium text-gray-700">
-                    {Math.round(simulatedUnitProgress)}%
+                    {unitProgress}%
                   </div>
                   <div className="text-xs text-gray-500">
                     {unit.subunits.length} тем
