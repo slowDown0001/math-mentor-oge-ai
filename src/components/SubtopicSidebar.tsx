@@ -1,6 +1,6 @@
 import { FileText, Play, PenTool } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { useStudentSkills } from "@/hooks/useStudentSkills";
+import { useMasterySystem } from "@/hooks/useMasterySystem";
 import topicMappingData from "../../documentation/topic_skill_mapping_with_names.json";
 
 // Skill names mapping
@@ -51,69 +51,15 @@ export function SubtopicSidebar({
   currentUnitNumber = 1
 }: SubtopicSidebarProps) {
   const { state } = useSidebar();
-  const { topicProgress, isLoading } = useStudentSkills();
+  const { calculateUnitProgress } = useMasterySystem();
 
-  // Get module progress based on real data from database - matching the main content logic
+  // Get module progress using the same logic as the main content
   const getModuleProgress = (unitNumber: number): number => {
-    if (isLoading || !topicProgress.length) return 0;
-    
-    // Find the topic that corresponds to this unit number
-    const topic = topicProgress.find(t => t.topic === unitNumber.toString());
-    return topic ? topic.averageScore : 0;
+    return calculateUnitProgress(unitNumber);
   };
 
-  // Get skill progress from database using real data
-  const getSkillProgress = (skillId: number): number => {
-    if (isLoading || !topicProgress.length) return 0;
-    
-    // Find which topic this skill belongs to by mapping skill IDs to topic numbers
-    // This is a simplified mapping - you may need to adjust based on your topic structure
-    let topicNum = "1"; // default
-    
-    if (skillId >= 1 && skillId <= 17 || skillId === 180) topicNum = "1"; // Numbers and calculations
-    else if (skillId >= 18 && skillId <= 20) topicNum = "1"; // Still numbers
-    else if (skillId >= 21 && skillId <= 23) topicNum = "1"; // Still numbers
-    else if (skillId >= 24 && skillId <= 34) topicNum = "1"; // Still numbers/data
-    else if (skillId >= 35 && skillId <= 38) topicNum = "2"; // Algebraic expressions
-    else if (skillId >= 39 && skillId <= 44) topicNum = "2"; // Algebraic expressions
-    else if (skillId >= 45 && skillId <= 49 || skillId === 179) topicNum = "2"; // Algebraic expressions
-    else if (skillId >= 50 && skillId <= 57) topicNum = "2"; // Algebraic expressions
-    
-    const topic = topicProgress.find(t => t.topic === topicNum);
-    if (!topic) return 0;
-    
-    // Add some variation around the topic average for individual skills
-    const baseScore = topic.averageScore;
-    const variation = (skillId * 7) % 20 - 10; // -10 to +10 variation
-    return Math.max(0, Math.min(100, baseScore + variation));
-  };
-
-  // Get completion status based on progress percentage
-  const getCompletionStatus = (progress: number): 'not_started' | 'attempted' | 'partial' | 'good' | 'mastered' => {
-    if (progress >= 90) return 'mastered';
-    if (progress >= 70) return 'good';
-    if (progress >= 40) return 'partial';
-    if (progress >= 20) return 'attempted';
-    return 'not_started';
-  };
-
-  // Get progress indicator for sidebar items using real data
-  const getProgressIndicator = (skillId: number) => {
-    const skillProgress = getSkillProgress(skillId);
-    const status = getCompletionStatus(skillProgress);
-    
-    const colors = {
-      'not_started': 'bg-blue-100 border-blue-300',
-      'attempted': 'bg-red-100 border-red-300', 
-      'partial': 'bg-orange-300 border-orange-400',
-      'good': 'bg-blue-400 border-blue-500',
-      'mastered': 'bg-blue-600 border-blue-700'
-    };
-    
-    return (
-      <div className={`w-3 h-3 border rounded-sm ${colors[status]} flex-shrink-0`} />
-    );
-  };
+  // For now, we'll just show that module progress
+  // Individual skill progress indicators are disabled until implemented
 
   if (!currentSubunit) return null;
 
@@ -223,11 +169,8 @@ export function SubtopicSidebar({
                   >
                     <div className="flex items-center gap-2 w-full">
                       {getIcon(item.type)}
-                      {!isCollapsed && (
-                        <>
-                          <span className="truncate flex-1">{item.name}</span>
-                          {item.skillId && getProgressIndicator(item.skillId)}
-                        </>
+                       {!isCollapsed && (
+                        <span className="truncate flex-1">{item.name}</span>
                       )}
                     </div>
                   </SidebarMenuButton>
