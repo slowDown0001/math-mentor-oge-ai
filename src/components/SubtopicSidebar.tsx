@@ -2,6 +2,7 @@
 import { FileText, Play, PenTool } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { useStudentSkills } from "@/hooks/useStudentSkills";
+import topicMappingData from "../../documentation/topic_skill_mapping_with_names.json";
 
 // Skill names mapping
 const skillNames: { [key: number]: string } = {
@@ -52,6 +53,37 @@ export function SubtopicSidebar({
 }: SubtopicSidebarProps) {
   const { state } = useSidebar();
   const { topicProgress, isLoading } = useStudentSkills();
+
+  // Get module progress based on real data from database
+  const getModuleProgress = (unitNumber: number): number => {
+    if (isLoading || !topicProgress.length) return 0;
+    
+    // Map unit numbers to topic numbers
+    const unitToTopicMap: { [key: number]: string[] } = {
+      1: ["1"], // Numbers and calculations
+      2: ["2"], // Algebraic expressions
+      3: ["3"], // Equations and inequalities
+      4: ["4"], // Number sequences
+      5: ["5"], // Functions
+      6: ["6"], // Coordinates
+      7: ["7"], // Geometry
+      8: ["8"], // Probability and statistics
+      9: ["1", "2"], // Mixed review 1
+      10: ["3", "4"], // Mixed review 2
+      11: ["5", "6"], // Mixed review 3
+      12: ["7", "8"], // Mixed review 4
+    };
+
+    const relatedTopics = unitToTopicMap[unitNumber] || [];
+    if (relatedTopics.length === 0) return 0;
+
+    const topicScores = relatedTopics.map(topicId => {
+      const topic = topicProgress.find(t => t.topic === topicId);
+      return topic ? topic.averageScore : 0;
+    });
+
+    return Math.round(topicScores.reduce((sum, score) => sum + score, 0) / topicScores.length);
+  };
 
   // Get skill progress from database using real data
   const getSkillProgress = (skillId: number): number => {
@@ -109,6 +141,7 @@ export function SubtopicSidebar({
   if (!currentSubunit) return null;
 
   const isCollapsed = state === "collapsed";
+  const moduleProgress = getModuleProgress(currentUnitNumber);
 
   const getContentItems = () => {
     if (!currentSubunit) return [];
@@ -177,7 +210,22 @@ export function SubtopicSidebar({
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className={isCollapsed ? "text-xs" : ""}>
-            {isCollapsed ? "Содержание" : currentSubunit.title}
+            {isCollapsed ? "Содержание" : (
+              <div className="flex flex-col gap-1">
+                <span>{currentSubunit.title}</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-500 transition-all duration-300"
+                      style={{ width: `${moduleProgress}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-600 min-w-[30px]">
+                    {moduleProgress}%
+                  </span>
+                </div>
+              </div>
+            )}
           </SidebarGroupLabel>
           
           <SidebarGroupContent>
