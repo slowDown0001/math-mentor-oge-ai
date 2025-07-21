@@ -53,16 +53,9 @@ export function SubtopicSidebar({
   const { state } = useSidebar();
   const { calculateUnitProgress } = useMasterySystem();
 
-  // Get module progress using the same logic as the main content
+  // Get module progress using the exact same logic as the main content
   const getModuleProgress = (unitNumber: number): number => {
-    const progress = calculateUnitProgress(unitNumber);
-    // For demo purposes, add some sample progress when no real data exists
-    if (progress === 0) {
-      // Return sample progress values for demonstration
-      const sampleProgress = [0, 25, 45, 15, 0, 60, 30, 85];
-      return sampleProgress[unitNumber - 1] || 0;
-    }
-    return progress;
+    return calculateUnitProgress(unitNumber);
   };
 
   // For now, we'll just show that module progress
