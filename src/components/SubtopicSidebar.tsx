@@ -58,7 +58,7 @@ export function SubtopicSidebar({
     let progress = calculateUnitProgress(unitNumber);
     // For demo purposes, show sample progress values
     if (progress === 0) {
-      const sampleProgress = [80, 76, 65, 45, 30, 55, 40, 20];
+      const sampleProgress = [80, 76, 72, 80, 90, 83, 73, 70];
       progress = sampleProgress[unitNumber - 1] || 0;
     }
     console.log(`Sidebar - Unit ${unitNumber} progress:`, progress);
