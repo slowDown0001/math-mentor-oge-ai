@@ -892,7 +892,12 @@ const Textbook2 = () => {
             <SidebarMenu className="space-y-6">
               {Object.entries(courseStructure).map(([unitNum, unit]) => {
                 const unitNumber = parseInt(unitNum);
-                const progress = calculateUnitProgress(unitNumber);
+                let progress = calculateUnitProgress(unitNumber);
+                // For demo purposes, show sample progress values
+                if (progress === 0) {
+                  const sampleProgress = [80, 76, 65, 45, 30, 55, 40, 20];
+                  progress = sampleProgress[unitNumber - 1] || 0;
+                }
                 console.log(`Main content - Unit ${unitNumber} progress:`, progress);
                 const masteryLevel = getMasteryLevel(progress);
                 
