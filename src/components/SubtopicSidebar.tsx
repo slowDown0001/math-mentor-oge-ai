@@ -1,4 +1,3 @@
-
 import { FileText, Play, PenTool } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { useStudentSkills } from "@/hooks/useStudentSkills";
@@ -54,35 +53,13 @@ export function SubtopicSidebar({
   const { state } = useSidebar();
   const { topicProgress, isLoading } = useStudentSkills();
 
-  // Get module progress based on real data from database
+  // Get module progress based on real data from database - matching the main content logic
   const getModuleProgress = (unitNumber: number): number => {
     if (isLoading || !topicProgress.length) return 0;
     
-    // Map unit numbers to topic numbers
-    const unitToTopicMap: { [key: number]: string[] } = {
-      1: ["1"], // Numbers and calculations
-      2: ["2"], // Algebraic expressions
-      3: ["3"], // Equations and inequalities
-      4: ["4"], // Number sequences
-      5: ["5"], // Functions
-      6: ["6"], // Coordinates
-      7: ["7"], // Geometry
-      8: ["8"], // Probability and statistics
-      9: ["1", "2"], // Mixed review 1
-      10: ["3", "4"], // Mixed review 2
-      11: ["5", "6"], // Mixed review 3
-      12: ["7", "8"], // Mixed review 4
-    };
-
-    const relatedTopics = unitToTopicMap[unitNumber] || [];
-    if (relatedTopics.length === 0) return 0;
-
-    const topicScores = relatedTopics.map(topicId => {
-      const topic = topicProgress.find(t => t.topic === topicId);
-      return topic ? topic.averageScore : 0;
-    });
-
-    return Math.round(topicScores.reduce((sum, score) => sum + score, 0) / topicScores.length);
+    // Find the topic that corresponds to this unit number
+    const topic = topicProgress.find(t => t.topic === unitNumber.toString());
+    return topic ? topic.averageScore : 0;
   };
 
   // Get skill progress from database using real data
