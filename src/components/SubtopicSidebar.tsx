@@ -55,7 +55,9 @@ export function SubtopicSidebar({
 
   // Get module progress using the exact same logic as the main content
   const getModuleProgress = (unitNumber: number): number => {
-    return calculateUnitProgress(unitNumber);
+    const progress = calculateUnitProgress(unitNumber);
+    console.log(`Sidebar - Unit ${unitNumber} progress:`, progress);
+    return progress;
   };
 
   // For now, we'll just show that module progress

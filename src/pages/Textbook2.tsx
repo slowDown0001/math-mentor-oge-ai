@@ -893,6 +893,7 @@ const Textbook2 = () => {
               {Object.entries(courseStructure).map(([unitNum, unit]) => {
                 const unitNumber = parseInt(unitNum);
                 const progress = calculateUnitProgress(unitNumber);
+                console.log(`Main content - Unit ${unitNumber} progress:`, progress);
                 const masteryLevel = getMasteryLevel(progress);
                 
                 return (
