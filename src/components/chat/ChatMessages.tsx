@@ -27,8 +27,8 @@ const ChatMessages = ({ messages, isTyping }: ChatMessagesProps) => {
   }, [messages, isTyping]);
 
   return (
-    <ScrollArea className="h-96 bg-gray-50/80" ref={scrollAreaRef}>
-      <div className="p-4 flex flex-col space-y-4">
+    <ScrollArea className="flex-1 bg-background" ref={scrollAreaRef}>
+      <div className="p-6 flex flex-col space-y-6 max-w-3xl mx-auto">
         {messages.map(message => (
           <ChatMessage key={message.id} message={message} />
         ))}

@@ -26,25 +26,26 @@ const ChatInput = ({ onSendMessage, isTyping }: ChatInputProps) => {
   };
 
   return (
-    <div className="border-t border-gray-200/30 backdrop-blur-sm bg-white/80">
-      <div className="p-3 border-b border-gray-100">
+    <div className="bg-background">
+      <div className="p-3 border-b border-border">
         <DatabaseToggle />
       </div>
-      <div className="p-4 flex gap-2">
+      <div className="p-4 flex gap-3">
         <Input 
           value={userInput} 
           onChange={e => setUserInput(e.target.value)} 
           onKeyDown={handleKeyDown} 
           placeholder="Задайте ваш вопрос по математике..." 
-          className="flex-1 border-gray-200/70 focus:ring-primary/50 bg-white rounded-lg" 
+          className="flex-1 border-border focus:ring-primary/50 bg-background rounded-xl text-base py-3 px-4" 
           disabled={isTyping}
         />
         <Button 
           onClick={handleSendMessage} 
-          className="bg-primary hover:bg-primary/90 shadow-md transition-all duration-200 hover:scale-105" 
+          size="icon"
+          className="bg-primary hover:bg-primary/90 rounded-xl p-3 transition-all duration-200" 
           disabled={!userInput.trim() || isTyping}
         >
-          <Send className="h-5 w-5" />
+          <Send className="h-4 w-4" />
         </Button>
       </div>
     </div>
