@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle, ArrowLeft, Highlighter, MessageCircle, X, Trophy, PartyPopper, Menu } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -324,6 +325,7 @@ const courseStructure = createCourseStructure();
 const skillNames = createSkillNameMapping();
 
 const Textbook2 = () => {
+  const navigate = useNavigate();
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<{skillId: number, skillName: string} | null>(null);
   const [articleContent, setArticleContent] = useState<string>("");
@@ -883,7 +885,14 @@ const Textbook2 = () => {
   const ModuleSidebar = () => (
     <Sidebar className="w-72 border-r bg-background/95 backdrop-blur-sm fixed left-0 top-20 h-[calc(100vh-5rem)] z-10">
       <SidebarContent className="p-6">
-        <div className="mb-8">
+        <div className="mb-6">
+          <Button 
+            onClick={() => navigate('/textbook')}
+            variant="outline"
+            className="w-full mb-6 hover:bg-primary/10 hover:text-primary border-primary/30"
+          >
+            📖 Read as textbook
+          </Button>
           <h2 className="text-xl font-bold text-foreground mb-3">Модули курса</h2>
           <p className="text-base text-muted-foreground">Все 8 модулей всегда доступны</p>
         </div>
