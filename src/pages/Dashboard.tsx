@@ -109,7 +109,9 @@ const Dashboard = () => {
   };
   
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
+      <div className="flex flex-1 pt-16">
       {/* Sidebar */}
       <div className="w-64 bg-card border-r border-border flex flex-col">
         <div className="p-4 border-b border-border">
@@ -201,6 +203,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
