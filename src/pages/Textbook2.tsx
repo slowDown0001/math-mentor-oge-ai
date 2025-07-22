@@ -361,7 +361,7 @@ const Textbook2 = () => {
     setLoadingArticle(true);
     try {
       const { data, error } = await supabase
-        .from('articles2')
+        .from('articles3')
         .select('art')
         .eq('skill', skillId)
         .single();

@@ -74,11 +74,11 @@ const DigitalTextbook = () => {
     }
   }, [searchParams]);
 
-  // Fetch articles from Supabase articles2 table
+  // Fetch articles from Supabase articles3 table
   useEffect(() => {
     const fetchArticles = async () => {
       const { data, error } = await supabase
-        .from('articles2')
+        .from('articles3')
         .select('skill, art');
       
       if (error) {
