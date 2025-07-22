@@ -37,15 +37,6 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link 
-              to="/textbook" 
-              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                isActive('/textbook') ? 'text-primary' : 'text-gray-600 hover:text-primary'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" />
-              <span>Учебник</span>
-            </Link>
             
             <Link 
               to="/textbook2" 
@@ -163,16 +154,6 @@ const Header = () => {
             )}
             
             <nav className="flex flex-col space-y-2">
-              <Link 
-                to="/textbook" 
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-                  isActive('/textbook') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <BookOpen className="w-4 h-4" />
-                <span>Учебник</span>
-              </Link>
               
               <Link 
                 to="/textbook2" 

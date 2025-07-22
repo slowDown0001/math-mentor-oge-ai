@@ -891,7 +891,7 @@ const Textbook2 = () => {
             variant="outline"
             className="w-full mb-6 hover:bg-primary/10 hover:text-primary border-primary/30"
           >
-            📖 Read as textbook
+            📖 Читать как учебник
           </Button>
           <h2 className="text-xl font-bold text-foreground mb-3">Модули курса</h2>
           <p className="text-base text-muted-foreground">Все 8 модулей всегда доступны</p>
