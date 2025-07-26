@@ -125,6 +125,9 @@ const FipiBank = () => {
         : answer
     ));
 
+    // Auto-show answer after attempting
+    setShowAnswer(true);
+
     if (isCorrect && user) {
       const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
       setPointsGained(points);
@@ -173,6 +176,9 @@ const FipiBank = () => {
         ? { ...answer, userAnswer: userInput, isCorrect, attempted: true, solutionImage }
         : answer
     ));
+
+    // Auto-show answer after attempting
+    setShowAnswer(true);
 
     if (isCorrect && user) {
       const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
@@ -334,7 +340,17 @@ const FipiBank = () => {
                     />
                   </div>
 
-                  {!showAnswer && (
+                  {currentAnswer?.attempted && (
+                    <div className="space-y-2 mb-6">
+                      {currentQuestion.solution_text && (
+                        <Button onClick={() => setShowSolution(true)} variant="outline" className="w-full">
+                          Показать решение
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  {!currentAnswer?.attempted && (
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium mb-2">
@@ -346,6 +362,11 @@ const FipiBank = () => {
                           placeholder="Введите ответ"
                           onKeyPress={(e) => e.key === 'Enter' && submitAnswer()}
                         />
+                        
+                        {/* CHECK ANSWER button for all questions (under answer field) */}
+                        <Button onClick={submitAnswer} className="w-full mt-2">
+                          Проверить ответ
+                        </Button>
                       </div>
 
                       {currentQuestion.problem_number_type > 19 && (
@@ -375,33 +396,18 @@ const FipiBank = () => {
                               </span>
                             )}
                           </div>
+                          
+                          {/* CHECK SOLUTION button only when image is uploaded */}
+                          {solutionImage && (
+                            <Button onClick={checkSolution} className="w-full mt-2">
+                              Проверить решение
+                            </Button>
+                          )}
                         </div>
                       )}
-
-                      {currentQuestion.problem_number_type > 19 && solutionImage ? (
-                        <Button onClick={checkSolution} className="w-full">
-                          Проверить решение
-                        </Button>
-                      ) : (
-                        <Button onClick={submitAnswer} className="w-full">
-                          Проверить ответ
-                        </Button>
-                      )}
                     </div>
                   )}
 
-                  {currentAnswer?.attempted && (
-                    <div className="space-y-2">
-                      <Button onClick={() => setShowAnswer(true)} variant="outline" className="w-full">
-                        Показать ответ
-                      </Button>
-                      {currentQuestion.solution_text && (
-                        <Button onClick={() => setShowSolution(true)} variant="outline" className="w-full">
-                          Показать решение
-                        </Button>
-                      )}
-                    </div>
-                  )}
 
                   {(showAnswer || showSolution) && (
                     <div className="space-y-4">
