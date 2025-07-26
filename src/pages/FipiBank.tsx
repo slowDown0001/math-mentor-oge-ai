@@ -129,10 +129,15 @@ const FipiBank = () => {
       setPointsGained(points);
       setShowStreakAnimation(true);
       await awardEnergyPoints(user.id, 'practice_test', points);
-      setTimeout(() => setShowStreakAnimation(false), 2000);
+      
+      // Auto advance to next question after showing points animation
+      setTimeout(() => {
+        setShowStreakAnimation(false);
+        nextQuestion();
+      }, 2000);
+    } else {
+      setShowAnswer(true);
     }
-
-    setShowAnswer(true);
   };
 
   const nextQuestion = () => {
@@ -395,25 +400,6 @@ const FipiBank = () => {
                 </CardContent>
               </Card>
 
-              <div className="flex justify-center gap-2 flex-wrap">
-                {questions.map((_, index) => (
-                  <Button
-                    key={index}
-                    variant={index === currentIndex ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => goToQuestion(index)}
-                    className={`w-8 h-8 p-0 ${
-                      userAnswers[index]?.attempted
-                        ? userAnswers[index]?.isCorrect
-                          ? 'bg-green-100 border-green-300'
-                          : 'bg-red-100 border-red-300'
-                        : ''
-                    }`}
-                  >
-                    {index + 1}
-                  </Button>
-                ))}
-              </div>
             </div>
           </div>
         </div>
