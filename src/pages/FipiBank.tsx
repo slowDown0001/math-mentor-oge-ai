@@ -91,8 +91,25 @@ const FipiBank = () => {
         return;
       }
 
-      // Shuffle questions
-      const shuffled = [...data].sort(() => Math.random() - 0.5);
+      // ⚠️⚠️⚠️ TEMPORARY RULE - REMOVE THIS ASAP ⚠️⚠️⚠️
+      // 🚨🚨🚨 WARNING: TEMPORARY CODE BELOW - DELETE IMMEDIATELY 🚨🚨🚨
+      // TODO: REMOVE THIS TEMPORARY LOGIC FOR QUESTION 20 WITH ID 2677
+      // ⚠️⚠️⚠️ THIS IS A HACK AND SHOULD NOT STAY IN PRODUCTION ⚠️⚠️⚠️
+      
+      let shuffled = [...data].sort(() => Math.random() - 0.5);
+      
+      // TEMPORARY: Force question with id 2677 to be first for question type 20
+      if (selectedNumbers.includes(20)) {
+        const question2677Index = shuffled.findIndex(q => q.question_id === 2677);
+        if (question2677Index !== -1) {
+          const question2677 = shuffled[question2677Index];
+          shuffled = shuffled.filter(q => q.question_id !== 2677);
+          shuffled.unshift(question2677); // Put it first
+        }
+      }
+      
+      // 🚨🚨🚨 END OF TEMPORARY CODE - DELETE THIS ENTIRE BLOCK 🚨🚨🚨
+      
       setQuestions(shuffled);
       setUserAnswers(shuffled.map(q => ({
         questionId: q.question_id,
