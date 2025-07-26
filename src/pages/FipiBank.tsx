@@ -535,34 +535,32 @@ const FipiBank = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
-                  {questions.map((question, index) => (
-                    <Button
-                      key={question.question_id}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setCurrentIndex(index);
-                        setPhase('practice');
-                        setShowAnswer(true);
-                      }}
-                      className={`h-12 ${
-                        userAnswers[index]?.attempted
-                          ? userAnswers[index]?.isCorrect
+                  {questions.map((question, index) => 
+                    userAnswers[index]?.attempted ? (
+                      <Button
+                        key={question.question_id}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCurrentIndex(index);
+                          setPhase('practice');
+                          setShowAnswer(true);
+                        }}
+                        className={`h-12 ${
+                          userAnswers[index]?.isCorrect
                             ? 'bg-green-100 border-green-300 text-green-700'
                             : 'bg-red-100 border-red-300 text-red-700'
-                          : 'bg-gray-100'
-                      }`}
-                    >
-                      <div className="text-center">
-                        <div className="text-xs">№{question.problem_number_type}</div>
-                        <div className="text-[10px]">
-                          {userAnswers[index]?.attempted ? (
-                            userAnswers[index]?.isCorrect ? '✓' : '✗'
-                          ) : '—'}
+                        }`}
+                      >
+                        <div className="text-center">
+                          <div className="text-xs">№{question.problem_number_type}</div>
+                          <div className="text-[10px]">
+                            {userAnswers[index]?.isCorrect ? '✓' : '✗'}
+                          </div>
                         </div>
-                      </div>
-                    </Button>
-                  ))}
+                      </Button>
+                    ) : null
+                  )}
                 </div>
               </CardContent>
             </Card>
