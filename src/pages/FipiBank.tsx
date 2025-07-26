@@ -136,8 +136,6 @@ const FipiBank = () => {
         setShowStreakAnimation(false);
         nextQuestion();
       }, 2000);
-    } else {
-      setShowAnswer(true);
     }
   };
 
