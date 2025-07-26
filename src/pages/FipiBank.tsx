@@ -390,7 +390,7 @@ const FipiBank = () => {
                     </div>
                   )}
 
-                  {currentAnswer?.attempted && !showAnswer && !showSolution && (
+                  {currentAnswer?.attempted && (
                     <div className="space-y-2">
                       <Button onClick={() => setShowAnswer(true)} variant="outline" className="w-full">
                         Показать ответ
