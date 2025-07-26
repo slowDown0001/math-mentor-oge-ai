@@ -43,6 +43,7 @@ const FipiBank = () => {
   const [solutionImage, setSolutionImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
   const [showStreakAnimation, setShowStreakAnimation] = useState(false);
   const [pointsGained, setPointsGained] = useState(0);
 
@@ -144,6 +145,7 @@ const FipiBank = () => {
     setUserInput('');
     setSolutionImage(null);
     setShowAnswer(false);
+    setShowSolution(false);
     
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
@@ -156,6 +158,36 @@ const FipiBank = () => {
     setCurrentIndex(index);
     setUserInput(userAnswers[index]?.userAnswer || '');
     setShowAnswer(false);
+    setShowSolution(false);
+  };
+
+  const checkSolution = async () => {
+    if (!userInput.trim()) {
+      toast.error('Введите ответ');
+      return;
+    }
+
+    const currentQuestion = questions[currentIndex];
+    const isCorrect = userInput.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
+    
+    setUserAnswers(prev => prev.map((answer, index) => 
+      index === currentIndex 
+        ? { ...answer, userAnswer: userInput, isCorrect, attempted: true, solutionImage }
+        : answer
+    ));
+
+    if (isCorrect && user) {
+      const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
+      setPointsGained(points);
+      setShowStreakAnimation(true);
+      await awardEnergyPoints(user.id, 'practice_test', points);
+      
+      // Auto advance to next question after showing points animation
+      setTimeout(() => {
+        setShowStreakAnimation(false);
+        nextQuestion();
+      }, 2000);
+    }
   };
 
   const stopTest = () => {
@@ -272,7 +304,7 @@ const FipiBank = () => {
               <div className="mb-6 flex justify-between items-center">
                 <div className="flex items-center gap-4">
                   <Badge variant="outline">
-                    Вопрос {currentIndex + 1} из {questions.length}
+                    Вопрос {currentIndex + 1}
                   </Badge>
                   <Badge variant="secondary">
                     {correctAnswers} / {attemptedAnswers} правильно
@@ -283,8 +315,6 @@ const FipiBank = () => {
                   Остановить тест
                 </Button>
               </div>
-
-              <Progress value={(currentIndex / questions.length) * 100} className="mb-6" />
 
               <Card className="mb-6">
                 <CardContent className="pt-6">
@@ -350,13 +380,32 @@ const FipiBank = () => {
                         </div>
                       )}
 
-                      <Button onClick={submitAnswer} className="w-full">
-                        Проверить ответ
-                      </Button>
+                      {currentQuestion.problem_number_type > 19 && solutionImage ? (
+                        <Button onClick={checkSolution} className="w-full">
+                          Проверить решение
+                        </Button>
+                      ) : (
+                        <Button onClick={submitAnswer} className="w-full">
+                          Проверить ответ
+                        </Button>
+                      )}
                     </div>
                   )}
 
-                  {showAnswer && (
+                  {currentAnswer?.attempted && !showAnswer && !showSolution && (
+                    <div className="space-y-2">
+                      <Button onClick={() => setShowAnswer(true)} variant="outline" className="w-full">
+                        Показать ответ
+                      </Button>
+                      {currentQuestion.solution_text && (
+                        <Button onClick={() => setShowSolution(true)} variant="outline" className="w-full">
+                          Показать решение
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  {(showAnswer || showSolution) && (
                     <div className="space-y-4">
                       <div className={`flex items-center gap-2 ${currentAnswer.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
                         {currentAnswer.isCorrect ? (
@@ -377,17 +426,19 @@ const FipiBank = () => {
                         </div>
                       )}
 
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2">Правильный ответ:</h4>
-                        <p className="mb-3">{currentQuestion.answer}</p>
-                        
-                        {currentQuestion.solution_text && (
-                          <div>
-                            <h4 className="font-semibold mb-2">Решение:</h4>
-                            <MathRenderer text={currentQuestion.solution_text} />
-                          </div>
-                        )}
-                      </div>
+                      {showAnswer && (
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <h4 className="font-semibold mb-2">Правильный ответ:</h4>
+                          <p>{currentQuestion.answer}</p>
+                        </div>
+                      )}
+                      
+                      {showSolution && currentQuestion.solution_text && (
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <h4 className="font-semibold mb-2">Решение:</h4>
+                          <MathRenderer text={currentQuestion.solution_text} />
+                        </div>
+                      )}
 
                       <div className="flex gap-2">
                         <Button onClick={nextQuestion} className="flex-1">
@@ -399,6 +450,40 @@ const FipiBank = () => {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Question navigation grid */}
+              {userAnswers.some(a => a.attempted) && (
+                <Card className="mb-6">
+                  <CardContent className="pt-6">
+                    <div className="flex justify-center gap-2 flex-wrap">
+                      {questions.slice(0, currentIndex + 1).map((question, index) => (
+                        <Button
+                          key={question.question_id}
+                          variant={index === currentIndex ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => goToQuestion(index)}
+                          className={`w-12 h-12 p-0 ${
+                            userAnswers[index]?.attempted
+                              ? userAnswers[index]?.isCorrect
+                                ? 'bg-green-100 border-green-300 text-green-700'
+                                : 'bg-red-100 border-red-300 text-red-700'
+                              : ''
+                          }`}
+                        >
+                          <div className="text-center">
+                            <div className="text-xs">№{question.problem_number_type}</div>
+                            <div className="text-[10px]">
+                              {userAnswers[index]?.attempted ? (
+                                userAnswers[index]?.isCorrect ? '✓' : '✗'
+                              ) : '—'}
+                            </div>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
             </div>
           </div>
