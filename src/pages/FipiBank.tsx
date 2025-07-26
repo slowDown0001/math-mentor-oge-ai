@@ -357,15 +357,6 @@ const FipiBank = () => {
                     />
                   </div>
 
-                  {currentAnswer?.attempted && (
-                    <div className="space-y-2 mb-6">
-                      {currentQuestion.solution_text && (
-                        <Button onClick={() => setShowSolution(true)} variant="outline" className="w-full">
-                          Показать решение
-                        </Button>
-                      )}
-                    </div>
-                  )}
 
                   {!currentAnswer?.attempted && (
                     <div className="space-y-4">
@@ -452,6 +443,17 @@ const FipiBank = () => {
                           <h4 className="font-semibold mb-2">Правильный ответ:</h4>
                           <p>{currentQuestion.answer}</p>
                         </div>
+                      )}
+
+                      {showAnswer && currentQuestion.solution_text && (
+                        <Button 
+                          onClick={() => setShowSolution(true)} 
+                          variant="ghost" 
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-2"
+                        >
+                          📚 Показать решение
+                        </Button>
                       )}
                       
                       {showSolution && currentQuestion.solution_text && (
