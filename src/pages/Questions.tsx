@@ -6,6 +6,13 @@ import Header from "@/components/Header";
 const Questions = () => {
   const questionTypes = [
     {
+      title: "База ФИПИ",
+      description: "Практика с вопросами из официальной базы ФИПИ",
+      icon: Database,
+      link: "/fipi-bank",
+      color: "bg-red-50 hover:bg-red-100 border-red-200"
+    },
+    {
       title: "По теме",
       description: "Практика по конкретным темам и экзаменам",
       icon: ClipboardList,
