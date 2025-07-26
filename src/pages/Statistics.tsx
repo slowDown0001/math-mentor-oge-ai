@@ -1,17 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Target, TrendingUp } from "lucide-react";
+import { Calendar, Clock, Target, TrendingUp, Zap } from "lucide-react";
 import Header from "@/components/Header";
 import { useStudentSkills } from "@/hooks/useStudentSkills";
 import CastleVisualization from "@/components/CastleVisualization";
+import { getCurrentEnergyPoints } from "@/services/energyPoints";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Statistics = () => {
   const [practiceHours, setPracticeHours] = useState([2]);
+  const [energyPoints, setEnergyPoints] = useState(0);
+  const [loadingEnergy, setLoadingEnergy] = useState(true);
   const { topicProgress, generalPreparedness, isLoading, error } = useStudentSkills();
+  const { user } = useAuth();
 
   // Calculate predicted grade based on general preparedness and practice hours
   const calculatePredictedGrade = () => {
@@ -19,6 +24,20 @@ const Statistics = () => {
     const hoursBonus = Math.min(practiceHours[0] * 2, 15); // Max 15 points bonus for practice hours
     return Math.min(baseGrade + hoursBonus, 100);
   };
+
+  // Fetch energy points
+  useEffect(() => {
+    const fetchEnergyPoints = async () => {
+      if (user?.id) {
+        setLoadingEnergy(true);
+        const points = await getCurrentEnergyPoints(user.id);
+        setEnergyPoints(points);
+        setLoadingEnergy(false);
+      }
+    };
+
+    fetchEnergyPoints();
+  }, [user?.id]);
 
   // Calculate days until exam (May 20th, 2026)
   const examDate = new Date('2026-05-20');
@@ -65,6 +84,52 @@ const Statistics = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Статистика</h1>
             <p className="text-gray-600">Отслеживайте свой прогресс подготовки к ОГЭ</p>
           </div>
+
+          {/* Energy Points */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-yellow-500" />
+                Энергетические очки
+              </CardTitle>
+              <CardDescription>
+                Зарабатывайте очки за каждую выполненную активность
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingEnergy ? (
+                <div className="text-center py-4">
+                  <div className="text-gray-500">Загрузка...</div>
+                </div>
+              ) : (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="text-4xl font-bold text-yellow-600 mb-2">
+                      {energyPoints}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      очков заработано
+                    </div>
+                  </div>
+                  <Progress value={Math.min((energyPoints / 1000) * 100, 100)} className="h-3" />
+                  <div className="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>0</span>
+                    <span>1000+</span>
+                  </div>
+                  <div className="bg-yellow-50 p-4 rounded-lg mt-4">
+                    <p className="text-sm text-yellow-800">
+                      <strong>Как заработать очки:</strong><br />
+                      • Прочитать статью: +50 очков<br />
+                      • Посмотреть видео: +75 очков<br />
+                      • Решить задачу: +25 очков<br />
+                      • Ответить на вопрос: +15 очков<br />
+                      • Пройти тест: +100 очков
+                    </p>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Topic Progress */}

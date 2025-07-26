@@ -2055,6 +2055,7 @@ export type Database = {
           average_score: number
           completed_lessons: number
           created_at: string
+          energy_points: number
           id: string
           practice_problems: number
           quizzes_completed: number
@@ -2065,6 +2066,7 @@ export type Database = {
           average_score?: number
           completed_lessons?: number
           created_at?: string
+          energy_points?: number
           id?: string
           practice_problems?: number
           quizzes_completed?: number
@@ -2075,6 +2077,7 @@ export type Database = {
           average_score?: number
           completed_lessons?: number
           created_at?: string
+          energy_points?: number
           id?: string
           practice_problems?: number
           quizzes_completed?: number
