@@ -81,7 +81,7 @@ const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
   };
 
   useEffect(() => {
-    if (!containerRef.current || !text) return;
+    if (!containerRef.current || !text.trim()) return;
     
     try {
       // Check if text contains markdown links
@@ -91,10 +91,19 @@ const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
         // No links, use original MathJax rendering
         containerRef.current.innerHTML = text;
         
-        if (window.MathJax) {
-          window.MathJax.typesetPromise([containerRef.current]).catch((err) => {
-            console.error('MathJax error:', err);
-          });
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          // Add a small delay to ensure DOM is ready
+          setTimeout(() => {
+            if (containerRef.current) {
+              window.MathJax.typesetPromise([containerRef.current]).catch((err) => {
+                console.error('MathJax error:', err);
+                // Fallback: display raw text if MathJax fails
+                if (containerRef.current) {
+                  containerRef.current.textContent = text;
+                }
+              });
+            }
+          }, 10);
         }
       }
     } catch (error) {
