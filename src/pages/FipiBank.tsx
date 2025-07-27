@@ -212,10 +212,37 @@ const FipiBank = () => {
     setIsMarking(true);
     
     // Show 2-second animation before displaying marking solution
-    setTimeout(() => {
-      setMarkingSolution("HUIIIIII");
-      setShowMarkingSolution(true);
-      setIsMarking(false);
+    setTimeout(async () => {
+      try {
+        console.log('🔍 FETCHING MARKING SOLUTION...');
+        // Fetch marking solution from the marking table
+        const { data: markingData, error: markingError } = await supabaseLib
+          .from('marking')
+          .select('text')
+          .eq('id', 1)
+          .maybeSingle();
+        
+        if (markingError) {
+          console.error('❌ Error fetching marking solution:', markingError);
+          toast.error('Ошибка при загрузке решения');
+          setMarkingSolution("Ошибка загрузки решения");
+        } else if (markingData) {
+          console.log('✅ MARKING FETCH SUCCESS:', markingData.text);
+          setMarkingSolution(markingData.text);
+        } else {
+          console.log('⚠️ No marking data found');
+          setMarkingSolution("Решение не найдено");
+        }
+        
+        setShowMarkingSolution(true);
+      } catch (error) {
+        console.error('💥 Error fetching marking solution:', error);
+        toast.error('Ошибка при загрузке решения');
+        setMarkingSolution("Произошла ошибка");
+        setShowMarkingSolution(true);
+      } finally {
+        setIsMarking(false);
+      }
     }, 2000);
 
     if (isCorrect && user) {
