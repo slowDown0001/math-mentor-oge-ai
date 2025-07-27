@@ -51,6 +51,7 @@ const FipiBank = () => {
   const [pointsGained, setPointsGained] = useState(0);
   const [markingSolution, setMarkingSolution] = useState<string>('');
   const [isMarking, setIsMarking] = useState(false);
+  const [showMarkingSolution, setShowMarkingSolution] = useState(false);
 
   const questionGroups = [
     { label: 'Все вопросы', numbers: Array.from({length: 26}, (_, i) => i + 1) },
@@ -175,6 +176,9 @@ const FipiBank = () => {
     setSolutionImage(null);
     setShowAnswer(false);
     setShowSolution(false);
+    setShowMarkingSolution(false);
+    setMarkingSolution('');
+    setIsMarking(false);
     
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
@@ -233,7 +237,7 @@ const FipiBank = () => {
     // Simulate marking delay
     setTimeout(() => {
       setIsMarking(false);
-      setShowSolution(true);
+      setShowMarkingSolution(true);
     }, 2000);
 
     if (isCorrect && user) {
@@ -634,7 +638,7 @@ const FipiBank = () => {
                         </div>
                       )}
 
-                      {showSolution && markingSolution && !isMarking && (
+                      {showMarkingSolution && markingSolution && !isMarking && (
                         <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200 animate-fade-in">
                           <h4 className="font-semibold mb-4 text-purple-800 flex items-center gap-2">
                             <span className="text-xl">🧑‍🏫</span>
