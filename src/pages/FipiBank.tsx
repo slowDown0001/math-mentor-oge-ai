@@ -428,11 +428,18 @@ const FipiBank = () => {
                             {solutionImage && (
                               <div className="mt-4 space-y-3 animate-fade-in">
                                 <div className="p-3 bg-white/80 rounded-lg border border-blue-200">
-                                  <div className="flex items-center justify-center gap-2">
+                                  <div className="flex items-center justify-center gap-2 mb-3">
                                     <CheckCircle className="w-5 h-5 text-green-600" />
                                     <span className="text-sm font-medium text-green-700">
                                       {solutionImage.name}
                                     </span>
+                                  </div>
+                                  <div className="flex justify-center">
+                                    <img 
+                                      src={URL.createObjectURL(solutionImage)} 
+                                      alt="Uploaded solution"
+                                      className="max-w-full max-h-64 object-contain rounded-lg border border-gray-200 shadow-sm"
+                                    />
                                   </div>
                                 </div>
                                 <Button 
@@ -537,11 +544,18 @@ const FipiBank = () => {
                             {solutionImage && (
                               <div className="mt-4 space-y-3 animate-fade-in">
                                 <div className="p-3 bg-white/80 rounded-lg border border-blue-200">
-                                  <div className="flex items-center justify-center gap-2">
+                                  <div className="flex items-center justify-center gap-2 mb-3">
                                     <CheckCircle className="w-5 h-5 text-green-600" />
                                     <span className="text-sm font-medium text-green-700">
                                       {solutionImage.name}
                                     </span>
+                                  </div>
+                                  <div className="flex justify-center">
+                                    <img 
+                                      src={URL.createObjectURL(solutionImage)} 
+                                      alt="Uploaded solution"
+                                      className="max-w-full max-h-64 object-contain rounded-lg border border-gray-200 shadow-sm"
+                                    />
                                   </div>
                                 </div>
                                 <Button 
