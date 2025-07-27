@@ -196,6 +196,7 @@ const FipiBank = () => {
   };
 
   const checkSolution = async () => {
+    console.log('✨ CHECK SOLUTION CLICKED');
     const currentQuestion = questions[currentIndex];
     const isCorrect = userInput.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
     
@@ -209,6 +210,7 @@ const FipiBank = () => {
     setShowAnswer(true);
 
     try {
+      console.log('🔍 FETCHING MARKING SOLUTION...');
       // Fetch marking solution directly from the marking table using the lib client
       const { data: markingData, error: markingError } = await supabaseLib
         .from('marking')
@@ -217,15 +219,18 @@ const FipiBank = () => {
         .maybeSingle();
       
       if (markingError) {
-        console.error('Error fetching marking solution:', markingError);
+        console.error('❌ Error fetching marking solution:', markingError);
         toast.error('Ошибка при загрузке решения');
       } else if (markingData) {
-        console.log('MARKING FETCH RESULT:', markingData);
+        console.log('✅ MARKING FETCH SUCCESS:', markingData.text);
         setMarkingSolution(markingData.text);
         setShowMarkingSolution(true);
+        console.log('✅ STATES SET - markingSolution:', markingData.text, 'showMarkingSolution:', true);
+      } else {
+        console.log('⚠️ No marking data found');
       }
     } catch (error) {
-      console.error('Error fetching marking solution:', error);
+      console.error('💥 Error fetching marking solution:', error);
       toast.error('Ошибка при загрузке решения');
     }
 
@@ -627,13 +632,22 @@ const FipiBank = () => {
                         </div>
                       )}
 
-                      {showMarkingSolution && markingSolution && !isMarking && (
+                      {showMarkingSolution && markingSolution && (
                         <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200 animate-fade-in">
                           <h4 className="font-semibold mb-4 text-purple-800 flex items-center gap-2">
                             <span className="text-xl">🧑‍🏫</span>
                             Разбор решения от учителя:
                           </h4>
-                          <MathRenderer text={markingSolution} className="text-sm" />
+                          <div className="space-y-4">
+                            <MathRenderer text={markingSolution} className="text-sm" />
+                            <div className="bg-white/50 p-3 rounded border text-xs text-gray-600">
+                              <strong>Fallback (raw content):</strong>
+                              <pre className="whitespace-pre-wrap mt-1">{markingSolution}</pre>
+                            </div>
+                          </div>
+                          <div className="mt-2 text-xs text-gray-500">
+                            Debug: showMarkingSolution={String(showMarkingSolution)}, content length={markingSolution.length}
+                          </div>
                         </div>
                       )}
 
