@@ -473,13 +473,20 @@ const FipiBank = () => {
                         </div>
                       )}
 
-                      {/* Additional solution upload for questions 20-26 after answering */}
+                      {/* Enhanced solution upload for questions 20-26 */}
                       {currentQuestion.problem_number_type > 19 && (
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Загрузите решение:
-                          </label>
-                          <div className="flex items-center gap-2">
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:border-blue-400 animate-fade-in">
+                          <div className="text-center">
+                            <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                              <Upload className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                              Загрузите ваше решение
+                            </h3>
+                            <p className="text-sm text-blue-700 mb-4">
+                              Покажите ход решения для получения полной оценки
+                            </p>
+                            
                             <input
                               type="file"
                               accept="image/*"
@@ -488,25 +495,38 @@ const FipiBank = () => {
                               id="solution-upload-after"
                             />
                             <label htmlFor="solution-upload-after">
-                              <Button variant="outline" size="sm" asChild>
-                                <span>
-                                  <Upload className="w-4 h-4 mr-1" />
-                                  Выбрать файл
+                              <Button 
+                                variant="default" 
+                                size="lg" 
+                                asChild
+                                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                              >
+                                <span className="cursor-pointer">
+                                  <Upload className="w-5 h-5 mr-2" />
+                                  Выбрать изображение
                                 </span>
                               </Button>
                             </label>
+                            
                             {solutionImage && (
-                              <span className="text-sm text-gray-600">
-                                {solutionImage.name}
-                              </span>
+                              <div className="mt-4 space-y-3 animate-fade-in">
+                                <div className="p-3 bg-white/80 rounded-lg border border-blue-200">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <CheckCircle className="w-5 h-5 text-green-600" />
+                                    <span className="text-sm font-medium text-green-700">
+                                      {solutionImage.name}
+                                    </span>
+                                  </div>
+                                </div>
+                                <Button 
+                                  onClick={checkSolution} 
+                                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                                >
+                                  ✨ Проверить решение
+                                </Button>
+                              </div>
                             )}
                           </div>
-                          
-                          {solutionImage && (
-                            <Button onClick={checkSolution} className="w-full mt-2">
-                              Проверить решение
-                            </Button>
-                          )}
                         </div>
                       )}
 
