@@ -547,26 +547,6 @@ const FipiBank = () => {
                         </div>
                       )}
 
-                      {/* Marking animation and solution */}
-                      {isMarking && (
-                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 animate-pulse">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-4 h-4 bg-yellow-500 rounded-full animate-bounce"></div>
-                            <h4 className="font-semibold text-yellow-800">Проверяем решение...</h4>
-                          </div>
-                          <p className="text-yellow-700 text-sm">Анализируем ваш ответ и готовим подробную обратную связь</p>
-                        </div>
-                      )}
-
-                      {showSolution && markingSolution && !isMarking && (
-                        <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200 animate-fade-in">
-                          <h4 className="font-semibold mb-4 text-purple-800 flex items-center gap-2">
-                            <span className="text-xl">🧑‍🏫</span>
-                            Разбор решения от учителя:
-                          </h4>
-                          <MathRenderer text={markingSolution} className="text-sm" />
-                        </div>
-                      )}
 
                       {/* Enhanced solution upload for questions 20-26 */}
                       {currentQuestion.problem_number_type > 19 && (
@@ -631,7 +611,7 @@ const FipiBank = () => {
                                     </Dialog>
                                   </div>
                                 </div>
-                                <Button 
+                                 <Button 
                                   onClick={checkSolution} 
                                   className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                                 >
@@ -640,6 +620,27 @@ const FipiBank = () => {
                               </div>
                             )}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Marking animation and solution after uploaded image */}
+                      {isMarking && (
+                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 animate-pulse">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-4 h-4 bg-yellow-500 rounded-full animate-bounce"></div>
+                            <h4 className="font-semibold text-yellow-800">Проверяем решение...</h4>
+                          </div>
+                          <p className="text-yellow-700 text-sm">Анализируем ваш ответ и готовим подробную обратную связь</p>
+                        </div>
+                      )}
+
+                      {showSolution && markingSolution && !isMarking && (
+                        <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200 animate-fade-in">
+                          <h4 className="font-semibold mb-4 text-purple-800 flex items-center gap-2">
+                            <span className="text-xl">🧑‍🏫</span>
+                            Разбор решения от учителя:
+                          </h4>
+                          <MathRenderer text={markingSolution} className="text-sm" />
                         </div>
                       )}
 
