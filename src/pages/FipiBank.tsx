@@ -426,13 +426,21 @@ const FipiBank = () => {
                             </label>
                             
                             {solutionImage && (
-                              <div className="mt-4 p-3 bg-white/80 rounded-lg border border-blue-200 animate-fade-in">
-                                <div className="flex items-center justify-center gap-2">
-                                  <CheckCircle className="w-5 h-5 text-green-600" />
-                                  <span className="text-sm font-medium text-green-700">
-                                    {solutionImage.name}
-                                  </span>
+                              <div className="mt-4 space-y-3 animate-fade-in">
+                                <div className="p-3 bg-white/80 rounded-lg border border-blue-200">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <CheckCircle className="w-5 h-5 text-green-600" />
+                                    <span className="text-sm font-medium text-green-700">
+                                      {solutionImage.name}
+                                    </span>
+                                  </div>
                                 </div>
+                                <Button 
+                                  onClick={checkSolution} 
+                                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                                >
+                                  ✨ Проверить решение
+                                </Button>
                               </div>
                             )}
                           </div>
