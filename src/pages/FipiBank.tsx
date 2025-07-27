@@ -213,7 +213,7 @@ const FipiBank = () => {
   };
 
   const stopTest = () => {
-    setPhase('review');
+    setPhase('summary');
   };
 
   const goToReviewQuestion = (index: number) => {
@@ -439,9 +439,9 @@ const FipiBank = () => {
                       </div>
 
                       {currentAnswer.isCorrect && (
-                        <div className="bg-green-50 p-3 rounded-lg">
-                          <p className="text-green-700 font-medium">
-                            🎉 Получено {currentQuestion.problem_number_type <= 19 ? 100 : 200} баллов
+                        <div className="bg-green-50/50 p-2 rounded-md">
+                          <p className="text-green-600 text-sm">
+                            +{currentQuestion.problem_number_type <= 19 ? 100 : 200} баллов
                           </p>
                         </div>
                       )}
