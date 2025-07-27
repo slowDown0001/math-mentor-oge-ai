@@ -642,13 +642,6 @@ const FipiBank = () => {
                           </h4>
                           <div className="space-y-4">
                             <MathRenderer text={markingSolution} className="text-sm" />
-                            <div className="bg-white/50 p-3 rounded border text-xs text-gray-600">
-                              <strong>Fallback (raw content):</strong>
-                              <pre className="whitespace-pre-wrap mt-1">{markingSolution}</pre>
-                            </div>
-                          </div>
-                          <div className="mt-2 text-xs text-gray-500">
-                            Debug: showMarkingSolution={String(showMarkingSolution)}, content length={markingSolution.length}
                           </div>
                         </div>
                       )}
