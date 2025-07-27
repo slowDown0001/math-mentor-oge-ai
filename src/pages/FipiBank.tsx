@@ -151,11 +151,11 @@ const FipiBank = () => {
       setShowStreakAnimation(true);
       await awardEnergyPoints(user.id, 'practice_test', points);
       
-      // Auto advance to next question after showing points animation
+      // Auto advance to next question after 3 seconds
       setTimeout(() => {
         setShowStreakAnimation(false);
         nextQuestion();
-      }, 2000);
+      }, 3000);
     }
   };
 
@@ -471,12 +471,14 @@ const FipiBank = () => {
                         </div>
                       )}
 
-                      <div className="flex gap-2">
-                        <Button onClick={nextQuestion} className="flex-1">
-                          {currentIndex < questions.length - 1 ? 'Следующий вопрос' : 'Завершить тест'}
-                          <ArrowRight className="w-4 h-4 ml-1" />
-                        </Button>
-                      </div>
+                       {!currentAnswer.isCorrect && (
+                        <div className="flex gap-2">
+                          <Button onClick={nextQuestion} className="flex-1">
+                            {currentIndex < questions.length - 1 ? 'Следующий вопрос' : 'Завершить тест'}
+                            <ArrowRight className="w-4 h-4 ml-1" />
+                          </Button>
+                        </div>
+                       )}
                     </div>
                   )}
                 </CardContent>
@@ -488,10 +490,11 @@ const FipiBank = () => {
         </div>
 
         {showStreakAnimation && (
-          <PointsAnimation 
-            points={pointsGained}
-            onComplete={() => setShowStreakAnimation(false)}
-          />
+          <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50">
+            <div className="bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded-lg shadow-lg animate-fade-in">
+              +{pointsGained} баллов
+            </div>
+          </div>
         )}
       </div>
     );
