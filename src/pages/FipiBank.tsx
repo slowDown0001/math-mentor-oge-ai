@@ -196,8 +196,6 @@ const FipiBank = () => {
   };
 
   const checkSolution = async () => {
-
-
     const currentQuestion = questions[currentIndex];
     const isCorrect = userInput.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
     
@@ -210,33 +208,26 @@ const FipiBank = () => {
     // Auto-show answer after attempting
     setShowAnswer(true);
 
-    setIsMarking(true);
-    
-    // Simulate marking delay
-    setTimeout(async () => {
-      try {
-        // Fetch marking solution directly from the marking table using the lib client
-        const { data: markingData, error: markingError } = await supabaseLib
-          .from('marking')
-          .select('text')
-          .eq('id', 1)
-          .maybeSingle();
-        
-        if (markingError) {
-          console.error('Error fetching marking solution:', markingError);
-          toast.error('Ошибка при загрузке решения');
-        } else if (markingData) {
-          console.log('MARKING FETCH RESULT:', markingData);
-          setMarkingSolution(markingData.text);
-          setShowMarkingSolution(true);
-        }
-      } catch (error) {
-        console.error('Error fetching marking solution:', error);
+    try {
+      // Fetch marking solution directly from the marking table using the lib client
+      const { data: markingData, error: markingError } = await supabaseLib
+        .from('marking')
+        .select('text')
+        .eq('id', 1)
+        .maybeSingle();
+      
+      if (markingError) {
+        console.error('Error fetching marking solution:', markingError);
         toast.error('Ошибка при загрузке решения');
-      } finally {
-        setIsMarking(false);
+      } else if (markingData) {
+        console.log('MARKING FETCH RESULT:', markingData);
+        setMarkingSolution(markingData.text);
+        setShowMarkingSolution(true);
       }
-    }, 2000);
+    } catch (error) {
+      console.error('Error fetching marking solution:', error);
+      toast.error('Ошибка при загрузке решения');
+    }
 
     if (isCorrect && user) {
       const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
