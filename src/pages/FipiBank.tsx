@@ -448,6 +448,7 @@ const FipiBank = () => {
 
                       {showAnswer && (
                         <div className="bg-blue-50 p-4 rounded-lg">
+                          <h4 className="font-semibold mb-2">Ваш ответ: {currentAnswer.userAnswer}</h4>
                           <h4 className="font-semibold mb-2">Правильный ответ:</h4>
                           <p>{currentQuestion.answer}</p>
                         </div>
