@@ -47,27 +47,6 @@ const FipiBank = () => {
   const [showSolution, setShowSolution] = useState(false);
   const [showStreakAnimation, setShowStreakAnimation] = useState(false);
   const [pointsGained, setPointsGained] = useState(0);
-  const [isThinking, setIsThinking] = useState(false);
-  const [showFeedback, setShowFeedback] = useState(false);
-  
-  const [markingContent, setMarkingContent] = useState('');
-
-  // Load marking content from file
-  useEffect(() => {
-    const loadMarkingContent = async () => {
-      try {
-        const response = await fetch('/documentation/marking.txt');
-        const content = await response.text();
-        setMarkingContent(content);
-      } catch (error) {
-        console.error('Error loading marking content:', error);
-        setMarkingContent('Ошибка загрузки анализа решения.');
-      }
-    };
-    
-    loadMarkingContent();
-  }, []);
-
 
   const questionGroups = [
     { label: 'Все вопросы', numbers: Array.from({length: 26}, (_, i) => i + 1) },
@@ -214,40 +193,30 @@ const FipiBank = () => {
       return;
     }
 
-    // Start thinking animation
-    setIsThinking(true);
-    setShowFeedback(false);
+    const currentQuestion = questions[currentIndex];
+    const isCorrect = userInput.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
     
-    // Simulate thinking delay
-    setTimeout(async () => {
-      setIsThinking(false);
-      setShowFeedback(true);
-      
-      const currentQuestion = questions[currentIndex];
-      const isCorrect = userInput.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
-      
-      setUserAnswers(prev => prev.map((answer, index) => 
-        index === currentIndex 
-          ? { ...answer, userAnswer: userInput, isCorrect, attempted: true, solutionImage }
-          : answer
-      ));
+    setUserAnswers(prev => prev.map((answer, index) => 
+      index === currentIndex 
+        ? { ...answer, userAnswer: userInput, isCorrect, attempted: true, solutionImage }
+        : answer
+    ));
 
-      // Auto-show answer after attempting
-      setShowAnswer(true);
+    // Auto-show answer after attempting
+    setShowAnswer(true);
 
-      if (isCorrect && user) {
-        const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
-        setPointsGained(points);
-        setShowStreakAnimation(true);
-        await awardEnergyPoints(user.id, 'practice_test', points);
-        
-        // Auto advance to next question after showing points animation
-        setTimeout(() => {
-          setShowStreakAnimation(false);
-          nextQuestion();
-        }, 2000);
-      }
-    }, 2000); // 2 second thinking animation
+    if (isCorrect && user) {
+      const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
+      setPointsGained(points);
+      setShowStreakAnimation(true);
+      await awardEnergyPoints(user.id, 'practice_test', points);
+      
+      // Auto advance to next question after showing points animation
+      setTimeout(() => {
+        setShowStreakAnimation(false);
+        nextQuestion();
+      }, 2000);
+    }
   };
 
   const stopTest = () => {
@@ -644,34 +613,6 @@ const FipiBank = () => {
                 </CardContent>
               </Card>
 
-              {/* Thinking Animation for questions 20-26 */}
-              {currentQuestion.problem_number_type > 19 && isThinking && (
-                <Card className="mb-6">
-                  <CardContent className="pt-6">
-                    <div className="text-center py-8">
-                      <div className="w-16 h-16 mx-auto mb-4 relative">
-                        <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                      </div>
-                      <p className="text-lg text-gray-600 mb-2">Анализирую ваше решение...</p>
-                      <p className="text-sm text-gray-500">Пожалуйста, подождите</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Feedback Display for questions 20-26 */}
-              {currentQuestion.problem_number_type > 19 && showFeedback && (
-                <Card className="mb-6">
-                  <CardHeader>
-                    <CardTitle className="text-center">📋 Анализ вашего решения</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-white p-6 rounded-lg border border-gray-200">
-                      <MathRenderer text={markingContent} />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
 
             </div>
           </div>
