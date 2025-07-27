@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +48,115 @@ const FipiBank = () => {
   const [showSolution, setShowSolution] = useState(false);
   const [showStreakAnimation, setShowStreakAnimation] = useState(false);
   const [pointsGained, setPointsGained] = useState(0);
+  const [isThinking, setIsThinking] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  
+  const markingContent = `\\[
+\\textbf{Рассмотрим твое решение:}
+\\]
+
+\\[
+\\begin{aligned}
+&2x^2 + 3y^2 = 21 &&\\text{(1)} \\\\
+&6x^2 + 9y^2 = 21x &&\\text{(2)}
+\\end{aligned}
+\\]
+
+\\[
+\\text{Ты умножаешь первое уравнение на 3:}
+\\]
+
+\\[
+\\textcolor{red}{
+\\text{Комментарий: левая часть действительно стала } 6x^2 + 9y^2, \\text{ но правая часть должна быть } 3 \\cdot 21 = 63, \\text{ а не } 21x.
+}
+\\]
+
+\\[
+\\text{Ты записываешь систему:}
+\\]
+
+\\[
+\\begin{cases}
+6x^2 + 9y^2 = 21 \\quad \\textcolor{red}{\\text{(❌ Ошибка! — должно быть 63)}} \\\\
+6x^2 + 9y^2 = 21x
+\\end{cases}
+\\\\
+\\Rightarrow \\text{Вычитаешь:}
+\\]
+
+\\[
+\\textcolor{red}{
+0 = 21x - 21 \\quad \\Rightarrow \\quad x = -1 \\quad \\text{❌ Ошибка! Решение вашего уравнения дает x=1}
+}
+\\]
+
+\\[
+\\textcolor{red}{
+\\text{Комментарий: правильное вычитание даёт } 63 - 21x = 0 \\Rightarrow x = 3.
+}
+\\]
+
+\\[
+\\text{Подстановка } x = \\textcolor{red}{-1} \\text{ в (1):}
+\\quad 2(-1)^2 + 3y^2 = 21 \\Rightarrow 2 + 3y^2 = 21
+\\Rightarrow 3y^2 = 19 \\Rightarrow y^2 = \\frac{19}{3} \\Rightarrow y = \\textcolor{red}{\\pm} \\sqrt{\\frac{19}{3}}
+\\]
+
+\\[
+\\textcolor{red}{
+\\boxed{\\text{Ошибка: значение } x \\text{ неверное, поэтому } y \\text{ тоже посчитан неправильно. Также не забывай про знак "плюс-минус"}}
+}
+\\]
+
+\\[
+\\\\[2ex]
+
+\\textbf{✔️ Теперь решим систему правильно:}
+\\]
+
+\\[
+\\begin{cases}
+2x^2 + 3y^2 = 21 \\\\
+6x^2 + 9y^2 = 21x
+\\end{cases}
+\\]
+
+\\[
+\\text{Умножим первое уравнение на 3:}
+\\quad 3(2x^2 + 3y^2) = 3 \\cdot 21 \\Rightarrow 6x^2 + 9y^2 = 63
+\\]
+
+\\[
+\\text{Теперь вычтем:} \\quad 6x^2 + 9y^2 = 63 \\quad \\text{и} \\quad 6x^2 + 9y^2 = 21x
+\\Rightarrow 63 = 21x \\Rightarrow x = 3
+\\]
+
+\\[
+\\text{Подставим } x = 3 \\text{ в первое уравнение:}
+\\quad 2(3)^2 + 3y^2 = 21 \\Rightarrow 18 + 3y^2 = 21
+\\Rightarrow 3y^2 = 3 \\Rightarrow y^2 = 1 \\Rightarrow y = \\pm 1
+\\]
+
+\\[
+\\textbf{Ответ:} \\quad \\boxed{(3, 1) \\quad \\text{и} \\quad (3, -1)}
+\\]
+
+\\[
+
+\\textbf{🧑‍🏫 Комментарии учителя:}
+\\]
+
+\\begin{array}{ll}
+\\bullet & \\text{Внимательно проверяй, что ты умножаешь обе части уравнения — и левую, и правую!} \\\\
+\\bullet & \\text{После преобразований всегда пересматривай, правильно ли ты подставил значения.} \\\\
+\\bullet & \\text{Не забывай про } \\pm \\text{ при извлечении корня!} \\\\
+\\bullet & \\text{Не торопись — одна ошибка в начале ведёт к цепочке неверных вычислений.}
+\\end{array}
+
+\\[
+{\\text{👍 У тебя хорошая структура решения, но нужно быть внимательнее с вычислениями!}}
+\\]`;
 
   const questionGroups = [
     { label: 'Все вопросы', numbers: Array.from({length: 26}, (_, i) => i + 1) },
@@ -193,30 +303,40 @@ const FipiBank = () => {
       return;
     }
 
-    const currentQuestion = questions[currentIndex];
-    const isCorrect = userInput.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
+    // Start thinking animation
+    setIsThinking(true);
+    setShowFeedback(false);
     
-    setUserAnswers(prev => prev.map((answer, index) => 
-      index === currentIndex 
-        ? { ...answer, userAnswer: userInput, isCorrect, attempted: true, solutionImage }
-        : answer
-    ));
-
-    // Auto-show answer after attempting
-    setShowAnswer(true);
-
-    if (isCorrect && user) {
-      const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
-      setPointsGained(points);
-      setShowStreakAnimation(true);
-      await awardEnergyPoints(user.id, 'practice_test', points);
+    // Simulate thinking delay
+    setTimeout(async () => {
+      setIsThinking(false);
+      setShowFeedback(true);
       
-      // Auto advance to next question after showing points animation
-      setTimeout(() => {
-        setShowStreakAnimation(false);
-        nextQuestion();
-      }, 2000);
-    }
+      const currentQuestion = questions[currentIndex];
+      const isCorrect = userInput.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
+      
+      setUserAnswers(prev => prev.map((answer, index) => 
+        index === currentIndex 
+          ? { ...answer, userAnswer: userInput, isCorrect, attempted: true, solutionImage }
+          : answer
+      ));
+
+      // Auto-show answer after attempting
+      setShowAnswer(true);
+
+      if (isCorrect && user) {
+        const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
+        setPointsGained(points);
+        setShowStreakAnimation(true);
+        await awardEnergyPoints(user.id, 'practice_test', points);
+        
+        // Auto advance to next question after showing points animation
+        setTimeout(() => {
+          setShowStreakAnimation(false);
+          nextQuestion();
+        }, 2000);
+      }
+    }, 2000); // 2 second thinking animation
   };
 
   const stopTest = () => {
@@ -613,6 +733,34 @@ const FipiBank = () => {
                 </CardContent>
               </Card>
 
+              {/* Thinking Animation for questions 20-26 */}
+              {currentQuestion.problem_number_type > 19 && isThinking && (
+                <Card className="mb-6">
+                  <CardContent className="pt-6">
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 mx-auto mb-4 relative">
+                        <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                      </div>
+                      <p className="text-lg text-gray-600 mb-2">Анализирую ваше решение...</p>
+                      <p className="text-sm text-gray-500">Пожалуйста, подождите</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Feedback Display for questions 20-26 */}
+              {currentQuestion.problem_number_type > 19 && showFeedback && (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle className="text-center">📋 Анализ вашего решения</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-white p-6 rounded-lg border border-gray-200">
+                      <MathRenderer text={markingContent} />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
             </div>
           </div>
