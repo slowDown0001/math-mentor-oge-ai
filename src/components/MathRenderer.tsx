@@ -92,18 +92,13 @@ const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
         containerRef.current.innerHTML = text;
         
         if (window.MathJax && window.MathJax.typesetPromise) {
-          // Add a small delay to ensure DOM is ready
-          setTimeout(() => {
+          window.MathJax.typesetPromise([containerRef.current]).catch((err) => {
+            console.error('MathJax error:', err);
+            // Fallback: display raw text if MathJax fails
             if (containerRef.current) {
-              window.MathJax.typesetPromise([containerRef.current]).catch((err) => {
-                console.error('MathJax error:', err);
-                // Fallback: display raw text if MathJax fails
-                if (containerRef.current) {
-                  containerRef.current.textContent = text;
-                }
-              });
+              containerRef.current.textContent = text;
             }
-          }, 10);
+          });
         }
       }
     } catch (error) {
