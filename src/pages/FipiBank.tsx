@@ -226,6 +226,7 @@ const FipiBank = () => {
           console.error('Error fetching marking solution:', markingError);
           toast.error('Ошибка при загрузке решения');
         } else if (markingData) {
+          console.log('MARKING FETCH RESULT:', markingData);
           setMarkingSolution(markingData.text);
           setShowMarkingSolution(true);
         }
