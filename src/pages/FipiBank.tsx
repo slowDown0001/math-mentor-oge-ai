@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Upload, ArrowLeft, ArrowRight, StopCircle, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -435,11 +436,22 @@ const FipiBank = () => {
                                     </span>
                                   </div>
                                   <div className="flex justify-center">
-                                    <img 
-                                      src={URL.createObjectURL(solutionImage)} 
-                                      alt="Uploaded solution"
-                                      className="max-w-full max-h-64 object-contain rounded-lg border border-gray-200 shadow-sm"
-                                    />
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <img 
+                                          src={URL.createObjectURL(solutionImage)} 
+                                          alt="Uploaded solution"
+                                          className="max-w-full max-h-64 object-contain rounded-lg border border-gray-200 shadow-sm cursor-pointer hover:shadow-lg transition-shadow"
+                                        />
+                                      </DialogTrigger>
+                                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                                        <img 
+                                          src={URL.createObjectURL(solutionImage)} 
+                                          alt="Uploaded solution - full size"
+                                          className="w-full h-auto"
+                                        />
+                                      </DialogContent>
+                                    </Dialog>
                                   </div>
                                 </div>
                                 <Button 
@@ -551,11 +563,22 @@ const FipiBank = () => {
                                     </span>
                                   </div>
                                   <div className="flex justify-center">
-                                    <img 
-                                      src={URL.createObjectURL(solutionImage)} 
-                                      alt="Uploaded solution"
-                                      className="max-w-full max-h-64 object-contain rounded-lg border border-gray-200 shadow-sm"
-                                    />
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <img 
+                                          src={URL.createObjectURL(solutionImage)} 
+                                          alt="Uploaded solution"
+                                          className="max-w-full max-h-64 object-contain rounded-lg border border-gray-200 shadow-sm cursor-pointer hover:shadow-lg transition-shadow"
+                                        />
+                                      </DialogTrigger>
+                                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                                        <img 
+                                          src={URL.createObjectURL(solutionImage)} 
+                                          alt="Uploaded solution - full size"
+                                          className="w-full h-auto"
+                                        />
+                                      </DialogContent>
+                                    </Dialog>
                                   </div>
                                 </div>
                                 <Button 
