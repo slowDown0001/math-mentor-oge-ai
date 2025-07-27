@@ -151,11 +151,17 @@ const FipiBank = () => {
       setShowStreakAnimation(true);
       await awardEnergyPoints(user.id, 'practice_test', points);
       
-      // Auto advance to next question after 3 seconds
-      setTimeout(() => {
-        setShowStreakAnimation(false);
-        nextQuestion();
-      }, 3000);
+      // Auto advance only for questions 1-19, not for 20-26
+      if (currentQuestion.problem_number_type <= 19) {
+        setTimeout(() => {
+          setShowStreakAnimation(false);
+          nextQuestion();
+        }, 3000);
+      } else {
+        setTimeout(() => {
+          setShowStreakAnimation(false);
+        }, 3000);
+      }
     }
   };
 
@@ -412,15 +418,99 @@ const FipiBank = () => {
                               </span>
                             )}
                           </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Show upload solution button and next question button for questions 20-26 when answered */}
+                  {currentAnswer?.attempted && currentQuestion.problem_number_type > 19 && (
+                    <div className="space-y-4">
+                      <div className={`flex items-center gap-2 ${currentAnswer.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                        {currentAnswer.isCorrect ? (
+                          <CheckCircle className="w-5 h-5" />
+                        ) : (
+                          <XCircle className="w-5 h-5" />
+                        )}
+                        <span className="font-semibold">
+                          {currentAnswer.isCorrect ? 'Правильно!' : 'Неправильно'}
+                        </span>
+                      </div>
+
+                      {currentAnswer.isCorrect && (
+                        <div className="bg-green-50/50 p-2 rounded-md">
+                          <p className="text-green-600 text-sm">
+                            +{currentQuestion.problem_number_type <= 19 ? 100 : 200} баллов
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">Ваш ответ: {currentAnswer.userAnswer}</h4>
+                        <h4 className="font-semibold mb-2">Правильный ответ:</h4>
+                        <p>{currentQuestion.answer}</p>
+                      </div>
+
+                      {currentQuestion.solution_text && (
+                        <Button 
+                          onClick={() => setShowSolution(true)} 
+                          variant="ghost" 
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-2"
+                        >
+                          📚 Показать решение
+                        </Button>
+                      )}
+                      
+                      {showSolution && currentQuestion.solution_text && (
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <h4 className="font-semibold mb-2">Решение:</h4>
+                          <MathRenderer text={currentQuestion.solution_text} />
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        {/* Check solution button for questions 20-26 */}
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Загрузите решение:
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => setSolutionImage(e.target.files?.[0] || null)}
+                              className="hidden"
+                              id="solution-upload-after"
+                            />
+                            <label htmlFor="solution-upload-after">
+                              <Button variant="outline" size="sm" asChild>
+                                <span>
+                                  <Upload className="w-4 h-4 mr-1" />
+                                  Выбрать файл
+                                </span>
+                              </Button>
+                            </label>
+                            {solutionImage && (
+                              <span className="text-sm text-gray-600">
+                                {solutionImage.name}
+                              </span>
+                            )}
+                          </div>
                           
-                          {/* CHECK SOLUTION button only when image is uploaded */}
                           {solutionImage && (
                             <Button onClick={checkSolution} className="w-full mt-2">
                               Проверить решение
                             </Button>
                           )}
                         </div>
-                      )}
+
+                        {/* Next question button */}
+                        <Button onClick={nextQuestion} className="w-full">
+                          {currentIndex < questions.length - 1 ? 'Следующий вопрос' : 'Завершить тест'}
+                          <ArrowRight className="w-4 h-4 ml-1" />
+                        </Button>
+                      </div>
                     </div>
                   )}
 
