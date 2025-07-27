@@ -8,22 +8,23 @@ interface MathRendererProps {
 
 const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  // Initialize MathJax - this is redundant since we already initialize it in Index.tsx,
-  // but keeping it here for component isolation
-  useMathJaxInitializer();
+  const isMathJaxReady = useMathJaxInitializer(); // 🟢 Get readiness flag
 
   useEffect(() => {
-    if (!containerRef.current || !text) return;
-    
+    if (!containerRef.current || !text || !isMathJaxReady) return;
+
     try {
-      // Set the text content first
       containerRef.current.innerHTML = text;
-      
-      // Then let MathJax process it
-      if (window.MathJax) {
+
+      if (
+        typeof window.MathJax !== 'undefined' &&
+        typeof window.MathJax.typesetPromise === 'function'
+      ) {
         window.MathJax.typesetPromise([containerRef.current]).catch((err) => {
-          console.error('MathJax error:', err);
+          console.error('MathJax rendering error:', err);
         });
+      } else {
+        console.warn('MathJax not ready or typesetPromise not found');
       }
     } catch (error) {
       console.error('Error rendering math:', error);
@@ -31,7 +32,7 @@ const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
         containerRef.current.textContent = text;
       }
     }
-  }, [text]);
+  }, [text, isMathJaxReady]); // 🔁 Watch for readiness
 
   return (
     <div ref={containerRef} className={className}>
@@ -39,5 +40,6 @@ const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
     </div>
   );
 };
+
 
 export default MathRenderer;
