@@ -325,8 +325,8 @@ const FipiBank = () => {
             <div className="max-w-3xl mx-auto">
               <div className="mb-6 flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                  <Badge variant="outline">
-                    Вопрос {currentIndex + 1}
+                  <Badge variant="outline" className="text-lg px-3 py-1">
+                    Вопрос {currentIndex + 1} из {questions.length}
                   </Badge>
                   <Badge variant="secondary">
                     {correctAnswers} / {attemptedAnswers} правильно
@@ -351,7 +351,7 @@ const FipiBank = () => {
                   )}
                   
                   <div className="mb-6">
-                    <h3 className="font-semibold mb-2">Номер {currentQuestion.problem_number_type}</h3>
+                    <div className="text-xs text-muted-foreground mb-2">Номер {currentQuestion.problem_number_type}</div>
                     <MathRenderer 
                       text={currentQuestion.problem_text} 
                       className="text-lg"
@@ -585,7 +585,7 @@ const FipiBank = () => {
                         }`}
                       >
                         <div className="text-center">
-                          <div className="text-xs">№{question.problem_number_type}</div>
+                          <div className="text-sm font-medium">{index + 1}</div>
                           <div className="text-[10px]">
                             {userAnswers[index]?.isCorrect ? '✓' : '✗'}
                           </div>
