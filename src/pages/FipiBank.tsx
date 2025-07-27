@@ -30,7 +30,7 @@ interface UserAnswer {
   solutionImage?: File;
 }
 
-type Phase = 'selection' | 'practice' | 'summary';
+type Phase = 'selection' | 'practice' | 'review' | 'summary';
 
 const FipiBank = () => {
   const { user } = useAuth();
@@ -213,7 +213,14 @@ const FipiBank = () => {
   };
 
   const stopTest = () => {
-    setPhase('summary');
+    setPhase('review');
+  };
+
+  const goToReviewQuestion = (index: number) => {
+    setCurrentIndex(index);
+    setUserInput(userAnswers[index]?.userAnswer || '');
+    setShowAnswer(true); // Always show answers in review mode
+    setShowSolution(false);
   };
 
   const resetTest = () => {
@@ -490,6 +497,141 @@ const FipiBank = () => {
     );
   }
 
+  if (phase === 'review') {
+    const currentQuestion = questions[currentIndex];
+    const currentAnswer = userAnswers[currentIndex];
+
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="pt-20 pb-8">
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto">
+              <div className="mb-6 flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <Badge variant="outline" className="text-lg px-3 py-1">
+                    Вопрос {currentIndex + 1}
+                  </Badge>
+                  <Badge variant="secondary">
+                    {correctAnswers} / {attemptedAnswers} правильно
+                  </Badge>
+                </div>
+                <Button variant="outline" onClick={() => setPhase('summary')} size="sm">
+                  <Eye className="w-4 h-4 mr-1" />
+                  Показать сводку
+                </Button>
+              </div>
+
+              <Card className="mb-6">
+                <CardContent className="pt-6">
+                  {currentQuestion.problem_image && (
+                    <div className="mb-4">
+                      <img 
+                        src={currentQuestion.problem_image} 
+                        alt="Изображение задачи"
+                        className="max-w-full h-auto mx-auto"
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="mb-6">
+                    <div className="text-xs text-muted-foreground mb-2">Номер {currentQuestion.problem_number_type}</div>
+                    <MathRenderer 
+                      text={currentQuestion.problem_text} 
+                      className="text-lg"
+                    />
+                  </div>
+
+                  {/* Show user's answer in review mode */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Ваш ответ:
+                      </label>
+                      <Input
+                        value={userInput}
+                        readOnly
+                        className="bg-gray-50"
+                      />
+                    </div>
+
+                    {/* Always show answer and result in review mode */}
+                    <div className={`flex items-center gap-2 ${currentAnswer.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                      {currentAnswer.isCorrect ? (
+                        <CheckCircle className="w-5 h-5" />
+                      ) : (
+                        <XCircle className="w-5 h-5" />
+                      )}
+                      <span className="font-semibold">
+                        {currentAnswer.isCorrect ? 'Правильно!' : 'Неправильно'}
+                      </span>
+                    </div>
+
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-semibold mb-2">Правильный ответ:</h4>
+                      <p>{currentQuestion.answer}</p>
+                    </div>
+
+                    {currentQuestion.solution_text && (
+                      <Button 
+                        onClick={() => setShowSolution(true)} 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-2"
+                      >
+                        📚 Показать решение
+                      </Button>
+                    )}
+                    
+                    {showSolution && currentQuestion.solution_text && (
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">Решение:</h4>
+                        <MathRenderer text={currentQuestion.solution_text} />
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Question navigation grid - only attempted questions */}
+              <Card className="mb-6">
+                <CardContent className="pt-6">
+                  <div className="flex justify-center gap-2 flex-wrap">
+                    {questions.map((question, index) => {
+                      if (!userAnswers[index]?.attempted) return null;
+                      
+                      return (
+                        <Button
+                          key={question.question_id}
+                          variant={index === currentIndex ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => goToReviewQuestion(index)}
+                          className={`w-12 h-12 p-0 ${
+                            userAnswers[index]?.isCorrect
+                              ? 'bg-green-100 border-green-300 text-green-700'
+                              : 'bg-red-100 border-red-300 text-red-700'
+                          }`}
+                        >
+                          <div className="text-center">
+                            <div className="text-sm font-medium">{index + 1}</div>
+                            <div className="text-[10px]">
+                              {userAnswers[index]?.isCorrect ? '✓' : '✗'}
+                            </div>
+                          </div>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Summary phase
   return (
     <div className="min-h-screen bg-gray-50">
@@ -536,7 +678,7 @@ const FipiBank = () => {
                         size="sm"
                         onClick={() => {
                           setCurrentIndex(index);
-                          setPhase('practice');
+                          setPhase('review');
                           setShowAnswer(true);
                         }}
                         className={`h-12 ${
@@ -563,7 +705,7 @@ const FipiBank = () => {
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Новый тест
               </Button>
-              <Button onClick={() => setPhase('practice')}>
+              <Button onClick={() => setPhase('review')}>
                 <Eye className="w-4 h-4 mr-1" />
                 Просмотреть ответы
               </Button>
