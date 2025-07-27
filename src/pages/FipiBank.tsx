@@ -209,30 +209,37 @@ const FipiBank = () => {
     // Auto-show answer after attempting
     setShowAnswer(true);
 
-    try {
-      console.log('🔍 FETCHING MARKING SOLUTION...');
-      // Fetch marking solution directly from the marking table using the lib client
-      const { data: markingData, error: markingError } = await supabaseLib
-        .from('marking')
-        .select('text')
-        .eq('id', 1)
-        .maybeSingle();
-      
-      if (markingError) {
-        console.error('❌ Error fetching marking solution:', markingError);
+    setIsMarking(true);
+    
+    // Show 2-second animation before displaying marking solution
+    setTimeout(async () => {
+      try {
+        console.log('🔍 FETCHING MARKING SOLUTION...');
+        // Fetch marking solution directly from the marking table using the lib client
+        const { data: markingData, error: markingError } = await supabaseLib
+          .from('marking')
+          .select('text')
+          .eq('id', 1)
+          .maybeSingle();
+        
+        if (markingError) {
+          console.error('❌ Error fetching marking solution:', markingError);
+          toast.error('Ошибка при загрузке решения');
+        } else if (markingData) {
+          console.log('✅ MARKING FETCH SUCCESS:', markingData.text);
+          setMarkingSolution(markingData.text);
+          setShowMarkingSolution(true);
+          console.log('✅ STATES SET - markingSolution:', markingData.text, 'showMarkingSolution:', true);
+        } else {
+          console.log('⚠️ No marking data found');
+        }
+      } catch (error) {
+        console.error('💥 Error fetching marking solution:', error);
         toast.error('Ошибка при загрузке решения');
-      } else if (markingData) {
-        console.log('✅ MARKING FETCH SUCCESS:', markingData.text);
-        setMarkingSolution(markingData.text);
-        setShowMarkingSolution(true);
-        console.log('✅ STATES SET - markingSolution:', markingData.text, 'showMarkingSolution:', true);
-      } else {
-        console.log('⚠️ No marking data found');
+      } finally {
+        setIsMarking(false);
       }
-    } catch (error) {
-      console.error('💥 Error fetching marking solution:', error);
-      toast.error('Ошибка при загрузке решения');
-    }
+    }, 2000);
 
     if (isCorrect && user) {
       const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
