@@ -326,7 +326,7 @@ const FipiBank = () => {
               <div className="mb-6 flex justify-between items-center">
                 <div className="flex items-center gap-4">
                   <Badge variant="outline" className="text-lg px-3 py-1">
-                    Вопрос {currentIndex + 1} из {questions.length}
+                    Вопрос {currentIndex + 1}
                   </Badge>
                   <Badge variant="secondary">
                     {correctAnswers} / {attemptedAnswers} правильно
