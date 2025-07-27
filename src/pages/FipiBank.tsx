@@ -475,45 +475,6 @@ const FipiBank = () => {
                 </CardContent>
               </Card>
 
-              {/* Question navigation grid */}
-              {userAnswers.some(a => a.attempted) && (
-                <Card className="mb-6">
-                  <CardContent className="pt-6">
-                    <div className="flex justify-center gap-2 flex-wrap">
-                      {questions.map((question, index) => {
-                        // Show attempted questions and the current question (even if not attempted yet)
-                        const shouldShow = userAnswers[index]?.attempted || index === currentIndex;
-                        if (!shouldShow) return null;
-                        
-                        return (
-                          <Button
-                            key={question.question_id}
-                            variant={index === currentIndex ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => goToQuestion(index)}
-                            className={`w-12 h-12 p-0 ${
-                              userAnswers[index]?.attempted
-                                ? userAnswers[index]?.isCorrect
-                                  ? 'bg-green-100 border-green-300 text-green-700'
-                                  : 'bg-red-100 border-red-300 text-red-700'
-                                : ''
-                            }`}
-                          >
-                            <div className="text-center">
-                              <div className="text-xs">№{question.problem_number_type}</div>
-                              <div className="text-[10px]">
-                                {userAnswers[index]?.attempted ? (
-                                  userAnswers[index]?.isCorrect ? '✓' : '✗'
-                                ) : '—'}
-                              </div>
-                            </div>
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
 
             </div>
           </div>
