@@ -175,7 +175,8 @@ const FipiBank = () => {
   const goToQuestion = (index: number) => {
     setCurrentIndex(index);
     setUserInput(userAnswers[index]?.userAnswer || '');
-    setShowAnswer(false);
+    // If question was already attempted, show the answer
+    setShowAnswer(userAnswers[index]?.attempted || false);
     setShowSolution(false);
   };
 
