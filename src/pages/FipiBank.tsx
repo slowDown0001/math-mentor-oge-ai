@@ -215,24 +215,15 @@ const FipiBank = () => {
     setTimeout(async () => {
       try {
         console.log('🔍 FETCHING MARKING SOLUTION...');
-        // Fetch marking solution from the marking table
-        const { data: markingData, error: markingError } = await supabaseLib
-          .from('marking')
-          .select('text')
-          .eq('id', 1)
-          .maybeSingle();
-        
-        if (markingError) {
-          console.error('❌ Error fetching marking solution:', markingError);
-          toast.error('Ошибка при загрузке решения');
-          setMarkingSolution("Ошибка загрузки решения");
-        } else if (markingData) {
-          console.log('✅ MARKING FETCH SUCCESS:', markingData.text);
-          setMarkingSolution(markingData.text);
-        } else {
-          console.log('⚠️ No marking data found');
-          setMarkingSolution("Решение не найдено");
+        // Fetch marking solution from public/marking_t.md file
+        const response = await fetch('/marking_t.md');
+        if (!response.ok) {
+          throw new Error('Failed to fetch marking file');
         }
+        
+        const text = await response.text();
+        console.log('✅ MARKING FETCH SUCCESS from file:', text);
+        setMarkingSolution(text);
         
         setShowMarkingSolution(true);
       } catch (error) {
