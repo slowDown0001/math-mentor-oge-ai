@@ -522,6 +522,38 @@ const FipiBank = () => {
                 </Button>
               </div>
 
+              {/* Question navigation grid - only attempted questions */}
+              <Card className="mb-6">
+                <CardContent className="pt-6">
+                  <div className="flex justify-center gap-2 flex-wrap">
+                    {questions.map((question, index) => {
+                      if (!userAnswers[index]?.attempted) return null;
+                      
+                      return (
+                        <Button
+                          key={question.question_id}
+                          variant={index === currentIndex ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => goToReviewQuestion(index)}
+                          className={`w-12 h-12 p-0 ${
+                            userAnswers[index]?.isCorrect
+                              ? 'bg-green-100 border-green-300 text-green-700'
+                              : 'bg-red-100 border-red-300 text-red-700'
+                          }`}
+                        >
+                          <div className="text-center">
+                            <div className="text-sm font-medium">{index + 1}</div>
+                            <div className="text-[10px]">
+                              {userAnswers[index]?.isCorrect ? '✓' : '✗'}
+                            </div>
+                          </div>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card className="mb-6">
                 <CardContent className="pt-6">
                   {currentQuestion.problem_image && (
@@ -593,37 +625,6 @@ const FipiBank = () => {
                 </CardContent>
               </Card>
 
-              {/* Question navigation grid - only attempted questions */}
-              <Card className="mb-6">
-                <CardContent className="pt-6">
-                  <div className="flex justify-center gap-2 flex-wrap">
-                    {questions.map((question, index) => {
-                      if (!userAnswers[index]?.attempted) return null;
-                      
-                      return (
-                        <Button
-                          key={question.question_id}
-                          variant={index === currentIndex ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => goToReviewQuestion(index)}
-                          className={`w-12 h-12 p-0 ${
-                            userAnswers[index]?.isCorrect
-                              ? 'bg-green-100 border-green-300 text-green-700'
-                              : 'bg-red-100 border-red-300 text-red-700'
-                          }`}
-                        >
-                          <div className="text-center">
-                            <div className="text-sm font-medium">{index + 1}</div>
-                            <div className="text-[10px]">
-                              {userAnswers[index]?.isCorrect ? '✓' : '✗'}
-                            </div>
-                          </div>
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
 
             </div>
           </div>
