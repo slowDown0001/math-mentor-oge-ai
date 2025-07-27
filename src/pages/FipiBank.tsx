@@ -196,10 +196,7 @@ const FipiBank = () => {
   };
 
   const checkSolution = async () => {
-    if (!userInput.trim()) {
-      toast.error('Введите ответ');
-      return;
-    }
+
 
     const currentQuestion = questions[currentIndex];
     const isCorrect = userInput.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
