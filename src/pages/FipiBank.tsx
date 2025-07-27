@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Upload, ArrowLeft, ArrowRight, StopCircle, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { supabase as supabaseLib } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { awardEnergyPoints } from '@/services/energyPoints';
 import { PointsAnimation } from '@/components/PointsAnimation';
@@ -48,6 +49,8 @@ const FipiBank = () => {
   const [showSolution, setShowSolution] = useState(false);
   const [showStreakAnimation, setShowStreakAnimation] = useState(false);
   const [pointsGained, setPointsGained] = useState(0);
+  const [markingSolution, setMarkingSolution] = useState<string>('');
+  const [isMarking, setIsMarking] = useState(false);
 
   const questionGroups = [
     { label: 'Все вопросы', numbers: Array.from({length: 26}, (_, i) => i + 1) },
@@ -194,6 +197,27 @@ const FipiBank = () => {
       return;
     }
 
+    setIsMarking(true);
+    
+    try {
+      // Fetch marking solution directly from the marking table using the lib client
+      const { data: markingData, error: markingError } = await supabaseLib
+        .from('marking')
+        .select('text')
+        .eq('id', 1)
+        .maybeSingle();
+      
+      if (markingError) {
+        console.error('Error fetching marking solution:', markingError);
+        toast.error('Ошибка при загрузке решения');
+      } else if (markingData) {
+        setMarkingSolution(markingData.text);
+      }
+    } catch (error) {
+      console.error('Error fetching marking solution:', error);
+      toast.error('Ошибка при загрузке решения');
+    }
+
     const currentQuestion = questions[currentIndex];
     const isCorrect = userInput.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
     
@@ -206,17 +230,21 @@ const FipiBank = () => {
     // Auto-show answer after attempting
     setShowAnswer(true);
 
+    // Simulate marking delay
+    setTimeout(() => {
+      setIsMarking(false);
+      setShowSolution(true);
+    }, 2000);
+
     if (isCorrect && user) {
       const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
       setPointsGained(points);
       setShowStreakAnimation(true);
       await awardEnergyPoints(user.id, 'practice_test', points);
       
-      // Auto advance to next question after showing points animation
       setTimeout(() => {
         setShowStreakAnimation(false);
-        nextQuestion();
-      }, 2000);
+      }, 3000);
     }
   };
 
@@ -516,6 +544,27 @@ const FipiBank = () => {
                         <div className="bg-blue-50 p-4 rounded-lg">
                           <h4 className="font-semibold mb-2">Решение:</h4>
                           <MathRenderer text={currentQuestion.solution_text} />
+                        </div>
+                      )}
+
+                      {/* Marking animation and solution */}
+                      {isMarking && (
+                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 animate-pulse">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-4 h-4 bg-yellow-500 rounded-full animate-bounce"></div>
+                            <h4 className="font-semibold text-yellow-800">Проверяем решение...</h4>
+                          </div>
+                          <p className="text-yellow-700 text-sm">Анализируем ваш ответ и готовим подробную обратную связь</p>
+                        </div>
+                      )}
+
+                      {showSolution && markingSolution && !isMarking && (
+                        <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200 animate-fade-in">
+                          <h4 className="font-semibold mb-4 text-purple-800 flex items-center gap-2">
+                            <span className="text-xl">🧑‍🏫</span>
+                            Разбор решения от учителя:
+                          </h4>
+                          <MathRenderer text={markingSolution} className="text-sm" />
                         </div>
                       )}
 
