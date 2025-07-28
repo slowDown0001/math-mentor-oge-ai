@@ -35,7 +35,7 @@ const ChatRenderer = ({ text, isUserMessage = false, className = '' }: ChatRende
     : 'text-emerald-600 hover:text-emerald-700';
 
   return (
-    <div ref={containerRef} className={`prose prose-sm max-w-none ${className}`}>
+    <div ref={containerRef} className={`${className}`}>
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
         components={{
@@ -58,12 +58,12 @@ const ChatRenderer = ({ text, isUserMessage = false, className = '' }: ChatRende
             </a>
           ),
           strong: ({ children }) => (
-            <strong className={isUserMessage ? 'text-white font-semibold' : 'text-gray-900 font-semibold'}>
+            <strong className={isUserMessage ? 'text-foreground font-semibold' : 'text-foreground font-semibold'}>
               {children}
             </strong>
           ),
           em: ({ children }) => (
-            <em className={isUserMessage ? 'text-white/90 italic' : 'text-gray-700 italic'}>
+            <em className={isUserMessage ? 'text-foreground/90 italic' : 'text-foreground/80 italic'}>
               {children}
             </em>
           ),
@@ -77,6 +77,9 @@ const ChatRenderer = ({ text, isUserMessage = false, className = '' }: ChatRende
           li: ({ children }) => (
             <li className="leading-relaxed">{children}</li>
           ),
+          // Ensure math blocks are rendered properly
+          div: ({ children, ...props }) => <div {...props}>{children}</div>,
+          span: ({ children, ...props }) => <span {...props}>{children}</span>,
         }}
       >
         {text}
