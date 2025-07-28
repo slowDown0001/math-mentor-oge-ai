@@ -568,6 +568,24 @@ export type Database = {
         }
         Relationships: []
       }
+      marking: {
+        Row: {
+          id: number
+          marking_text: string | null
+          text: string | null
+        }
+        Insert: {
+          id?: number
+          marking_text?: string | null
+          text?: string | null
+        }
+        Update: {
+          id?: number
+          marking_text?: string | null
+          text?: string | null
+        }
+        Relationships: []
+      }
       mcq: {
         Row: {
           answer: string | null
