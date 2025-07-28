@@ -365,7 +365,7 @@ const FipiBank = () => {
         <Header />
         <div className="pt-20 pb-8">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-4xl mx-auto">
               <div className="mb-6 flex justify-between items-center">
                 <div className="flex items-center gap-4">
                   <Badge variant="outline" className="text-lg px-3 py-1">
