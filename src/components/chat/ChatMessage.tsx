@@ -46,7 +46,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
           </div>
         )}
         
-        <MathRenderer text={message.text} />
+        <MathRenderer text={message.text} isUserMessage={message.isUser} />
         <div className={`text-xs mt-1 ${message.isUser ? "text-primary-foreground/80" : "text-gray-400"}`}>
           {message.timestamp.toLocaleTimeString([], {
             hour: '2-digit',
