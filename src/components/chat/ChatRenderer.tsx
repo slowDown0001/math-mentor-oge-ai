@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import { useMathJaxInitializer } from '@/hooks/useMathJaxInitializer';
 
 interface ChatRendererProps {
@@ -36,6 +37,7 @@ const ChatRenderer = ({ text, isUserMessage = false, className = '' }: ChatRende
   return (
     <div ref={containerRef} className={`prose prose-sm max-w-none ${className}`}>
       <ReactMarkdown
+        rehypePlugins={[rehypeRaw]}
         components={{
           p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
           a: ({ href, children, ...props }) => (
