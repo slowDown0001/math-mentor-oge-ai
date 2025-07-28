@@ -27,6 +27,10 @@ class MathJaxManager {
           typeof window.MathJax !== 'undefined' &&
           typeof window.MathJax.typesetPromise === 'function'
         ) {
+          // Clear any existing MathJax content to prevent conflicts
+          const mjElements = element.querySelectorAll('.MathJax');
+          mjElements.forEach(el => el.remove());
+          
           await window.MathJax.typesetPromise([element]);
         }
       } catch (error) {
@@ -70,10 +74,17 @@ export const useMathJaxInitializer = () => {
         inlineMath: [['$', '$'], ['\\(', '\\)']],
         displayMath: [['$$', '$$'], ['\\[', '\\]']],
         processEscapes: true,
-        processEnvironments: true
+        processEnvironments: true,
+        // Enable \textbf{}, \textit{}, etc. in text mode
+        packages: {'[+]': ['textmacros', 'textcomp']},
+        textmacros: {
+          packages: {'[+]': ['base']}
+        }
       },
       options: {
-        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        ignoreHtmlClass: 'tex2jax_ignore',
+        processHtmlClass: 'tex2jax_process'
       },
       startup: {
         ready: () => {

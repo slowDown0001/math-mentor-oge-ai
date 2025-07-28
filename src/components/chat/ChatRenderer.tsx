@@ -16,7 +16,12 @@ const ChatRenderer = ({ text, isUserMessage = false, className = '' }: ChatRende
   useEffect(() => {
     if (!containerRef.current || !text || !isMathJaxReady) return;
 
-    mathJaxManager.renderMath(containerRef.current);
+    // Use setTimeout to ensure DOM is fully rendered before MathJax
+    const timeoutId = setTimeout(() => {
+      mathJaxManager.renderMath(containerRef.current!);
+    }, 50);
+
+    return () => clearTimeout(timeoutId);
   }, [text, isMathJaxReady]);
 
   const linkColor = isUserMessage 
@@ -24,7 +29,7 @@ const ChatRenderer = ({ text, isUserMessage = false, className = '' }: ChatRende
     : 'text-emerald-600 hover:text-emerald-700';
 
   return (
-    <div ref={containerRef} className={`prose prose-sm max-w-none math-content ${className}`}>
+    <div ref={containerRef} className={`prose prose-sm max-w-none math-content tex2jax_process ${className}`}>
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
         components={{
