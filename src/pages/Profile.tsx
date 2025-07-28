@@ -11,6 +11,7 @@ import { sendChatMessage } from "@/services/chatService";
 import { useChatContext } from "@/contexts/ChatContext";
 import { useStudentSkills } from "@/hooks/useStudentSkills";
 import { useUserStatistics } from "@/hooks/useUserStatistics";
+import { useProfile } from "@/hooks/useProfile";
 
 export interface Message {
   id: number;
@@ -25,9 +26,10 @@ const Profile = () => {
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
   const { topicProgress, generalPreparedness, isLoading: skillsLoading } = useStudentSkills();
   const { completedLessons, practiceProblems, quizzesCompleted, averageScore, isLoading: statsLoading } = useUserStatistics();
+  const { getDisplayName } = useProfile();
   
-  // Extract user information from Supabase user data
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
+  // Extract user information from Supabase user data and profile
+  const userName = getDisplayName();
   const userEmail = user?.email || '';
   const joinedDate = new Date(user?.created_at || Date.now()).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
   

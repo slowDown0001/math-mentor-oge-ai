@@ -13,6 +13,7 @@ import ChatInput from "@/components/chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
 import { useStudentSkills } from "@/hooks/useStudentSkills";
 import { useChatContext } from "@/contexts/ChatContext";
+import { useProfile } from "@/hooks/useProfile";
 
 interface Message {
   id: number;
@@ -26,7 +27,8 @@ const Dashboard = () => {
   const { user } = useAuth();
   const { topicProgress, generalPreparedness, isLoading } = useStudentSkills();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
+  const { getDisplayName } = useProfile();
+  const userName = getDisplayName();
   
   // Initialize welcome messages if chat is empty
   useEffect(() => {
