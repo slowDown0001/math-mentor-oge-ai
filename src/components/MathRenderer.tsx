@@ -32,7 +32,7 @@ const MathRenderer = ({ text, className = '', isUserMessage = false }: MathRende
   const linkColor = isUserMessage ? 'text-blue-200 hover:text-blue-100' : 'text-emerald-600 hover:text-emerald-700';
 
   return (
-    <div ref={containerRef} className={`prose prose-sm max-w-none ${className}`}>
+    <div ref={containerRef} className={`prose prose-sm max-w-none math-content ${className}`}>
       <ReactMarkdown
         components={{
           p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
