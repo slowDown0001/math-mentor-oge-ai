@@ -106,6 +106,14 @@ const Header = () => {
                 >
                   Статистика
                 </Link>
+                <Link 
+                  to="/profile" 
+                  className={`text-sm font-medium transition-colors ${
+                    isActive('/profile') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+                  }`}
+                >
+                  Профиль
+                </Link>
               </>
             )}
           </nav>
