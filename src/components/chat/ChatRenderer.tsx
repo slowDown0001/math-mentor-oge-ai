@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
-import { useMathJaxInitializer } from '@/hooks/useMathJaxInitializer';
+import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
 
 interface ChatRendererProps {
   text: string;
@@ -16,18 +16,7 @@ const ChatRenderer = ({ text, isUserMessage = false, className = '' }: ChatRende
   useEffect(() => {
     if (!containerRef.current || !text || !isMathJaxReady) return;
 
-    try {
-      if (
-        typeof window.MathJax !== 'undefined' &&
-        typeof window.MathJax.typesetPromise === 'function'
-      ) {
-        window.MathJax.typesetPromise([containerRef.current]).catch((err) => {
-          console.error('MathJax rendering error:', err);
-        });
-      }
-    } catch (error) {
-      console.error('Error rendering math:', error);
-    }
+    mathJaxManager.renderMath(containerRef.current);
   }, [text, isMathJaxReady]);
 
   const linkColor = isUserMessage 

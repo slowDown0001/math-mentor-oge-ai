@@ -4,8 +4,56 @@ import { useEffect, useState } from 'react';
 declare global {
   interface Window {
     MathJax: any;
+    mathJaxQueue: Promise<any>;
   }
 }
+
+// Global MathJax manager to prevent conflicts
+class MathJaxManager {
+  private static instance: MathJaxManager;
+  private queue: Promise<any> = Promise.resolve();
+
+  static getInstance(): MathJaxManager {
+    if (!MathJaxManager.instance) {
+      MathJaxManager.instance = new MathJaxManager();
+    }
+    return MathJaxManager.instance;
+  }
+
+  async renderMath(element: HTMLElement): Promise<void> {
+    this.queue = this.queue.then(async () => {
+      try {
+        if (
+          typeof window.MathJax !== 'undefined' &&
+          typeof window.MathJax.typesetPromise === 'function'
+        ) {
+          await window.MathJax.typesetPromise([element]);
+        }
+      } catch (error) {
+        console.error('MathJax rendering error:', error);
+      }
+    });
+    return this.queue;
+  }
+
+  async renderAll(): Promise<void> {
+    this.queue = this.queue.then(async () => {
+      try {
+        if (
+          typeof window.MathJax !== 'undefined' &&
+          typeof window.MathJax.typesetPromise === 'function'
+        ) {
+          await window.MathJax.typesetPromise();
+        }
+      } catch (error) {
+        console.error('MathJax rendering error:', error);
+      }
+    });
+    return this.queue;
+  }
+}
+
+export const mathJaxManager = MathJaxManager.getInstance();
 
 export const useMathJaxInitializer = () => {
   const [isMathJaxReady, setIsMathJaxReady] = useState(false);
