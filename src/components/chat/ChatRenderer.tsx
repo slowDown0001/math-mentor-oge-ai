@@ -35,7 +35,7 @@ const ChatRenderer = ({ text, isUserMessage = false, className = '' }: ChatRende
     : 'text-emerald-600 hover:text-emerald-700';
 
   return (
-    <div ref={containerRef} className={`${className}`}>
+    <div ref={containerRef} className={`prose prose-sm max-w-none math-content ${className}`}>
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
         components={{
