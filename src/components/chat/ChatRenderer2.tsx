@@ -39,6 +39,9 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
         remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeRaw]}
         components={{
+          math: ({ value }) => <div>{'$$' + value + '$$'}</div>,
+          inlineMath: ({ value }) => <span>{'$' + value + '$'}</span>,
+
           p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
           a: ({ href, children }) => (
             <a
