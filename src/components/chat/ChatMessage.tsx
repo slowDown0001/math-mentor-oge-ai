@@ -2,7 +2,7 @@
 import { type Message } from "../ChatSection";
 import { useEffect, useState } from "react";
 import { getMathProblemById, type MathProblem } from "@/services/mathProblemsService";
-import ChatRenderer from "./ChatRenderer";
+import MathRenderer from "../MathRenderer";
 
 interface ChatMessageProps {
   message: Message;
@@ -41,7 +41,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
         )}
         
         <div className={`${message.isUser ? "text-foreground" : "text-foreground"}`}>
-          <ChatRenderer text={message.text} isUserMessage={message.isUser} />
+          <MathRenderer text={message.text} isUserMessage={message.isUser} />
         </div>
       </div>
     </div>

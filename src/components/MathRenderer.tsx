@@ -32,6 +32,7 @@ const MathRenderer = ({ text, className = '', isUserMessage = false }: MathRende
   return (
     <div ref={containerRef} className={`prose prose-sm max-w-none math-content tex2jax_process ${className}`}>
       <ReactMarkdown
+        remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeRaw]}
         components={{
           p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
