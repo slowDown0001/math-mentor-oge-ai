@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkMath from 'remark-math';
-import { useMathJaxInitializer, mathJaxManager } from '../hooks/useMathJaxInitializer';
+import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
 
 interface MathRendererProps {
   text: string;
