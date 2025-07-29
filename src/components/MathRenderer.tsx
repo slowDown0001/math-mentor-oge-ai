@@ -35,6 +35,12 @@ const MathRenderer = ({ text, className = '', isUserMessage = false }: MathRende
         remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeRaw]}
         components={{
+          math: ({ value }: { value: string }) => (
+            <div>{'$$' + value + '$$'}</div>
+          ),
+          inlineMath: ({ value }: { value: string }) => (
+            <span>{'$' + value + '$'}</span>
+          ),
           p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
                 
           a: ({ href, children, ...props }) => (
