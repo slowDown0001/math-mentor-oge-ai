@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
 
 interface ChatRendererProps {
@@ -31,7 +33,8 @@ const ChatRenderer = ({ text, isUserMessage = false, className = '' }: ChatRende
   return (
     <div ref={containerRef} className={`prose prose-sm max-w-none math-content tex2jax_process ${className}`}>
       <ReactMarkdown
-        rehypePlugins={[rehypeRaw]}
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeRaw, rehypeKatex]}
         components={{
           p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
           a: ({ href, children, ...props }) => (
