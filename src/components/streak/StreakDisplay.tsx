@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useProfile } from '@/hooks/useProfile';
+import { User } from 'lucide-react';
 
 interface StreakData {
   dailyGoalMinutes: number;
@@ -11,6 +13,7 @@ interface StreakData {
 
 export const StreakDisplay = () => {
   const { user } = useAuth();
+  const { getAvatarUrl, getDisplayName } = useProfile();
   const [streakData, setStreakData] = useState<StreakData>({
     dailyGoalMinutes: 30,
     todayProgress: 0,
@@ -93,15 +96,23 @@ export const StreakDisplay = () => {
           />
         </svg>
         
-        {/* Hedgehog Image */}
+        {/* User Profile Picture */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <img 
-            src="/lovable-uploads/81d789b3-121e-4fe7-9bb7-362fb54fb728.png" 
-            alt="Hedgehog mascot"
-            className={`w-8 h-8 object-contain transition-transform duration-300 ${
+          {getAvatarUrl() ? (
+            <img 
+              src={getAvatarUrl()!} 
+              alt={getDisplayName()}
+              className={`w-8 h-8 object-cover rounded-full transition-transform duration-300 ${
+                progressPercentage >= 100 ? 'animate-bounce' : ''
+              }`}
+            />
+          ) : (
+            <div className={`w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center transition-transform duration-300 ${
               progressPercentage >= 100 ? 'animate-bounce' : ''
-            }`}
-          />
+            }`}>
+              <User className="w-4 h-4 text-gray-500" />
+            </div>
+          )}
         </div>
       </div>
 
