@@ -47,6 +47,9 @@ interface TopicMapping {
 interface Article {
   skill: number;
   art: string;
+  img1?: string;
+  img2?: string;
+  img3?: string;
 }
 
 const DigitalTextbook = () => {
@@ -74,17 +77,17 @@ const DigitalTextbook = () => {
     }
   }, [searchParams]);
 
-  // Fetch articles from Supabase articles3 table
+  // Fetch articles from Supabase articles2 table
   useEffect(() => {
     const fetchArticles = async () => {
       const { data, error } = await supabase
-        .from('articles3')
-        .select('skill, art');
+        .from('articles2')
+        .select('skill, art, img1, img2, img3');
       
       if (error) {
         console.error('Error fetching articles:', error);
-      } else {
-        setArticles(data || []);
+      } else if (data) {
+        setArticles(data as unknown as Article[]);
       }
     };
 
@@ -92,9 +95,9 @@ const DigitalTextbook = () => {
   }, []);
 
   // Get article content for a skill
-  const getArticleForSkill = (skillId: number): string | null => {
+  const getArticleForSkill = (skillId: number): Article | null => {
     const article = articles.find(a => a.skill === skillId);
-    return article ? article.art : null;
+    return article || null;
   };
 
   // Get main topic number from topic string (e.g., "1.1" -> "1")
@@ -505,19 +508,46 @@ const DigitalTextbook = () => {
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        {(() => {
-                          const articleContent = getArticleForSkill(selectedSkill.id);
-                          if (articleContent) {
-                            return (
-                              <>
-                                <div 
-                                  className={`prose max-w-none ${
-                                    isSelecterActive ? 'cursor-text select-text' : ''
-                                  }`}
-                                  style={{ userSelect: isSelecterActive ? 'text' : 'auto' }}
-                                >
-                                  <MathRenderer text={articleContent} />
-                                </div>
+                         {(() => {
+                           const article = getArticleForSkill(selectedSkill.id);
+                           if (article && article.art) {
+                             return (
+                               <>
+                                 {/* Article Images */}
+                                 {(article.img1 || article.img2 || article.img3) && (
+                                   <div className="mb-6 space-y-4">
+                                     {article.img1 && (
+                                       <img 
+                                         src={article.img1} 
+                                         alt="Иллюстрация к навыку" 
+                                         className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
+                                       />
+                                     )}
+                                     {article.img2 && (
+                                       <img 
+                                         src={article.img2} 
+                                         alt="Иллюстрация к навыку" 
+                                         className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
+                                       />
+                                     )}
+                                     {article.img3 && (
+                                       <img 
+                                         src={article.img3} 
+                                         alt="Иллюстрация к навыку" 
+                                         className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
+                                       />
+                                     )}
+                                   </div>
+                                 )}
+                                 
+                                 <div 
+                                   className={`prose max-w-none ${
+                                     isSelecterActive ? 'cursor-text select-text' : ''
+                                   }`}
+                                   style={{ userSelect: isSelecterActive ? 'text' : 'auto' }}
+                                 >
+                                   <MathRenderer text={article.art} />
+                                 </div>
                                 <div className="flex justify-center pt-6 border-t">
                                   <Button 
                                     onClick={() => handleGoToExercise(selectedSkill.id)}

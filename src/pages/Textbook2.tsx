@@ -361,8 +361,8 @@ const Textbook2 = () => {
     setLoadingArticle(true);
     try {
       const { data, error } = await supabase
-        .from('articles3')
-        .select('art')
+        .from('articles2')
+        .select('art, img1, img2, img3')
         .eq('skill', skillId)
         .single();
       
@@ -370,7 +370,14 @@ const Textbook2 = () => {
         console.error('Error fetching article:', error);
         setArticleContent("");
       } else {
-        setArticleContent(data?.art || "");
+        // Combine images and article content using type assertion
+        const articleData = data as any;
+        let content = "";
+        if (articleData?.img1) content += `<img src="${articleData.img1}" alt="Иллюстрация к навыку" style="max-width: 100%; margin-bottom: 16px; border-radius: 8px;" />\n\n`;
+        if (articleData?.img2) content += `<img src="${articleData.img2}" alt="Иллюстрация к навыку" style="max-width: 100%; margin-bottom: 16px; border-radius: 8px;" />\n\n`;
+        if (articleData?.img3) content += `<img src="${articleData.img3}" alt="Иллюстрация к навыку" style="max-width: 100%; margin-bottom: 16px; border-radius: 8px;" />\n\n`;
+        content += articleData?.art || "";
+        setArticleContent(content);
       }
     } catch (error) {
       console.error('Error:', error);
