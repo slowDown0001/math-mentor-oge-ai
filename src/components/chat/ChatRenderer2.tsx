@@ -38,7 +38,6 @@ function sanitizeLatex(input: string): string {
 // 🎯 Safely split text without breaking LaTeX expressions
 function createTypewriterChunks(text: string): string[] {
   const chunks: string[] = [];
-  let currentChunk = '';
   let i = 0;
   
   while (i < text.length) {
@@ -51,10 +50,9 @@ function createTypewriterChunks(text: string): string[] {
         // Find the end of block math
         const endIndex = text.indexOf('$$', i + 2);
         if (endIndex !== -1) {
-          // Add the complete LaTeX expression as one chunk
-          currentChunk += text.slice(i, endIndex + 2);
-          chunks.push(currentChunk);
-          currentChunk = '';
+          // Add everything up to and including the complete LaTeX expression
+          const chunkText = text.slice(0, endIndex + 2);
+          chunks.push(chunkText);
           i = endIndex + 2;
           continue;
         }
@@ -62,19 +60,17 @@ function createTypewriterChunks(text: string): string[] {
         // Find the end of inline math
         const endIndex = text.indexOf('$', i + 1);
         if (endIndex !== -1) {
-          // Add the complete LaTeX expression as one chunk
-          currentChunk += text.slice(i, endIndex + 1);
-          chunks.push(currentChunk);
-          currentChunk = '';
+          // Add everything up to and including the complete LaTeX expression
+          const chunkText = text.slice(0, endIndex + 1);
+          chunks.push(chunkText);
           i = endIndex + 1;
           continue;
         }
       }
     }
     
-    // Regular character - add it and create a chunk
-    currentChunk += char;
-    chunks.push(currentChunk);
+    // Regular character - add everything up to this point
+    chunks.push(text.slice(0, i + 1));
     i++;
   }
   
