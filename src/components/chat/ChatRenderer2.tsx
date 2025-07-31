@@ -4,19 +4,22 @@ import remarkMath from 'remark-math';
 import rehypeRaw from 'rehype-raw';
 import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
 
+// 🧠 Converts [(math)] → $$math$$ and ((inline math)) → $math$
 function normalizeMathDelimiters(input: string): string {
-  // Normalize BLOCK math: [ \frac{a}{b} ] => $$ \frac{a}{b} $$
-  const blockMath = input.replace(/\[\s*((?:\\[^\]]|[^\]\\])*)\s*\]/gs, (_, content) => {
-    return `\n\n$$${content.trim()}$$\n\n`;
-  });
+  // BLOCK math: [ \frac{a}{b} ] → $$ \frac{a}{b} $$
+  const withBlockMath = input.replace(
+    /\[\s*((?:\\[^\]]|[^\]\\])*)\s*\]/gs,
+    (_, content) => `\n\n$$${content.trim()}$$\n\n`
+  );
 
-  // Normalize INLINE math: ( \log_{a} x ) => $ \log_{a} x $
-  return blockMath.replace(/\(\s*((?:\\[^\)]|[^\)\\])*)\s*\)/gs, (_, content) => {
-    return `$${content.trim()}$`;
-  });
+  // INLINE math: ( \log_{2} x ) → $ \log_{2} x $
+  const withInlineMath = withBlockMath.replace(
+    /\(\s*((?:\\[^\)]|[^\)\\])*)\s*\)/gs,
+    (_, content) => `$${content.trim()}$`
+  );
+
+  return withInlineMath;
 }
-
-
 
 interface ChatRenderer2Props {
   text: string;
@@ -27,14 +30,15 @@ interface ChatRenderer2Props {
 const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRenderer2Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMathJaxReady = useMathJaxInitializer();
-  
+
   const normalizedText = normalizeMathDelimiters(text);
 
   useEffect(() => {
     if (!containerRef.current || !isMathJaxReady) return;
-    // delay until the markdown has been committed to the DOM
+
+    // ⏳ Wait for DOM to update
     requestAnimationFrame(() => {
-    mathJaxManager.renderMath(containerRef.current);
+      mathJaxManager.renderMath(containerRef.current!);
     });
   }, [text, isMathJaxReady]);
 
@@ -48,17 +52,19 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
     return () => document.removeEventListener('visibilitychange', handler);
   }, [isMathJaxReady]);
 
-  const linkColor = isUserMessage 
-    ? 'text-blue-200 hover:text-blue-100' 
+  const linkColor = isUserMessage
+    ? 'text-blue-200 hover:text-blue-100'
     : 'text-emerald-600 hover:text-emerald-700';
 
   return (
-    <div ref={containerRef} className={`prose prose-sm max-w-none tex2jax_process ${className}`}>
+    <div ref={containerRef} className={`prose prose-sm max-w-none ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeRaw]}
         components={{
-          p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+          p: ({ children }) => (
+            <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>
+          ),
           a: ({ href, children }) => (
             <a
               href={href}
@@ -70,14 +76,10 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
             </a>
           ),
           strong: ({ children }) => (
-            <strong className="text-foreground font-semibold">
-              {children}
-            </strong>
+            <strong className="text-foreground font-semibold">{children}</strong>
           ),
           em: ({ children }) => (
-            <em className="text-foreground/80 italic">
-              {children}
-            </em>
+            <em className="text-foreground/80 italic">{children}</em>
           ),
           ul: ({ children }) => (
             <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>
