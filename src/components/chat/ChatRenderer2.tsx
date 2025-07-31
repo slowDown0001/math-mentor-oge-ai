@@ -26,7 +26,10 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
 
   useEffect(() => {
     if (!containerRef.current || !isMathJaxReady) return;
+    // delay until the markdown has been committed to the DOM
+    requestAnimationFrame(() => {
     mathJaxManager.renderMath(containerRef.current);
+    });
   }, [text, isMathJaxReady]);
 
   useEffect(() => {
