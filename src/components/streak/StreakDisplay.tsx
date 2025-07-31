@@ -69,31 +69,31 @@ export const StreakDisplay = () => {
   const isCompleted = progressPercentage >= 100;
 
   return (
-    <div className="relative flex items-center gap-3 p-2 rounded-lg bg-card border border-border hover:shadow-sm transition-all duration-200">
+    <div className="flex items-center gap-3 group">
       {/* Progress Ring */}
-      <div className="relative w-14 h-14">
-        <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 56 56">
+      <div className="relative w-11 h-11">
+        <svg className="w-11 h-11 transform -rotate-90" viewBox="0 0 44 44">
           {/* Background circle */}
           <circle
-            cx="28"
-            cy="28"
-            r="24"
+            cx="22"
+            cy="22"
+            r="18"
             fill="none"
-            stroke="hsl(var(--muted))"
-            strokeWidth="4"
+            stroke="hsl(var(--muted-foreground) / 0.2)"
+            strokeWidth="2"
           />
           {/* Progress circle */}
           <circle
-            cx="28"
-            cy="28"
-            r="24"
+            cx="22"
+            cy="22"
+            r="18"
             fill="none"
-            stroke={isCompleted ? "hsl(var(--primary))" : "hsl(var(--chart-1))"}
-            strokeWidth="4"
+            stroke={isCompleted ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.7)"}
+            strokeWidth="2"
             strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 24}`}
-            strokeDashoffset={`${2 * Math.PI * 24 * (1 - progressPercentage / 100)}`}
-            className="transition-all duration-700 ease-out"
+            strokeDasharray={`${2 * Math.PI * 18}`}
+            strokeDashoffset={`${2 * Math.PI * 18 * (1 - progressPercentage / 100)}`}
+            className="transition-all duration-1000 ease-out"
           />
         </svg>
         
@@ -103,40 +103,31 @@ export const StreakDisplay = () => {
             <img 
               src={getAvatarUrl()!} 
               alt={getDisplayName()}
-              className={`w-10 h-10 object-cover rounded-full border-2 border-background transition-all duration-300 ${
-                isCompleted ? 'animate-pulse border-primary' : ''
-              }`}
+              className="w-7 h-7 object-cover rounded-full"
             />
           ) : (
-            <div className={`w-10 h-10 bg-muted rounded-full flex items-center justify-center border-2 border-background transition-all duration-300 ${
-              isCompleted ? 'animate-pulse border-primary' : ''
-            }`}>
-              <User className="w-5 h-5 text-muted-foreground" />
+            <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center">
+              <User className="w-3.5 h-3.5 text-muted-foreground" />
             </div>
           )}
         </div>
       </div>
 
       {/* Streak Info */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-foreground">{streakData.currentStreak}</span>
-          <span className="text-lg">🔥</span>
+      <div className="flex items-center gap-3 text-sm">
+        <div className="flex items-center gap-1">
+          <span className="font-medium text-foreground">{streakData.currentStreak}</span>
+          <span className="text-base">🔥</span>
         </div>
-        <div className="text-xs text-muted-foreground">
-          {Math.round(streakData.todayProgress)}м из {streakData.dailyGoalMinutes}м
+        <div className="text-muted-foreground">
+          {Math.round(streakData.todayProgress)}м
         </div>
-        {isCompleted && (
-          <div className="text-xs font-medium text-primary">
-            ✓ Цель достигнута!
-          </div>
-        )}
       </div>
 
       {/* Celebration Message */}
       {showCelebration && (
-        <div className="absolute top-16 left-0 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm animate-fade-in z-50 shadow-lg">
-          🎉 Отличная работа! Дневная цель выполнена!
+        <div className="absolute top-12 left-0 bg-primary text-primary-foreground px-2 py-1 rounded text-xs animate-fade-in z-50">
+          🎉 Цель достигнута!
         </div>
       )}
     </div>
