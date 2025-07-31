@@ -66,33 +66,34 @@ export const StreakDisplay = () => {
   };
 
   const progressPercentage = Math.min((streakData.todayProgress / streakData.dailyGoalMinutes) * 100, 100);
+  const isCompleted = progressPercentage >= 100;
 
   return (
-    <div className="relative flex items-center">
+    <div className="relative flex items-center gap-3 p-2 rounded-lg bg-card border border-border hover:shadow-sm transition-all duration-200">
       {/* Progress Ring */}
-      <div className="relative w-12 h-12">
-        <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 48 48">
+      <div className="relative w-14 h-14">
+        <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 56 56">
           {/* Background circle */}
           <circle
-            cx="24"
-            cy="24"
-            r="20"
+            cx="28"
+            cy="28"
+            r="24"
             fill="none"
-            stroke="#e5e7eb"
-            strokeWidth="3"
+            stroke="hsl(var(--muted))"
+            strokeWidth="4"
           />
           {/* Progress circle */}
           <circle
-            cx="24"
-            cy="24"
-            r="20"
+            cx="28"
+            cy="28"
+            r="24"
             fill="none"
-            stroke="#22c55e"
-            strokeWidth="3"
+            stroke={isCompleted ? "hsl(var(--primary))" : "hsl(var(--chart-1))"}
+            strokeWidth="4"
             strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 20}`}
-            strokeDashoffset={`${2 * Math.PI * 20 * (1 - progressPercentage / 100)}`}
-            className="transition-all duration-500 ease-out"
+            strokeDasharray={`${2 * Math.PI * 24}`}
+            strokeDashoffset={`${2 * Math.PI * 24 * (1 - progressPercentage / 100)}`}
+            className="transition-all duration-700 ease-out"
           />
         </svg>
         
@@ -102,30 +103,40 @@ export const StreakDisplay = () => {
             <img 
               src={getAvatarUrl()!} 
               alt={getDisplayName()}
-              className={`w-8 h-8 object-cover rounded-full transition-transform duration-300 ${
-                progressPercentage >= 100 ? 'animate-bounce' : ''
+              className={`w-10 h-10 object-cover rounded-full border-2 border-background transition-all duration-300 ${
+                isCompleted ? 'animate-pulse border-primary' : ''
               }`}
             />
           ) : (
-            <div className={`w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center transition-transform duration-300 ${
-              progressPercentage >= 100 ? 'animate-bounce' : ''
+            <div className={`w-10 h-10 bg-muted rounded-full flex items-center justify-center border-2 border-background transition-all duration-300 ${
+              isCompleted ? 'animate-pulse border-primary' : ''
             }`}>
-              <User className="w-4 h-4 text-gray-500" />
+              <User className="w-5 h-5 text-muted-foreground" />
             </div>
           )}
         </div>
       </div>
 
-      {/* Streak Counter */}
-      <div className="ml-2 text-xs">
-        <div className="font-semibold text-gray-700">{streakData.currentStreak} 🔥</div>
-        <div className="text-gray-500">{Math.round(streakData.todayProgress)}м</div>
+      {/* Streak Info */}
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-foreground">{streakData.currentStreak}</span>
+          <span className="text-lg">🔥</span>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {Math.round(streakData.todayProgress)}м из {streakData.dailyGoalMinutes}м
+        </div>
+        {isCompleted && (
+          <div className="text-xs font-medium text-primary">
+            ✓ Цель достигнута!
+          </div>
+        )}
       </div>
 
       {/* Celebration Message */}
       {showCelebration && (
-        <div className="absolute top-14 left-0 bg-green-500 text-white px-3 py-1 rounded-lg text-sm animate-fade-in z-50">
-          🎉 Поздравляем! Вы достигли дневной цели!
+        <div className="absolute top-16 left-0 bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm animate-fade-in z-50 shadow-lg">
+          🎉 Отличная работа! Дневная цель выполнена!
         </div>
       )}
     </div>
