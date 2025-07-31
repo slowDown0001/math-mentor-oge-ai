@@ -17,8 +17,18 @@ function normalizeMathDelimiters(input: string): string {
     (_, content) => `$${content.trim()}$`
   );
 
-  return withInlineMath;
+  // Detect lines with bare LaTeX-looking math (like `log_2x = 3`)
+  const withAutoWrappedInline = withInlineMath.replace(
+    /(^|[\s:>])((?:\\?[a-zA-Z]+|[-+*/^=(){}0-9_\\]+){3,})(?=[\s.,;!?<\n])/gm,
+    (match, prefix, expr) => {
+      if (/^\$.*\$/.test(expr)) return match; // already wrapped
+      return `${prefix}$${expr}$`;
+    }
+  );
+
+  return withAutoWrappedInline;
 }
+
 
 interface ChatRenderer2Props {
   text: string;
