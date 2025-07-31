@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
@@ -35,37 +35,124 @@ function sanitizeLatex(input: string): string {
     .replace(/([a-zA-Z])([0-9])/g, '$1 $2');           // add spacing after letters
 }
 
+// 🎯 Safely split text without breaking LaTeX expressions
+function createTypewriterChunks(text: string): string[] {
+  const chunks: string[] = [];
+  let currentChunk = '';
+  let i = 0;
+  
+  while (i < text.length) {
+    const char = text[i];
+    
+    // Check for start of LaTeX expressions
+    if (char === '$') {
+      // Check if it's block math ($$)
+      if (text[i + 1] === '$') {
+        // Find the end of block math
+        const endIndex = text.indexOf('$$', i + 2);
+        if (endIndex !== -1) {
+          // Add the complete LaTeX expression as one chunk
+          currentChunk += text.slice(i, endIndex + 2);
+          chunks.push(currentChunk);
+          currentChunk = '';
+          i = endIndex + 2;
+          continue;
+        }
+      } else {
+        // Find the end of inline math
+        const endIndex = text.indexOf('$', i + 1);
+        if (endIndex !== -1) {
+          // Add the complete LaTeX expression as one chunk
+          currentChunk += text.slice(i, endIndex + 1);
+          chunks.push(currentChunk);
+          currentChunk = '';
+          i = endIndex + 1;
+          continue;
+        }
+      }
+    }
+    
+    // Regular character - add it and create a chunk
+    currentChunk += char;
+    chunks.push(currentChunk);
+    i++;
+  }
+  
+  return chunks;
+}
+
 
 
 interface ChatRenderer2Props {
   text: string;
   isUserMessage?: boolean;
   className?: string;
+  disableTyping?: boolean;
 }
 
-const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRenderer2Props) => {
+const ChatRenderer2 = ({ text, isUserMessage = false, className = '', disableTyping = false }: ChatRenderer2Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMathJaxReady = useMathJaxInitializer();
+  const [displayedText, setDisplayedText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [hasCompletedTyping, setHasCompletedTyping] = useState(false);
 
   const normalizedText = normalizeMathDelimiters(text);
 
+  // 🎯 Typewriter effect
   useEffect(() => {
-    if (!containerRef.current || !isMathJaxReady) return;
+    if (disableTyping || isUserMessage) {
+      setDisplayedText(normalizedText);
+      setHasCompletedTyping(true);
+      return;
+    }
+
+    // Reset state when text changes
+    setDisplayedText('');
+    setIsTyping(true);
+    setHasCompletedTyping(false);
+
+    const chunks = createTypewriterChunks(normalizedText);
+    let currentIndex = 0;
+
+    const typeNextChunk = () => {
+      if (currentIndex < chunks.length) {
+        setDisplayedText(chunks[currentIndex]);
+        currentIndex++;
+        
+        // Typing speed: 25ms per chunk (feels natural)
+        setTimeout(typeNextChunk, 25);
+      } else {
+        setIsTyping(false);
+        setHasCompletedTyping(true);
+      }
+    };
+
+    // Start typing animation
+    const timeoutId = setTimeout(typeNextChunk, 50);
+    
+    return () => clearTimeout(timeoutId);
+  }, [text, normalizedText, disableTyping, isUserMessage]);
+
+  // 🧮 Render MathJax only after typing completes
+  useEffect(() => {
+    if (!containerRef.current || !isMathJaxReady || !hasCompletedTyping || isTyping) return;
 
     requestAnimationFrame(() => {
       mathJaxManager.renderMath(containerRef.current!);
     });
-  }, [text, isMathJaxReady]);
+  }, [displayedText, isMathJaxReady, hasCompletedTyping, isTyping]);
 
+  // Handle visibility changes for MathJax re-rendering
   useEffect(() => {
     const handler = () => {
-      if (document.visibilityState === 'visible' && containerRef.current && isMathJaxReady) {
+      if (document.visibilityState === 'visible' && containerRef.current && isMathJaxReady && hasCompletedTyping) {
         mathJaxManager.renderMath(containerRef.current);
       }
     };
     document.addEventListener('visibilitychange', handler);
     return () => document.removeEventListener('visibilitychange', handler);
-  }, [isMathJaxReady]);
+  }, [isMathJaxReady, hasCompletedTyping]);
 
   const linkColor = isUserMessage
     ? 'text-blue-200 hover:text-blue-100'
@@ -106,8 +193,9 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
           )
         }}
       >
-        {normalizedText}
+        {displayedText}
       </ReactMarkdown>
+      {isTyping && <span className="animate-pulse">▋</span>}
     </div>
   );
 };
