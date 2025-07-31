@@ -5,11 +5,17 @@ import rehypeRaw from 'rehype-raw';
 import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
 
 function normalizeMathDelimiters(input: string): string {
-  // Replace only exact math delimiters like: [ \log_{x} 2 = 3 ]
-  return input.replace(/\[\s*((?:\\[^\]]|[^\]\\])*)\s*\]/gs, (_, content) => {
+  // Normalize BLOCK math: [ \frac{a}{b} ] => $$ \frac{a}{b} $$
+  const blockMath = input.replace(/\[\s*((?:\\[^\]]|[^\]\\])*)\s*\]/gs, (_, content) => {
     return `\n\n$$${content.trim()}$$\n\n`;
   });
+
+  // Normalize INLINE math: ( \log_{a} x ) => $ \log_{a} x $
+  return blockMath.replace(/\(\s*((?:\\[^\)]|[^\)\\])*)\s*\)/gs, (_, content) => {
+    return `$${content.trim()}$`;
+  });
 }
+
 
 
 interface ChatRenderer2Props {
