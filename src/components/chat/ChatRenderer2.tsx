@@ -4,6 +4,13 @@ import remarkMath from 'remark-math';
 import rehypeRaw from 'rehype-raw';
 import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
 
+function normalizeMathDelimiters(input: string): string {
+  // Replace [ ... ] with $$ ... $$ (block math)
+  return input.replace(/\[\s*(\\?.+?)\s*\]/gs, (_, content) => {
+    return `$$${content}$$`;
+  });
+}
+
 interface ChatRenderer2Props {
   text: string;
   isUserMessage?: boolean;
@@ -13,6 +20,8 @@ interface ChatRenderer2Props {
 const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRenderer2Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMathJaxReady = useMathJaxInitializer();
+  
+  const normalizedText = normalizeMathDelimiters(text);
 
   useEffect(() => {
     if (!containerRef.current || !isMathJaxReady) return;
@@ -71,7 +80,7 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
           )
         }}
       >
-        {text}
+        {normalizedText}
       </ReactMarkdown>
     </div>
   );
