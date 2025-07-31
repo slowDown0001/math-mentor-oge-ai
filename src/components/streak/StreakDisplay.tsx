@@ -1,9 +1,9 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/useProfile';
-import { User } from 'lucide-react';
+import { User, ChevronDown } from 'lucide-react';
 
 interface StreakData {
   dailyGoalMinutes: number;
@@ -20,12 +20,26 @@ export const StreakDisplay = () => {
     currentStreak: 0
   });
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user) {
       fetchStreakData();
     }
   }, [user]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchStreakData = async () => {
     if (!user) return;
@@ -69,7 +83,7 @@ export const StreakDisplay = () => {
   const isCompleted = progressPercentage >= 100;
 
   return (
-    <div className="flex items-center gap-3 group">
+    <div className="relative flex items-center gap-3 group" ref={dropdownRef}>
       {/* Progress Ring */}
       <div className="relative w-11 h-11">
         <svg className="w-11 h-11 transform -rotate-90" viewBox="0 0 44 44">
@@ -113,8 +127,11 @@ export const StreakDisplay = () => {
         </div>
       </div>
 
-      {/* Streak Info */}
-      <div className="flex items-center gap-3 text-sm">
+      {/* Clickable Streak Info */}
+      <button 
+        onClick={() => setShowDropdown(!showDropdown)}
+        className="flex items-center gap-3 text-sm hover:bg-muted/50 rounded-md px-2 py-1 transition-colors duration-200"
+      >
         <div className="flex items-center gap-1">
           <span className="font-medium text-foreground">{streakData.currentStreak}</span>
           <span className="text-base">🔥</span>
@@ -122,7 +139,48 @@ export const StreakDisplay = () => {
         <div className="text-muted-foreground">
           {Math.round(streakData.todayProgress)}м
         </div>
-      </div>
+        <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* Dropdown Menu */}
+      {showDropdown && (
+        <div className="absolute top-full left-0 mt-2 w-64 bg-background border border-border rounded-lg shadow-lg z-50 animate-fade-in">
+          <div className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">Текущая серия</span>
+              <span className="text-sm text-muted-foreground">{streakData.currentStreak} дней</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">Дневная цель</span>
+              <span className="text-sm text-muted-foreground">{streakData.dailyGoalMinutes} мин</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">Сегодня занимались</span>
+              <span className="text-sm text-muted-foreground">{Math.round(streakData.todayProgress)} мин</span>
+            </div>
+            
+            <div className="pt-2 border-t border-border">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-muted-foreground">Прогресс</span>
+                <span className="text-xs text-muted-foreground">{Math.round(progressPercentage)}%</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div 
+                  className="bg-primary h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+              {isCompleted && (
+                <div className="text-xs text-primary font-medium mt-2">
+                  ✓ Цель на сегодня выполнена!
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Celebration Message */}
       {showCelebration && (
