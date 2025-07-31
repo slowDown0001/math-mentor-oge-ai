@@ -1,23 +1,42 @@
-
 <!DOCTYPE html>
-<html lang="ru"> 
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ёжик AI - ИИ-репетитор для подготовки к ОГЭ по математике</title>
-    <meta name="description" content="Освойте ОГЭ по математике с вашим персональным ИИ-репетитором. Получите индивидуальные учебные планы, практикуйтесь с прошлогодними заданиями и получайте мгновенную помощь." />
+    <meta
+      name="description"
+      content="Освойте ОГЭ по математике с вашим персональным ИИ-репетитором. Получите индивидуальные учебные планы, практикуйтесь с прошлогодними заданиями и получайте мгновенную помощь."
+    />
     <meta name="author" content="Ёжик AI" />
 
     <meta property="og:title" content="Ёжик AI - ИИ-репетитор для подготовки к ОГЭ по математике" />
-    <meta property="og:description" content="Освойте ОГЭ по математике с вашим персональным ИИ-репетитором. Получите индивидуальные учебные планы, практикуйтесь с прошлогодними заданиями и получайте мгновенную помощь." />
+    <meta
+      property="og:description"
+      content="Освойте ОГЭ по математике с вашим персональным ИИ-репетитором. Получите индивидуальные учебные планы, практикуйтесь с прошлогодними заданиями и получайте мгновенную помощь."
+    />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-    
 
+    <!-- MathJax -->
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['\\(', '\\)']],
+          displayMath: [['$$', '$$']],
+        },
+        svg: { fontCache: 'global' },
+      };
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+      async
+    ></script>
+  </head>
 
   <body>
     <div id="root"></div>
