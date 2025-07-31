@@ -106,14 +106,6 @@ const Header = () => {
                 >
                   Статистика
                 </Link>
-                <Link 
-                  to="/profile" 
-                  className={`text-sm font-medium transition-colors ${
-                    isActive('/profile') ? 'text-primary' : 'text-gray-600 hover:text-primary'
-                  }`}
-                >
-                  Профиль
-                </Link>
               </>
             )}
           </nav>
@@ -127,7 +119,7 @@ const Header = () => {
                 <Link to="/profile">
                   <Button variant="ghost" size="sm" className="flex items-center space-x-1">
                     <User className="w-4 h-4" />
-                    <span>{user.user_metadata?.full_name || user.email}</span>
+                    <span>Профиль</span>
                   </Button>
                 </Link>
                 <Button onClick={handleSignOut} variant="outline" size="sm">
@@ -237,15 +229,6 @@ const Header = () => {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Статистика
-                  </Link>
-                  <Link 
-                    to="/profile" 
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      isActive('/profile') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Профиль
                   </Link>
                 </>
               )}
