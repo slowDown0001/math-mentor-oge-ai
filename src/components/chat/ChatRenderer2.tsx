@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
 import rehypeRaw from 'rehype-raw';
 import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
 
@@ -36,7 +35,6 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
   useEffect(() => {
     if (!containerRef.current || !isMathJaxReady) return;
 
-    // ⏳ Wait for DOM to update
     requestAnimationFrame(() => {
       mathJaxManager.renderMath(containerRef.current!);
     });
@@ -59,7 +57,6 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
   return (
     <div ref={containerRef} className={`prose prose-sm max-w-none ${className}`}>
       <ReactMarkdown
-        remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeRaw]}
         components={{
           p: ({ children }) => (
