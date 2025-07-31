@@ -5,29 +5,36 @@ import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitial
 
 // 🧠 Converts [(math)] → $$math$$ and ((inline math)) → $math$
 function normalizeMathDelimiters(input: string): string {
-  // BLOCK math: [ \frac{a}{b} ] → $$ \frac{a}{b} $$
-  const withBlockMath = input.replace(
+  // Fix log_2x → \log_{2} x
+  const fixedLogs = input.replace(/\blog_(\d+)([a-zA-Z])/g, (_, base, arg) => `\\log_{${base}} ${arg}`);
+
+  // Replace [ ... ] with $$ ... $$ (block math)
+  const withBlockMath = fixedLogs.replace(
     /\[\s*((?:\\[^\]]|[^\]\\])*)\s*\]/gs,
-    (_, content) => `\n\n$$${content.trim()}$$\n\n`
+    (_, content) => `\n\n$$${sanitizeLatex(content.trim())}$$\n\n`
   );
 
-  // INLINE math: ( \log_{2} x ) → $ \log_{2} x $
+  // Replace ( ... ) with $ ... $ (inline math)
   const withInlineMath = withBlockMath.replace(
     /\(\s*((?:\\[^\)]|[^\)\\])*)\s*\)/gs,
-    (_, content) => `$${content.trim()}$`
+    (_, content) => `$${sanitizeLatex(content.trim())}$`
   );
 
-  // Detect lines with bare LaTeX-looking math (like `log_2x = 3`)
-  const withAutoWrappedInline = withInlineMath.replace(
-    /(^|[\s:>])((?:\\?[a-zA-Z]+|[-+*/^=(){}0-9_\\]+){3,})(?=[\s.,;!?<\n])/gm,
-    (match, prefix, expr) => {
-      if (/^\$.*\$/.test(expr)) return match; // already wrapped
-      return `${prefix}$${expr}$`;
-    }
-  );
-
-  return withAutoWrappedInline;
+  return withInlineMath;
 }
+
+function sanitizeLatex(input: string): string {
+  return input
+    .replace(/\^{2}/g, '^2')                          // unnecessary braces in ^2
+    .replace(/([a-z])\^(\d)/g, '$1^{$2}')              // ensure x^2 → x^{2}
+    .replace(/cdot([^a-zA-Z])/g, '\\cdot$1')           // fix unescaped cdot
+    .replace(/\{\{+/g, '{')                            // remove extra open braces
+    .replace(/\}\}+/g, '}')                            // remove extra close braces
+    .replace(/([^\\])%/g, '$1\\%')                     // escape % for MathJax
+    .replace(/([0-9])([a-zA-Z])/g, '$1 $2')            // add spacing after numbers
+    .replace(/([a-zA-Z])([0-9])/g, '$1 $2');           // add spacing after letters
+}
+
 
 
 interface ChatRenderer2Props {
