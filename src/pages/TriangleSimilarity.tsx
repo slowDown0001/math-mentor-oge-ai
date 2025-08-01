@@ -14,6 +14,7 @@ import ChatInput from "@/components/chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
 import { sendChatMessage } from "@/services/chatService";
 import { supabase } from "@/integrations/supabase/client";
+import ArticleRenderer from "@/components/ArticleRenderer";
 
 // Skill 121 data
 const skill121 = {
@@ -27,6 +28,9 @@ interface Article {
   img1?: string;
   img2?: string;
   img3?: string;
+  img4?: string;
+  img5?: string;
+  [key: string]: any; // For future imgX columns
 }
 
 const TriangleSimilarity = () => {
@@ -46,7 +50,7 @@ const TriangleSimilarity = () => {
       try {
         const { data, error } = await supabase
           .from('articles2')
-          .select('skill, art, img1, img2, img3')
+          .select('skill, art, img1, img2, img3, img4, img5')
           .eq('skill', 121)
           .single();
         
@@ -342,40 +346,13 @@ const TriangleSimilarity = () => {
                     <div className="space-y-6">
                       {article && article.art ? (
                         <>
-                          {/* Article Images */}
-                          {(article.img1 || article.img2 || article.img3) && (
-                            <div className="mb-6 space-y-4">
-                              {article.img1 && (
-                                <img 
-                                  src={article.img1} 
-                                  alt="Иллюстрация к навыку" 
-                                  className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
-                                />
-                              )}
-                              {article.img2 && (
-                                <img 
-                                  src={article.img2} 
-                                  alt="Иллюстрация к навыку" 
-                                  className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
-                                />
-                              )}
-                              {article.img3 && (
-                                <img 
-                                  src={article.img3} 
-                                  alt="Иллюстрация к навыку" 
-                                  className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
-                                />
-                              )}
-                            </div>
-                          )}
-                          
                           <div 
                             className={`prose max-w-none ${
                               isSelecterActive ? 'cursor-text select-text' : ''
                             }`}
                             style={{ userSelect: isSelecterActive ? 'text' : 'auto' }}
                           >
-                            <MathRenderer text={article.art} />
+                            <ArticleRenderer text={article.art} article={article} />
                           </div>
                           <div className="flex justify-center pt-6 border-t">
                             <Button 
