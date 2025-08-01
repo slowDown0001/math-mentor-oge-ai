@@ -105,10 +105,10 @@ const TriangleSimilarity = () => {
     
     setIsChatOpen(true);
     
-    // Add user message with selected text
+    // Add user message with selected text and instruction for concise response
     const newUserMessage = {
       id: Date.now(),
-      text: `Объясни мне это: "${selectedText}"`,
+      text: `Объясни коротко и по делу: "${selectedText}"`,
       isUser: true,
       timestamp: new Date()
     };
