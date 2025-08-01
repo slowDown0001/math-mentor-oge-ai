@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
-import { useProfile } from '@/hooks/useProfile';
 
 // 🧠 Converts [(math)] → $$math$$ and ((inline math)) → $math$
 function normalizeMathDelimiters(input: string): string {
@@ -47,11 +46,8 @@ interface ChatRenderer2Props {
 const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRenderer2Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMathJaxReady = useMathJaxInitializer();
-  const { getDisplayName } = useProfile();
 
-  // Replace placeholder {{userName}} with actual user name
-  const personalizedText = text.replace(/\{\{userName\}\}/g, getDisplayName());
-  const normalizedText = normalizeMathDelimiters(personalizedText);
+  const normalizedText = normalizeMathDelimiters(text);
 
   useEffect(() => {
     if (!containerRef.current || !isMathJaxReady) return;
