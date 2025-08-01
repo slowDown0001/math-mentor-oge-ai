@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChatContext } from "@/contexts/ChatContext";
+import { useProfile } from "@/hooks/useProfile";
 import ChatMessages from "./chat/ChatMessages";
 import ChatInput from "./chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
@@ -18,7 +19,8 @@ export interface Message {
 const ChatSection = () => {
   const { user } = useAuth();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
+  const { getDisplayName } = useProfile();
+  const userName = getDisplayName();
   
   // Initialize welcome messages if chat is empty
   useEffect(() => {
