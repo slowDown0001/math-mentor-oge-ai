@@ -38,7 +38,8 @@ const ArticleRenderer: React.FC<ArticleRendererProps> = ({ text, article }) => {
               <img 
                 src={imgUrl} 
                 alt={`Иллюстрация ${imgNumber}`}
-                className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
+                
+                className="mx-auto rounded-lg shadow-sm"
               />
             </div>
           );
