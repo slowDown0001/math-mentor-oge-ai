@@ -204,7 +204,7 @@ const TriangleSimilarity = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 relative">
             {/* Chat Window */}
             {isChatOpen && (
-              <div className="fixed left-4 top-24 bottom-4 w-80 z-40 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col">
+              <div className="fixed left-4 top-24 bottom-4 w-[calc(25%-2rem)] z-40 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col">
                 <div className="flex items-center justify-between p-4 border-b">
                   <div className="flex items-center gap-2">
                     <MessageCircle className="w-5 h-5 text-blue-600" />
