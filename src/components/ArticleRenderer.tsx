@@ -77,7 +77,7 @@ const ArticleRenderer: React.FC<ArticleRendererProps> = ({ text, article }) => {
 
   // Convert !!text!! to clickable links
   const convertLinksToMarkdown = (text: string) => {
-    return text.replace(/!!(.*?)!!/g, '<a href="#" style="color: #2563eb; text-decoration: underline;" onclick="event.preventDefault(); window.open(\'https://www.google.com/search?q=\' + encodeURIComponent(\'$1\'), \'_blank\');">$1</a>');
+    return text.replace(/!!(.*?)!!/g, '<a href="#" style="color: #10b981; text-decoration: underline;" onclick="event.preventDefault(); window.open(\'https://www.google.com/search?q=\' + encodeURIComponent(\'$1\'), \'_blank\');">$1</a>');
   };
 
   return <div>{renderTextWithImages(text)}</div>;
