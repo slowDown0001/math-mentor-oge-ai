@@ -59,6 +59,7 @@ const MCQPractice = () => {
         .from('mcq_with_options')
         .select('question_id, problem_text, answer, skills, option1, option2, option3, option4, problem_image, solution_text')
         .eq('skills', skillId)
+        .order('problem_number', { ascending: true })
         .limit(10);
 
       if (error) {
