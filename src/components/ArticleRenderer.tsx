@@ -33,7 +33,7 @@ interface ArticleRendererProps {
 }
 
 const ArticleRenderer: React.FC<ArticleRendererProps> = ({ text, article }) => {
-  // Replace <imgX> tags with actual images
+  // Replace <imgX> tags with actual images and convert !!...!! to links
   const renderTextWithImages = (content: string) => {
     // Split content by <imgX> pattern
     const parts = content.split(/(<img\d+>)/g);
@@ -53,7 +53,6 @@ const ArticleRenderer: React.FC<ArticleRendererProps> = ({ text, article }) => {
               <img 
                 src={imgUrl} 
                 alt={`Иллюстрация ${imgNumber}`}
-                
                 className="mx-auto rounded-lg shadow-sm"
               />
             </div>
@@ -63,17 +62,22 @@ const ArticleRenderer: React.FC<ArticleRendererProps> = ({ text, article }) => {
         return null;
       }
       
-      // Regular text content - render with MathRenderer
+      // Regular text content - process !!...!! patterns and render with MathRenderer
       if (part.trim()) {
         return (
           <div key={index}>
-            <MathRenderer text={part} />
+            <MathRenderer text={convertLinksToMarkdown(part)} />
           </div>
         );
       }
       
       return null;
     }).filter(Boolean);
+  };
+
+  // Convert !!text!! to clickable links
+  const convertLinksToMarkdown = (text: string) => {
+    return text.replace(/!!(.*?)!!/g, '<a href="#" style="color: #2563eb; text-decoration: underline;" onclick="event.preventDefault(); window.open(\'https://www.google.com/search?q=\' + encodeURIComponent(\'$1\'), \'_blank\');">$1</a>');
   };
 
   return <div>{renderTextWithImages(text)}</div>;
