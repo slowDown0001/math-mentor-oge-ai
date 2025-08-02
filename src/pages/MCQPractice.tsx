@@ -19,6 +19,7 @@ interface MCQQuestion {
   option2: string;
   option3: string;
   option4: string;
+  problem_image: string | null;
 }
 
 interface MathSkill {
@@ -54,7 +55,7 @@ const MCQPractice = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('mcq_with_options')
-        .select('question_id, problem_text, answer, skills, option1, option2, option3, option4')
+        .select('question_id, problem_text, answer, skills, option1, option2, option3, option4, problem_image')
         .eq('skills', skillId)
         .limit(10);
 
@@ -211,6 +212,17 @@ const MCQPractice = () => {
                 <CardTitle>Вопрос {currentQuestionIndex + 1}</CardTitle>
               </CardHeader>
               <CardContent>
+                {/* Problem Image */}
+                {currentQuestion.problem_image && (
+                  <div className="mb-6 flex justify-center">
+                    <img 
+                      src={currentQuestion.problem_image} 
+                      alt="Изображение к задаче" 
+                      className="max-w-md w-full h-auto object-contain rounded-lg border border-gray-200"
+                    />
+                  </div>
+                )}
+                
                 <div className="mb-6">
                   <MathRenderer text={currentQuestion.problem_text} />
                 </div>
