@@ -30,6 +30,21 @@ interface Article {
   img3?: string;
   img4?: string;
   img5?: string;
+  img6?: string;
+  img7?: string;
+  img8?: string;
+  img9?: string;
+  img10?: string;
+  img11?: string;
+  img12?: string;
+  img13?: string;
+  img14?: string;
+  img15?: string;
+  img16?: string;
+  img17?: string;
+  img18?: string;
+  img19?: string;
+  img20?: string;
   [key: string]: any; // For future imgX columns
 }
 
@@ -50,7 +65,7 @@ const TriangleSimilarity = () => {
       try {
         const { data, error } = await supabase
           .from('articles2')
-          .select('skill, art, img1, img2, img3, img4, img5')
+          .select('skill, art, img1, img2, img3, img4, img5, img6, img7, img8, img9, img10, img11, img12, img13, img14, img15, img16, img17, img18, img19, img20')
           .eq('skill', 121)
           .single();
         
