@@ -5,11 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/useProfile';
 import { User, ChevronDown } from 'lucide-react';
 import { EnergyPointsHeaderAnimation } from './EnergyPointsHeaderAnimation';
+import { getCurrentEnergyPoints } from '@/services/energyPoints';
 
 interface StreakData {
   dailyGoalMinutes: number;
   todayProgress: number;
   currentStreak: number;
+  energyPoints: number;
 }
 
 export const StreakDisplay = () => {
@@ -18,7 +20,8 @@ export const StreakDisplay = () => {
   const [streakData, setStreakData] = useState<StreakData>({
     dailyGoalMinutes: 30,
     todayProgress: 0,
-    currentStreak: 0
+    currentStreak: 0,
+    energyPoints: 0
   });
   const [showCelebration, setShowCelebration] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -65,10 +68,14 @@ export const StreakDisplay = () => {
       const todayProgress = todayActivities?.reduce((sum, activity) => sum + (activity.duration_minutes || 0), 0) || 0;
       const goalMinutes = streakInfo?.daily_goal_minutes || 30;
       
+      // Get current energy points
+      const currentEnergyPoints = await getCurrentEnergyPoints(user.id);
+      
       setStreakData({
         dailyGoalMinutes: goalMinutes,
         todayProgress,
-        currentStreak: streakInfo?.current_streak || 0
+        currentStreak: streakInfo?.current_streak || 0,
+        energyPoints: currentEnergyPoints
       });
 
       // Show celebration if goal is reached
@@ -81,12 +88,24 @@ export const StreakDisplay = () => {
     }
   };
 
-  const progressPercentage = Math.min((streakData.todayProgress / streakData.dailyGoalMinutes) * 100, 100);
+  // Calculate progress based on both time and energy points (weighted)
+  const timeProgress = (streakData.todayProgress / streakData.dailyGoalMinutes) * 100;
+  const energyProgress = Math.min((streakData.energyPoints / 500) * 100, 100); // 500 points = 100%
+  const progressPercentage = Math.min((timeProgress * 0.6 + energyProgress * 0.4), 100);
   const isCompleted = progressPercentage >= 100;
 
-  // Method to trigger energy points animation
-  const triggerEnergyPointsAnimation = (points: number) => {
+  // Method to trigger energy points animation and update progress
+  const triggerEnergyPointsAnimation = async (points: number) => {
     setEnergyPointsAnimation({ isVisible: true, points });
+    
+    // Update energy points in real-time
+    if (user) {
+      const updatedEnergyPoints = await getCurrentEnergyPoints(user.id);
+      setStreakData(prev => ({
+        ...prev,
+        energyPoints: updatedEnergyPoints
+      }));
+    }
   };
 
   // Expose this method globally for other components to use
@@ -181,6 +200,11 @@ export const StreakDisplay = () => {
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Сегодня занимались</span>
               <span className="text-sm text-muted-foreground">{Math.round(streakData.todayProgress)} мин</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">Энергетические очки</span>
+              <span className="text-sm text-muted-foreground">{streakData.energyPoints}</span>
             </div>
             
             <div className="pt-2 border-t border-border">
