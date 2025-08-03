@@ -105,7 +105,8 @@ const handleDatabaseOnlyMode = async (userMessage: string): Promise<string> => {
 export const sendChatMessage = async (
   userMessage: Message,
   messageHistory: Message[],
-  isDatabaseMode: boolean = false
+  isDatabaseMode: boolean = false,
+  studentName?: string
 ): Promise<Message> => {
   try {
     let responseText: string;
@@ -158,7 +159,7 @@ export const sendChatMessage = async (
       }));
       
       // Call Groq API for general conversation
-      responseText = await getChatCompletion(groqMessages);
+      responseText = await getChatCompletion(groqMessages, studentName);
     }
     
     // Create and return AI message

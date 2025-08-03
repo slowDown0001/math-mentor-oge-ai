@@ -8,6 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import MathRenderer from "@/components/MathRenderer";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
@@ -49,6 +51,8 @@ interface Article {
 }
 
 const TriangleSimilarity = () => {
+  const { user } = useAuth();
+  const { getDisplayName } = useProfile();
   const navigate = useNavigate();
   const [article, setArticle] = useState<Article | null>(null);
   const [loadingArticle, setLoadingArticle] = useState(false);
@@ -137,7 +141,8 @@ const TriangleSimilarity = () => {
 
     try {
       // Send message to AI and get response
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
+      const studentName = getDisplayName();
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode, studentName);
       addMessage(aiResponse);
     } finally {
       setIsTyping(false);
@@ -159,7 +164,8 @@ const TriangleSimilarity = () => {
     setIsTyping(true);
 
     try {
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
+      const studentName = getDisplayName();
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode, studentName);
       addMessage(aiResponse);
     } finally {
       setIsTyping(false);

@@ -23,10 +23,10 @@ export interface Message {
 
 const Profile = () => {
   const { user } = useAuth();
+  const { getDisplayName } = useProfile();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
   const { topicProgress, generalPreparedness, isLoading: skillsLoading } = useStudentSkills();
   const { completedLessons, practiceProblems, quizzesCompleted, averageScore, isLoading: statsLoading } = useUserStatistics();
-  const { getDisplayName } = useProfile();
   
   // Extract user information from Supabase user data and profile
   const userName = getDisplayName();
@@ -61,7 +61,8 @@ const Profile = () => {
 
     try {
       // Send message to AI and get response using Groq API
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
+      const studentName = getDisplayName();
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode, studentName);
       addMessage(aiResponse);
     } finally {
       setIsTyping(false);
