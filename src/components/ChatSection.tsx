@@ -2,7 +2,6 @@
 import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
 import { useChatContext } from "@/contexts/ChatContext";
 import ChatMessages from "./chat/ChatMessages";
 import ChatInput from "./chat/ChatInput";
@@ -18,9 +17,8 @@ export interface Message {
 
 const ChatSection = () => {
   const { user } = useAuth();
-  const { getDisplayName } = useProfile();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
-  const userName = getDisplayName();
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
   
   // Initialize welcome messages if chat is empty
   useEffect(() => {
@@ -56,8 +54,7 @@ const ChatSection = () => {
 
     try {
       // Send message to AI and get response
-      const studentName = userName;
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode, studentName);
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
     } finally {
       setIsTyping(false);

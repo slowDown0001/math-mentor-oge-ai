@@ -9,11 +9,9 @@ export interface Message {
 }
 
 // Enhanced system prompt for the math tutor
-const createSystemPrompt = (studentName?: string): Message => ({
+const SYSTEM_PROMPT: Message = {
   role: 'system',
   content: `You are "Ёжик" (Hedgehog), a helpful and patient high school math teacher specializing in Russian OGE (ОГЭ) exam preparation. You explain math concepts step-by-step and adapt to the student's level. 
-
-${studentName ? `The student's name is ${studentName}. Always address them by their name when appropriate to make the conversation more personal and engaging.` : ''}
 
 Key capabilities:
 - Use LaTeX notation for mathematical expressions: inline math with \\(...\\) or $...$ and block math with \\[...\\] or $$...$$
@@ -27,12 +25,11 @@ When user asks you to explain something "коротко и по делу" (short
 You can discuss any math-related topics, explain formulas, solve problems, and provide educational guidance. When students need practice problems, they will be provided automatically from our database.
 
 Remember: You are a patient, encouraging teacher who helps students learn mathematics effectively through conversation and explanation.`
-});
+};
 
-export async function streamChatCompletion(messages: Message[], studentName?: string): Promise<ReadableStream<Uint8Array> | null> {
+export async function streamChatCompletion(messages: Message[]): Promise<ReadableStream<Uint8Array> | null> {
   try {
-    const systemPrompt = createSystemPrompt(studentName);
-    const fullMessages = [systemPrompt, ...messages];
+    const fullMessages = [SYSTEM_PROMPT, ...messages];
 
     const { data, error } = await supabase.functions.invoke('groq-chat', {
       body: { messages: fullMessages, stream: true }
@@ -59,7 +56,7 @@ function extractLastQuestionId(messages: Message[]): string | null {
   return null;
 }
 
-export async function getChatCompletion(messages: Message[], studentName?: string): Promise<string> {
+export async function getChatCompletion(messages: Message[]): Promise<string> {
   try {
     const lastMessage = messages[messages.length - 1]?.content.toLowerCase();
 
@@ -112,8 +109,7 @@ export async function getChatCompletion(messages: Message[], studentName?: strin
     }
 
     // Step 3: Default to Groq completion
-    const systemPrompt = createSystemPrompt(studentName);
-    const fullMessages = [systemPrompt, ...messages];
+    const fullMessages = [SYSTEM_PROMPT, ...messages];
     
     const { data, error } = await supabase.functions.invoke('groq-chat', {
       body: { messages: fullMessages, stream: false }

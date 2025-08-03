@@ -16,8 +16,6 @@ import ChatInput from "@/components/chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
 import { sendChatMessage } from "@/services/chatService";
 import { SubtopicSidebar } from "@/components/SubtopicSidebar";
-import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
 import UnitProgressSummary from "@/components/UnitProgressSummary";
 
 // Topic mapping data embedded directly
@@ -327,8 +325,6 @@ const courseStructure = createCourseStructure();
 const skillNames = createSkillNameMapping();
 
 const Textbook2 = () => {
-  const { user } = useAuth();
-  const { getDisplayName } = useProfile();
   const navigate = useNavigate();
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<{skillId: number, skillName: string} | null>(null);
@@ -693,8 +689,7 @@ const Textbook2 = () => {
 
     try {
       // Send message to AI and get response
-      const studentName = getDisplayName();
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode, studentName);
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
     } finally {
       setIsTyping(false);
@@ -716,8 +711,7 @@ const Textbook2 = () => {
     setIsTyping(true);
 
     try {
-      const studentName = getDisplayName();
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode, studentName);
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
     } finally {
       setIsTyping(false);

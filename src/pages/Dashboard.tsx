@@ -25,9 +25,9 @@ interface Message {
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { getDisplayName } = useProfile();
   const { topicProgress, generalPreparedness, isLoading } = useStudentSkills();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
+  const { getDisplayName } = useProfile();
   const userName = getDisplayName();
   
   // Initialize welcome messages if chat is empty
@@ -125,8 +125,7 @@ const Dashboard = () => {
 
     try {
       // Send message to AI and get response using Groq API
-      const studentName = getDisplayName();
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode, studentName);
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
     } finally {
       setIsTyping(false);

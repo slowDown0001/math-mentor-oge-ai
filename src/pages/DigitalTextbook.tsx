@@ -14,8 +14,6 @@ import ChatInput from "@/components/chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
 import { sendChatMessage } from "@/services/chatService";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
 import mathSkillsData from "../../documentation/math_skills_full.json";
 import topicSkillMapping from "../../documentation/topic_skill_mapping_with_names.json";
 
@@ -55,8 +53,6 @@ interface Article {
 }
 
 const DigitalTextbook = () => {
-  const { user } = useAuth();
-  const { getDisplayName } = useProfile();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
@@ -218,8 +214,7 @@ const DigitalTextbook = () => {
 
     try {
       // Send message to AI and get response
-      const studentName = getDisplayName();
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode, studentName);
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
     } finally {
       setIsTyping(false);
@@ -241,8 +236,7 @@ const DigitalTextbook = () => {
     setIsTyping(true);
 
     try {
-      const studentName = getDisplayName();
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode, studentName);
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
     } finally {
       setIsTyping(false);
