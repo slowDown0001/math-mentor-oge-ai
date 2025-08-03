@@ -3,36 +3,40 @@ import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
 
-// 🧠 Converts [(math)] → $$math$$ and ((inline math)) → $math$
+// 🧠 Converts [math] → $$math$$ and (math) → $math$
 function normalizeMathDelimiters(input: string): string {
-  // Fix log_2x → \log_{2} x
-  const fixedLogs = input.replace(/\blog_(\d+)([a-zA-Z])/g, (_, base, arg) => `\\log_{${base}} ${arg}`);
+  // Replace \[ ... \] with $$ ... $$ (block math)
+  let result = input.replace(/\\\[\s*(.*?)\s*\\\]/gs, (_, content) => `\n\n$$${content.trim()}$$\n\n`);
+  
+  // Replace [ ... ] with $$ ... $$ (block math) - but be more careful
+  result = result.replace(/\[\s*([^[\]]*(?:\\.[^[\]]*)*)\s*\]/gs, (match, content) => {
+    // Skip if it looks like a markdown link
+    if (match.includes('](') || match.includes('http')) {
+      return match;
+    }
+    return `\n\n$$${content.trim()}$$\n\n`;
+  });
 
-  // Replace [ ... ] with $$ ... $$ (block math)
-  const withBlockMath = fixedLogs.replace(
-    /\[\s*((?:\\[^\]]|[^\]\\])*)\s*\]/gs,
-    (_, content) => `\n\n$$${sanitizeLatex(content.trim())}$$\n\n`
-  );
+  // Replace \( ... \) with $ ... $ (inline math)
+  result = result.replace(/\\\(\s*(.*?)\s*\\\)/gs, (_, content) => `$${content.trim()}$`);
+  
+  // Replace ( ... ) with $ ... $ (inline math) - but be more careful
+  result = result.replace(/\(\s*([^()]*(?:\\.[^()]*)*)\s*\)/gs, (match, content) => {
+    // Skip if it looks like regular parentheses in text
+    if (content.length < 3 || /^[a-zA-Z\s]+$/.test(content) || content.includes(' ')) {
+      return match;
+    }
+    return `$${content.trim()}$`;
+  });
 
-  // Replace ( ... ) with $ ... $ (inline math)
-  const withInlineMath = withBlockMath.replace(
-    /\(\s*((?:\\[^\)]|[^\)\\])*)\s*\)/gs,
-    (_, content) => `$${sanitizeLatex(content.trim())}$`
-  );
-
-  return withInlineMath;
+  return result;
 }
 
 function sanitizeLatex(input: string): string {
   return input
-    .replace(/\^{2}/g, '^2')                          // unnecessary braces in ^2
-    .replace(/([a-z])\^(\d)/g, '$1^{$2}')              // ensure x^2 → x^{2}
-    .replace(/cdot([^a-zA-Z])/g, '\\cdot$1')           // fix unescaped cdot
     .replace(/\{\{+/g, '{')                            // remove extra open braces
     .replace(/\}\}+/g, '}')                            // remove extra close braces
-    .replace(/([^\\])%/g, '$1\\%')                     // escape % for MathJax
-    .replace(/([0-9])([a-zA-Z])/g, '$1 $2')            // add spacing after numbers
-    .replace(/([a-zA-Z])([0-9])/g, '$1 $2');           // add spacing after letters
+    .replace(/([^\\])%/g, '$1\\%');                    // escape % for MathJax
 }
 
 
