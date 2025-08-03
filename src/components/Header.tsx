@@ -37,6 +37,16 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
+            {user && (
+              <Link 
+                to="/dashboard" 
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/dashboard') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+                }`}
+              >
+                Главная
+              </Link>
+            )}
             
             <Link 
               to="/textbook2" 
@@ -45,17 +55,7 @@ const Header = () => {
               }`}
             >
               <BookOpen className="w-4 h-4" />
-              <span>Учебник 2.0</span>
-            </Link>
-            
-            <Link 
-              to="/triangle-similarity" 
-              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                isActive('/triangle-similarity') ? 'text-primary' : 'text-gray-600 hover:text-primary'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" />
-              <span>Признаки подобия треугольников</span>
+              <span>Учебник</span>
             </Link>
             
             <Link 
@@ -66,16 +66,6 @@ const Header = () => {
             >
               <Play className="w-4 h-4" />
               <span>Видео</span>
-            </Link>
-            
-            <Link 
-              to="/scanner" 
-              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                isActive('/scanner') ? 'text-primary' : 'text-gray-600 hover:text-primary'
-              }`}
-            >
-              <ScanLine className="w-4 h-4" />
-              <span>Сканер</span>
             </Link>
 
             <Link 
@@ -100,14 +90,6 @@ const Header = () => {
 
             {user && (
               <>
-                <Link 
-                  to="/dashboard" 
-                  className={`text-sm font-medium transition-colors ${
-                    isActive('/dashboard') ? 'text-primary' : 'text-gray-600 hover:text-primary'
-                  }`}
-                >
-                  Главная
-                </Link>
                 <Link 
                   to="/statistics" 
                   className={`text-sm font-medium transition-colors ${
@@ -164,6 +146,17 @@ const Header = () => {
             )}
             
             <nav className="flex flex-col space-y-2">
+              {user && (
+                <Link 
+                  to="/dashboard" 
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    isActive('/dashboard') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Главная
+                </Link>
+              )}
               
               <Link 
                 to="/textbook2" 
@@ -173,18 +166,7 @@ const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <BookOpen className="w-4 h-4" />
-                <span>Учебник 2.0</span>
-              </Link>
-              
-              <Link 
-                to="/triangle-similarity" 
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-                  isActive('/triangle-similarity') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <BookOpen className="w-4 h-4" />
-                <span>Признаки подобия треугольников</span>
+                <span>Учебник</span>
               </Link>
               
               <Link 
@@ -196,17 +178,6 @@ const Header = () => {
               >
                 <Play className="w-4 h-4" />
                 <span>Видео</span>
-              </Link>
-              
-              <Link 
-                to="/scanner" 
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
-                  isActive('/scanner') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <ScanLine className="w-4 h-4" />
-                <span>Сканер</span>
               </Link>
 
               <Link 
@@ -233,15 +204,6 @@ const Header = () => {
 
               {user && (
                 <>
-                  <Link 
-                    to="/dashboard" 
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      isActive('/dashboard') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Главная
-                  </Link>
                   <Link 
                     to="/statistics" 
                     className={`px-3 py-2 rounded-md text-sm font-medium ${
