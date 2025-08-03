@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Book, Search, Star, ChevronRight, ChevronDown, FileText, Highlighter, MessageCircle, X } from "lucide-react";
+import { Book, Search, Star, ChevronRight, ChevronDown, FileText, Highlighter, MessageCircle, X, Video, Brain, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -300,6 +300,29 @@ const TriangleSimilarity = () => {
                     >
                       ← Вернуться к учебнику
                     </Button>
+                    
+                    <div className="border-t pt-4">
+                      <h3 className="font-medium text-gray-900 mb-2">Видео уроки</h3>
+                      <div className="space-y-2">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 hover:from-purple-100 hover:to-blue-100"
+                          onClick={() => navigate('/triangle-similarity-video')}
+                        >
+                          <Video className="w-4 h-4 mr-2 text-purple-600" />
+                          Основное видео
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start bg-gradient-to-r from-pink-50 to-purple-50 border-pink-200 hover:from-pink-100 hover:to-purple-100"
+                          onClick={() => navigate('/triangle-similarity-brainrot')}
+                        >
+                          <Brain className="w-4 h-4 mr-2 text-pink-600" />
+                          TikTok версия
+                        </Button>
+                      </div>
+                    </div>
                     
                     <div className="border-t pt-4">
                       <h3 className="font-medium text-gray-900 mb-2">Инструменты</h3>
