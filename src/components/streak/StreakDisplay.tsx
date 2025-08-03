@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/useProfile';
 import { User, ChevronDown } from 'lucide-react';
+import { EnergyPointsHeaderAnimation } from './EnergyPointsHeaderAnimation';
 
 interface StreakData {
   dailyGoalMinutes: number;
@@ -21,6 +22,7 @@ export const StreakDisplay = () => {
   });
   const [showCelebration, setShowCelebration] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [energyPointsAnimation, setEnergyPointsAnimation] = useState({ isVisible: false, points: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -82,31 +84,44 @@ export const StreakDisplay = () => {
   const progressPercentage = Math.min((streakData.todayProgress / streakData.dailyGoalMinutes) * 100, 100);
   const isCompleted = progressPercentage >= 100;
 
+  // Method to trigger energy points animation
+  const triggerEnergyPointsAnimation = (points: number) => {
+    setEnergyPointsAnimation({ isVisible: true, points });
+  };
+
+  // Expose this method globally for other components to use
+  React.useEffect(() => {
+    (window as any).triggerEnergyPointsAnimation = triggerEnergyPointsAnimation;
+    return () => {
+      delete (window as any).triggerEnergyPointsAnimation;
+    };
+  }, []);
+
   return (
     <div className="relative flex items-center gap-3 group" ref={dropdownRef}>
-      {/* Progress Ring */}
-      <div className="relative w-11 h-11">
-        <svg className="w-11 h-11 transform -rotate-90" viewBox="0 0 44 44">
+      {/* Progress Ring - Made Bigger */}
+      <div className="relative w-14 h-14">
+        <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 56 56">
           {/* Background circle */}
           <circle
-            cx="22"
-            cy="22"
-            r="18"
+            cx="28"
+            cy="28"
+            r="22"
             fill="none"
             stroke="hsl(var(--muted-foreground) / 0.2)"
-            strokeWidth="2"
+            strokeWidth="3"
           />
           {/* Progress circle */}
           <circle
-            cx="22"
-            cy="22"
-            r="18"
+            cx="28"
+            cy="28"
+            r="22"
             fill="none"
             stroke={isCompleted ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.7)"}
-            strokeWidth="2"
+            strokeWidth="3"
             strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 18}`}
-            strokeDashoffset={`${2 * Math.PI * 18 * (1 - progressPercentage / 100)}`}
+            strokeDasharray={`${2 * Math.PI * 22}`}
+            strokeDashoffset={`${2 * Math.PI * 22 * (1 - progressPercentage / 100)}`}
             className="transition-all duration-1000 ease-out"
           />
         </svg>
@@ -117,14 +132,21 @@ export const StreakDisplay = () => {
             <img 
               src={getAvatarUrl()!} 
               alt={getDisplayName()}
-              className="w-7 h-7 object-cover rounded-full"
+              className="w-8 h-8 object-cover rounded-full"
             />
           ) : (
-            <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center">
-              <User className="w-3.5 h-3.5 text-muted-foreground" />
+            <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-muted-foreground" />
             </div>
           )}
         </div>
+
+        {/* Energy Points Animation */}
+        <EnergyPointsHeaderAnimation
+          points={energyPointsAnimation.points}
+          isVisible={energyPointsAnimation.isVisible}
+          onAnimationComplete={() => setEnergyPointsAnimation({ isVisible: false, points: 0 })}
+        />
       </div>
 
       {/* Clickable Streak Info */}

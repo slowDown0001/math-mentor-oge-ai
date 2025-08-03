@@ -156,6 +156,10 @@ const FipiBank = () => {
       setPointsGained(points);
       setShowStreakAnimation(true);
       await awardEnergyPoints(user.id, 'practice_test', points);
+      // Trigger energy points animation in header
+      if ((window as any).triggerEnergyPointsAnimation) {
+        (window as any).triggerEnergyPointsAnimation(points);
+      }
       
       // Auto advance only for questions 1-19, not for 20-26
       if (currentQuestion.problem_number_type <= 19) {
@@ -241,6 +245,10 @@ const FipiBank = () => {
       setPointsGained(points);
       setShowStreakAnimation(true);
       await awardEnergyPoints(user.id, 'practice_test', points);
+      // Trigger energy points animation in header
+      if ((window as any).triggerEnergyPointsAnimation) {
+        (window as any).triggerEnergyPointsAnimation(points);
+      }
       
       setTimeout(() => {
         setShowStreakAnimation(false);

@@ -155,6 +155,10 @@ const MCQPractice = () => {
         description: "Правильный ответ!",
         className: "bg-green-50 border-green-200",
       });
+      // Trigger energy points animation in header
+      if ((window as any).triggerEnergyPointsAnimation) {
+        (window as any).triggerEnergyPointsAnimation(5);
+      }
     } else {
       toast({
         title: "❌ Неправильно!",

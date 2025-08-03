@@ -152,6 +152,10 @@ const DailyPractice = () => {
     // Track activity for streak (2 minutes per question)
     if (correct) {
       trackActivity('problem', 2);
+      // Trigger energy points animation in header
+      if ((window as any).triggerEnergyPointsAnimation) {
+        (window as any).triggerEnergyPointsAnimation(10);
+      }
     }
   };
 
