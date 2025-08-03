@@ -72,9 +72,9 @@ const Dashboard = () => {
 Ты уже прошёл немало тем — движемся по плану как по рельсам 🚂  
 Сегодняшняя тема важная и частая в ОГЭ, так что разложим всё по полочкам:
 
-📘 <a href="/textbook2" style="color: #10b981; text-decoration: underline;">Изучить теорию</a> — разберись в признаках и основах  
-🎥 <a href="/videos" style="color: #10b981; text-decoration: underline;">Посмотри видео</a> — объясняю всё на простых примерах  
-🧠 <a href="/videos?style=brainrot" style="color: #10b981; text-decoration: underline;">А можно и «brainrot»-видео</a>, если хочется учиться под мемчики 😏  
+📘 <a href="/triangle-similarity" style="color: #10b981; text-decoration: underline;">Изучить теорию</a> — разберись в признаках и основах  
+🎥 <a href="/triangle-similarity-video" style="color: #10b981; text-decoration: underline;">Посмотри видео</a> — объясняю всё на простых примерах  
+🧠 <a href="/triangle-similarity-brainrot" style="color: #10b981; text-decoration: underline;">А можно и «brainrot»-видео</a>, если хочется учиться под мемчики 😏  
 ✍️ <a href="/practice" style="color: #10b981; text-decoration: underline;">Попрактикуйся на задачах</a> — сначала простые, потом ОГЭ-уровень
 
 ---
