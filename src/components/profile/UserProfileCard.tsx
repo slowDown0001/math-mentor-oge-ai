@@ -73,7 +73,7 @@ export const UserProfileCard = ({ userName, userEmail, joinedDate, userData }: U
             <User className="h-12 w-12 text-primary" />
           )}
         </div>
-        <h1 className="text-2xl font-bold text-gray-800">{displayName}</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{userName}</h1>
         <p className="text-gray-600">{userEmail}</p>
         {profile?.bio && (
           <p className="text-sm text-gray-500 mt-2 max-w-xs">{profile.bio}</p>
