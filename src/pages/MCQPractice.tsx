@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, CheckCircle, XCircle } from "lucide-react";
+import { ChevronLeft, CheckCircle, XCircle, Highlighter, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,8 @@ import Header from "@/components/Header";
 import MathRenderer from "@/components/MathRenderer";
 import { supabase } from "@/integrations/supabase/client";
 import mathSkillsData from "../../documentation/math_skills_full.json";
+import { useChatContext } from "@/contexts/ChatContext";
+import ChatSection from "@/components/ChatSection";
 
 interface MCQQuestion {
   question_id: string;
@@ -41,6 +43,11 @@ const MCQPractice = () => {
   const [loading, setLoading] = useState(true);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [showSolution, setShowSolution] = useState(false);
+  const [isSelecterActive, setIsSelecterActive] = useState(false);
+  const [selectedText, setSelectedText] = useState("");
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  const { addMessage, setMessages } = useChatContext();
 
   const skills = mathSkillsData as MathSkill[];
   const currentSkill = skills.find(s => s.id === skillId);
@@ -51,6 +58,55 @@ const MCQPractice = () => {
   useEffect(() => {
     fetchQuestions();
   }, [skillId]);
+
+  const toggleSelecter = () => {
+    setIsSelecterActive(!isSelecterActive);
+  };
+
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      
+      if (isSelecterActive) {
+        const range = selection.getRangeAt(0);
+        const text = range.toString().trim();
+        
+        if (text.length > 0) {
+          setSelectedText(text);
+          
+          // Add message to chat
+          const userMessage = {
+            id: Date.now(),
+            text: `Объясни: "${text}"`,
+            isUser: true,
+            timestamp: new Date(),
+            problemId: currentQuestion?.question_id
+          };
+          
+          addMessage(userMessage);
+          setIsChatOpen(true);
+          
+          // Clear selection
+          selection.removeAllRanges();
+          setIsSelecterActive(false);
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isSelecterActive) {
+      document.addEventListener('mouseup', handleTextSelection);
+      return () => {
+        document.removeEventListener('mouseup', handleTextSelection);
+      };
+    }
+  }, [isSelecterActive]);
+
+  const handleChatClose = () => {
+    setIsChatOpen(false);
+    setIsSelecterActive(false);
+  };
 
   const fetchQuestions = async () => {
     try {
@@ -225,7 +281,10 @@ const MCQPractice = () => {
               )}
               
               {/* Problem Text */}
-              <div className="mb-4">
+              <div 
+                className={`mb-4 ${isSelecterActive ? 'cursor-text select-text' : ''}`}
+                style={{ userSelect: isSelecterActive ? 'text' : 'auto' }}
+              >
                 <MathRenderer text={currentQuestion.problem_text} />
               </div>
 
@@ -286,7 +345,7 @@ const MCQPractice = () => {
 
               {/* Action Buttons */}
               {isAnswered && (
-                <div className="flex justify-center gap-2">
+                <div className="flex justify-center gap-2 flex-wrap">
                   {currentQuestion.solution_text && (
                     <Button
                       onClick={() => setShowSolution(!showSolution)}
@@ -296,9 +355,39 @@ const MCQPractice = () => {
                       {showSolution ? 'Скрыть решение' : 'Показать решение'}
                     </Button>
                   )}
+                  <Button
+                    onClick={toggleSelecter}
+                    variant={isSelecterActive ? "default" : "outline"}
+                    size="sm"
+                    className={`flex items-center gap-1 ${
+                      isSelecterActive ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''
+                    }`}
+                  >
+                    <Highlighter className="w-3 h-3" />
+                    {isSelecterActive ? 'Выключить' : 'Включить'} селектор
+                  </Button>
+                  <Button 
+                    onClick={() => setIsChatOpen(true)}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
+                    <MessageCircle className="w-3 h-3" />
+                    Чат с ИИ
+                  </Button>
                   <Button onClick={handleNextQuestion} size="sm">
                     {currentQuestionIndex < questions.length - 1 ? 'Далее' : 'Завершить'}
                   </Button>
+                </div>
+              )}
+
+              {/* Selecter Active Indicator */}
+              {isAnswered && isSelecterActive && (
+                <div className="mt-2 text-center">
+                  <p className="text-sm text-yellow-600 flex items-center justify-center gap-1 px-2 py-1 bg-yellow-50 rounded">
+                    <Highlighter className="w-3 h-3" />
+                    Выделите текст для вопроса к ИИ
+                  </p>
                 </div>
               )}
 
@@ -306,7 +395,10 @@ const MCQPractice = () => {
               {showSolution && currentQuestion.solution_text && (
                 <div className="mt-4 p-3 bg-muted/30 rounded-lg border-l-4 border-primary">
                   <h4 className="font-medium mb-2 text-sm">Решение:</h4>
-                  <div className="text-sm">
+                  <div 
+                    className={`text-sm ${isSelecterActive ? 'cursor-text select-text' : ''}`}
+                    style={{ userSelect: isSelecterActive ? 'text' : 'auto' }}
+                  >
                     <MathRenderer text={currentQuestion.solution_text} />
                   </div>
                 </div>
@@ -325,6 +417,23 @@ const MCQPractice = () => {
           </div>
         </div>
       </div>
+
+      {/* Chat Section */}
+      {isChatOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-background rounded-lg w-full max-w-4xl h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">ИИ Помощник по математике</h3>
+              <Button onClick={handleChatClose} variant="outline" size="sm">
+                <XCircle className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <ChatSection />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
