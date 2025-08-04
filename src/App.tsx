@@ -15,6 +15,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const DiagnosticTest = lazy(() => import("./pages/DiagnosticTest"));
 const Statistics = lazy(() => import("./pages/Statistics"));
 const DetailedStatistics = lazy(() => import("./pages/DetailedStatistics"));
+const StatisticsVisual = lazy(() => import("./pages/StatisticsVisual"));
 const PracticeExercise = lazy(() => import("./pages/PracticeExercise"));
 const NewPractice = lazy(() => import("./pages/NewPractice"));
 const PracticeNow = lazy(() => import("./pages/PracticeNow"));
@@ -65,8 +66,9 @@ const App = () => (
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/diagnostic" element={<DiagnosticTest />} />
-                <Route path="/statistics" element={<Statistics />} />
-                <Route path="/statistics/detailed" element={<DetailedStatistics />} />
+          <Route path="/statistics" element={<Statistics />} />
+          <Route path="/statistics/detailed" element={<DetailedStatistics />} />
+          <Route path="/statistics/visual" element={<StatisticsVisual />} />
                 <Route path="/detailed-statistics" element={<DetailedStatistics />} />
                   <Route path="/practice" element={<PracticeExercise />} />
                 </Route>
