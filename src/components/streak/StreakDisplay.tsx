@@ -98,14 +98,11 @@ export const StreakDisplay = () => {
   const triggerEnergyPointsAnimation = async (points: number) => {
     setEnergyPointsAnimation({ isVisible: true, points });
     
-    // Update energy points in real-time
-    if (user) {
-      const updatedEnergyPoints = await getCurrentEnergyPoints(user.id);
-      setStreakData(prev => ({
-        ...prev,
-        energyPoints: updatedEnergyPoints
-      }));
-    }
+    // Update energy points immediately for real-time progress bar update
+    setStreakData(prev => ({
+      ...prev,
+      energyPoints: prev.energyPoints + points
+    }));
   };
 
   // Expose this method globally for other components to use
