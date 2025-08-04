@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Header from "@/components/Header";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import skillsData from '../../documentation/math_skills_full.json';
 
 const DetailedStatistics = () => {
   const [skillData, setSkillData] = useState<any>({});
@@ -52,15 +53,19 @@ const DetailedStatistics = () => {
     fetchSkillData();
   }, [user]);
 
-  // Generate array of all 181 skills
+  // Generate array of all 181 skills with names from JSON
   const skills = Array.from({ length: 181 }, (_, i) => {
     const skillNum = i + 1;
     const skillKey = `skill_${skillNum}`;
     const skillValue = skillData[skillKey] || 0;
     
+    // Find skill name from JSON data
+    const skillInfo = skillsData.find(item => item.id === skillNum);
+    const skillName = skillInfo ? skillInfo.skill : `Навык ${skillNum}`;
+    
     return {
       id: skillNum,
-      name: `Навык ${skillNum}`,
+      name: skillName,
       progress: skillValue
     };
   });
