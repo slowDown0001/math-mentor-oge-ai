@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Share2, Trophy, Flame, Star, Target, ChevronRight, ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
 import { useStudentSkills } from '@/hooks/useStudentSkills';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import topicMappingData from '../../documentation/topic_skill_mapping_with_names.json';
 import skillsData from '../../documentation/math_skills_full.json';
 
@@ -26,26 +28,68 @@ const StatisticsVisual = () => {
   const { topicProgress, generalPreparedness, isLoading } = useStudentSkills();
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [skillDetails, setSkillDetails] = useState<any[]>([]);
+  const [studentSkillData, setStudentSkillData] = useState<any>({});
+  const { user } = useAuth();
 
-  // Group topics by metatopic
+  // Fetch actual skill data from Supabase
+  useEffect(() => {
+    const fetchStudentSkills = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('student_skills')
+          .select('*')
+          .eq('uid', user.id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching student skills:', error);
+          return;
+        }
+        
+        setStudentSkillData(data || {});
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    };
+
+    fetchStudentSkills();
+  }, [user]);
+
+  // Group topics by metatopic and calculate real progress
   const getMetatopicProgress = () => {
     return METATOPICS.map(metatopic => {
-      const relevantTopics = topicProgress.filter(topic => 
+      // Get all topics that belong to this metatopic (e.g., 1.1, 1.2, 1.3 for metatopic "1")
+      const relevantTopics = topicMappingData.filter(topic => 
         topic.topic.startsWith(metatopic.id + ".")
       );
-      const avgScore = relevantTopics.length > 0 
-        ? relevantTopics.reduce((sum, topic) => sum + topic.averageScore, 0) / relevantTopics.length
+      
+      // Get all skills for this metatopic
+      const allSkills: number[] = [];
+      relevantTopics.forEach(topic => {
+        topic.skills.forEach(skillId => {
+          const skillKey = `skill_${skillId}`;
+          const skillValue = studentSkillData[skillKey] || 0;
+          allSkills.push(skillValue);
+        });
+      });
+      
+      // Calculate average progress
+      const avgScore = allSkills.length > 0 
+        ? Math.round(allSkills.reduce((sum, skill) => sum + skill, 0) / allSkills.length)
         : 0;
       
       return {
         ...metatopic,
-        progress: Math.round(avgScore),
-        topicCount: relevantTopics.length
+        progress: avgScore,
+        topicCount: relevantTopics.length,
+        skillCount: allSkills.length
       };
     });
   };
 
-  // Get all topics grouped by metatopic
+  // Get all topics grouped by metatopic with real progress
   const getTopicsByMetatopic = () => {
     const grouped: { [key: string]: any[] } = {};
     
@@ -53,29 +97,40 @@ const StatisticsVisual = () => {
       const metatopicId = topicData.topic.split('.')[0];
       if (!grouped[metatopicId]) grouped[metatopicId] = [];
       
-      const topicProgress = topicMappingData.find(t => t.topic === topicData.topic);
-      if (topicProgress) {
-        grouped[metatopicId].push({
-          ...topicData,
-          progress: Math.round(Math.random() * 100), // Placeholder - you'll calculate from skills
-        });
-      }
+      // Calculate real progress for this topic
+      const topicSkills = topicData.skills.map(skillId => {
+        const skillKey = `skill_${skillId}`;
+        return studentSkillData[skillKey] || 0;
+      });
+      
+      const topicProgress = topicSkills.length > 0
+        ? Math.round(topicSkills.reduce((sum, skill) => sum + skill, 0) / topicSkills.length)
+        : 0;
+      
+      grouped[metatopicId].push({
+        ...topicData,
+        progress: topicProgress,
+        skillCount: topicSkills.length
+      });
     });
     
     return grouped;
   };
 
-  // Get skills for selected topic
+  // Get skills for selected topic with real progress
   const getTopicSkills = (topicId: string) => {
     const topic = topicMappingData.find(t => t.topic === topicId);
     if (!topic) return [];
 
     return topic.skills.map(skillId => {
       const skillInfo = skillsData.find(s => s.id === skillId);
+      const skillKey = `skill_${skillId}`;
+      const skillProgress = studentSkillData[skillKey] || 0;
+      
       return {
         id: skillId,
         name: skillInfo?.skill || `Навык ${skillId}`,
-        progress: Math.round(Math.random() * 100), // Placeholder
+        progress: skillProgress,
       };
     });
   };
