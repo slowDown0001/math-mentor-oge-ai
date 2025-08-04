@@ -1,30 +1,24 @@
-
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, TrendingUp } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Search } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Header from "@/components/Header";
-import { useStudentSkills } from "@/hooks/useStudentSkills";
-import topicMappingData from '../../documentation/topic_skill_mapping_with_names.json';
-import { useState, useEffect } from "react";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface SubtopicProgress {
-  topic: string;
-  name: string;
-  averageScore: number;
-}
-
 const DetailedStatistics = () => {
-  const [subtopicProgress, setSubtopicProgress] = useState<SubtopicProgress[]>([]);
+  const [skillData, setSkillData] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchDetailedSkillData = async () => {
+    const fetchSkillData = async () => {
       if (!user) {
         setIsLoading(false);
         return;
@@ -34,8 +28,7 @@ const DetailedStatistics = () => {
         setIsLoading(true);
         setError(null);
 
-        // Fetch user's skill data from Supabase
-        const { data: skillData, error: fetchError } = await supabase
+        const { data, error: fetchError } = await supabase
           .from('student_skills')
           .select('*')
           .eq('uid', user.id)
@@ -45,57 +38,53 @@ const DetailedStatistics = () => {
           throw fetchError;
         }
 
-        if (!skillData) {
-          // If no skill data exists, create default values for all subtopics
-          const defaultSubtopicProgress = topicMappingData.map(topic => ({
-            topic: topic.topic,
-            name: topic.name,
-            averageScore: 0
-          }));
-          setSubtopicProgress(defaultSubtopicProgress);
-          setIsLoading(false);
-          return;
+        if (data) {
+          setSkillData(data);
         }
-
-        // Calculate averages for each subtopic
-        const calculatedSubtopicProgress = topicMappingData.map(topic => {
-          const skillScores = topic.skills.map(skillNum => {
-            const skillKey = `skill_${skillNum}` as keyof typeof skillData;
-            return skillData[skillKey] as number || 0;
-          });
-
-          const averageScore = skillScores.length > 0 
-            ? Math.round(skillScores.reduce((sum, score) => sum + score, 0) / skillScores.length)
-            : 0;
-
-          return {
-            topic: topic.topic,
-            name: topic.name,
-            averageScore
-          };
-        });
-
-        setSubtopicProgress(calculatedSubtopicProgress);
       } catch (err) {
-        console.error('Error fetching detailed skill data:', err);
-        setError('Ошибка загрузки подробных данных о навыках');
+        console.error('Error fetching skill data:', err);
+        setError('Ошибка загрузки данных о навыках');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchDetailedSkillData();
+    fetchSkillData();
   }, [user]);
+
+  // Generate array of all 181 skills
+  const skills = Array.from({ length: 181 }, (_, i) => {
+    const skillNum = i + 1;
+    const skillKey = `skill_${skillNum}`;
+    const skillValue = skillData[skillKey] || 0;
+    
+    return {
+      id: skillNum,
+      name: `Навык ${skillNum}`,
+      progress: skillValue
+    };
+  });
+
+  // Filter skills based on search term
+  const filteredSkills = skills.filter(skill => 
+    skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    skill.id.toString().includes(searchTerm)
+  );
+
+  // Calculate statistics
+  const totalSkills = skills.length;
+  const completedSkills = skills.filter(skill => skill.progress >= 80).length;
+  const averageProgress = Math.round(skills.reduce((sum, skill) => sum + skill.progress, 0) / totalSkills);
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Header />
         <main className="pt-20 pb-12">
           <div className="container mx-auto px-4">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">Ошибка загрузки подробной статистики</h1>
-              <p className="text-gray-600">{error}</p>
+              <h1 className="text-2xl font-bold mb-4">Ошибка загрузки статистики</h1>
+              <p className="text-muted-foreground">{error}</p>
             </div>
           </div>
         </main>
@@ -104,56 +93,127 @@ const DetailedStatistics = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <main className="pt-20 pb-12">
         <div className="container mx-auto px-4">
           <div className="mb-8">
-            <Link to="/statistics">
-              <Button variant="outline" className="mb-4">
-                <ArrowLeft className="h-4 w-4 mr-2" />
+            <Button variant="ghost" asChild className="mb-4">
+              <Link to="/statistics" className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
                 Назад к статистике
-              </Button>
-            </Link>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Подробная статистика</h1>
-            <p className="text-gray-600">Детальный прогресс по всем темам и подтемам</p>
+              </Link>
+            </Button>
+            
+            <h1 className="text-3xl font-bold mb-2">Детальная статистика</h1>
+            <p className="text-muted-foreground">Прогресс по всем 181 навыкам</p>
           </div>
 
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary mb-2">
+                    {completedSkills}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Освоенные навыки (≥80%)
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary mb-2">
+                    {averageProgress}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Средний прогресс
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-primary mb-2">
+                    {totalSkills}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Всего навыков
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Skills Table */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Прогресс по всем темам
-              </CardTitle>
+              <CardTitle>Список всех навыков</CardTitle>
               <CardDescription>
-                Ваш текущий уровень подготовки по каждой теме и подтеме
+                Детальный просмотр прогресса по каждому навыку
               </CardDescription>
+              
+              {/* Search */}
+              <div className="relative w-full max-w-sm">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Поиск навыков..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent>
               {isLoading ? (
                 <div className="text-center py-8">
-                  <div className="text-gray-500">Загрузка подробных данных...</div>
+                  <div className="text-muted-foreground">Загрузка данных...</div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {subtopicProgress.map((subtopic) => (
-                    <div key={subtopic.topic} className="p-4 border rounded-lg">
-                      <div className="flex justify-between mb-3">
-                        <span className="text-sm font-medium">
-                          {subtopic.topic}. {subtopic.name}
-                        </span>
-                        <span className="text-sm text-gray-500">{subtopic.averageScore}%</span>
-                      </div>
-                      <Progress value={subtopic.averageScore} className="h-2" />
-                      <div className="mt-2 text-xs text-gray-400">
-                        {subtopic.averageScore >= 75 ? "Отличный уровень" : 
-                         subtopic.averageScore >= 50 ? "Хороший уровень" : 
-                         subtopic.averageScore >= 25 ? "Требует внимания" :
-                         "Нужна серьезная работа"}
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[100px]">№</TableHead>
+                        <TableHead>Название навыка</TableHead>
+                        <TableHead className="w-[150px]">Прогресс</TableHead>
+                        <TableHead className="w-[100px] text-right">%</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredSkills.map((skill) => (
+                        <TableRow key={skill.id}>
+                          <TableCell className="font-medium">
+                            {skill.id}
+                          </TableCell>
+                          <TableCell>
+                            {skill.name}
+                          </TableCell>
+                          <TableCell>
+                            <Progress value={skill.progress} className="h-2" />
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {skill.progress}%
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  
+                  {filteredSkills.length === 0 && searchTerm && (
+                    <div className="text-center py-8">
+                      <div className="text-muted-foreground">
+                        Навыки не найдены по запросу "{searchTerm}"
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
             </CardContent>
