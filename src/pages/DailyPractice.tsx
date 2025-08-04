@@ -279,140 +279,151 @@ const DailyPractice = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Header />
-      <div className="pt-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Session Stats Header */}
-          <div className="mb-6 grid grid-cols-3 gap-4">
-            <Card className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{session.questionsAttempted}</div>
-              <div className="text-sm text-muted-foreground">Вопросов</div>
-            </Card>
-            <Card className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{session.correctAnswers}</div>
-              <div className="text-sm text-muted-foreground">Правильно</div>
-            </Card>
-            <Card className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">{session.pointsEarned}</div>
-              <div className="text-sm text-muted-foreground">Баллов</div>
-            </Card>
-          </div>
+      <div className="pt-20 px-4 pb-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Main Content - Single Row Layout */}
+          <div className="grid grid-cols-12 gap-4 h-[calc(100vh-120px)]">
+            
+            {/* Left Column - Stats */}
+            <div className="col-span-2 space-y-3">
+              <Card className="p-3 text-center">
+                <div className="text-lg font-bold text-blue-600">{session.questionsAttempted}</div>
+                <div className="text-xs text-muted-foreground">Вопросов</div>
+              </Card>
+              <Card className="p-3 text-center">
+                <div className="text-lg font-bold text-green-600">{session.correctAnswers}</div>
+                <div className="text-xs text-muted-foreground">Правильно</div>
+              </Card>
+              <Card className="p-3 text-center">
+                <div className="text-lg font-bold text-purple-600">{session.pointsEarned}</div>
+                <div className="text-xs text-muted-foreground">Баллов</div>
+              </Card>
+              <Button 
+                onClick={handleStopPractice} 
+                variant="outline" 
+                size="sm"
+                className="w-full bg-white hover:bg-red-50 border-red-200 text-red-600 hover:text-red-700"
+              >
+                <X className="w-3 h-3 mr-1" />
+                Стоп
+              </Button>
+            </div>
 
-          {/* Stop Practice Button */}
-          <div className="mb-6 text-center">
-            <Button 
-              onClick={handleStopPractice} 
-              variant="outline" 
-              className="bg-white hover:bg-red-50 border-red-200 text-red-600 hover:text-red-700"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Остановить практику
-            </Button>
-          </div>
-
-          {/* Question Card */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl text-center">
-                Ежедневная практика
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">Загрузка вопроса...</p>
-                </div>
-              ) : currentQuestion ? (
-                <div className="space-y-6">
-                  {/* Question Text */}
-                  <div className="p-6 bg-gray-50 rounded-lg">
-                    <MathRenderer 
-                      text={currentQuestion.problem_text} 
-                      className="text-lg leading-relaxed"
-                    />
-                  </div>
-
-                  {/* Answer Options */}
-                  <div className="space-y-3">
-                    {options.map((letter, index) => (
-                      <div
-                        key={letter}
-                        className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${getOptionStyle(index)}`}
-                        onClick={() => handleAnswerSelect(index)}
-                      >
-                        <div className="flex items-start space-x-3">
-                          <span className="font-bold text-lg">{letter})</span>
-                          <MathRenderer 
-                            text={getOptionContent(index)} 
-                            className="flex-1"
-                          />
-                        </div>
+            {/* Center Column - Question */}
+            <div className="col-span-6">
+              <Card className="h-full flex flex-col">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg text-center">Ежедневная практика</CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 flex flex-col">
+                  {loading ? (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                        <p className="text-sm text-muted-foreground">Загрузка...</p>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ) : currentQuestion ? (
+                    <div className="flex-1 flex flex-col space-y-4">
+                      {/* Question Text - Compact */}
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <MathRenderer 
+                          text={currentQuestion.problem_text} 
+                          className="text-base leading-snug"
+                        />
+                      </div>
 
-                  {/* Result Animation */}
-                  {showResult && (
-                    <div className="text-center py-4">
-                      {isCorrect ? (
-                        <div className="animate-bounce">
-                          <Check className="w-16 h-16 text-green-500 mx-auto mb-2" />
-                          <p className="text-lg font-semibold text-green-600">Правильно! +10 баллов</p>
+                      {/* Result Animation - Compact */}
+                      {showResult && (
+                        <div className="text-center py-2">
+                          {isCorrect ? (
+                            <div className="flex items-center justify-center space-x-2">
+                              <Check className="w-6 h-6 text-green-500" />
+                              <p className="text-sm font-semibold text-green-600">Правильно! +10 баллов</p>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center space-x-2">
+                              <X className="w-6 h-6 text-red-500" />
+                              <p className="text-sm font-semibold text-red-600">Неправильно</p>
+                            </div>
+                          )}
                         </div>
-                      ) : (
-                        <div className="animate-pulse">
-                          <X className="w-16 h-16 text-red-500 mx-auto mb-2" />
-                          <p className="text-lg font-semibold text-red-600">Неправильно</p>
+                      )}
+
+                      {/* Action Buttons - Compact */}
+                      {showResult && (
+                        <div className="flex justify-center space-x-2">
+                          <Button
+                            onClick={() => setShowSolution(!showSolution)}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            Решение
+                          </Button>
+                          <Button
+                            onClick={handleNextQuestion}
+                            size="sm"
+                          >
+                            <ArrowRight className="w-3 h-3 mr-1" />
+                            Далее
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Solution Display - Compact */}
+                      {showSolution && (
+                        <div className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                          <h4 className="font-medium text-blue-800 text-sm mb-1">Решение:</h4>
+                          <p className="text-blue-700 text-sm">
+                            Правильный ответ: <strong>{currentQuestion.answer?.toUpperCase()}</strong>
+                          </p>
                         </div>
                       )}
                     </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  {showResult && (
-                    <div className="flex justify-center space-x-4">
-                      <Button
-                        onClick={() => setShowSolution(!showSolution)}
-                        variant="outline"
-                        className="flex items-center space-x-2"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span>Посмотреть решение</span>
-                      </Button>
-                      <Button
-                        onClick={handleNextQuestion}
-                        className="flex items-center space-x-2"
-                      >
-                        <ArrowRight className="w-4 h-4" />
-                        <span>Следующий вопрос</span>
-                      </Button>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center">
+                        <Target className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground mb-2">Ошибка загрузки</p>
+                        <Button onClick={loadNextQuestion} size="sm">Повторить</Button>
+                      </div>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            </div>
 
-                  {/* Solution Display */}
-                  {showSolution && (
-                    <div className="mt-6 p-6 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                      <h3 className="font-semibold text-blue-800 mb-2">Решение:</h3>
-                      <p className="text-blue-700">
-                        Правильный ответ: <strong>{currentQuestion.answer?.toUpperCase()}</strong>
-                      </p>
-                      <p className="text-sm text-blue-600 mt-2">
-                        Подробное решение будет доступно в следующих обновлениях.
-                      </p>
+            {/* Right Column - Answer Options */}
+            <div className="col-span-4">
+              <Card className="h-full">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-center">Варианты ответов</CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  {currentQuestion && (
+                    <div className="grid grid-cols-1 gap-2 h-full">
+                      {options.map((letter, index) => (
+                        <div
+                          key={letter}
+                          className={`p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 ${getOptionStyle(index)} hover:shadow-sm`}
+                          onClick={() => handleAnswerSelect(index)}
+                        >
+                          <div className="flex items-start space-x-2">
+                            <span className="font-bold text-sm flex-shrink-0">{letter})</span>
+                            <MathRenderer 
+                              text={getOptionContent(index)} 
+                              className="flex-1 text-sm"
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Не удалось загрузить вопрос</p>
-                  <Button onClick={loadNextQuestion} className="mt-4">
-                    Попробовать снова
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>
