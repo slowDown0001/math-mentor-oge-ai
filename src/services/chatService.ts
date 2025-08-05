@@ -53,6 +53,26 @@ const handleHelpRequest = (userMessage: string): string | null => {
   return null;
 };
 
+const handleGapsRequest = (userMessage: string): string | null => {
+  const message = userMessage.toLowerCase();
+  
+  if (message.includes('мои пробелы') || message.includes('пробелы')) {
+    return `<b>Алексей, ты спросил про свои пробелы — хорошее решение 💪</b><br><br>
+
+Во время практики я заметил, что ты часто ошибаешься в заданиях на <b>степени с рациональным показателем</b>.<br><br>
+
+📌 <i>Краткое напоминание формул:</i><br>
+— \\( a^{\\frac{1}{n}} = \\sqrt[n]{a} \\)<br>
+— \\( a^{\\frac{m}{n}} = \\sqrt[n]{a^m} = (\\sqrt[n]{a})^m \\)<br>
+— \\( a^{-\\frac{m}{n}} = \\frac{1}{a^{\\frac{m}{n}}} \\)<br><br>
+
+📘 <a href="/textbook2" style="color:#10b981;">Изучи теорию →</a><br>
+🧠 <a href="https://lovable.dev/projects/your-mcq-link" style="color:#10b981;">Пройди тренировочный тест</a> — специально по этой теме`;
+  }
+  
+  return null;
+};
+
 const shouldFetchProblem = (userMessage: string): string | null => {
   const message = userMessage.toLowerCase();
   
@@ -114,6 +134,17 @@ export const sendChatMessage = async (
       // Handle database-only mode
       responseText = await handleDatabaseOnlyMode(userMessage.text);
     } else {
+      // Check if user is asking about their gaps
+      const gapsResponse = handleGapsRequest(userMessage.text);
+      if (gapsResponse) {
+        return {
+          id: messageHistory.length + 2,
+          text: gapsResponse,
+          isUser: false,
+          timestamp: new Date()
+        };
+      }
+      
       // Check if user is asking for help with current problem
       const helpResponse = handleHelpRequest(userMessage.text);
       if (helpResponse) {
