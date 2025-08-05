@@ -10,7 +10,7 @@ const TriangleSimilarityBrainrot = () => {
   const videoRef = useRef<HTMLIFrameElement>(null);
 
   const videoId = "k5GYxe68Aks";
-  const videoUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&rel=0&modestbranding=1`;
+  const videoUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&rel=0&modestbranding=1&autoplay=1`;
 
   const handleGoToExercise = () => {
     navigate('/mcq-practice?skill=121');
