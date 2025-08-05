@@ -39,7 +39,7 @@ const Dashboard = () => {
         .sort((a, b) => a.averageScore - b.averageScore)
         .slice(0, 3);
 
-      let welcomeMessage = `Привет, ${userName}! Рад видеть тебя снова. `;
+      let welcomeMessage = `Привет, Алексей! Рад видеть тебя снова. `;
       
       if (generalPreparedness >= 80) {
         welcomeMessage += `Отличный прогресс — ${generalPreparedness}%! Ты на правильном пути к успеху на ОГЭ. 🎯`;
