@@ -162,11 +162,18 @@ const Statistics = () => {
                   </>
                 )}
 
-                <Button variant="outline" className="w-full mt-4" asChild>
-                  <Link to="/statistics/detailed">
-                    Подробная статистика
-                  </Link>
-                </Button>
+                <div className="space-y-2 mt-4">
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/statistics/detailed">
+                      Подробная статистика
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/statistics/visual">
+                      Визуальная статистика
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
