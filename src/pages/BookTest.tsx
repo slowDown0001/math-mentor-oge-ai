@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ArticleRenderer from "@/components/ArticleRenderer";
+import "@/styles/style_for_textbook.css";
 
 // A minimal Article shape for the renderer
 type ArticleShape = {
@@ -110,8 +111,10 @@ const BookTest: React.FC = () => {
           <CardContent>
             <ScrollArea className="h-[420px] pr-4">
               {renderText ? (
-                <ArticleRenderer text={renderText} article={article} />)
-               : (
+                <div className="textbook-preview">
+                  <ArticleRenderer text={renderText} article={article} />
+                </div>
+              ) : (
                 <p className="text-sm text-muted-foreground">
                   Paste your article on the left and click RENDER.
                 </p>
