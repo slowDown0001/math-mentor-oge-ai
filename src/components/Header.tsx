@@ -87,6 +87,15 @@ const Header = () => {
               <Target className="w-4 h-4" />
               <span>Ежедневная практика</span>
             </Link>
+            
+            <Link 
+              to="/book-test" 
+              className={`text-sm font-medium transition-colors ${
+                isActive('/book-test') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+              }`}
+            >
+              Book Test
+            </Link>
 
             {user && (
               <>
@@ -201,7 +210,17 @@ const Header = () => {
                 <Target className="w-4 h-4" />
                 <span>Ежедневная практика</span>
               </Link>
-
+              
+              <Link 
+                to="/book-test" 
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/book-test') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Book Test
+              </Link>
+              
               {user && (
                 <>
                   <Link 
