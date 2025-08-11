@@ -1,18 +1,11 @@
+
 import { getRandomMathProblem, getMathProblemById } from "@/services/mathProblemsService";
+import { supabase } from "@/integrations/supabase/client";
 
 // Groq API service for chat completions
 export interface Message {
   role: 'system' | 'user' | 'assistant'; 
   content: string;
-}
-
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-// Use Vite's environment variable syntax instead of process.env
-const VITE_GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-
-// Check if API key is available
-if (!VITE_GROQ_API_KEY) {
-  console.error('VITE_GROQ_API_KEY is not set in environment variables');
 }
 
 // Enhanced system prompt for the math tutor
@@ -27,6 +20,8 @@ Key capabilities:
 - Answer general math questions and provide explanations
 - Help students understand mathematical concepts
 
+When user asks you to explain something "коротко и по делу" (short and to the point), provide concise, focused explanations in 1-3 sentences maximum. Be direct and essential, avoiding lengthy elaborations.
+
 You can discuss any math-related topics, explain formulas, solve problems, and provide educational guidance. When students need practice problems, they will be provided automatically from our database.
 
 Remember: You are a patient, encouraging teacher who helps students learn mathematics effectively through conversation and explanation.`
@@ -34,38 +29,24 @@ Remember: You are a patient, encouraging teacher who helps students learn mathem
 
 export async function streamChatCompletion(messages: Message[]): Promise<ReadableStream<Uint8Array> | null> {
   try {
-    if (!VITE_GROQ_API_KEY) {
-      throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
-    }
-
     const fullMessages = [SYSTEM_PROMPT, ...messages];
 
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${VITE_GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: fullMessages,
-        stream: true
-      })
+    const { data, error } = await supabase.functions.invoke('groq-chat', {
+      body: { messages: fullMessages, stream: true }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Groq API error:', errorData);
-      throw new Error(`Groq API error: ${response.status}`);
+    if (error) {
+      console.error('Groq function error:', error);
+      throw new Error(`Groq function error: ${error.message}`);
     }
 
-    return response.body;
+    // The response should be a stream
+    return data;
   } catch (error) {
     console.error('Error streaming from Groq:', error);
     return null;
   }
 }
-
 
 function extractLastQuestionId(messages: Message[]): string | null {
   for (let i = messages.length - 1; i >= 0; i--) {
@@ -129,19 +110,16 @@ export async function getChatCompletion(messages: Message[]): Promise<string> {
 
     // Step 3: Default to Groq completion
     const fullMessages = [SYSTEM_PROMPT, ...messages];
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${VITE_GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: fullMessages
-      })
+    
+    const { data, error } = await supabase.functions.invoke('groq-chat', {
+      body: { messages: fullMessages, stream: false }
     });
 
-    const data = await response.json();
+    if (error) {
+      console.error('Groq function error:', error);
+      throw new Error(`Groq function error: ${error.message}`);
+    }
+
     return data.choices[0].message.content;
   } catch (error) {
     console.error('Chat completion error:', error);

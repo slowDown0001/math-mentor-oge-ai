@@ -1,189 +1,265 @@
-import { Button } from "@/components/ui/button";
+
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, LogOut, User, BookOpen, ScanLine, Play, ClipboardList, Target } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "./auth/AuthModal";
+import { StreakDisplay } from "./streak/StreakDisplay";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalView, setAuthModalView] = useState<'signin' | 'signup'>('signin');
-  const navigate = useNavigate();
-  const location = useLocation();
   const { user, signOut } = useAuth();
-  
-  const handleSignInClick = () => {
-    setAuthModalView('signin');
-    setIsAuthModalOpen(true);
+  const location = useLocation();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
-  const handleSignUpClick = () => {
-    setAuthModalView('signup');
-    setIsAuthModalOpen(true);
-  };
+  const isActive = (path: string) => location.pathname === path;
 
-  const handleProfileButton = () => {
-    navigate("/profile");
-  };
-
-  const handleLogout = async () => {
-    await signOut();
-  };
-  
-  // Determine where the logo should link to
-  const logoLinkTarget = user ? "/dashboard" : "/";
-  
   return (
-    <header className="bg-white shadow-sm py-4 fixed top-0 left-0 w-full z-50">
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        <Link to={logoLinkTarget} className="flex items-center space-x-2">
-          <img 
-            alt="Логотип Ёжик" 
-            className="h-10 w-auto" 
-            src="/lovable-uploads/9082b302-65e2-4b6f-b4e2-850a5f0c9bb1.png" 
-          />
-          <div className="font-heading font-bold text-xl text-primary">
-            Ёжик <span className="text-accent">AI</span>
-          </div>
-        </Link>
-        
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {user ? (
-            <>
-              <Link to="/dashboard" className="text-gray-700 hover:text-primary font-medium transition-colors">Главная</Link>
-              <Link to="/resources" className="text-gray-700 hover:text-primary font-medium transition-colors">Ресурсы</Link>
-              <Link to="/practice" className="text-gray-700 hover:text-primary font-medium transition-colors">Практика</Link>
-              <Link to="/diagnostic" className="text-gray-700 hover:text-primary font-medium transition-colors">Диагностика</Link>
-              <Link to="/statistics" className="text-gray-700 hover:text-primary font-medium transition-colors">Статистика</Link>
-            </>
-          ) : (
-            <div className="flex-1"></div>
-          )}
-        </nav>
-        
-        <div className="hidden md:flex items-center space-x-4">
-          {!user ? (
-            <>
-              <Button 
-                variant="outline" 
-                className="border-2 border-primary text-primary hover:bg-primary/5 rounded-full"
-                onClick={handleSignInClick}
-              >
-                Вход
-              </Button>
-              <Button 
-                className="bg-primary hover:bg-primary/90 rounded-full"
-                onClick={handleSignUpClick}
-              >
-                Начать бесплатно
-              </Button>
-            </>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline"
-                className="gap-2 border-gray-300 rounded-full"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-4 w-4" />
-                Выйти
-              </Button>
-              <Button 
-                className="flex items-center gap-2 bg-primary hover:bg-primary/90 rounded-full"
-                onClick={handleProfileButton}
-              >
-                <User className="h-4 w-4" />
-                Профиль
-              </Button>
+    <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md shadow-sm z-50">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">Ё</span>
             </div>
-          )}
-        </div>
-        
-        {/* Mobile Menu Button */}
-        <button className="md:hidden text-gray-700" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          {isMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
-        </button>
-      </div>
-      
-      {/* Mobile Navigation */}
-      {isMenuOpen && (
-        <div className="absolute top-16 left-0 w-full bg-white shadow-md py-6 px-4 md:hidden z-50 animate-fade-in">
-          <div className="flex flex-col space-y-5">
-            {user ? (
+            <span className="font-bold text-xl text-gray-900">Ёжик</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-6">
+            {user && (
+              <Link 
+                to="/dashboard" 
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/dashboard') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+                }`}
+              >
+                Главная
+              </Link>
+            )}
+            
+            <Link 
+              to="/textbook2" 
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                isActive('/textbook2') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Учебник</span>
+            </Link>
+            
+            <Link 
+              to="/videos" 
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                isActive('/videos') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+              }`}
+            >
+              <Play className="w-4 h-4" />
+              <span>Видео</span>
+            </Link>
+
+            <Link 
+              to="/questions" 
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                isActive('/questions') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+              }`}
+            >
+              <ClipboardList className="w-4 h-4" />
+              <span>Вопросы</span>
+            </Link>
+
+            <Link 
+              to="/daily-practice" 
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                isActive('/daily-practice') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+              }`}
+            >
+              <Target className="w-4 h-4" />
+              <span>Ежедневная практика</span>
+            </Link>
+            
+            <Link 
+              to="/book-test" 
+              className={`text-sm font-medium transition-colors ${
+                isActive('/book-test') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+              }`}
+            >
+              Book Test
+            </Link>
+
+            {user && (
               <>
-                <Link to="/dashboard" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-                  Главная
-                </Link>
-                <Link to="/resources" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-                  Ресурсы
-                </Link>
-                <Link to="/practice" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-                  Практика
-                </Link>
-                <Link to="/diagnostic" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
-                  Диагностика
-                </Link>
-                <Link to="/statistics" className="text-gray-700 hover:text-primary transition-colors font-medium" onClick={() => setIsMenuOpen(false)}>
+                <Link 
+                  to="/statistics" 
+                  className={`text-sm font-medium transition-colors ${
+                    isActive('/statistics') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+                  }`}
+                >
                   Статистика
                 </Link>
               </>
+            )}
+          </nav>
+
+          {/* Streak Display and Auth Section */}
+          <div className="hidden md:flex items-center space-x-4">
+            {user && <StreakDisplay />}
+            
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-1">
+                    <User className="w-4 h-4" />
+                    <span>Профиль</span>
+                  </Button>
+                </Link>
+                <Button onClick={handleSignOut} variant="outline" size="sm">
+                  <LogOut className="w-4 h-4 mr-1" />
+                  Выйти
+                </Button>
+              </div>
             ) : (
-              <div className="pt-2"></div>
+              <Button onClick={() => setIsAuthModalOpen(true)} variant="default" size="sm">
+                Войти
+              </Button>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden p-2"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden py-4 border-t border-gray-200">
+            {/* Mobile Streak Display */}
+            {user && (
+              <div className="px-3 py-2 mb-2">
+                <StreakDisplay />
+              </div>
             )}
             
-            <div className="flex flex-col space-y-3 pt-4 border-t">
-              {!user ? (
+            <nav className="flex flex-col space-y-2">
+              {user && (
+                <Link 
+                  to="/dashboard" 
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    isActive('/dashboard') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Главная
+                </Link>
+              )}
+              
+              <Link 
+                to="/textbook2" 
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/textbook2') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Учебник</span>
+              </Link>
+              
+              <Link 
+                to="/videos" 
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/videos') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Play className="w-4 h-4" />
+                <span>Видео</span>
+              </Link>
+
+              <Link 
+                to="/questions" 
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/questions') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <ClipboardList className="w-4 h-4" />
+                <span>Вопросы</span>
+              </Link>
+
+              <Link 
+                to="/daily-practice" 
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/daily-practice') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Target className="w-4 h-4" />
+                <span>Ежедневная практика</span>
+              </Link>
+              
+              <Link 
+                to="/book-test" 
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive('/book-test') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Book Test
+              </Link>
+              
+              {user && (
                 <>
-                  <Button 
-                    variant="outline" 
-                    className="border-2 border-primary text-primary hover:bg-primary/5 w-full rounded-full"
-                    onClick={handleSignInClick}
+                  <Link 
+                    to="/statistics" 
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/statistics') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
                   >
-                    Вход
-                  </Button>
-                  <Button 
-                    className="bg-primary hover:bg-primary/90 w-full rounded-full"
-                    onClick={handleSignUpClick}
-                  >
-                    Начать бесплатно
-                  </Button>
+                    Статистика
+                  </Link>
                 </>
+              )}
+            </nav>
+            
+            {/* Mobile Auth */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              {user ? (
+                <Button onClick={handleSignOut} variant="outline" className="w-full">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Выйти
+                </Button>
               ) : (
-                <>
-                  <Button 
-                    variant="outline"
-                    className="gap-2 border-gray-300 w-full rounded-full"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Выйти
-                  </Button>
-                  <Button 
-                    className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 w-full rounded-full"
-                    onClick={handleProfileButton}
-                  >
-                    <User className="h-4 w-4" />
-                    Профиль
-                  </Button>
-                </>
+                <Button 
+                  onClick={() => {
+                    setIsAuthModalOpen(true);
+                    setIsMenuOpen(false);
+                  }} 
+                  className="w-full"
+                >
+                  Войти
+                </Button>
               )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
-        initialView={authModalView}
-      />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </header>
   );
 };

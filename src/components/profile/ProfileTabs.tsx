@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ActivityTab } from "./ActivityTab";
 import { AchievementsTab } from "./AchievementsTab";
 import { SettingsTab } from "./SettingsTab";
+import { StreakSettings } from "../streak/StreakSettings";
 
 interface ProfileTabsProps {
   userData: {
@@ -25,9 +26,10 @@ interface ProfileTabsProps {
 export const ProfileTabs = ({ userData }: ProfileTabsProps) => {
   return (
     <Tabs defaultValue="activity" className="w-full">
-      <TabsList className="grid grid-cols-3 mb-4">
+      <TabsList className="grid grid-cols-4 mb-4">
         <TabsTrigger value="activity">Активность</TabsTrigger>
         <TabsTrigger value="achievements">Достижения</TabsTrigger>
+        <TabsTrigger value="streak">Серии</TabsTrigger>
         <TabsTrigger value="settings">Настройки</TabsTrigger>
       </TabsList>
       
@@ -40,6 +42,10 @@ export const ProfileTabs = ({ userData }: ProfileTabsProps) => {
       
       <TabsContent value="achievements" className="bg-white rounded-xl shadow-md p-6 border-0">
         <AchievementsTab achievements={userData.achievements} />
+      </TabsContent>
+      
+      <TabsContent value="streak" className="bg-white rounded-xl shadow-md p-6 border-0">
+        <StreakSettings />
       </TabsContent>
       
       <TabsContent value="settings" className="bg-white rounded-xl shadow-md p-6 border-0">

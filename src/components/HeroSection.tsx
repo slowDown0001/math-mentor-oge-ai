@@ -9,7 +9,7 @@ const HeroSection = () => {
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 space-y-6">
             <h1 className="text-4xl md:text-5xl font-bold leading-tight text-primary tracking-tight font-heading">
-              Подготовка к ОГЭ по математике с <span className="text-accent">искусственным интеллектом</span>
+              Подготовка к ОГЭ и ЕГЭ по математике с <span className="text-accent">промпт-строкой</span>
             </h1>
             <p className="text-lg text-gray-700 max-w-xl">
               Персонализированное обучение, мгновенная помощь и отслеживание прогресса для успешной сдачи экзамена.

@@ -1,0 +1,229 @@
+Ёжик AI - Math Learning Platform Documentation
+🏗️ Project Overview
+Ёжik AI is a comprehensive mathematics learning platform designed specifically for Russian OGE (ОГЭ) exam preparation. The platform provides personalized learning experiences through AI-powered tutoring, diagnostic testing, and skill tracking across 181 mathematical competencies.
+
+🎯 Core Features
+1. Diagnostic Test Engine
+Purpose: Evaluates student proficiency across 181 mathematical skills
+Functionality: Adaptive testing with dynamic difficulty adjustment
+Algorithm: Skill dependency graph with prerequisite relationships
+2. AI-Powered Chat Tutor
+Purpose: Provides personalized math tutoring and explanations
+Technology: Groq API with LLaMA-3.3-70B model
+Capabilities: LaTeX rendering, step-by-step explanations, problem recommendations
+3. Practice Exercise System
+Purpose: Organized practice problems by OGE curriculum structure
+Organization: 8 main topics with 26 subtopics covering all exam areas
+Features: Solution viewing, expanded explanations, difficulty indicators
+4. Student Progress Tracking
+Purpose: Monitors learning progress and skill development
+Metrics: Topic-wise progress, general preparedness, predicted grades
+Visualization: Progress charts, statistics dashboard
+5. User Authentication & Profiles
+Purpose: Secure user management and personalized experiences
+Technology: Supabase Auth with email/password
+Features: Profile management, achievement tracking, activity history
+📁 File Structure & Architecture
+Core Application Files
+src/App.tsx
+Function: Main application router and provider setup
+Dependencies: React Router, Auth Context, Query Client
+Routes: Public (Index, Resources) and Protected routes (Dashboard, Practice, etc.)
+src/main.tsx
+Function: Application entry point
+Setup: React 18 strict mode, root element mounting
+Pages Directory (src/pages/)
+Dashboard.tsx
+Function: Main user dashboard with AI chat integration
+Features:
+Progress overview with general preparedness percentage
+Real-time AI chat with Ёжик tutor
+Daily recommendations and study materials
+Quick access to practice and resources
+Dependencies: ChatMessages, ChatInput, useStudentSkills hook
+DiagnosticTest.tsx
+Function: Wrapper page for diagnostic test component
+Navigation: Redirects to dashboard upon completion
+Integration: Uses DiagnosticTest component
+PracticeExercise.tsx
+Function: Comprehensive practice problem interface
+Structure:
+Accordion-based topic navigation (8 main topics, 26 subtopics)
+Problem detail view with LaTeX rendering
+Progressive disclosure (answer → solution → detailed explanation)
+Data: Fetches from Supabase copy table, organizes by topic codes
+Statistics.tsx
+Function: Student progress and analytics dashboard
+Metrics:
+Topic-wise progress visualization
+General preparedness percentage
+Exam countdown (May 20, 2026)
+Predicted grade calculator based on study hours
+Dependencies: useStudentSkills hook, Progress components
+Profile.tsx
+Function: User profile management and personal AI chat
+Features:
+User information display
+Achievement tracking
+Activity history
+Personal AI tutor chat interface
+Data: User metadata from Supabase Auth
+Resources.tsx
+Function: Learning materials and video content hub
+Content: Educational videos, study guides, reference materials
+Components Directory (src/components/)
+Authentication (auth/)
+AuthModal.tsx: Modal for sign-in/sign-up
+SignInForm.tsx: Email/password login form
+SignUpForm.tsx: User registration form with full name
+Chat System (chat/)
+ChatMessages.tsx: Message display with user/AI differentiation
+ChatInput.tsx: Message input with send functionality
+LatexRenderer.tsx: Mathematical formula rendering
+TypingIndicator.tsx: AI response loading animation
+Diagnostic Testing (diagnostic/)
+DiagnosticTest.tsx: Complete diagnostic test interface
+Features:
+Question progression with progress bar
+Real-time skill estimation
+Adaptive difficulty adjustment
+Session management and result storage
+Profile Management (profile/)
+UserProfileCard.tsx: User information display
+ProfileTabs.tsx: Tabbed interface for profile sections
+AchievementsTab.tsx: Badge and milestone tracking
+ActivityTab.tsx: Recent learning activity history
+SettingsTab.tsx: User preferences and account settings
+UI Components (ui/)
+Complete Shadcn/UI component library
+Includes: Button, Card, Input, Progress, Accordion, etc.
+Consistent design system with Tailwind CSS
+Layout Components
+Header.tsx: Navigation with authentication state
+Footer.tsx: Site footer with links
+PrivateRoute.tsx: Route protection for authenticated users
+Services Directory (src/services/)
+diagnosticTestService.ts
+Function: Core diagnostic test engine implementation
+Classes:
+DiagnosticTestEngine: Main test logic
+Skill dependency graph construction
+Question selection and difficulty adaptation
+Skill estimation algorithms
+Key Methods:
+generateDiagnosticTest(): Creates 15-25 question test
+updateSkillEstimates(): Updates skill scores with decay function
+adjustDifficulty(): Adaptive difficulty based on streaks
+propagateSkillUpdates(): Spreads learning to related skills
+chatService.ts
+Function: AI chat orchestration and problem integration
+Features:
+Message routing (help requests vs. general chat)
+Problem fetching and formatting
+Integration with Groq API for general conversation
+Flow: User input → Problem detection → Response generation
+groqService.ts
+Function: Direct integration with Groq AI API
+Model: LLaMA-3.3-70B-versatile
+Features:
+Streaming and standard completions
+Mathematical notation support (LaTeX)
+Russian language specialization for OGE prep
+mathProblemsService.ts
+Function: Problem database interaction
+Features:
+Random problem selection by category
+Problem retrieval by ID
+Category classification by topic codes
+Hooks Directory (src/hooks/)
+useStudentSkills.ts
+Function: Student progress data management
+Data Sources: Supabase student_skills table
+Calculations:
+Topic averages from individual skill scores
+General preparedness from all 181 skills
+Progress tracking over time
+Integration: topic_skill_mapping_with_names.json for skill grouping
+Context Directory (src/contexts/)
+AuthContext.tsx
+Function: Global authentication state management
+Features:
+Session persistence with localStorage
+Auto-refresh tokens
+Sign-up/sign-in/sign-out methods
+Navigation integration
+Security: Row Level Security (RLS) compatible
+Database Integration (src/integrations/supabase/)
+client.ts
+Function: Supabase client configuration
+Settings: Auth storage, session persistence, auto-refresh
+types.ts
+Function: TypeScript definitions for database schema
+Auto-generated: Reflects current Supabase schema
+🗄️ Database Schema
+Core Tables
+student_skills
+Purpose: Stores skill proficiency scores (0-100) for each user
+Columns: uid, skill_1 through skill_181
+RLS: User can only access their own skills
+diagnostic_sessions
+Purpose: Tracks diagnostic test sessions
+Columns: id, uid, started_at, completed_at, total_questions, correct_answers, final_difficulty, status
+diagnostic_responses
+Purpose: Individual question responses in diagnostic tests
+Columns: session_id, question_id, skill_id, difficulty, user_answer, correct_answer, is_correct, response_time_seconds
+copy (Problems Database)
+Purpose: Mathematical problems and solutions
+Columns: question_id, problem_text, answer, solution_text, solutiontextexpanded, problem_image, code, difficulty, calculator_allowed
+🧠 Key Algorithms
+Diagnostic Test Engine
+Skill Dependency Graph
+
+// Creates DAG of 181 skills with prerequisite relationships
+// Example: Basic arithmetic → Linear equations → Systems of equations
+Adaptive Difficulty
+
+// Dynamic adjustment rules:
+// 3 correct in a row → difficulty +1
+// 2 incorrect in a row → difficulty -1
+Skill Estimation
+
+// Decay function for skill updates:
+// Δ = ±40 / (1 + log2(1 + n)) * difficultyMultiplier
+// Where n = number of updates for this skill
+Skill Propagation
+
+// Success: Partial credit to prerequisites (30% of delta)
+// Failure: Reduced estimates for dependents (30% of delta)
+AI Chat Integration
+Message Flow
+User input analysis
+Help request detection (answer/solution/explanation)
+Problem request detection (by category)
+General math conversation via Groq API
+🔧 Configuration & Environment
+Required Environment Variables
+
+VITE_GROQ_API_KEY=your_groq_api_key_here
+Supabase Configuration
+Project ID: kbaazksvkvnafrwtmkcw
+Auth: Email/password with RLS
+Storage: Problem images in public bucket
+🚀 Development Workflow
+Adding New Features
+Create service functions for data logic
+Build React components for UI
+Add database migrations if needed
+Update routing in App.tsx
+Add navigation links in Header.tsx
+Database Changes
+Create migration SQL
+Update RLS policies
+Regenerate TypeScript types
+Update service functions
+AI Integration
+Extend groqService for new capabilities
+Update chatService routing logic
+Add new prompt templates
+Test with various input patterns
+This documentation provides a comprehensive overview of your math learning platform. Team members can use this to understand the architecture, implement new features, and maintain the existing codebase effectively.

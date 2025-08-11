@@ -1,8 +1,8 @@
 
 import { type Message } from "../ChatSection";
-import LatexRenderer from "./LatexRenderer";
 import { useEffect, useState } from "react";
 import { getMathProblemById, type MathProblem } from "@/services/mathProblemsService";
+import ChatRenderer2 from "./ChatRenderer2";
 
 interface ChatMessageProps {
   message: Message;
@@ -23,14 +23,8 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
   }, [message.problemId]);
   
   return (
-    <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"} animate-fade-in`}>
-      <div 
-        className={`max-w-[80%] p-3 rounded-lg shadow-sm ${
-          message.isUser 
-            ? "bg-gradient-to-br from-primary to-primary/80 text-white rounded-tr-none" 
-            : "bg-white/80 border border-gray-200/50 rounded-tl-none"
-        }`}
-      >
+    <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"} animate-fade-in mb-6`}>
+      <div className={`max-w-[80%] ${message.isUser ? "ml-12" : "mr-12"}`}>
         {/* Show problem image if available */}
         {problemImage && !message.isUser && (
           <div className="mb-3">
@@ -46,12 +40,8 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
           </div>
         )}
         
-        <LatexRenderer content={message.text} />
-        <div className={`text-xs mt-1 ${message.isUser ? "text-primary-foreground/80" : "text-gray-400"}`}>
-          {message.timestamp.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-          })}
+        <div className={`${message.isUser ? "text-foreground" : "text-foreground"}`}>
+          <ChatRenderer2 text={message.text} isUserMessage={message.isUser} />
         </div>
       </div>
     </div>

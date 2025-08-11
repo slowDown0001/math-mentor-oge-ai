@@ -1,14 +1,17 @@
-
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserProfileCard } from "@/components/profile/UserProfileCard";
 import { ProfileTabs } from "@/components/profile/ProfileTabs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
+import { useChatContext } from "@/contexts/ChatContext";
+import { useStudentSkills } from "@/hooks/useStudentSkills";
+import { useUserStatistics } from "@/hooks/useUserStatistics";
+import { useProfile } from "@/hooks/useProfile";
 
 export interface Message {
   id: number;
@@ -20,20 +23,27 @@ export interface Message {
 
 const Profile = () => {
   const { user } = useAuth();
+  const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
+  const { topicProgress, generalPreparedness, isLoading: skillsLoading } = useStudentSkills();
+  const { completedLessons, practiceProblems, quizzesCompleted, averageScore, isLoading: statsLoading } = useUserStatistics();
+  const { getDisplayName } = useProfile();
   
-  // Extract user information from Supabase user data
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
+  // Extract user information from Supabase user data and profile
+  const userName = getDisplayName();
   const userEmail = user?.email || '';
   const joinedDate = new Date(user?.created_at || Date.now()).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
   
-  const [messages, setMessages] = useState<Message[]>([{
-    id: 1,
-    text: `Привет, ${userName}! Я могу помочь тебе разобраться с любыми вопросами по математике. Чем я могу тебе помочь?`,
-    isUser: false,
-    timestamp: new Date()
-  }]);
-  
-  const [isTyping, setIsTyping] = useState(false);
+  // Initialize welcome message if chat is empty
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([{
+        id: 1,
+        text: `Привет, ${userName}! Я могу помочь тебе разобраться с любыми вопросами по математике. Чем я могу тебе помочь?`,
+        isUser: false,
+        timestamp: new Date()
+      }]);
+    }
+  }, [messages.length, userName, setMessages]);
   
   const handleSendMessage = async (userInput: string) => {
     if (userInput.trim() === "") return;
@@ -46,35 +56,39 @@ const Profile = () => {
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, newUserMessage]);
+    addMessage(newUserMessage);
     setIsTyping(true);
 
     try {
       // Send message to AI and get response using Groq API
-      const aiResponse = await sendChatMessage(newUserMessage, messages);
-      setMessages(prev => [...prev, aiResponse]);
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
+      addMessage(aiResponse);
     } finally {
       setIsTyping(false);
     }
   };
   
+  // Create progress data from topic progress
+  const progressData = {
+    overall: generalPreparedness,
+    algebra: topicProgress.find(t => t.topic === "2")?.averageScore || 0,
+    geometry: topicProgress.find(t => t.topic === "7")?.averageScore || 0,
+    probability: topicProgress.find(t => t.topic === "8")?.averageScore || 0
+  };
+
   const userData = {
-    progress: {
-      overall: 60,
-      algebra: 75,
-      geometry: 45,
-      probability: 60
-    },
-    completedLessons: 24,
-    practiceProblems: 156,
-    quizzesCompleted: 12,
-    averageScore: 82,
-    streakDays: 15,
+    progress: progressData,
+    topicProgress: topicProgress,
+    completedLessons,
+    practiceProblems,
+    quizzesCompleted,
+    averageScore: Math.round(averageScore),
+    streakDays: 15, // TODO: Get from user_streaks table
     achievements: [
-      { id: 1, name: "Первые шаги", description: "Завершено 5 уроков", date: "15 марта 2025", completed: true },
-      { id: 2, name: "Математический гений", description: "Решено 100+ задач", date: "2 апреля 2025", completed: true },
-      { id: 3, name: "На отлично", description: "Получена оценка 90% или выше на 5 тестах подряд", date: "Не получено", completed: false },
-      { id: 4, name: "Геометрический мастер", description: "Завершены все темы по геометрии", date: "Не получено", completed: false }
+      { id: 1, name: "Первые шаги", description: "Завершено 5 уроков", date: "15 марта 2025", completed: completedLessons >= 5 },
+      { id: 2, name: "Математический гений", description: "Решено 100+ задач", date: "2 апреля 2025", completed: practiceProblems >= 100 },
+      { id: 3, name: "На отлично", description: "Получена оценка 90% или выше на 5 тестах подряд", date: "Не получено", completed: averageScore >= 90 && quizzesCompleted >= 5 },
+      { id: 4, name: "Геометрический мастер", description: "Завершены все темы по геометрии", date: "Не получено", completed: (topicProgress.find(t => t.topic === "7")?.averageScore || 0) >= 80 }
     ],
     recentActivity: [
       { date: "9 мая 2025", activity: "Завершен урок: Подобие треугольников", type: "lesson" },
@@ -83,6 +97,21 @@ const Profile = () => {
       { date: "5 мая 2025", activity: "Просмотрен видеоурок: Статистика и вероятность", type: "video" }
     ]
   };
+
+  if (skillsLoading || statsLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Header />
+        <main className="flex-1 pt-20 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Загрузка профиля...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">

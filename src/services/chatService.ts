@@ -33,7 +33,7 @@ const formatProblemResponse = (problem: MathProblem): string => {
 
 const handleHelpRequest = (userMessage: string): string | null => {
   if (!currentProblem) {
-    return null; // Let the AI handle it naturally instead of showing error
+    return null;
   }
   
   const message = userMessage.toLowerCase();
@@ -48,6 +48,46 @@ const handleHelpRequest = (userMessage: string): string | null => {
   
   if (message.includes('объясни подробнее') || message.includes('подробнее') || message.includes('не понял')) {
     return currentProblem.solutiontextexpanded || currentProblem.solution_text || "Подробное объяснение для этой задачи пока недоступно.";
+  }
+  
+  return null;
+};
+
+const handleGapsRequest = (userMessage: string): string | null => {
+  const message = userMessage.toLowerCase();
+  
+  if (message.includes('мои пробелы') || message.includes('пробелы')) {
+    return `<b>Алексей, ты спросил про свои пробелы — хорошее решение 💪</b><br><br>
+
+Во время практики я заметил, что ты часто ошибаешься в заданиях на <b>степени с рациональным показателем</b>.<br><br>
+📌 *Краткое напоминание формул:*
+
+**Степени с рациональными показателями 🧠**
+
+Это степени, у которых показатель — дробь.  
+Например: $a^{\frac{1}{2}}$ или $a^{-\frac{3}{4}}$
+
+---
+
+**Основные формулы, которые нужно запомнить:**
+
+$$a^{\frac{1}{n}} = \sqrt[n]{a}$$
+
+$$a^{\frac{m}{n}} = \sqrt[n]{a^m} = \left(\sqrt[n]{a}\right)^m$$
+
+$$a^{-\frac{m}{n}} = \frac{1}{a^{\frac{m}{n}}}$$
+
+---
+
+**Пример:**
+
+$$9^{\frac{3}{2}} = \left(\sqrt{9}\right)^3 = 3^3 = 27$$
+
+$$16^{\frac{3}{2}} = \left( \sqrt{16} \right)^3 = 4^3 = 64$$
+
+
+📘 <a href="/textbook2" style="color:#10b981;">Изучи теорию →</a><br>
+🧠 <a href="https://lovable.dev/projects/your-mcq-link" style="color:#10b981;">Пройди тренировочный тест</a> — специально по этой теме`;
   }
   
   return null;
@@ -72,68 +112,113 @@ const shouldFetchProblem = (userMessage: string): string | null => {
   return null;
 };
 
+const handleDatabaseOnlyMode = async (userMessage: string): Promise<string> => {
+  // Check for help requests first
+  const helpResponse = handleHelpRequest(userMessage);
+  if (helpResponse) {
+    return helpResponse;
+  }
+  
+  // Check for problem requests
+  const problemCategory = shouldFetchProblem(userMessage);
+  if (problemCategory) {
+    const requestedCategory = problemCategory === 'random' ? undefined : problemCategory;
+    const problem = await getRandomMathProblem(requestedCategory);
+    
+    if (problem) {
+      currentProblem = problem;
+      return formatProblemResponse(problem);
+    } else {
+      return "Извините, не удалось найти подходящую задачу в базе данных.";
+    }
+  }
+  
+  // For any other input in database mode, provide standard database responses
+  if (userMessage.toLowerCase().includes('помощь') || userMessage.toLowerCase().includes('что ты умеешь')) {
+    return `В режиме "База" я могу:\n\n• Предоставить задачи из базы данных\n• Показать ответы к задачам\n• Показать решения\n• Дать подробные объяснения\n\nЧтобы получить задачу, скажите "дай задачу" или укажите тему (алгебра, геометрия, арифметика).`;
+  }
+  
+  // Default response for database mode
+  return "В режиме работы с базой данных я могу предоставить только задачи и решения из базы. Скажите 'дай задачу' или укажите нужную тему.";
+};
+
 export const sendChatMessage = async (
   userMessage: Message,
-  messageHistory: Message[]
+  messageHistory: Message[],
+  isDatabaseMode: boolean = false
 ): Promise<Message> => {
   try {
-    // Check if API key is available
-    if (!import.meta.env.VITE_GROQ_API_KEY) {
-      throw new Error('VITE_GROQ_API_KEY is not set in environment variables');
-    }
+    let responseText: string;
     
-    // Check if user is asking for help with current problem
-    const helpResponse = handleHelpRequest(userMessage.text);
-    if (helpResponse) {
-      return {
-        id: messageHistory.length + 2,
-        text: helpResponse,
-        isUser: false,
-        timestamp: new Date(),
-        problemId: currentProblem?.question_id
-      };
-    }
-    
-    // Check if user wants a practice problem
-    const problemCategory = shouldFetchProblem(userMessage.text);
-    if (problemCategory) {
-      const requestedCategory = problemCategory === 'random' ? undefined : problemCategory;
-      const problem = await getRandomMathProblem(requestedCategory);
-      
-      if (problem) {
-        currentProblem = problem;
+    if (isDatabaseMode) {
+      // Handle database-only mode
+      responseText = await handleDatabaseOnlyMode(userMessage.text);
+    } else {
+      // Check if user is asking about their gaps
+      const gapsResponse = handleGapsRequest(userMessage.text);
+      if (gapsResponse) {
         return {
           id: messageHistory.length + 2,
-          text: formatProblemResponse(problem),
-          isUser: false,
-          timestamp: new Date(),
-          problemId: problem.question_id
-        };
-      } else {
-        return {
-          id: messageHistory.length + 2,
-          text: "Извините, не удалось найти подходящую задачу. Попробуйте запросить другую тему.",
+          text: gapsResponse,
           isUser: false,
           timestamp: new Date()
         };
       }
+      
+      // Check if user is asking for help with current problem
+      const helpResponse = handleHelpRequest(userMessage.text);
+      if (helpResponse) {
+        return {
+          id: messageHistory.length + 2,
+          text: helpResponse,
+          isUser: false,
+          timestamp: new Date(),
+          problemId: currentProblem?.question_id
+        };
+      }
+      
+      // Check if user wants a practice problem
+      const problemCategory = shouldFetchProblem(userMessage.text);
+      if (problemCategory) {
+        const requestedCategory = problemCategory === 'random' ? undefined : problemCategory;
+        const problem = await getRandomMathProblem(requestedCategory);
+        
+        if (problem) {
+          currentProblem = problem;
+          return {
+            id: messageHistory.length + 2,
+            text: formatProblemResponse(problem),
+            isUser: false,
+            timestamp: new Date(),
+            problemId: problem.question_id
+          };
+        } else {
+          return {
+            id: messageHistory.length + 2,
+            text: "Извините, не удалось найти подходящую задачу. Попробуйте запросить другую тему.",
+            isUser: false,
+            timestamp: new Date()
+          };
+        }
+      }
+      
+      // For all other messages, send to AI for general math conversation
+      const groqMessages = [...messageHistory, userMessage].map(msg => ({
+        role: msg.isUser ? 'user' as const : 'assistant' as const,
+        content: msg.text
+      }));
+      
+      // Call Groq API for general conversation
+      responseText = await getChatCompletion(groqMessages);
     }
-    
-    // For all other messages, send to AI for general math conversation
-    const groqMessages = [...messageHistory, userMessage].map(msg => ({
-      role: msg.isUser ? 'user' as const : 'assistant' as const,
-      content: msg.text
-    }));
-    
-    // Call Groq API for general conversation
-    const aiResponse = await getChatCompletion(groqMessages);
     
     // Create and return AI message
     return {
       id: messageHistory.length + 2,
-      text: aiResponse,
+      text: responseText,
       isUser: false,
-      timestamp: new Date()
+      timestamp: new Date(),
+      problemId: currentProblem?.question_id
     };
   } catch (error) {
     console.error('Error getting response:', error);
@@ -142,13 +227,7 @@ export const sendChatMessage = async (
     let errorMessage = "Не удалось получить ответ от ассистента. ";
     
     if (error instanceof Error) {
-      if (error.message.includes('VITE_GROQ_API_KEY is not set')) {
-        errorMessage += "API ключ GROQ не настроен. Пожалуйста, добавьте VITE_GROQ_API_KEY в переменные окружения.";
-      } else if (error.message.includes('Groq API error')) {
-        errorMessage += "Ошибка API Groq: " + error.message;
-      } else {
-        errorMessage += error.message;
-      }
+      errorMessage += error.message;
     } else {
       errorMessage += "Пожалуйста, проверьте консоль для получения дополнительной информации.";
     }
