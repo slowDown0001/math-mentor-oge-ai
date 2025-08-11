@@ -70,3 +70,61 @@
   border-left: 4px solid #f97316;
   background: #fff7ed;
 }
+/* Collapsible Solution */
+.solution {
+  margin-top: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.solution summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #111827;
+  background: #f8fafc;
+  user-select: none;
+}
+
+.solution summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Chevron icon */
+.solution .chev {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-right: 2px solid #6b7280;
+  border-bottom: 2px solid #6b7280;
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+  margin-right: 2px;
+}
+
+/* Rotate on open */
+.solution[open] .chev {
+  transform: rotate(45deg);
+}
+
+.solution .content {
+  padding: 12px;
+  background: #ffffff;
+  line-height: 1.6;
+  color: #111827;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Accent strip that inherits example color */
+.example .solution {
+  border-color: inherit;
+}
+.example-blue .solution summary { background:#f0f6ff; }
+.example-green .solution summary { background:#f0fdf7; }
+.example-orange .solution summary { background:#fff6ec; }
+
