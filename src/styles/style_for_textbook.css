@@ -128,70 +128,69 @@
 .example-green .solution summary { background:#f0fdf7; }
 .example-orange .solution summary { background:#fff6ec; }
 
-/* === GeoGebra-friendly additions === */
+/* === GeoGebra: универсальный адаптивный стиль === */
 
-/* Wrapper around embedded GeoGebra to prevent clipping */
-.textbook-preview .ggb-block{
-  max-width: 980px;
-  margin: 16px auto;
-  /* ensure parents won't crop the iframe */
-  overflow: visible;
-}
-
-/* Responsive, tall enough iframe so bottom panel isn't cut */
-.textbook-preview .ggb-embed{
-  width: 100%;
-  height: clamp(540px, 62vh, 700px); /* increase if your theme still trims bottom */
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  display: block;
-  background: #fff; /* avoids gray flash on slow loads */
-}
-
-/* Do not clip iframes inside examples/solutions/cards */
+/* Родители не должны обрезать iframe */
 .textbook-preview .example,
 .textbook-preview .definition-card,
 .textbook-preview .solution,
-.textbook-preview .solution .content{
+.textbook-preview .solution .content {
   overflow: visible;
 }
 
-/* If somewhere in the site there is a generic iframe rule, we protect ours */
-.textbook-preview iframe.ggb-embed{
-  max-width: 100% !important;
-  /* avoid accidental global rules like height:auto that collapse the iframe */
-  height: clamp(540px, 62vh, 600px) !important;
+/* Обёртка аплета
+   По умолчанию — адаптивная высота через aspect-ratio.
+   Все размеры управляем через CSS‑переменные. */
+.textbook-preview .ggb {
+  --ggb-ratio: 16/9;          /* базовая пропорция, можно поменять на 2/1, 3/2 и т.д. */
+  --ggb-min-h: 380px;         /* минимум, чтобы не срезать нижнюю панель */
+  --ggb-max-h: 76vh;          /* максимум на больших экранах */
+  --ggb-border: 1px solid #ccc;
+  --ggb-radius: 8px;
+
+  position: relative;
+  width: 100%;
+  max-width: 980px;
+  margin: 16px auto;
+  border: var(--ggb-border);
+  border-radius: var(--ggb-radius);
+  background: #fff;
+  overflow: hidden;
+
+  /* Адаптивная высота без «воздуха» */
+  aspect-ratio: var(--ggb-ratio);
+  height: clamp(var(--ggb-min-h), var(--ggb-max-h), 100vh);
 }
 
-/* Optional: light spacing utilities for blocks around the applet */
-.textbook-preview .ggb-caption{
+/* Сам iframe растягиваем на всю обёртку */
+.textbook-preview .ggb > iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* Варианты пропорций на один класс (если лень писать style=...) */
+.textbook-preview .ggb.is-wide  { --ggb-ratio: 2/1; }   /* широкий луч/прямая */
+.textbook-preview .ggb.is-std   { --ggb-ratio: 16/9; }  /* классика, по умолчанию */
+.textbook-preview .ggb.is-tall  { --ggb-ratio: 4/3; }   /* «высокие» аплеты */
+
+/* Фиксированная высота (на случай строгости макета) */
+.textbook-preview .ggb.is-fixed {
+  aspect-ratio: auto;
+  --ggb-fixed-h: clamp(440px, 60vh, 620px);
+  height: var(--ggb-fixed-h);
+}
+
+/* Подпись под аплетом (опционально) */
+.textbook-preview .ggb-caption {
+  max-width: 980px;
+  margin: 6px auto 0;
   text-align: center;
   font-size: 14px;
   color: #6b7280;
-  margin-top: 8px;
-}
-
-/* --- existing styles from the project remain below --- */
-
-/* Геогебра iframe */
-.geogebra-container {
-  position: relative;
-  width: 100%;
-  max-width: 800px;
-  margin: 20px auto;
-  aspect-ratio: 2 / 1; /* автоматическая подгонка высоты под ширину */
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.geogebra-container iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
 }
 
 
