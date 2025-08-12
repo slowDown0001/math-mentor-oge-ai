@@ -128,3 +128,50 @@
 .example-green .solution summary { background:#f0fdf7; }
 .example-orange .solution summary { background:#fff6ec; }
 
+/* === GeoGebra-friendly additions === */
+
+/* Wrapper around embedded GeoGebra to prevent clipping */
+.textbook-preview .ggb-block{
+  max-width: 980px;
+  margin: 16px auto;
+  /* ensure parents won't crop the iframe */
+  overflow: visible;
+}
+
+/* Responsive, tall enough iframe so bottom panel isn't cut */
+.textbook-preview .ggb-embed{
+  width: 100%;
+  height: clamp(540px, 62vh, 700px); /* increase if your theme still trims bottom */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  display: block;
+  background: #fff; /* avoids gray flash on slow loads */
+}
+
+/* Do not clip iframes inside examples/solutions/cards */
+.textbook-preview .example,
+.textbook-preview .definition-card,
+.textbook-preview .solution,
+.textbook-preview .solution .content{
+  overflow: visible;
+}
+
+/* If somewhere in the site there is a generic iframe rule, we protect ours */
+.textbook-preview iframe.ggb-embed{
+  max-width: 100% !important;
+  /* avoid accidental global rules like height:auto that collapse the iframe */
+  height: clamp(540px, 62vh, 700px) !important;
+}
+
+/* Optional: light spacing utilities for blocks around the applet */
+.textbook-preview .ggb-caption{
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+/* --- existing styles from the project remain below --- */
+
+
+
