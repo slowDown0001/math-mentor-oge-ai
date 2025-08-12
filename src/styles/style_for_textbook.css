@@ -128,69 +128,53 @@
 .example-green .solution summary { background:#f0fdf7; }
 .example-orange .solution summary { background:#fff6ec; }
 
-/* === GeoGebra: универсальный адаптивный стиль === */
+/* GeoGebra: keep original proportions + adjustable scale */
+.textbook-preview .ggb-box{
+  /* Set per-embed:
+     --ggb-w: original iframe width in px (number only)
+     --ggb-h: original iframe height in px (number only)
+     --ggb-scale: visual scale (1 = 100%, 0.9 = 90%, 1.25 = 125%) */
+  --ggb-w: 960;
+  --ggb-h: 540;
+  --ggb-scale: 1;
 
-/* Родители не должны обрезать iframe */
-.textbook-preview .example,
-.textbook-preview .definition-card,
-.textbook-preview .solution,
-.textbook-preview .solution .content {
-  overflow: visible;
-}
-
-/* Обёртка аплета
-   По умолчанию — адаптивная высота через aspect-ratio.
-   Все размеры управляем через CSS‑переменные. */
-.textbook-preview .ggb {
-  --ggb-ratio: 16/9;          /* базовая пропорция, можно поменять на 2/1, 3/2 и т.д. */
-  --ggb-min-h: 380px;         /* минимум, чтобы не срезать нижнюю панель */
-  --ggb-max-h: 76vh;          /* максимум на больших экранах */
-  --ggb-border: 1px solid #ccc;
-  --ggb-radius: 8px;
+  /* Reserve the scaled space so nothing gets cropped */
+  inline-size: calc(var(--ggb-w) * 1px * var(--ggb-scale));
+  block-size:  calc(var(--ggb-h) * 1px * var(--ggb-scale));
 
   position: relative;
-  width: 100%;
-  max-width: 980px;
   margin: 16px auto;
-  border: var(--ggb-border);
-  border-radius: var(--ggb-radius);
+  max-width: 100%;              /* don’t exceed container width */
+  border: 1px solid #ccc;
+  border-radius: 8px;
   background: #fff;
   overflow: hidden;
-
-  /* Адаптивная высота без «воздуха» */
-  aspect-ratio: var(--ggb-ratio);
-  height: clamp(var(--ggb-min-h), var(--ggb-max-h), 100vh);
 }
 
-/* Сам iframe растягиваем на всю обёртку */
-.textbook-preview .ggb > iframe {
+/* The actual iframe renders at its original pixel size,
+   then we scale it visually to match the reserved space */
+.textbook-preview .ggb-box > iframe{
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
+  inline-size: calc(var(--ggb-w) * 1px);
+  block-size:  calc(var(--ggb-h) * 1px);
+  transform-origin: top left;
+  transform: scale(var(--ggb-scale));
   border: 0;
   display: block;
 }
 
-/* Варианты пропорций на один класс (если лень писать style=...) */
-.textbook-preview .ggb.is-wide  { --ggb-ratio: 2/1; }   /* широкий луч/прямая */
-.textbook-preview .ggb.is-std   { --ggb-ratio: 16/9; }  /* классика, по умолчанию */
-.textbook-preview .ggb.is-tall  { --ggb-ratio: 4/3; }   /* «высокие» аплеты */
+/* Helper: quickly switch between common sizes via classes (optional) */
+.textbook-preview .ggb-16x9 { --ggb-w: 960; --ggb-h: 540; }
+.textbook-preview .ggb-2x1  { --ggb-w: 900; --ggb-h: 450; }
+.textbook-preview .ggb-4x3  { --ggb-w: 800; --ggb-h: 600; }
 
-/* Фиксированная высота (на случай строгости макета) */
-.textbook-preview .ggb.is-fixed {
-  aspect-ratio: auto;
-  --ggb-fixed-h: clamp(440px, 60vh, 620px);
-  height: var(--ggb-fixed-h);
-}
-
-/* Подпись под аплетом (опционально) */
-.textbook-preview .ggb-caption {
-  max-width: 980px;
-  margin: 6px auto 0;
-  text-align: center;
-  font-size: 14px;
-  color: #6b7280;
+/* If your article blocks sometimes clip overflowing children */
+.textbook-preview .example,
+.textbook-preview .definition-card,
+.textbook-preview .solution,
+.textbook-preview .solution .content{
+  overflow: visible;
 }
 
 
