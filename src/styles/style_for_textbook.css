@@ -160,7 +160,7 @@
 .textbook-preview iframe.ggb-embed{
   max-width: 100% !important;
   /* avoid accidental global rules like height:auto that collapse the iframe */
-  height: clamp(540px, 62vh, 700px) !important;
+  height: clamp(540px, 62vh, 600px) !important;
 }
 
 /* Optional: light spacing utilities for blocks around the applet */
