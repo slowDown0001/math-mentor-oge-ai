@@ -121,26 +121,26 @@ const ChatDock = () => {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
-      className="h-full"
+      className="h-full max-h-[800px]"
     >
       <Card className="h-full flex flex-col">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="flex items-center gap-2 text-lg">
             🤖 Чат-помощник
           </CardTitle>
         </CardHeader>
         
-        <CardContent className="flex-1 flex flex-col p-0">
-          {/* Chat Messages Area */}
-          <div className="flex-1 min-h-0 max-h-[600px]">
+        <CardContent className="flex-1 flex flex-col p-0 min-h-0">
+          {/* Chat Messages Area - scrollable */}
+          <div className="flex-1 overflow-hidden">
             <ChatMessages 
               messages={messages} 
               isTyping={isTyping}
             />
           </div>
           
-          {/* Chat Input */}
-          <div className="border-t border-border bg-card">
+          {/* Chat Input - always visible at bottom */}
+          <div className="flex-shrink-0 border-t border-border bg-card">
             <ChatInput 
               onSendMessage={handleSendMessage} 
               isTyping={isTyping}
