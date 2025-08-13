@@ -11,11 +11,11 @@ export interface TopicMastery {
   isNext?: boolean;
 }
 
-export const calculateTopicMastery = (skillData: StudentProgress, topicSkills: number[]): TopicMastery => {
+export const calculateTopicMastery = (skillData: StudentProgress, topicSkills: number[], topic: string = '', name: string = ''): TopicMastery => {
   if (!skillData || !topicSkills.length) {
     return {
-      topic: '',
-      name: '',
+      topic,
+      name,
       mastery: 0,
       status: 'not_started'
     };
@@ -40,8 +40,8 @@ export const calculateTopicMastery = (skillData: StudentProgress, topicSkills: n
   }
 
   return {
-    topic: '',
-    name: '',
+    topic,
+    name,
     mastery,
     status
   };
