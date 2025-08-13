@@ -1,4 +1,4 @@
-import topicMappingData from '../../documentation/topic_skill_mapping_with_names.json';
+import topicMappingData from '../data/topic_skill_mapping_with_names.json';
 
 export interface TopicNode {
   topic: string;
