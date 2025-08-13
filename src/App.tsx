@@ -34,6 +34,7 @@ const FipiBank = lazy(() => import("./pages/FipiBank"));
 const DailyPractice = lazy(() => import("./pages/DailyPractice"));
 const BookTest = lazy(() => import("./pages/BookTest"));
 const AfterRegistration = lazy(() => import("./pages/AfterRegistration"));
+const Db2 = lazy(() => import("./pages/Db2"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -59,8 +60,9 @@ const App = () => (
                 <Route path="/scanner" element={<Scanner />} />
                 <Route path="/videos" element={<Videos />} />
                 <Route path="/questions" element={<Questions />} />
-                <Route path="/book-test" element={<BookTest />} />
-                <Route path="/after-registration" element={<AfterRegistration />} />
+        <Route path="/book-test" element={<BookTest />} />
+        <Route path="/after-registration" element={<AfterRegistration />} />
+        <Route path="/db2" element={<Db2 />} />
                 <Route path="/fipi-bank" element={<FipiBank />} />
                 <Route path="/new-practice" element={<NewPractice />} />
                 <Route path="/practice-now" element={<PracticeNow />} />
