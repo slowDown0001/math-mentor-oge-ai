@@ -141,12 +141,10 @@ const ChatDock = () => {
           
           {/* Chat Input */}
           <div className="border-t border-border bg-card">
-            <div className="p-2">
-              <ChatInput 
-                onSendMessage={handleSendMessage} 
-                isTyping={isTyping}
-              />
-            </div>
+            <ChatInput 
+              onSendMessage={handleSendMessage} 
+              isTyping={isTyping}
+            />
           </div>
         </CardContent>
       </Card>
