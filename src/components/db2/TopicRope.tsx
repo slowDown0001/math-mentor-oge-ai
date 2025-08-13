@@ -29,7 +29,7 @@ const TopicRope = ({ overallProgress, studentProgress }: TopicRopeProps) => {
   const [showAllTopics, setShowAllTopics] = useState(false);
   const topics = getTopicMap();
 
-  // Calculate mastery for each topic
+  // Calculate mastery for each topic using actual data
   const topicMasteries: (TopicMastery & TopicNode)[] = topics.map(topic => {
     const mastery = calculateTopicMastery(studentProgress, topic.skills);
     return {
@@ -42,21 +42,30 @@ const TopicRope = ({ overallProgress, studentProgress }: TopicRopeProps) => {
     };
   });
 
-  // Show focused view or all topics
+  // Find current position (next topic)
+  const currentIndex = topicMasteries.findIndex(topic => topic.isNext);
+  const focusIndex = currentIndex >= 0 ? currentIndex : 2; // Default to topic 1.3 area
+
+  // Show focused view: 2 before, current, 4 after
+  const startIndex = Math.max(0, focusIndex - 2);
+  const endIndex = Math.min(topics.length, focusIndex + 5);
+  
   const visibleTopics = showAllTopics 
     ? topicMasteries 
-    : topicMasteries.slice(0, 8); // Show first 8 topics
+    : topicMasteries.slice(startIndex, endIndex);
 
-  const getMasteryColor = (mastery: number, status: string) => {
-    if (status === 'mastered') return 'bg-green-500/20 text-green-700 border-green-300';
-    if (status === 'in_progress') return 'bg-yellow-500/20 text-yellow-700 border-yellow-300';
-    return 'bg-gray-500/20 text-gray-700 border-gray-300';
-  };
-
-  const getMasteryText = (mastery: number, status: string) => {
-    if (status === 'mastered') return `Освоено ${mastery}%`;
-    if (status === 'in_progress') return `В процессе ${mastery}%`;
-    return 'Не начато';
+  const getSectionColor = (section: number) => {
+    const colors = {
+      1: "bg-blue-500", // Числа и вычисления
+      2: "bg-green-500", // Алгебраические выражения
+      3: "bg-yellow-500", // Уравнения и неравенства
+      4: "bg-purple-500", // Числовые последовательности
+      5: "bg-red-500", // Функции
+      6: "bg-indigo-500", // Координаты
+      7: "bg-pink-500", // Геометрия
+      8: "bg-orange-500" // Вероятность и статистика
+    };
+    return colors[section as keyof typeof colors] || "bg-gray-500";
   };
 
   const getIconComponent = (iconName: string) => {
@@ -95,114 +104,121 @@ const TopicRope = ({ overallProgress, studentProgress }: TopicRopeProps) => {
         </CardHeader>
 
         <CardContent className="flex-1 overflow-auto">
-          <div className="space-y-4">
-            <AnimatePresence>
-              {visibleTopics.map((topic, index) => {
-                const IconComponent = getIconComponent(getTopicIcon(topic.section));
-                
-                return (
-                  <motion.div
-                    key={topic.topic}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                      topic.isNext 
-                        ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border bg-card hover:bg-muted/50'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      {/* Topic Icon */}
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        topic.status === 'mastered' ? 'bg-green-100 text-green-600' :
-                        topic.status === 'in_progress' ? 'bg-yellow-100 text-yellow-600' :
-                        'bg-gray-100 text-gray-600'
+          {/* Tree-like topic progression */}
+          <div className="relative">
+            {/* Connection line for tree effect */}
+            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-muted via-primary/30 to-muted"></div>
+            
+            <div className="space-y-3">
+              <AnimatePresence>
+                {visibleTopics.map((topic, index) => {
+                  const IconComponent = getIconComponent(getTopicIcon(topic.section));
+                  const sectionColor = getSectionColor(topic.section);
+                  
+                  return (
+                    <motion.div
+                      key={topic.topic}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="relative"
+                    >
+                      {/* Tree node connector */}
+                      <div className="absolute left-8 top-6 w-6 h-0.5 bg-primary/30"></div>
+                      
+                      <div className={`ml-16 p-4 rounded-xl transition-all duration-200 ${
+                        topic.isNext 
+                          ? 'bg-primary/5 border-2 border-primary shadow-lg scale-102' 
+                          : topic.status === 'mastered'
+                          ? 'bg-green-50 border border-green-200 hover:bg-green-100/50'
+                          : 'bg-card border border-border hover:bg-muted/30'
                       }`}>
-                        <IconComponent className="w-5 h-5" />
-                      </div>
-
-                      <div className="flex-1 space-y-2">
-                        {/* Topic title */}
-                        <div>
-                          <h4 className="font-medium text-foreground">
-                            {topic.topic} {topic.name}
-                          </h4>
-                          
-                          {/* Mastery badge */}
-                          <Badge variant="secondary" className={`mt-1 ${getMasteryColor(topic.mastery, topic.status)}`}>
-                            {getMasteryText(topic.mastery, topic.status)}
-                          </Badge>
-                        </div>
-
-                        {/* Action buttons */}
-                        <div className="flex gap-2">
-                          {topic.status === 'mastered' && (
-                            <>
-                              <Button size="sm" variant="outline" asChild>
-                                <Link to={`/practice?topic=${topic.topic}`}>
-                                  Повторить
-                                </Link>
-                              </Button>
-                              <Button size="sm" variant="outline" asChild>
-                                <Link to={`/mcq-practice?topics=${topic.topic}`}>
-                                  Тренировка
-                                </Link>
-                              </Button>
-                            </>
-                          )}
-                          
-                          {topic.isNext && (
-                            <Button size="sm" asChild className="bg-primary">
-                              <Link to={`/textbook?topic=${topic.topic}`}>
-                                Перейти к учебнику
-                              </Link>
-                            </Button>
-                          )}
-                        </div>
-
-                        {/* Available materials */}
-                        <div className="flex gap-1">
-                          <div title="Теория">
-                            <BookOpen className="w-4 h-4 text-green-500" />
+                        <div className="flex items-start gap-4">
+                          {/* Topic Icon with section color */}
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white ${sectionColor} shadow-md`}>
+                            <IconComponent className="w-6 h-6" />
                           </div>
-                          <div title="Видео">
-                            <Video className="w-4 h-4 text-blue-500" />
-                          </div>
-                          <div title="Тест">
-                            <HelpCircle className="w-4 h-4 text-yellow-500" />
-                          </div>
-                          <div title="Задачи">
-                            <Brain className="w-4 h-4 text-purple-500" />
+
+                          <div className="flex-1 space-y-2">
+                            {/* Topic title with full name */}
+                            <div>
+                              <h4 className="font-semibold text-foreground text-lg">
+                                {topic.topic} {topic.name}
+                              </h4>
+                              
+                              {/* Mastery progress */}
+                              {topic.status !== 'not_started' && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  <div className="flex-1 bg-muted rounded-full h-2">
+                                    <div 
+                                      className={`h-full rounded-full transition-all duration-300 ${
+                                        topic.status === 'mastered' ? 'bg-green-500' : 'bg-yellow-500'
+                                      }`}
+                                      style={{ width: `${topic.mastery}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="text-sm font-medium text-muted-foreground">
+                                    {topic.mastery}%
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="flex gap-2">
+                              {topic.status === 'mastered' && (
+                                <Button size="sm" variant="outline" className="text-xs">
+                                  ✓ Повторить
+                                </Button>
+                              )}
+                              
+                              {topic.isNext && (
+                                <Button size="sm" className="bg-primary text-xs font-medium">
+                                  Перейти к изучению →
+                                </Button>
+                              )}
+
+                              {topic.status === 'not_started' && !topic.isNext && (
+                                <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" disabled>
+                                  🔒 Заблокировано
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-
-            {/* Show more/less button */}
-            <div className="text-center pt-4">
-              <Button
-                variant="ghost"
-                onClick={() => setShowAllTopics(!showAllTopics)}
-                className="text-primary"
-              >
-                {showAllTopics ? (
-                  <>
-                    <ChevronUp className="w-4 h-4 mr-2" />
-                    Скрыть
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="w-4 h-4 mr-2" />
-                    Показать все темы
-                  </>
-                )}
-              </Button>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
+            
+            {/* Show more/less button */}
+            {!showAllTopics && (
+              <div className="text-center pt-6">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowAllTopics(true)}
+                  className="text-primary hover:bg-primary/10"
+                >
+                  <ChevronDown className="w-4 h-4 mr-2" />
+                  Показать все темы ({topics.length - visibleTopics.length} скрыто)
+                </Button>
+              </div>
+            )}
+            
+            {showAllTopics && (
+              <div className="text-center pt-6">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowAllTopics(false)}
+                  className="text-primary hover:bg-primary/10"
+                >
+                  <ChevronUp className="w-4 h-4 mr-2" />
+                  Показать меньше
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
