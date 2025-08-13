@@ -3,12 +3,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ChevronDown, ChevronUp, BookOpen, Video, HelpCircle, Brain } from "lucide-react";
+import { 
+  Calculator, 
+  FunctionSquare, 
+  Sigma, 
+  TrendingUp, 
+  LineChart, 
+  MapPin, 
+  Shapes, 
+  PieChart, 
+  Circle 
+} from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getTopicMap, getTopicIcon, TopicNode } from "@/lib/topicMap";
 import { calculateTopicMastery, TopicMastery } from "@/lib/progress";
 import { Link } from "react-router-dom";
-import Icon from "lucide-react";
 
 interface TopicRopeProps {
   overallProgress: number;
@@ -51,19 +61,18 @@ const TopicRope = ({ overallProgress, studentProgress }: TopicRopeProps) => {
 
   const getIconComponent = (iconName: string) => {
     const iconMap: { [key: string]: any } = {
-      'calculator': require('lucide-react').Calculator,
-      'function-square': require('lucide-react').FunctionSquare,
-      'sigma': require('lucide-react').Sigma,
-      'trending-up': require('lucide-react').TrendingUp,
-      'line-chart': require('lucide-react').LineChart,
-      'map-pin': require('lucide-react').MapPin,
-      'shapes': require('lucide-react').Shapes,
-      'pie-chart': require('lucide-react').PieChart,
-      'circle': require('lucide-react').Circle
+      'calculator': Calculator,
+      'function-square': FunctionSquare,
+      'sigma': Sigma,
+      'trending-up': TrendingUp,
+      'line-chart': LineChart,
+      'map-pin': MapPin,
+      'shapes': Shapes,
+      'pie-chart': PieChart,
+      'circle': Circle
     };
     
-    const IconComponent = iconMap[iconName] || iconMap['circle'];
-    return IconComponent;
+    return iconMap[iconName] || Circle;
   };
 
   return (
