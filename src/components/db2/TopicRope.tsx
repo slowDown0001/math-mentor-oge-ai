@@ -28,6 +28,14 @@ interface TopicRopeProps {
 const TopicRope = ({ overallProgress, studentProgress }: TopicRopeProps) => {
   const [showAllTopics, setShowAllTopics] = useState(false);
   const topics = getTopicMap();
+  
+  // Debug: Log topics data
+  console.log('TopicRope - Topics loaded:', topics);
+  console.log('TopicRope - Topics count:', topics.length);
+  if (topics.length > 0) {
+    console.log('TopicRope - First topic:', topics[0]);
+    console.log('TopicRope - Sample topic name:', topics[0]?.name);
+  }
 
   // Calculate mastery for each topic using actual data
   const topicMasteries: (TopicMastery & TopicNode)[] = topics.map(topic => {
@@ -145,6 +153,10 @@ const TopicRope = ({ overallProgress, studentProgress }: TopicRopeProps) => {
                               <h4 className="font-semibold text-foreground text-lg">
                                 {topic.topic} {topic.name}
                               </h4>
+                              {/* Debug info */}
+                              <div className="text-xs text-red-500">
+                                Debug: topic="{topic.topic}", name="{topic.name}", skills={topic.skills?.length || 0}
+                              </div>
                               
                               {/* Mastery progress */}
                               {topic.status !== 'not_started' && (

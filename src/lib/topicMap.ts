@@ -8,12 +8,20 @@ export interface TopicNode {
 }
 
 export const getTopicMap = (): TopicNode[] => {
-  return topicMappingData
-    .filter(item => item.topic !== "Special") // Exclude special topics
-    .map(item => ({
-      ...item,
-      section: parseInt(item.topic.split('.')[0]) // Extract section number (1.1 -> 1)
-    }));
+  console.log('getTopicMap - Raw data:', topicMappingData);
+  console.log('getTopicMap - Raw data length:', topicMappingData?.length);
+  console.log('getTopicMap - First raw item:', topicMappingData?.[0]);
+  
+  const filteredData = topicMappingData.filter(item => item.topic !== "Special");
+  console.log('getTopicMap - Filtered data length:', filteredData.length);
+  
+  const result = filteredData.map(item => ({
+    ...item,
+    section: parseInt(item.topic.split('.')[0]) // Extract section number (1.1 -> 1)
+  }));
+  
+  console.log('getTopicMap - Final result:', result);
+  return result;
 };
 
 export const getTopicIcon = (section: number) => {
