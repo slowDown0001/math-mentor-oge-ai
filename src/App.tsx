@@ -34,6 +34,7 @@ const FipiBank = lazy(() => import("./pages/FipiBank"));
 const DailyPractice = lazy(() => import("./pages/DailyPractice"));
 const BookTest = lazy(() => import("./pages/BookTest"));
 const AfterRegistration = lazy(() => import("./pages/AfterRegistration"));
+const NewTextbook = lazy(() => import("./pages/NewTextbook"));
 const Db2 = lazy(() => import("./pages/Db2"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -51,6 +52,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/textbook" element={<DigitalTextbook />} />
+                <Route path="/new-textbook" element={<NewTextbook />} />
                 <Route path="/triangle-similarity" element={<TriangleSimilarity />} />
                 <Route path="/triangle-similarity-video" element={<TriangleSimilarityVideo />} />
                 <Route path="/triangle-similarity-brainrot" element={<TriangleSimilarityBrainrot />} />
