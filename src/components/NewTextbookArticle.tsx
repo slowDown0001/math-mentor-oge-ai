@@ -207,7 +207,7 @@ const NewTextbookArticle = ({
                                 </h3>
                                 <div className="flex items-center gap-2">
                                   <Badge variant="secondary" className="text-xs">
-                                    {searchTerm ? filteredSkills.length : unitTopic.Skills.length} навыков
+                                    {searchTerm ? filteredSkills.length : (unitTopic.Skills || []).length} навыков
                                   </Badge>
                                 </div>
                               </div>
