@@ -102,7 +102,7 @@ const NewTextbookArticle = ({
 
   // Show topic view when topic is selected
   if (topic) {
-    const filteredSkills = filterSkills(topic.Skills);
+    const filteredSkills = filterSkills(topic.Skills || []);
     
     return (
       <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
@@ -181,7 +181,7 @@ const NewTextbookArticle = ({
           {/* Syllabus Content */}
           <div className="p-8">
             <div className="space-y-6">
-              {units.map((unit) => (
+              {(units || []).map((unit) => (
                 <div key={unit.code} className="border border-gray-200 rounded-lg overflow-hidden">
                   <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-4 border-b border-gray-200">
                     <h2 className="text-xl font-bold text-gray-800">{unit.title}</h2>
@@ -190,8 +190,8 @@ const NewTextbookArticle = ({
                   
                   <div className="p-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {unit.Topics.map((unitTopic) => {
-                        const filteredSkills = filterSkills(unitTopic.Skills);
+                      {(unit.Topics || []).map((unitTopic) => {
+                        const filteredSkills = filterSkills(unitTopic.Skills || []);
                         if (searchTerm && filteredSkills.length === 0) return null;
                         
                         return (
@@ -221,8 +221,8 @@ const NewTextbookArticle = ({
                 </div>
               ))}
               
-              {searchTerm && units.every(unit => 
-                unit.Topics.every(topic => filterSkills(topic.Skills).length === 0)
+              {searchTerm && (units || []).every(unit => 
+                (unit.Topics || []).every(topic => filterSkills(topic.Skills || []).length === 0)
               ) && (
                 <div className="text-center py-8">
                   <p className="text-gray-500">Ничего не найдено по запросу "{searchTerm}"</p>
