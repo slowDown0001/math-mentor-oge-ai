@@ -26,15 +26,21 @@ interface Unit {
 interface NewTextbookNavigationProps {
   units: Unit[];
   selectedSkill: Skill | null;
+  selectedTopic: Topic | null;
   readArticles: Set<number>;
+  searchTerm: string;
   onSkillSelect: (skill: Skill) => void;
+  onTopicSelect: (topic: Topic) => void;
 }
 
 const NewTextbookNavigation = ({ 
   units, 
   selectedSkill, 
+  selectedTopic,
   readArticles, 
-  onSkillSelect 
+  searchTerm,
+  onSkillSelect,
+  onTopicSelect
 }: NewTextbookNavigationProps) => {
   const [expandedUnits, setExpandedUnits] = useState<Set<string>>(new Set(["U1"]));
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
@@ -70,6 +76,14 @@ const NewTextbookNavigation = ({
   const getTopicProgress = (topic: Topic) => {
     const readSkills = topic.Skills.filter(skill => readArticles.has(skill.id)).length;
     return { read: readSkills, total: topic.Skills.length };
+  };
+
+  const filterSkills = (skills: Skill[]) => {
+    if (!searchTerm) return skills;
+    return skills.filter(skill => 
+      skill.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      skill.id.toString().includes(searchTerm)
+    );
   };
 
   return (
@@ -138,7 +152,10 @@ const NewTextbookNavigation = ({
                         >
                           <CollapsibleTrigger asChild>
                             <button
-                              className="w-full text-left p-2 text-xs rounded-lg hover:bg-blue-50 transition-all duration-200 flex items-center justify-between group"
+                              onClick={() => onTopicSelect(topic)}
+                              className={`w-full text-left p-2 text-xs rounded-lg transition-all duration-200 flex items-center justify-between group ${
+                                selectedTopic?.code === topic.code ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'hover:bg-blue-50'
+                              }`}
                             >
                               <div className="flex items-center gap-2">
                                 <span className="text-gray-700 group-hover:text-blue-700">
@@ -166,7 +183,7 @@ const NewTextbookNavigation = ({
                           </div>
 
                           <CollapsibleContent className="space-y-1 ml-4 mt-1">
-                            {topic.Skills.map((skill) => {
+                            {filterSkills(topic.Skills).map((skill) => {
                               const isRead = readArticles.has(skill.id);
                               const isSelected = selectedSkill?.id === skill.id;
 

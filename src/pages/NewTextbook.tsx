@@ -47,6 +47,7 @@ interface Article {
 
 const NewTextbook = () => {
   const [searchParams] = useSearchParams();
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
   const [currentArticle, setCurrentArticle] = useState<Article | null>(null);
   const [loadingArticle, setLoadingArticle] = useState(false);
@@ -54,6 +55,7 @@ const NewTextbook = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isSelecterActive, setIsSelecterActive] = useState(false);
   const [selectedText, setSelectedText] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { user } = useAuth();
   const { messages, isTyping, isDatabaseMode, addMessage, setIsTyping } = useChatContext();
@@ -102,9 +104,15 @@ const NewTextbook = () => {
     return null;
   };
 
+  const handleTopicSelect = (topic: Topic) => {
+    setSelectedTopic(topic);
+    setSelectedSkill(null);
+    setCurrentArticle(null);
+  };
   const handleSkillSelect = async (skill: Skill) => {
     setLoadingArticle(true);
     setSelectedSkill(skill);
+    setSelectedTopic(null); // Clear topic selection when skill is selected
 
     try {
       const { data, error } = await supabase
@@ -261,6 +269,22 @@ const NewTextbook = () => {
             </p>
           </div>
 
+          {/* Search Bar */}
+          <div className="max-w-md mx-auto mb-6">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Поиск навыков..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                🔍
+              </div>
+            </div>
+          </div>
+
           {/* Selector Tool */}
           <div className="flex justify-center mb-6">
             <Button
@@ -309,7 +333,9 @@ const NewTextbook = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 relative">
             {/* Chat Window */}
             {isChatOpen && (
-              <div className="fixed left-4 top-24 bottom-4 w-80 z-40 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-200/50 flex flex-col">
+              <div className="fixed left-4 top-24 bottom-4 w-96 z-40 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-200/50 flex flex-col"
+                style={{ maxHeight: 'calc(100vh - 120px)' }}
+              >
                 <div className="flex items-center justify-between p-4 border-b border-gray-200/50">
                   <div className="flex items-center gap-2">
                     <MessageCircle className="w-5 h-5 text-blue-600" />
@@ -342,19 +368,27 @@ const NewTextbook = () => {
               <NewTextbookNavigation
                 units={units}
                 selectedSkill={selectedSkill}
+                selectedTopic={selectedTopic}
                 readArticles={readArticles}
+                searchTerm={searchTerm}
                 onSkillSelect={handleSkillSelect}
+                onTopicSelect={handleTopicSelect}
               />
             </div>
 
             {/* Main Content */}
             <div className="lg:col-span-3">
               <NewTextbookArticle
+                units={units}
                 skill={selectedSkill}
+                topic={selectedTopic}
                 article={currentArticle}
                 loading={loadingArticle}
                 isRead={selectedSkill ? readArticles.has(selectedSkill.id) : false}
+                searchTerm={searchTerm}
                 onMarkAsRead={handleMarkAsRead}
+                onSkillSelect={handleSkillSelect}
+                onTopicSelect={handleTopicSelect}
               />
             </div>
           </div>
