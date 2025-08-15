@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -32,29 +32,35 @@ export type Database = {
       articles2: {
         Row: {
           art: string | null
+          img1: string | null
+          img2: string | null
+          img3: string | null
+          img4: string | null
+          img5: string | null
+          img6: string | null
+          img7: string | null
           skill: number
         }
         Insert: {
           art?: string | null
+          img1?: string | null
+          img2?: string | null
+          img3?: string | null
+          img4?: string | null
+          img5?: string | null
+          img6?: string | null
+          img7?: string | null
           skill?: number
         }
         Update: {
           art?: string | null
-          skill?: number
-        }
-        Relationships: []
-      }
-      articles3: {
-        Row: {
-          art: string | null
-          skill: number
-        }
-        Insert: {
-          art?: string | null
-          skill?: number
-        }
-        Update: {
-          art?: string | null
+          img1?: string | null
+          img2?: string | null
+          img3?: string | null
+          img4?: string | null
+          img5?: string | null
+          img6?: string | null
+          img7?: string | null
           skill?: number
         }
         Relationships: []
@@ -994,6 +1000,45 @@ export type Database = {
         }
         Relationships: []
       }
+      new_articles: {
+        Row: {
+          article_text: string | null
+          ID: number
+          image_recommendations: string | null
+          img1: string | null
+          img2: string | null
+          img3: string | null
+          img4: string | null
+          img5: string | null
+          img6: string | null
+          img7: string | null
+        }
+        Insert: {
+          article_text?: string | null
+          ID: number
+          image_recommendations?: string | null
+          img1?: string | null
+          img2?: string | null
+          img3?: string | null
+          img4?: string | null
+          img5?: string | null
+          img6?: string | null
+          img7?: string | null
+        }
+        Update: {
+          article_text?: string | null
+          ID?: number
+          image_recommendations?: string | null
+          img1?: string | null
+          img2?: string | null
+          img3?: string | null
+          img4?: string | null
+          img5?: string | null
+          img6?: string | null
+          img7?: string | null
+        }
+        Relationships: []
+      }
       OGE_SHFIPI_problems_1_25: {
         Row: {
           answer: string | null
@@ -1464,6 +1509,30 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      read_articles: {
+        Row: {
+          created_at: string | null
+          date_read: string | null
+          id: string
+          skill_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date_read?: string | null
+          id?: string
+          skill_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date_read?: string | null
+          id?: string
+          skill_id?: number
           user_id?: string
         }
         Relationships: []
