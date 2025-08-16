@@ -35,6 +35,7 @@ const DailyPractice = lazy(() => import("./pages/DailyPractice"));
 const BookTest = lazy(() => import("./pages/BookTest"));
 const AfterRegistration = lazy(() => import("./pages/AfterRegistration"));
 const NewTextbook = lazy(() => import("./pages/NewTextbook"));
+const Textbook3 = lazy(() => import("./pages/Textbook3"));
 const Db2 = lazy(() => import("./pages/Db2"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -57,6 +58,7 @@ const App = () => (
                 <Route path="/triangle-similarity-video" element={<TriangleSimilarityVideo />} />
                 <Route path="/triangle-similarity-brainrot" element={<TriangleSimilarityBrainrot />} />
                 <Route path="/textbook2" element={<Textbook2 />} />
+                <Route path="/textbook3" element={<Textbook3 />} />
                 <Route path="/mcq-practice" element={<MCQPractice />} />
                 <Route path="/mcq-practice-skill-120" element={<MCQPracticeSkill120 />} />
                 <Route path="/scanner" element={<Scanner />} />
