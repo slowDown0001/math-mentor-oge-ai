@@ -1,13 +1,11 @@
-import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen, ArrowRight, Zap, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import MathRenderer from "@/components/MathRenderer";
+import ArticleRenderer from "@/components/ArticleRenderer";
 import NewTextbookReadButton from "@/components/NewTextbookReadButton";
-import { mathJaxManager } from "@/hooks/useMathJaxInitializer";
 
 interface Skill {
   id: number;
@@ -65,7 +63,6 @@ const NewTextbookArticle = ({
   onTopicSelect
 }: NewTextbookArticleProps) => {
   const navigate = useNavigate();
-  const contentRef = useRef<HTMLDivElement>(null);
 
   const handleGoToExercise = () => {
     if (skill) {
@@ -73,12 +70,6 @@ const NewTextbookArticle = ({
     }
   };
 
-  // Render MathJax when article content changes
-  useEffect(() => {
-    if (contentRef.current && article?.article_text) {
-      mathJaxManager.renderMath(contentRef.current);
-    }
-  }, [article]);
 
   const getImageUrls = (article: Article) => {
     const images: string[] = [];
@@ -302,11 +293,22 @@ const NewTextbookArticle = ({
 
         {/* Article Content */}
         <div className="p-8">
-          <div 
-            ref={contentRef}
-            className="textbook-preview prose max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.article_text }}
-          />
+          <div className="textbook-preview prose max-w-none">
+            <ArticleRenderer 
+              text={article.article_text} 
+              article={{
+                skill: article.id,
+                art: article.article_text,
+                img1: article.img1,
+                img2: article.img2,
+                img3: article.img3,
+                img4: article.img4,
+                img5: article.img5,
+                img6: article.img6,
+                img7: article.img7
+              }} 
+            />
+          </div>
 
           {/* Images Gallery */}
           {images.length > 0 && (
