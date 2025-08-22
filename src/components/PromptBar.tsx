@@ -59,9 +59,10 @@ const PromptBar = () => {
 
         // Decode the chunk and add it to accumulated response
         const chunk = decoder.decode(value, { stream: true });
+        console.log('📝 Received chunk:', chunk); // Debug log
         accumulatedResponse += chunk;
         
-        // Update the response in real-time
+        // Update the response in real-time for each chunk
         setResponse(accumulatedResponse);
       }
 
