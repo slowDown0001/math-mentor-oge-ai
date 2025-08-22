@@ -82,7 +82,7 @@ export default function LandingHero() {
             <Button 
               variant="ghost" 
               size="lg" 
-              className="text-muted-foreground hover:text-primary px-8 py-6 text-lg rounded-full font-medium transition-all duration-300 hover:scale-105"
+              className="text-muted-foreground hover:text-primary px-8 py-6 text-lg rounded-full font-medium transition-all duration-300 hover:scale-105 bg-yellow-100 hover:bg-yellow-200"
               onClick={() => {
                 const nextSection = document.querySelector('main > *:nth-child(2)');
                 nextSection?.scrollIntoView({ behavior: 'smooth' });
