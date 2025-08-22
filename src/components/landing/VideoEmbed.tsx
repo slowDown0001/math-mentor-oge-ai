@@ -7,7 +7,7 @@ export default function VideoEmbed() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const videoUrl = "https://vkvideo.ru/video-232034222_456239025?ref_domain=egechat.ru";
+  const videoUrl = "https://vkvideo.ru/video-232034222_456239025";
 
   const handleFallbackClick = () => {
     window.open(videoUrl, '_blank', 'noopener,noreferrer');
