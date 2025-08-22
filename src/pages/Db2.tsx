@@ -7,6 +7,7 @@ import StudentBar from "@/components/db2/StudentBar";
 import ChatDock from "@/components/db2/ChatDock";
 import TopicRope from "@/components/db2/TopicRope";
 import PracticeCards from "@/components/db2/PracticeCards";
+import ExamProgress from "@/components/db2/ExamProgress";
 import { ChatProvider } from "@/contexts/ChatContext";
 
 const Db2 = () => {
@@ -68,6 +69,9 @@ const Db2 = () => {
               streakWeeks={3}
               level={5}
             />
+
+            {/* Exam Progress Section */}
+            <ExamProgress currentProgress={overallProgress} />
 
             {/* Three-column main area */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[700px]">
