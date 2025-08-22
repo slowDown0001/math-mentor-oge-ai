@@ -40,12 +40,22 @@ const PromptBar = () => {
             if (done) break;
 
             const chunk = decoder.decode(value, { stream: true });
-            setResponse(prev => prev + chunk);
+            console.log('Received chunk:', chunk); // Debug log
+            
+            // Add small delay to make streaming visible
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            setResponse(prev => {
+              const newResponse = prev + chunk;
+              console.log('Updated response length:', newResponse.length); // Debug log
+              return newResponse;
+            });
           }
         } finally {
           reader.releaseLock();
         }
       } else if (typeof data === 'string') {
+        console.log('Received non-stream data:', data); // Debug log
         setResponse(data);
       }
     } catch (error) {
