@@ -21,67 +21,25 @@ const PromptBar = () => {
     setResponse("");
 
     try {
-      console.log('🚀 Starting request to Vercel proxy with:', userQuery);
+      console.log('🚀 Starting request to Supabase function with:', userQuery);
       
-      const response = await fetch('/api/proxy-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userQuery }),
+      const { data, error } = await supabase.functions.invoke('process-user-query', {
+        body: { userQuery }
       });
 
-      console.log('📦 Vercel proxy response:', { 
-        status: response.status, 
-        headers: Object.fromEntries(response.headers.entries()) 
-      });
+      console.log('📦 Supabase function response:', { data, error });
 
-      if (!response.ok) {
-        throw new Error(`Proxy error: ${response.status}`);
+      if (error) {
+        throw new Error(`Supabase function error: ${error.message}`);
       }
-      if (response && response.body) {
-        console.log('📺 Starting stream processing...');
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let chunkCount = 0;
-        let totalBytes = 0;
 
-        try {
-          while (true) {
-            console.log(`🔄 Reading chunk ${chunkCount + 1}...`);
-            const { done, value } = await reader.read();
-            
-            if (done) {
-              console.log('✅ Stream complete! Total chunks:', chunkCount, 'Total bytes:', totalBytes);
-              break;
-            }
-
-            chunkCount++;
-            totalBytes += value?.length || 0;
-            const chunk = decoder.decode(value, { stream: true });
-            console.log(`📝 Chunk ${chunkCount}:`, { 
-              length: chunk.length, 
-              content: chunk.substring(0, 100) + (chunk.length > 100 ? '...' : ''),
-              bytes: value?.length 
-            });
-            
-            // Add small delay to make streaming visible
-            await new Promise(resolve => setTimeout(resolve, 30));
-            
-            setResponse(prev => {
-              const newResponse = prev + chunk;
-              console.log(`📊 Response updated - Length: ${newResponse.length}, New chunk: ${chunk.length}`);
-              return newResponse;
-            });
-          }
-        } finally {
-          console.log('🧹 Releasing reader lock');
-          reader.releaseLock();
-        }
-      } else {
-        console.warn('⚠️ No response body available');
-        setResponse('Нет данных в ответе');
+      // For now, handle non-streaming response
+      if (data) {
+        setResponse(data.response || data);
+        return;
       }
+      // This block won't execute since we handle response above
+      console.warn('⚠️ No response data available');
     } catch (error) {
       console.error('Error processing query:', error);
       setResponse('Произошла ошибка при обработке вашего запроса. Попробуйте позже.');
