@@ -184,7 +184,7 @@ serve(async (req) => {
     return new Response(stream, {
       headers: {
         ...corsHeaders,
-        'Content-Type': 'text/event-stream',
+        'Content-Type': 'text/plain; charset=utf-8',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
         'X-Accel-Buffering': 'no', // Important for some proxies/load balancers
