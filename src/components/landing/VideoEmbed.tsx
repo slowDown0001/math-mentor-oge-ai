@@ -4,17 +4,14 @@ import { Play, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function VideoEmbed() {
-  const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const videoUrl = "https://vkvideo.ru/video-232034222_456239025";
+  // VK video embed URL format
+  const videoUrl = "https://vk.com/video_ext.php?oid=-232034222&id=456239025&hd=2&autoplay=0";
+  const fallbackUrl = "https://vkvideo.ru/video-232034222_456239025";
 
   const handleFallbackClick = () => {
-    window.open(videoUrl, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleIframeLoad = () => {
-    setIsLoaded(true);
+    window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleIframeError = () => {
@@ -45,21 +42,15 @@ export default function VideoEmbed() {
         >
           <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl bg-muted">
             {!hasError ? (
-              <>
-                {!isLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                  </div>
-                )}
-                <iframe
-                  src={videoUrl}
-                  className="w-full h-full"
-                  allowFullScreen
-                  onLoad={handleIframeLoad}
-                  onError={handleIframeError}
-                  title="Platform Demo Video"
-                />
-              </>
+              <iframe
+                src={videoUrl}
+                className="w-full h-full"
+                frameBorder="0"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                onError={handleIframeError}
+                title="EGEChat Platform Demo Video"
+              />
             ) : (
               // Fallback preview card
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10 p-8">
