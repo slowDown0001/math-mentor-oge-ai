@@ -3,6 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 const PromptBar = () => {
   const [userQuery, setUserQuery] = useState("");
@@ -84,8 +88,33 @@ const PromptBar = () => {
             </div>
           )}
           {response && (
-            <div className="text-card-foreground whitespace-pre-wrap">
-              {response}
+            <div className="text-card-foreground prose prose-sm max-w-none">
+              <ReactMarkdown
+                remarkPlugins={[remarkMath]}
+                rehypePlugins={[rehypeKatex]}
+                components={{
+                  p: ({ children }) => (
+                    <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold">{children}</strong>
+                  ),
+                  em: ({ children }) => (
+                    <em className="italic">{children}</em>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="leading-relaxed">{children}</li>
+                  )
+                }}
+              >
+                {response}
+              </ReactMarkdown>
               {isLoading && <span className="animate-pulse">|</span>}
             </div>
           )}
