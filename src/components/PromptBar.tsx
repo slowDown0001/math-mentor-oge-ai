@@ -21,43 +21,73 @@ const PromptBar = () => {
     setResponse("");
 
     try {
+      console.log('🚀 Starting request to process-user-query with:', userQuery);
       const { data, error } = await supabase.functions.invoke('process-user-query', {
         body: { userQuery }
       });
 
+      console.log('📦 Raw response:', { data, error, dataType: typeof data });
+
       if (error) {
+        console.error('❌ Supabase function error:', error);
         throw error;
       }
 
       // Handle streaming response - Supabase returns Response object, not ReadableStream directly
       const response = data as Response;
+      console.log('🔍 Response object:', { 
+        response, 
+        hasBody: !!response?.body, 
+        bodyType: typeof response?.body,
+        status: response?.status,
+        headers: response?.headers ? Object.fromEntries(response.headers.entries()) : 'no headers'
+      });
+
       if (response && response.body) {
+        console.log('📺 Starting stream processing...');
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let chunkCount = 0;
+        let totalBytes = 0;
 
         try {
           while (true) {
+            console.log(`🔄 Reading chunk ${chunkCount + 1}...`);
             const { done, value } = await reader.read();
-            if (done) break;
+            
+            if (done) {
+              console.log('✅ Stream complete! Total chunks:', chunkCount, 'Total bytes:', totalBytes);
+              break;
+            }
 
+            chunkCount++;
+            totalBytes += value?.length || 0;
             const chunk = decoder.decode(value, { stream: true });
-            console.log('Received chunk:', chunk); // Debug log
+            console.log(`📝 Chunk ${chunkCount}:`, { 
+              length: chunk.length, 
+              content: chunk.substring(0, 100) + (chunk.length > 100 ? '...' : ''),
+              bytes: value?.length 
+            });
             
             // Add small delay to make streaming visible
             await new Promise(resolve => setTimeout(resolve, 30));
             
             setResponse(prev => {
               const newResponse = prev + chunk;
-              console.log('Updated response length:', newResponse.length); // Debug log
+              console.log(`📊 Response updated - Length: ${newResponse.length}, New chunk: ${chunk.length}`);
               return newResponse;
             });
           }
         } finally {
+          console.log('🧹 Releasing reader lock');
           reader.releaseLock();
         }
       } else if (typeof data === 'string') {
-        console.log('Received non-stream data:', data); // Debug log
+        console.log('📄 Received non-stream string data:', { length: data.length, preview: data.substring(0, 200) });
         setResponse(data);
+      } else {
+        console.warn('⚠️ Unexpected data format:', { dataType: typeof data, data });
+        setResponse('Получен неожиданный формат ответа');
       }
     } catch (error) {
       console.error('Error processing query:', error);
