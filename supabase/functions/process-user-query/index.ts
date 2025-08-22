@@ -120,11 +120,13 @@ serve(async (req) => {
       }),
     });
 
-    // Helper to process each complete line
+    // Helper to process each complete line and format as SSE
     function processLine(line, controller) {
       if (line.startsWith('data: ')) {
         const payload = line.slice(6).trim();
         if (payload === '[DONE]') {
+          // Send SSE done event
+          controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
           controller.close();
           return;
         }
@@ -133,7 +135,9 @@ serve(async (req) => {
           const event = JSON.parse(payload);
           const delta = event.choices?.[0]?.delta?.content;
           if (delta) {
-            controller.enqueue(new TextEncoder().encode(delta));
+            // Format as SSE with proper data prefix and double newlines
+            const sseData = `data: ${delta}\n\n`;
+            controller.enqueue(new TextEncoder().encode(sseData));
           }
         } catch (e) {
           // Skip invalid JSON
@@ -183,10 +187,10 @@ serve(async (req) => {
     return new Response(stream, {
       headers: {
         ...corsHeaders,
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
+        'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no',
       },
     });
 

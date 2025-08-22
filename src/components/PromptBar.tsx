@@ -60,7 +60,20 @@ const PromptBar = () => {
             const chunk = decoder.decode(value, { stream: true });
             console.log(`📝 Chunk ${chunkCount}:`, chunk.substring(0, 100) + (chunk.length > 100 ? '...' : ''));
             
-            setResponse(prev => prev + chunk);
+            // Handle SSE format - extract data from lines starting with "data: "
+            const lines = chunk.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6); // Remove "data: " prefix
+                if (data === '[DONE]') {
+                  console.log('✅ Stream marked as done');
+                  break;
+                }
+                if (data.trim()) {
+                  setResponse(prev => prev + data);
+                }
+              }
+            }
           }
         } finally {
           reader.releaseLock();
