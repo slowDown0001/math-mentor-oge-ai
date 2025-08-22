@@ -106,7 +106,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-flash-1.5-8b',
+        model: 'google/gemma-3-4b-it',
         messages: [
           {
             role: 'system',
@@ -118,45 +118,6 @@ serve(async (req) => {
         stream: true,
         max_tokens: 500
       }),
-    });
-
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = streamResponse.body?.getReader();
-        if (!reader) {
-          controller.close();
-          return;
-        }
-
-        let buffer = '';  // Buffer for partial lines
-
-        try {
-          controller.enqueue(new TextEncoder().encode('event: message\n'));  // Optional initial event
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-              if (buffer.trim()) {
-                processLine(buffer, controller);
-              }
-              controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));  // Signal end
-              break;
-            }
-
-            buffer += new TextDecoder().decode(value);
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-
-            for (const line of lines) {
-              processLine(line, controller);
-            }
-          }
-        } catch (error) {
-          console.error('Streaming error:', error);
-          controller.error(error);
-        } finally {
-          reader.releaseLock();
-        }
-      },
     });
 
     // Helper to process each complete line
@@ -172,8 +133,7 @@ serve(async (req) => {
           const event = JSON.parse(payload);
           const delta = event.choices?.[0]?.delta?.content;
           if (delta) {
-            console.log('Streaming delta:', delta);  // Log for debugging
-            controller.enqueue(new TextEncoder().encode(`data: ${delta}\n\n`));  // SSE format
+            controller.enqueue(new TextEncoder().encode(delta));
           }
         } catch (e) {
           // Skip invalid JSON
@@ -181,11 +141,50 @@ serve(async (req) => {
       }
     }
 
-    // Return the response with SSE headers
+    // Create a readable stream to handle the streaming response
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = streamResponse.body?.getReader();
+        if (!reader) {
+          controller.close();
+          return;
+        }
+
+        let buffer = '';  // Buffer to handle partial lines across chunks
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              // If there's leftover buffer at end, process it as a final line
+              if (buffer.trim()) {
+                processLine(buffer, controller);
+              }
+              break;
+            }
+
+            buffer += new TextDecoder().decode(value);
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';  // Carry over any incomplete line
+
+            for (const line of lines) {
+              processLine(line, controller);
+            }
+          }
+        } catch (error) {
+          console.error('Streaming error:', error);
+          controller.error(error);
+        } finally {
+          reader.releaseLock();
+        }
+      },
+    });
+
     return new Response(stream, {
       headers: {
         ...corsHeaders,
-        'Content-Type': 'text/event-stream',
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
       },

@@ -21,67 +21,28 @@ const PromptBar = () => {
     setResponse("");
 
     try {
-      console.log('🚀 Starting streaming request with:', userQuery);
+      console.log('🚀 Starting request to Supabase function with:', userQuery);
       
-      const response = await fetch('https://kbaazksvkvnafrwtmkcw.supabase.co/functions/v1/process-user-query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYWF6a3N2a3ZuYWZyd3Rta2N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3NTg2NTAsImV4cCI6MjA2MjMzNDY1MH0.aSyfch6PX1fr9wyWSGpUPNzT6jjIdfu9eA3E3J4uqzs`,
-        },
-        body: JSON.stringify({ userQuery }),
+      const { data, error } = await supabase.functions.invoke('process-user-query', {
+        body: { userQuery }
       });
 
-      console.log('📦 Proxy response:', { 
-        status: response.status, 
-        headers: Object.fromEntries(response.headers.entries()) 
-      });
+      console.log('📦 Supabase function response:', { data, error });
 
-      if (!response.ok) {
-        throw new Error(`Proxy error: ${response.status}`);
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(`Supabase function error: ${error.message}`);
       }
 
-      if (response && response.body) {
-        console.log('📺 Starting stream processing...');
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let chunkCount = 0;
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            
-            if (done) {
-              console.log('✅ Stream complete! Total chunks:', chunkCount);
-              break;
-            }
-
-            chunkCount++;
-            const chunk = decoder.decode(value, { stream: true });
-            console.log(`📝 Chunk ${chunkCount}:`, chunk.substring(0, 100) + (chunk.length > 100 ? '...' : ''));
-            
-            // Handle SSE format - extract data from lines starting with "data: "
-            const lines = chunk.split('\n');
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6); // Remove "data: " prefix
-                if (data === '[DONE]') {
-                  console.log('✅ Stream marked as done');
-                  break;
-                }
-                if (data.trim()) {
-                  setResponse(prev => prev + data);
-                }
-              }
-            }
-          }
-        } finally {
-          reader.releaseLock();
-        }
-      } else {
-        console.warn('⚠️ No response body available');
-        setResponse('Получен пустой ответ от сервера');
+      if (data) {
+        // Handle the response - it should be a string
+        const responseText = typeof data === 'string' ? data : (data.response || JSON.stringify(data));
+        setResponse(responseText);
+        return;
       }
+      
+      console.warn('⚠️ No response data available');
+      setResponse('Получен пустой ответ от сервера');
     } catch (error) {
       console.error('Error processing query:', error);
       setResponse('Произошла ошибка при обработке вашего запроса. Попробуйте позже.');
@@ -122,46 +83,34 @@ const PromptBar = () => {
             </div>
           )}
           {response && (
-            <div className="text-card-foreground prose prose-sm max-w-none prose-p:mb-3">
+            <div className="text-card-foreground prose prose-sm max-w-none">
               <ReactMarkdown
                 remarkPlugins={[remarkMath]}
                 rehypePlugins={[rehypeKatex]}
                 components={{
                   p: ({ children }) => (
-                    <p className="mb-3 last:mb-0 leading-relaxed text-card-foreground">{children}</p>
+                    <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>
                   ),
                   strong: ({ children }) => (
-                    <strong className="font-semibold text-card-foreground">{children}</strong>
+                    <strong className="font-semibold">{children}</strong>
                   ),
                   em: ({ children }) => (
-                    <em className="italic text-card-foreground">{children}</em>
+                    <em className="italic">{children}</em>
                   ),
                   ul: ({ children }) => (
-                    <ul className="list-disc list-inside mb-3 space-y-2 text-card-foreground">{children}</ul>
+                    <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>
                   ),
                   ol: ({ children }) => (
-                    <ol className="list-decimal list-inside mb-3 space-y-2 text-card-foreground">{children}</ol>
+                    <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>
                   ),
                   li: ({ children }) => (
-                    <li className="leading-relaxed text-card-foreground">{children}</li>
-                  ),
-                  h1: ({ children }) => (
-                    <h1 className="text-xl font-bold mb-3 text-card-foreground">{children}</h1>
-                  ),
-                  h2: ({ children }) => (
-                    <h2 className="text-lg font-semibold mb-2 text-card-foreground">{children}</h2>
-                  ),
-                  h3: ({ children }) => (
-                    <h3 className="text-base font-semibold mb-2 text-card-foreground">{children}</h3>
-                  ),
-                  div: ({ children }) => (
-                    <div className="text-card-foreground">{children}</div>
+                    <li className="leading-relaxed">{children}</li>
                   )
                 }}
               >
-                {response.replace(/\n\n/g, '\n\n').replace(/\n/g, '  \n')}
+                {response}
               </ReactMarkdown>
-              {isLoading && <span className="animate-pulse text-card-foreground">|</span>}
+              {isLoading && <span className="animate-pulse">|</span>}
             </div>
           )}
         </div>
