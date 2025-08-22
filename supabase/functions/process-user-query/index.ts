@@ -122,7 +122,6 @@ serve(async (req) => {
 
     // Helper to process each complete line
     function processLine(line, controller) {
-      console.log("Processing line:", line);
       if (line.startsWith('data: ')) {
         const payload = line.slice(6).trim();
         if (payload === '[DONE]') {
@@ -185,9 +184,9 @@ serve(async (req) => {
       headers: {
         ...corsHeaders,
         'Content-Type': 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-        'X-Accel-Buffering': 'no', // Important for some proxies/load balancers
       },
     });
 
