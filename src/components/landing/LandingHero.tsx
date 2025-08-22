@@ -72,6 +72,25 @@ export default function LandingHero() {
               </Link>
             </Button>
           </motion.div>
+          
+          <motion.div 
+            className="mt-8 flex justify-center"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+          >
+            <Button 
+              variant="ghost" 
+              size="lg" 
+              className="text-muted-foreground hover:text-primary px-8 py-6 text-lg rounded-full font-medium transition-all duration-300 hover:scale-105"
+              onClick={() => {
+                const nextSection = document.querySelector('main > *:nth-child(2)');
+                nextSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              Узнайте больше ⬇️
+            </Button>
+          </motion.div>
         </div>
       </div>
       
