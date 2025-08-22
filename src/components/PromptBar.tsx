@@ -23,26 +23,49 @@ const PromptBar = () => {
     try {
       console.log('🚀 Starting request to Supabase function with:', userQuery);
       
-      const { data, error } = await supabase.functions.invoke('process-user-query', {
-        body: { userQuery }
-      });
+      // Use direct fetch for streaming instead of supabase.functions.invoke
+      const response = await fetch(
+        `https://kbaazksvkvnafrwtmkcw.supabase.co/functions/v1/process-user-query`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYWF6a3N2a3ZuYWZyd3Rta2N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3NTg2NTAsImV4cCI6MjA2MjMzNDY1MH0.aSyfch6PX1fr9wyWSGpUPNzT6jjIdfu9eA3E3J4uqzs`,
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYWF6a3N2a3ZuYWZyd3Rta2N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3NTg2NTAsImV4cCI6MjA2MjMzNDY1MH0.aSyfch6PX1fr9wyWSGpUPNzT6jjIdfu9eA3E3J4uqzs',
+          },
+          body: JSON.stringify({ userQuery }),
+        }
+      );
 
-      console.log('📦 Supabase function response:', { data, error });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(`Supabase function error: ${error.message}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      if (data) {
-        // Handle the response - it should be a string
-        const responseText = typeof data === 'string' ? data : (data.response || JSON.stringify(data));
-        setResponse(responseText);
-        return;
+      if (!response.body) {
+        throw new Error('Response body is null');
       }
-      
-      console.warn('⚠️ No response data available');
-      setResponse('Получен пустой ответ от сервера');
+
+      // Process the streaming response
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedResponse = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          break;
+        }
+
+        // Decode the chunk and add it to accumulated response
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedResponse += chunk;
+        
+        // Update the response in real-time
+        setResponse(accumulatedResponse);
+      }
+
+      console.log('📦 Streaming completed with full response');
     } catch (error) {
       console.error('Error processing query:', error);
       setResponse('Произошла ошибка при обработке вашего запроса. Попробуйте позже.');
