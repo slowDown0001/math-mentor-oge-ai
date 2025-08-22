@@ -169,7 +169,8 @@ serve(async (req) => {
     return new Response(stream, {
       headers: {
         ...corsHeaders,
-        'Content-Type': 'text/plain; charset=utf-8',
+        'Content-Type': 'text/event-stream',
+        'Transfer-Encoding': 'chunked',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
       },
