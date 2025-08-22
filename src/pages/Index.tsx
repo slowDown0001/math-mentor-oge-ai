@@ -22,11 +22,6 @@ const Index = () => {
       <LandingHeader />
       <main>
         <LandingHero />
-        <section className="py-8">
-          <div className="container mx-auto px-4">
-            <PromptBar />
-          </div>
-        </section>
         <HighlightCards />
         <VideoEmbed />
         <ChatDemo />

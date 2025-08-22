@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { BookOpen, Target } from "lucide-react";
 import FloatingElements from "./FloatingElements";
+import PromptBar from "../PromptBar";
 
 export default function LandingHero() {
   return (
@@ -13,6 +14,15 @@ export default function LandingHero() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-20 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
+            className="mb-8"
+          >
+            <PromptBar />
+          </motion.div>
+          
           <motion.h1 
             className="text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight"
             initial={{ opacity: 0, y: 30 }}
