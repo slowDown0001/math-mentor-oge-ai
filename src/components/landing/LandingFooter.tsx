@@ -29,7 +29,7 @@ const footerSections = [
   {
     title: "Контакты",
     links: [
-      { label: "support@hedgehog.edu", href: "mailto:support@hedgehog.edu", enabled: true }
+      { label: "support@egechat.ru", href: "mailto:support@egechat.ru", enabled: true }
     ]
   }
 ];
@@ -83,14 +83,16 @@ export default function LandingFooter() {
           transition={{ duration: 0.4, delay: 0.5 }}
         >
           <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">🦔</span>
-              </div>
-              <span className="font-bold text-xl text-foreground">Hedgehog</span>
+            <Link to="/" className="flex items-center space-x-3">
+              <img 
+                src="/lovable-uploads/dee5b8e7-c1fc-461a-b213-e3d6b150fcb5.png" 
+                alt="EGEChat Logo" 
+                className="w-8 h-8"
+              />
+              <span className="font-bold text-xl text-foreground">EGEChat</span>
             </Link>
             <p className="text-muted-foreground">
-              © {new Date().getFullYear()} Hedgehog Education. Все права защищены.
+              © {new Date().getFullYear()} EGEChat. Все права защищены.
             </p>
           </div>
           

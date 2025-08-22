@@ -148,11 +148,13 @@ export default function LandingHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">🦔</span>
-          </div>
-          <span className="font-bold text-xl text-foreground">Hedgehog</span>
+        <Link to="/" className="flex items-center space-x-3">
+          <img 
+            src="/lovable-uploads/dee5b8e7-c1fc-461a-b213-e3d6b150fcb5.png" 
+            alt="EGEChat Logo" 
+            className="w-10 h-10"
+          />
+          <span className="font-bold text-xl text-foreground">EGEChat</span>
         </Link>
 
         {/* Desktop Navigation */}
