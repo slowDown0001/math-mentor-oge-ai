@@ -54,13 +54,13 @@ const PromptBar = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4">
+    <div className="w-full max-w-2xl mx-auto space-y-4 p-4 border-2 border-primary rounded-xl">
       {/* Input row */}
       <form onSubmit={handleSubmit} className="flex gap-3">
         <Input
           value={userQuery}
           onChange={(e) => setUserQuery(e.target.value)}
-          placeholder="Задайте ваш вопрос по математике..."
+          placeholder="Задайте любой вопрос о платформе"
           className="flex-1 rounded-xl border-border bg-background text-foreground placeholder:text-muted-foreground"
           disabled={isLoading}
         />
