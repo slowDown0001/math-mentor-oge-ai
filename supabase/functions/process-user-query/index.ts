@@ -120,32 +120,6 @@ serve(async (req) => {
       }),
     });
 
-    // Helper to process each complete line and format as SSE
-    function processLine(line, controller) {
-      if (line.startsWith('data: ')) {
-        const payload = line.slice(6).trim();
-        if (payload === '[DONE]') {
-          // Send SSE done event
-          controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
-          controller.close();
-          return;
-        }
-
-        try {
-          const event = JSON.parse(payload);
-          const delta = event.choices?.[0]?.delta?.content;
-          if (delta) {
-            // Format as SSE with proper data prefix and double newlines
-            const sseData = `data: ${delta}\n\n`;
-            controller.enqueue(new TextEncoder().encode(sseData));
-          }
-        } catch (e) {
-          // Skip invalid JSON
-        }
-      }
-    }
-
-    // Create a readable stream to handle the streaming response
     const stream = new ReadableStream({
       async start(controller) {
         const reader = streamResponse.body?.getReader();
@@ -154,22 +128,23 @@ serve(async (req) => {
           return;
         }
 
-        let buffer = '';  // Buffer to handle partial lines across chunks
+        let buffer = '';  // Buffer for partial lines
 
         try {
+          controller.enqueue(new TextEncoder().encode('event: message\n'));  // Optional initial event
           while (true) {
             const { done, value } = await reader.read();
             if (done) {
-              // If there's leftover buffer at end, process it as a final line
               if (buffer.trim()) {
                 processLine(buffer, controller);
               }
+              controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));  // Signal end
               break;
             }
 
             buffer += new TextDecoder().decode(value);
             const lines = buffer.split('\n');
-            buffer = lines.pop() || '';  // Carry over any incomplete line
+            buffer = lines.pop() || '';
 
             for (const line of lines) {
               processLine(line, controller);
@@ -184,13 +159,35 @@ serve(async (req) => {
       },
     });
 
+    // Helper to process each complete line
+    function processLine(line, controller) {
+      if (line.startsWith('data: ')) {
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') {
+          controller.close();
+          return;
+        }
+
+        try {
+          const event = JSON.parse(payload);
+          const delta = event.choices?.[0]?.delta?.content;
+          if (delta) {
+            console.log('Streaming delta:', delta);  // Log for debugging
+            controller.enqueue(new TextEncoder().encode(`data: ${delta}\n\n`));  // SSE format
+          }
+        } catch (e) {
+          // Skip invalid JSON
+        }
+      }
+    }
+
+    // Return the response with SSE headers
     return new Response(stream, {
       headers: {
         ...corsHeaders,
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-        'X-Accel-Buffering': 'no',
       },
     });
 
