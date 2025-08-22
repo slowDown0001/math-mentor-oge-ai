@@ -120,6 +120,27 @@ serve(async (req) => {
       }),
     });
 
+    // Helper to process each complete line
+    function processLine(line, controller) {
+      if (line.startsWith('data: ')) {
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') {
+          controller.close();
+          return;
+        }
+
+        try {
+          const event = JSON.parse(payload);
+          const delta = event.choices?.[0]?.delta?.content;
+          if (delta) {
+            controller.enqueue(new TextEncoder().encode(delta));
+          }
+        } catch (e) {
+          // Skip invalid JSON
+        }
+      }
+    }
+
     // Create a readable stream to handle the streaming response
     const stream = new ReadableStream({
       async start(controller) {
@@ -129,32 +150,25 @@ serve(async (req) => {
           return;
         }
 
+        let buffer = '';  // Buffer to handle partial lines across chunks
+
         try {
           while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done) {
+              // If there's leftover buffer at end, process it as a final line
+              if (buffer.trim()) {
+                processLine(buffer, controller);
+              }
+              break;
+            }
 
-            const chunk = new TextDecoder().decode(value);
-            const lines = chunk.split('\n');
+            buffer += new TextDecoder().decode(value);
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';  // Carry over any incomplete line
 
             for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const payload = line.slice(6);
-                if (payload.trim() === '[DONE]') {
-                  controller.close();
-                  return;
-                }
-
-                try {
-                  const event = JSON.parse(payload);
-                  const delta = event.choices?.[0]?.delta?.content;
-                  if (delta) {
-                    controller.enqueue(new TextEncoder().encode(delta));
-                  }
-                } catch (e) {
-                  // Skip invalid JSON
-                }
-              }
+              processLine(line, controller);
             }
           }
         } catch (error) {
