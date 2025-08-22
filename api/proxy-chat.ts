@@ -10,12 +10,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     console.log('🚀 Proxying request to Supabase:', userQuery);
     
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+    const supabaseUrl = 'https://kbaazksvkvnafrwtmkcw.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYWF6a3N2a3ZuYWZyd3Rta2N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3NTg2NTAsImV4cCI6MjA2MjMzNDY1MH0.aSyfch6PX1fr9wyWSGpUPNzT6jjIdfu9eA3E3J4uqzs';
     
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase configuration missing');
-    }
+    console.log('🔧 Supabase config:', { url: supabaseUrl, hasKey: !!supabaseKey });
 
     const response = await fetch(`${supabaseUrl}/functions/v1/process-user-query`, {
       method: 'POST',
