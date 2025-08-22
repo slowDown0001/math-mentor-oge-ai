@@ -122,34 +122,46 @@ const PromptBar = () => {
             </div>
           )}
           {response && (
-            <div className="text-card-foreground prose prose-sm max-w-none">
+            <div className="text-card-foreground prose prose-sm max-w-none prose-p:mb-3">
               <ReactMarkdown
                 remarkPlugins={[remarkMath]}
                 rehypePlugins={[rehypeKatex]}
                 components={{
                   p: ({ children }) => (
-                    <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>
+                    <p className="mb-3 last:mb-0 leading-relaxed text-card-foreground">{children}</p>
                   ),
                   strong: ({ children }) => (
-                    <strong className="font-semibold">{children}</strong>
+                    <strong className="font-semibold text-card-foreground">{children}</strong>
                   ),
                   em: ({ children }) => (
-                    <em className="italic">{children}</em>
+                    <em className="italic text-card-foreground">{children}</em>
                   ),
                   ul: ({ children }) => (
-                    <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>
+                    <ul className="list-disc list-inside mb-3 space-y-2 text-card-foreground">{children}</ul>
                   ),
                   ol: ({ children }) => (
-                    <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>
+                    <ol className="list-decimal list-inside mb-3 space-y-2 text-card-foreground">{children}</ol>
                   ),
                   li: ({ children }) => (
-                    <li className="leading-relaxed">{children}</li>
+                    <li className="leading-relaxed text-card-foreground">{children}</li>
+                  ),
+                  h1: ({ children }) => (
+                    <h1 className="text-xl font-bold mb-3 text-card-foreground">{children}</h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-lg font-semibold mb-2 text-card-foreground">{children}</h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-base font-semibold mb-2 text-card-foreground">{children}</h3>
+                  ),
+                  div: ({ children }) => (
+                    <div className="text-card-foreground">{children}</div>
                   )
                 }}
               >
-                {response}
+                {response.replace(/\n\n/g, '\n\n').replace(/\n/g, '  \n')}
               </ReactMarkdown>
-              {isLoading && <span className="animate-pulse">|</span>}
+              {isLoading && <span className="animate-pulse text-card-foreground">|</span>}
             </div>
           )}
         </div>
