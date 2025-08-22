@@ -29,9 +29,10 @@ const PromptBar = () => {
         throw error;
       }
 
-      // Handle streaming response
-      if (data instanceof ReadableStream) {
-        const reader = data.getReader();
+      // Handle streaming response - Supabase returns Response object, not ReadableStream directly
+      const response = data as Response;
+      if (response && response.body) {
+        const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
         try {
@@ -43,7 +44,7 @@ const PromptBar = () => {
             console.log('Received chunk:', chunk); // Debug log
             
             // Add small delay to make streaming visible
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 30));
             
             setResponse(prev => {
               const newResponse = prev + chunk;
