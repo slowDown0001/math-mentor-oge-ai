@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
@@ -49,21 +49,28 @@ const PromptBar = () => {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let accumulatedResponse = '';
+      let lastUpdateTime = Date.now();
+      const throttleMs = 50; // Update UI every 50ms for smooth streaming
 
       while (true) {
         const { done, value } = await reader.read();
         
         if (done) {
+          // Final update with complete response
+          setResponse(accumulatedResponse);
           break;
         }
 
         // Decode the chunk and add it to accumulated response
         const chunk = decoder.decode(value, { stream: true });
-        console.log('📝 Received chunk:', chunk); // Debug log
         accumulatedResponse += chunk;
         
-        // Update the response in real-time for each chunk
-        setResponse(accumulatedResponse);
+        // Throttle UI updates for smoother streaming effect
+        const now = Date.now();
+        if (now - lastUpdateTime >= throttleMs) {
+          setResponse(accumulatedResponse);
+          lastUpdateTime = now;
+        }
       }
 
       console.log('📦 Streaming completed with full response');
