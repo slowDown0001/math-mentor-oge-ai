@@ -2,6 +2,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import LandingHeader from "@/components/landing/LandingHeader";
 import LandingHero from "@/components/landing/LandingHero";
+import PromptBar from "@/components/PromptBar";
 import HighlightCards from "@/components/landing/HighlightCards";
 import VideoEmbed from "@/components/landing/VideoEmbed";
 import ChatDemo from "@/components/landing/ChatDemo";
@@ -21,6 +22,11 @@ const Index = () => {
       <LandingHeader />
       <main>
         <LandingHero />
+        <section className="py-12">
+          <div className="container mx-auto px-4">
+            <PromptBar />
+          </div>
+        </section>
         <HighlightCards />
         <VideoEmbed />
         <ChatDemo />

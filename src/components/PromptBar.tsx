@@ -1,0 +1,98 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+const PromptBar = () => {
+  const [userQuery, setUserQuery] = useState("");
+  const [response, setResponse] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userQuery.trim() || isLoading) return;
+
+    setIsLoading(true);
+    setResponse("");
+
+    try {
+      const { data, error } = await supabase.functions.invoke('process-user-query', {
+        body: { userQuery }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Handle streaming response
+      if (data instanceof ReadableStream) {
+        const reader = data.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            setResponse(prev => prev + chunk);
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      } else if (typeof data === 'string') {
+        setResponse(data);
+      }
+    } catch (error) {
+      console.error('Error processing query:', error);
+      setResponse('Произошла ошибка при обработке вашего запроса. Попробуйте позже.');
+    } finally {
+      setIsLoading(false);
+      setUserQuery("");
+    }
+  };
+
+  return (
+    <div className="w-full max-w-2xl mx-auto space-y-4">
+      {/* Input row */}
+      <form onSubmit={handleSubmit} className="flex gap-3">
+        <Input
+          value={userQuery}
+          onChange={(e) => setUserQuery(e.target.value)}
+          placeholder="Задайте ваш вопрос по математике..."
+          className="flex-1 rounded-xl border-border bg-background text-foreground placeholder:text-muted-foreground"
+          disabled={isLoading}
+        />
+        <Button
+          type="submit"
+          size="icon"
+          className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground"
+          disabled={!userQuery.trim() || isLoading}
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      </form>
+
+      {/* Response box */}
+      {(response || isLoading) && (
+        <div className="rounded-xl border border-border bg-card p-4 min-h-[100px]">
+          {isLoading && !response && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              Обрабатываем ваш запрос...
+            </div>
+          )}
+          {response && (
+            <div className="text-card-foreground whitespace-pre-wrap">
+              {response}
+              {isLoading && <span className="animate-pulse">|</span>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default PromptBar;
