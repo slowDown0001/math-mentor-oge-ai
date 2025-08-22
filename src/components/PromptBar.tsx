@@ -21,28 +21,24 @@ const PromptBar = () => {
     setResponse("");
 
     try {
-      console.log('🚀 Starting request to process-user-query with:', userQuery);
-      const { data, error } = await supabase.functions.invoke('process-user-query', {
-        body: { userQuery }
+      console.log('🚀 Starting request to Vercel proxy with:', userQuery);
+      
+      const response = await fetch('/api/proxy-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userQuery }),
       });
 
-      console.log('📦 Raw response:', { data, error, dataType: typeof data });
+      console.log('📦 Vercel proxy response:', { 
+        status: response.status, 
+        headers: Object.fromEntries(response.headers.entries()) 
+      });
 
-      if (error) {
-        console.error('❌ Supabase function error:', error);
-        throw error;
+      if (!response.ok) {
+        throw new Error(`Proxy error: ${response.status}`);
       }
-
-      // Handle streaming response - Supabase returns Response object, not ReadableStream directly
-      const response = data as Response;
-      console.log('🔍 Response object:', { 
-        response, 
-        hasBody: !!response?.body, 
-        bodyType: typeof response?.body,
-        status: response?.status,
-        headers: response?.headers ? Object.fromEntries(response.headers.entries()) : 'no headers'
-      });
-
       if (response && response.body) {
         console.log('📺 Starting stream processing...');
         const reader = response.body.getReader();
@@ -82,12 +78,9 @@ const PromptBar = () => {
           console.log('🧹 Releasing reader lock');
           reader.releaseLock();
         }
-      } else if (typeof data === 'string') {
-        console.log('📄 Received non-stream string data:', { length: data.length, preview: data.substring(0, 200) });
-        setResponse(data);
       } else {
-        console.warn('⚠️ Unexpected data format:', { dataType: typeof data, data });
-        setResponse('Получен неожиданный формат ответа');
+        console.warn('⚠️ No response body available');
+        setResponse('Нет данных в ответе');
       }
     } catch (error) {
       console.error('Error processing query:', error);
