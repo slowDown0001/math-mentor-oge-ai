@@ -122,6 +122,7 @@ serve(async (req) => {
 
     // Helper to process each complete line
     function processLine(line, controller) {
+      console.log("Processing line:", line);
       if (line.startsWith('data: ')) {
         const payload = line.slice(6).trim();
         if (payload === '[DONE]') {
