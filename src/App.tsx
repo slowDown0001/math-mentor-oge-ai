@@ -37,6 +37,9 @@ const AfterRegistration = lazy(() => import("./pages/AfterRegistration"));
 const NewTextbook = lazy(() => import("./pages/NewTextbook"));
 const Textbook3 = lazy(() => import("./pages/Textbook3"));
 const Db2 = lazy(() => import("./pages/Db2"));
+const Subscribe = lazy(() => import("./pages/Subscribe"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const FAQ = lazy(() => import("./pages/FAQ"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -64,6 +67,9 @@ const App = () => (
                 <Route path="/scanner" element={<Scanner />} />
                 <Route path="/videos" element={<Videos />} />
                 <Route path="/questions" element={<Questions />} />
+                <Route path="/subscribe" element={<Subscribe />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/faq" element={<FAQ />} />
         <Route path="/book-test" element={<BookTest />} />
         <Route path="/after-registration" element={<AfterRegistration />} />
         <Route path="/db2" element={<Db2 />} />

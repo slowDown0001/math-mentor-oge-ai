@@ -1,15 +1,15 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import Header from "@/components/Header";
-import HeroSection from "@/components/HeroSection";
-import FeaturesSection from "@/components/FeaturesSection";
-import ResourcesSection from "@/components/ResourcesSection";
-import TestimonialSection from "@/components/TestimonialSection";
-import CTASection from "@/components/CTASection";
-import Footer from "@/components/Footer";
+import LandingHeader from "@/components/landing/LandingHeader";
+import LandingHero from "@/components/landing/LandingHero";
+import HighlightCards from "@/components/landing/HighlightCards";
+import VideoEmbed from "@/components/landing/VideoEmbed";
+import ChatDemo from "@/components/landing/ChatDemo";
+import LandingCTA from "@/components/landing/LandingCTA";
+import LandingFooter from "@/components/landing/LandingFooter";
 
 const Index = () => {
-  const { user, isLoading } = useAuth();
+  const { isLoading } = useAuth();
 
   // Show loading while authentication state is being determined
   if (isLoading) {
@@ -17,16 +17,16 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
+    <div className="min-h-screen bg-background">
+      <LandingHeader />
       <main>
-        <HeroSection />
-        <FeaturesSection />
-        <ResourcesSection />
-        <TestimonialSection />
-        <CTASection />
+        <LandingHero />
+        <HighlightCards />
+        <VideoEmbed />
+        <ChatDemo />
+        <LandingCTA />
       </main>
-      <Footer />
+      <LandingFooter />
     </div>
   );
 };
