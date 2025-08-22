@@ -21,25 +21,52 @@ const PromptBar = () => {
     setResponse("");
 
     try {
-      console.log('🚀 Starting request to Supabase function with:', userQuery);
+      console.log('🚀 Starting streaming request with:', userQuery);
       
-      const { data, error } = await supabase.functions.invoke('process-user-query', {
-        body: { userQuery }
+      const response = await fetch('/api/process-user-query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userQuery }),
       });
 
-      console.log('📦 Supabase function response:', { data, error });
+      console.log('📦 Proxy response:', { 
+        status: response.status, 
+        headers: Object.fromEntries(response.headers.entries()) 
+      });
 
-      if (error) {
-        throw new Error(`Supabase function error: ${error.message}`);
+      if (!response.ok) {
+        throw new Error(`Proxy error: ${response.status}`);
       }
 
-      // For now, handle non-streaming response
-      if (data) {
-        setResponse(data.response || data);
-        return;
+      if (response && response.body) {
+        console.log('📺 Starting stream processing...');
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let chunkCount = 0;
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            
+            if (done) {
+              console.log('✅ Stream complete! Total chunks:', chunkCount);
+              break;
+            }
+
+            chunkCount++;
+            const chunk = decoder.decode(value, { stream: true });
+            console.log(`📝 Chunk ${chunkCount}:`, chunk.substring(0, 100) + (chunk.length > 100 ? '...' : ''));
+            
+            setResponse(prev => prev + chunk);
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      } else {
+        console.warn('⚠️ No response body available');
       }
-      // This block won't execute since we handle response above
-      console.warn('⚠️ No response data available');
     } catch (error) {
       console.error('Error processing query:', error);
       setResponse('Произошла ошибка при обработке вашего запроса. Попробуйте позже.');
