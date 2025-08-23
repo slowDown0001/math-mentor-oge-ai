@@ -10,7 +10,7 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY')!;
-const groqApiKey = Deno.env.get('GROQ_API_KEY_SECONDARY')!;
+const groqApiKey = Deno.env.get('GROQ_API_KEY')!;
 
 serve(async (req) => {
   // Handle CORS preflight requests
