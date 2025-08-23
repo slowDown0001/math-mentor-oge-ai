@@ -10,7 +10,6 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY')!;
-const groqApiKey = Deno.env.get('GROQ_API_KEY')!;
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -100,14 +99,14 @@ serve(async (req) => {
     // Create non-streaming response
     const finalPrompt = `Вопрос школьника: ${userQuery}\n\nКонтекст: ${context}`;
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
+        'Authorization': `Bearer ${openRouterApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'meta-llama/llama-guard-4-12b',
+        model: 'google/gemma-3-4b-it',
         messages: [
           {
             role: 'system',
@@ -121,14 +120,7 @@ serve(async (req) => {
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('GROQ API error:', response.status, errorText);
-      throw new Error(`GROQ API error: ${response.status} ${errorText}`);
-    }
-
     const responseData = await response.json();
-    console.log('GROQ response received:', responseData);
     const generatedResponse = responseData.choices[0].message.content;
 
     return new Response(JSON.stringify({ response: generatedResponse }), {
