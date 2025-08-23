@@ -10,6 +10,7 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY')!;
+const groqApiKey = Deno.env.get('GROQ_API_KEY_SECONDARY')!;
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -99,14 +100,14 @@ serve(async (req) => {
     // Create streaming response
     const finalPrompt = `Вопрос школьника: ${userQuery}\n\nКонтекст: ${context}`;
 
-    const streamResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const streamResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openRouterApiKey}`,
+        'Authorization': `Bearer ${groqApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemma-3-4b-it',
+        model: 'llama-3.1-8b-instant',
         messages: [
           {
             role: 'system',
