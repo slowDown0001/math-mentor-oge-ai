@@ -100,6 +100,7 @@ serve(async (req) => {
     // Create non-streaming response
     const finalPrompt = `Вопрос школьника: ${userQuery}\n\nКонтекст: ${context}`;
 
+    console.log('Making request to Groq API...');
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -121,7 +122,21 @@ serve(async (req) => {
       }),
     });
 
+    if (!response.ok) {
+      console.error('Groq API error:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('Groq API error body:', errorText);
+      throw new Error(`Groq API error: ${response.status}`);
+    }
+
     const responseData = await response.json();
+    console.log('Groq API response received:', responseData);
+    
+    if (!responseData.choices || !responseData.choices[0] || !responseData.choices[0].message) {
+      console.error('Invalid response structure from Groq:', responseData);
+      throw new Error('Invalid response from Groq API');
+    }
+    
     const answer = responseData.choices[0].message.content;
 
     return new Response(
