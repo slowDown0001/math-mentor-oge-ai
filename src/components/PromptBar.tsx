@@ -44,39 +44,15 @@ const PromptBar = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      if (!response.body) {
-        throw new Error('Response body is null');
-      }
+      // Parse JSON response
+      const data = await response.json();
+      console.log('📦 Received response data:', data);
+      
+      // Extract the content from the response
+      const content = data.response || '';
+      setResponse(content);
 
-      // Process the streaming response
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedResponse = '';
-      let lastUpdateTime = Date.now();
-      const throttleMs = 50; // Update UI every 50ms for smooth streaming
-
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) {
-          // Final update with complete response
-          setResponse(accumulatedResponse);
-          break;
-        }
-
-        // Decode the chunk and add it to accumulated response
-        const chunk = decoder.decode(value, { stream: true });
-        accumulatedResponse += chunk;
-        
-        // Throttle UI updates for smoother streaming effect
-        const now = Date.now();
-        if (now - lastUpdateTime >= throttleMs) {
-          setResponse(accumulatedResponse);
-          lastUpdateTime = now;
-        }
-      }
-
-      console.log('📦 Streaming completed with full response');
+      console.log('✅ Response set successfully');
     } catch (error) {
       console.error('Error processing query:', error);
       setResponse('Произошла ошибка при обработке вашего запроса. Попробуйте позже.');
