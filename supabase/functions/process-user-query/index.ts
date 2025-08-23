@@ -10,7 +10,6 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY')!;
-const groqApiKey = Deno.env.get('GROQ_API_KEY')!;
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -97,18 +96,17 @@ serve(async (req) => {
 
     const { system_prompt: systemMessage, context } = ragData;
 
-    // Create non-streaming response
+    // Create streaming response
     const finalPrompt = `Вопрос школьника: ${userQuery}\n\nКонтекст: ${context}`;
 
-    console.log('Making request to Groq API...');
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const streamResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
+        'Authorization': `Bearer ${openRouterApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
+        model: 'google/gemma-3-4b-it',
         messages: [
           {
             role: 'system',
@@ -117,37 +115,80 @@ serve(async (req) => {
           { role: 'user', content: finalPrompt }
         ],
         temperature: 0.7,
-        stream: false,
-        max_tokens: 500
+        stream: true,
+        max_tokens: 600
       }),
     });
 
-    if (!response.ok) {
-      console.error('Groq API error:', response.status, response.statusText);
-      const errorText = await response.text();
-      console.error('Groq API error body:', errorText);
-      throw new Error(`Groq API error: ${response.status}`);
-    }
+    // Helper to process each complete line
+    function processLine(line, controller) {
+      if (line.startsWith('data: ')) {
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') {
+          controller.close();
+          return;
+        }
 
-    const responseData = await response.json();
-    console.log('Groq API response received:', responseData);
-    
-    if (!responseData.choices || !responseData.choices[0] || !responseData.choices[0].message) {
-      console.error('Invalid response structure from Groq:', responseData);
-      throw new Error('Invalid response from Groq API');
-    }
-    
-    const answer = responseData.choices[0].message.content;
-
-    return new Response(
-      JSON.stringify({ answer }),
-      {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
+        try {
+          const event = JSON.parse(payload);
+          const delta = event.choices?.[0]?.delta?.content;
+          if (delta) {
+            controller.enqueue(new TextEncoder().encode(delta));
+          }
+        } catch (e) {
+          // Skip invalid JSON
+        }
       }
-    );
+    }
+
+    // Create a readable stream to handle the streaming response
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = streamResponse.body?.getReader();
+        if (!reader) {
+          controller.close();
+          return;
+        }
+
+        let buffer = '';  // Buffer to handle partial lines across chunks
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              // If there's leftover buffer at end, process it as a final line
+              if (buffer.trim()) {
+                processLine(buffer, controller);
+              }
+              break;
+            }
+
+            buffer += new TextDecoder().decode(value);
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';  // Carry over any incomplete line
+
+            for (const line of lines) {
+              processLine(line, controller);
+            }
+          }
+        } catch (error) {
+          console.error('Streaming error:', error);
+          controller.error(error);
+        } finally {
+          reader.releaseLock();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+      },
+    });
 
   } catch (error) {
     console.error('Error in process-user-query function:', error);
