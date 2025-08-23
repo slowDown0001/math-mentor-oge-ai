@@ -1729,6 +1729,54 @@ export type Database = {
         }
         Relationships: []
       }
+      student_activity: {
+        Row: {
+          answer_time_start: string
+          attempt_id: number
+          created_at: string
+          duration_answer: number | null
+          finished_or_not: boolean
+          is_correct: boolean | null
+          problem_number_type: number
+          question_id: string
+          scores_fipi: number | null
+          skills: number[] | null
+          topics: number[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer_time_start: string
+          attempt_id?: number
+          created_at?: string
+          duration_answer?: number | null
+          finished_or_not: boolean
+          is_correct?: boolean | null
+          problem_number_type: number
+          question_id: string
+          scores_fipi?: number | null
+          skills?: number[] | null
+          topics?: number[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer_time_start?: string
+          attempt_id?: number
+          created_at?: string
+          duration_answer?: number | null
+          finished_or_not?: boolean
+          is_correct?: boolean | null
+          problem_number_type?: number
+          question_id?: string
+          scores_fipi?: number | null
+          skills?: number[] | null
+          topics?: number[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       student_mastery: {
         Row: {
           alpha: number
