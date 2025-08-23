@@ -97,10 +97,10 @@ serve(async (req) => {
 
     const { system_prompt: systemMessage, context } = ragData;
 
-    // Create streaming response
+    // Create non-streaming response
     const finalPrompt = `Вопрос школьника: ${userQuery}\n\nКонтекст: ${context}`;
 
-    const streamResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${groqApiKey}`,
@@ -116,80 +116,23 @@ serve(async (req) => {
           { role: 'user', content: finalPrompt }
         ],
         temperature: 0.7,
-        stream: true,
+        stream: false,
         max_tokens: 500
       }),
     });
 
-    // Helper to process each complete line
-    function processLine(line, controller) {
-      if (line.startsWith('data: ')) {
-        const payload = line.slice(6).trim();
-        if (payload === '[DONE]') {
-          controller.close();
-          return;
-        }
+    const responseData = await response.json();
+    const answer = responseData.choices[0].message.content;
 
-        try {
-          const event = JSON.parse(payload);
-          const delta = event.choices?.[0]?.delta?.content;
-          if (delta) {
-            controller.enqueue(new TextEncoder().encode(delta));
-          }
-        } catch (e) {
-          // Skip invalid JSON
-        }
+    return new Response(
+      JSON.stringify({ answer }),
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
       }
-    }
-
-    // Create a readable stream to handle the streaming response
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = streamResponse.body?.getReader();
-        if (!reader) {
-          controller.close();
-          return;
-        }
-
-        let buffer = '';  // Buffer to handle partial lines across chunks
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-              // If there's leftover buffer at end, process it as a final line
-              if (buffer.trim()) {
-                processLine(buffer, controller);
-              }
-              break;
-            }
-
-            buffer += new TextDecoder().decode(value);
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';  // Carry over any incomplete line
-
-            for (const line of lines) {
-              processLine(line, controller);
-            }
-          }
-        } catch (error) {
-          console.error('Streaming error:', error);
-          controller.error(error);
-        } finally {
-          reader.releaseLock();
-        }
-      },
-    });
-
-    return new Response(stream, {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
-      },
-    });
+    );
 
   } catch (error) {
     console.error('Error in process-user-query function:', error);
