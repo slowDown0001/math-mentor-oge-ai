@@ -33,6 +33,13 @@ const Questions = lazy(() => import("./pages/Questions"));
 const FipiBank = lazy(() => import("./pages/FipiBank"));
 const DailyPractice = lazy(() => import("./pages/DailyPractice"));
 const BookTest = lazy(() => import("./pages/BookTest"));
+const AfterRegistration = lazy(() => import("./pages/AfterRegistration"));
+const NewTextbook = lazy(() => import("./pages/NewTextbook"));
+const Textbook3 = lazy(() => import("./pages/Textbook3"));
+const Db2 = lazy(() => import("./pages/Db2"));
+const Subscribe = lazy(() => import("./pages/Subscribe"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const FAQ = lazy(() => import("./pages/FAQ"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -49,16 +56,23 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/textbook" element={<DigitalTextbook />} />
+                <Route path="/new-textbook" element={<NewTextbook />} />
                 <Route path="/triangle-similarity" element={<TriangleSimilarity />} />
                 <Route path="/triangle-similarity-video" element={<TriangleSimilarityVideo />} />
                 <Route path="/triangle-similarity-brainrot" element={<TriangleSimilarityBrainrot />} />
                 <Route path="/textbook2" element={<Textbook2 />} />
+                <Route path="/textbook3" element={<Textbook3 />} />
                 <Route path="/mcq-practice" element={<MCQPractice />} />
                 <Route path="/mcq-practice-skill-120" element={<MCQPracticeSkill120 />} />
                 <Route path="/scanner" element={<Scanner />} />
                 <Route path="/videos" element={<Videos />} />
                 <Route path="/questions" element={<Questions />} />
-                <Route path="/book-test" element={<BookTest />} />
+                <Route path="/subscribe" element={<Subscribe />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/faq" element={<FAQ />} />
+        <Route path="/book-test" element={<BookTest />} />
+        <Route path="/after-registration" element={<AfterRegistration />} />
+        <Route path="/db2" element={<Db2 />} />
                 <Route path="/fipi-bank" element={<FipiBank />} />
                 <Route path="/new-practice" element={<NewPractice />} />
                 <Route path="/practice-now" element={<PracticeNow />} />

@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -32,29 +32,35 @@ export type Database = {
       articles2: {
         Row: {
           art: string | null
+          img1: string | null
+          img2: string | null
+          img3: string | null
+          img4: string | null
+          img5: string | null
+          img6: string | null
+          img7: string | null
           skill: number
         }
         Insert: {
           art?: string | null
+          img1?: string | null
+          img2?: string | null
+          img3?: string | null
+          img4?: string | null
+          img5?: string | null
+          img6?: string | null
+          img7?: string | null
           skill?: number
         }
         Update: {
           art?: string | null
-          skill?: number
-        }
-        Relationships: []
-      }
-      articles3: {
-        Row: {
-          art: string | null
-          skill: number
-        }
-        Insert: {
-          art?: string | null
-          skill?: number
-        }
-        Update: {
-          art?: string | null
+          img1?: string | null
+          img2?: string | null
+          img3?: string | null
+          img4?: string | null
+          img5?: string | null
+          img6?: string | null
+          img7?: string | null
           skill?: number
         }
         Relationships: []
@@ -568,6 +574,21 @@ export type Database = {
         }
         Relationships: []
       }
+      entrypage_query_data: {
+        Row: {
+          timestamp: string
+          userquery: string | null
+        }
+        Insert: {
+          timestamp: string
+          userquery?: string | null
+        }
+        Update: {
+          timestamp?: string
+          userquery?: string | null
+        }
+        Relationships: []
+      }
       marking: {
         Row: {
           id: number
@@ -990,6 +1011,222 @@ export type Database = {
           step9_expanded_text?: string | null
           step9_text?: string | null
           steps_number?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      new_articles: {
+        Row: {
+          article_text: string | null
+          ID: number
+          image_recommendations: string | null
+          img1: string | null
+          img2: string | null
+          img3: string | null
+          img4: string | null
+          img5: string | null
+          img6: string | null
+          img7: string | null
+        }
+        Insert: {
+          article_text?: string | null
+          ID: number
+          image_recommendations?: string | null
+          img1?: string | null
+          img2?: string | null
+          img3?: string | null
+          img4?: string | null
+          img5?: string | null
+          img6?: string | null
+          img7?: string | null
+        }
+        Update: {
+          article_text?: string | null
+          ID?: number
+          image_recommendations?: string | null
+          img1?: string | null
+          img2?: string | null
+          img3?: string | null
+          img4?: string | null
+          img5?: string | null
+          img6?: string | null
+          img7?: string | null
+        }
+        Relationships: []
+      }
+      oge_entrypage_rag: {
+        Row: {
+          category_description: string | null
+          context: string | null
+          id: number
+          system_prompt: string | null
+        }
+        Insert: {
+          category_description?: string | null
+          context?: string | null
+          id: number
+          system_prompt?: string | null
+        }
+        Update: {
+          category_description?: string | null
+          context?: string | null
+          id?: number
+          system_prompt?: string | null
+        }
+        Relationships: []
+      }
+      oge_math_fipi_bank: {
+        Row: {
+          answer: string | null
+          calculation_required: string | null
+          calculator_allowed: string | null
+          checked: number | null
+          code: number | null
+          comments: string | null
+          corrected: string | null
+          difficulty: number | null
+          problem_image: string | null
+          problem_link: string | null
+          problem_number_type: number | null
+          problem_text: string | null
+          question_id: string
+          rec_time: string | null
+          skills: string | null
+          solution_image: string | null
+          solution_text: string | null
+          solutiontextexpanded: string | null
+          source: string | null
+          steps_number: number | null
+          type: string | null
+        }
+        Insert: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: number | null
+          code?: number | null
+          comments?: string | null
+          corrected?: string | null
+          difficulty?: number | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: number | null
+          problem_text?: string | null
+          question_id: string
+          rec_time?: string | null
+          skills?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Update: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: number | null
+          code?: number | null
+          comments?: string | null
+          corrected?: string | null
+          difficulty?: number | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: number | null
+          problem_text?: string | null
+          question_id?: string
+          rec_time?: string | null
+          skills?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      oge_math_skills_questions: {
+        Row: {
+          answer: string | null
+          calculation_required: string | null
+          calculator_allowed: string | null
+          checked: string | null
+          code: string | null
+          comments: string | null
+          corrected: string | null
+          difficulty: number | null
+          option1: string | null
+          option2: string | null
+          option3: string | null
+          option4: string | null
+          problem_image: string | null
+          problem_link: string | null
+          problem_number_type: string | null
+          problem_text: string | null
+          question_id: string
+          rec_time: string | null
+          skills: number | null
+          solution_image: string | null
+          solution_text: string | null
+          solutiontextexpanded: string | null
+          source: string | null
+          steps_number: string | null
+          type: string | null
+        }
+        Insert: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: string | null
+          code?: string | null
+          comments?: string | null
+          corrected?: string | null
+          difficulty?: number | null
+          option1?: string | null
+          option2?: string | null
+          option3?: string | null
+          option4?: string | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: string | null
+          problem_text?: string | null
+          question_id: string
+          rec_time?: string | null
+          skills?: number | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          steps_number?: string | null
+          type?: string | null
+        }
+        Update: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: string | null
+          code?: string | null
+          comments?: string | null
+          corrected?: string | null
+          difficulty?: number | null
+          option1?: string | null
+          option2?: string | null
+          option3?: string | null
+          option4?: string | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: string | null
+          problem_text?: string | null
+          question_id?: string
+          rec_time?: string | null
+          skills?: number | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          steps_number?: string | null
           type?: string | null
         }
         Relationships: []
@@ -1464,6 +1701,108 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      read_articles: {
+        Row: {
+          created_at: string | null
+          date_read: string | null
+          id: string
+          skill_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date_read?: string | null
+          id?: string
+          skill_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date_read?: string | null
+          id?: string
+          skill_id?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      student_activity: {
+        Row: {
+          answer_time_start: string
+          attempt_id: number
+          created_at: string
+          duration_answer: number | null
+          finished_or_not: boolean
+          is_correct: boolean | null
+          problem_number_type: number
+          question_id: string
+          scores_fipi: number | null
+          skills: number[] | null
+          topics: number[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer_time_start: string
+          attempt_id?: number
+          created_at?: string
+          duration_answer?: number | null
+          finished_or_not: boolean
+          is_correct?: boolean | null
+          problem_number_type: number
+          question_id: string
+          scores_fipi?: number | null
+          skills?: number[] | null
+          topics?: number[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer_time_start?: string
+          attempt_id?: number
+          created_at?: string
+          duration_answer?: number | null
+          finished_or_not?: boolean
+          is_correct?: boolean | null
+          problem_number_type?: number
+          question_id?: string
+          scores_fipi?: number | null
+          skills?: number[] | null
+          topics?: number[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      student_mastery: {
+        Row: {
+          alpha: number
+          beta: number
+          created_at: string | null
+          entity_id: number
+          entity_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alpha: number
+          beta: number
+          created_at?: string | null
+          entity_id: number
+          entity_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alpha?: number
+          beta?: number
+          created_at?: string | null
+          entity_id?: number
+          entity_type?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -2023,6 +2362,21 @@ export type Database = {
           skill_98?: number | null
           skill_99?: number | null
           uid?: string
+        }
+        Relationships: []
+      }
+      topic_articles: {
+        Row: {
+          topic_id: string
+          topic_text: string | null
+        }
+        Insert: {
+          topic_id: string
+          topic_text?: string | null
+        }
+        Update: {
+          topic_id?: string
+          topic_text?: string | null
         }
         Relationships: []
       }

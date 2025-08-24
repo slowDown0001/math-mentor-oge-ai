@@ -70,3 +70,111 @@
   border-left: 4px solid #f97316;
   background: #fff7ed;
 }
+/* Collapsible Solution */
+.solution {
+  margin-top: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.solution summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #111827;
+  background: #f8fafc;
+  user-select: none;
+}
+
+.solution summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Chevron icon */
+.solution .chev {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-right: 2px solid #6b7280;
+  border-bottom: 2px solid #6b7280;
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+  margin-right: 2px;
+}
+
+/* Rotate on open */
+.solution[open] .chev {
+  transform: rotate(45deg);
+}
+
+.solution .content {
+  padding: 12px;
+  background: #ffffff;
+  line-height: 1.6;
+  color: #111827;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Accent strip that inherits example color */
+.example .solution {
+  border-color: inherit;
+}
+.example-blue .solution summary { background:#f0f6ff; }
+.example-green .solution summary { background:#f0fdf7; }
+.example-orange .solution summary { background:#fff6ec; }
+
+/* GeoGebra: keep original proportions + adjustable scale */
+.textbook-preview .ggb-box{
+  /* Set per-embed:
+     --ggb-w: original iframe width in px (number only)
+     --ggb-h: original iframe height in px (number only)
+     --ggb-scale: visual scale (1 = 100%, 0.9 = 90%, 1.25 = 125%) */
+  --ggb-w: 960;
+  --ggb-h: 540;
+  --ggb-scale: 1;
+
+  /* Reserve the scaled space so nothing gets cropped */
+  inline-size: calc(var(--ggb-w) * 1px * var(--ggb-scale));
+  block-size:  calc(var(--ggb-h) * 1px * var(--ggb-scale));
+
+  position: relative;
+  margin: 16px auto;
+  max-width: 100%;              /* don’t exceed container width */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+/* The actual iframe renders at its original pixel size,
+   then we scale it visually to match the reserved space */
+.textbook-preview .ggb-box > iframe{
+  position: absolute;
+  inset: 0;
+  inline-size: calc(var(--ggb-w) * 1px);
+  block-size:  calc(var(--ggb-h) * 1px);
+  transform-origin: top left;
+  transform: scale(var(--ggb-scale));
+  border: 0;
+  display: block;
+}
+
+/* Helper: quickly switch between common sizes via classes (optional) */
+.textbook-preview .ggb-16x9 { --ggb-w: 960; --ggb-h: 540; }
+.textbook-preview .ggb-2x1  { --ggb-w: 900; --ggb-h: 450; }
+.textbook-preview .ggb-4x3  { --ggb-w: 800; --ggb-h: 600; }
+
+/* If your article blocks sometimes clip overflowing children */
+.textbook-preview .example,
+.textbook-preview .definition-card,
+.textbook-preview .solution,
+.textbook-preview .solution .content{
+  overflow: visible;
+}
+
+
