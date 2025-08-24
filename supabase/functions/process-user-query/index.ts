@@ -106,7 +106,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemma-3-4b-it',
+        model: 'meta-llama/llama-4-maverick',
         messages: [
           {
             role: 'system',
@@ -116,7 +116,9 @@ serve(async (req) => {
         ],
         temperature: 0.7,
         stream: false,
-        max_tokens: 600
+        max_tokens: 600,
+        provider: { only: ['sambanova'] },
+        top_p: 0.1
       }),
     });
 
