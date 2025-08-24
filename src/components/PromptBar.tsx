@@ -88,9 +88,9 @@ const PromptBar = () => {
         <div className="rounded-xl border border-border bg-card p-4 min-h-[100px]">
           {isLoading && !response && (
             <div className="flex items-center justify-center">
-              <div className="w-4 h-4 rounded-full animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" 
+              <div className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-white" 
                    style={{
-                     animation: 'colorTransition 2s ease-in-out infinite alternate'
+                     animation: 'colorTransition 0.5s ease-in-out infinite alternate'
                    }}>
               </div>
             </div>
