@@ -1782,6 +1782,7 @@ export type Database = {
           alpha: number
           beta: number
           created_at: string | null
+          cusum_s: number | null
           entity_id: number
           entity_type: string
           updated_at: string | null
@@ -1791,6 +1792,7 @@ export type Database = {
           alpha: number
           beta: number
           created_at?: string | null
+          cusum_s?: number | null
           entity_id: number
           entity_type: string
           updated_at?: string | null
@@ -1800,6 +1802,7 @@ export type Database = {
           alpha?: number
           beta?: number
           created_at?: string | null
+          cusum_s?: number | null
           entity_id?: number
           entity_type?: string
           updated_at?: string | null
