@@ -87,9 +87,12 @@ const PromptBar = () => {
       {(response || isLoading) && (
         <div className="rounded-xl border border-border bg-card p-4 min-h-[100px]">
           {isLoading && !response && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              Обрабатываем ваш запрос...
+            <div className="flex items-center justify-center">
+              <div className="w-4 h-4 rounded-full animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" 
+                   style={{
+                     animation: 'colorTransition 2s ease-in-out infinite alternate'
+                   }}>
+              </div>
             </div>
           )}
           {response && (
