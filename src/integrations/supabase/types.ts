@@ -1785,6 +1785,7 @@ export type Database = {
           cusum_s: number | null
           entity_id: number
           entity_type: string
+          status: string | null
           updated_at: string | null
           user_id: string
         }
@@ -1795,6 +1796,7 @@ export type Database = {
           cusum_s?: number | null
           entity_id: number
           entity_type: string
+          status?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -1805,6 +1807,7 @@ export type Database = {
           cusum_s?: number | null
           entity_id?: number
           entity_type?: string
+          status?: string | null
           updated_at?: string | null
           user_id?: string
         }
