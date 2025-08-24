@@ -3,7 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 interface RequestBody {
   lambda_decay: number
   t_current: string // ISO string
-  t_attempt: string // ISO string
+  t_attempt?: string // ISO string, optional
 }
 
 Deno.serve(async (req) => {
@@ -16,13 +16,33 @@ Deno.serve(async (req) => {
     const { lambda_decay, t_current, t_attempt }: RequestBody = await req.json()
 
     // Validate required parameters
-    if (lambda_decay === undefined || !t_current || !t_attempt) {
+    if (lambda_decay === undefined || !t_current) {
       return new Response(
         JSON.stringify({ 
-          error: 'Missing required parameters: lambda_decay, t_current, t_attempt' 
+          error: 'Missing required parameters: lambda_decay, t_current' 
         }),
         { 
           status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // If t_attempt is null/undefined, return 1
+    if (!t_attempt) {
+      console.log(`t_attempt is null/undefined, returning time_decay = 1`)
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          data: {
+            time_decay: 1,
+            delta_days: null,
+            lambda_decay,
+            t_current,
+            t_attempt: null
+          }
+        }),
+        { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       )
