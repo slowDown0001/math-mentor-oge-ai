@@ -401,44 +401,44 @@ Deno.serve(async (req) => {
     }
 
     // Step 3: Update topic mastery
-    for (const topic_id of topics_list) {
+    for (const topic_code of topics_list) {
       try {
-        console.log(`Processing topic ${topic_id}`)
+        console.log(`Processing topic ${topic_code}`)
 
         // Check topic mastery status
         const topicMasteryCheckResponse = await supabaseClient.functions.invoke('check-topic-mastery-status', {
           body: {
             user_id,
-            topic_code: topic_id.toString(),
+            topic_code: topic_code.toString(),
             A: 0.05,
             B: 20
           }
         })
 
         if (topicMasteryCheckResponse.error) {
-          console.error(`Error checking topic mastery for ${topic_id}:`, topicMasteryCheckResponse.error)
-          results.errors.push(`Topic ${topic_id} mastery check failed: ${topicMasteryCheckResponse.error.message}`)
+          console.error(`Error checking topic mastery for ${topic_code}:`, topicMasteryCheckResponse.error)
+          results.errors.push(`Topic ${topic_code} mastery check failed: ${topicMasteryCheckResponse.error.message}`)
         } else {
           // Update topic mastery status
           const status = topicMasteryCheckResponse.data?.data?.status || 'continue'
           const updateTopicStatusResponse = await supabaseClient.functions.invoke('update-topic-mastery-status', {
             body: {
               user_id,
-              topic_code: topic_id.toString(),
+              topic_code: topic_code.toString(),
               status
             }
           })
 
           if (updateTopicStatusResponse.error) {
-            console.error(`Error updating topic mastery status for ${topic_id}:`, updateTopicStatusResponse.error)
-            results.errors.push(`Topic ${topic_id} status update failed: ${updateTopicStatusResponse.error.message}`)
+            console.error(`Error updating topic mastery status for ${topic_code}:`, updateTopicStatusResponse.error)
+            results.errors.push(`Topic ${topic_code} status update failed: ${updateTopicStatusResponse.error.message}`)
           }
         }
 
-        results.topics_processed.push(topic_id)
+        results.topics_processed.push(topic_code)
       } catch (error) {
-        console.error(`Error processing topic ${topic_id}:`, error)
-        results.errors.push(`Topic ${topic_id} processing failed: ${error.message}`)
+        console.error(`Error processing topic ${topic_code}:`, error)
+        results.errors.push(`Topic ${topic_code} processing failed: ${error.message}`)
       }
     }
 
