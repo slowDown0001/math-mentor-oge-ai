@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
         const skillUpdateResponse = await supabaseClient.functions.invoke('update-skill-for-attempt', {
           body: {
             user_id,
-            skills: [skill_id],
+            skills_list: [skill_id],
             finished_or_not,
             is_correct,
             difficulty,
