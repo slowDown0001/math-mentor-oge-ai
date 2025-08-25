@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { original_increment, duration, threshold = 300 }: RequestBody = await req.json()
+    const { original_increment, duration, threshold = 500 }: RequestBody = await req.json()
 
     // Validate required parameters
     if (original_increment === undefined || duration === undefined) {
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
     console.log(`Adjusting increment: ${original_increment}, duration: ${duration}, threshold: ${threshold}`)
 
     // Apply duration-based adjustment
-    const adjusted_increment = duration > threshold ? 0.5 * original_increment : original_increment
+    const adjusted_increment = duration > threshold ? 0.7 * original_increment : original_increment
 
     console.log(`Duration ${duration} vs threshold ${threshold} -> adjusted increment: ${adjusted_increment}`)
 
