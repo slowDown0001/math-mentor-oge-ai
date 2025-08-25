@@ -93,6 +93,21 @@ Deno.serve(async (req) => {
         // Apply CUSUM for skill
         const x_n = (finished_or_not && is_correct) || (finished_or_not && scores_fipi !== null && scores_fipi !== undefined && scores_fipi >= 1) ? 1 : 0
         
+        // Get current cusum_s
+        const getCurrentSResponse = await supabaseClient.functions.invoke('get-cusum-s', {
+          body: {
+            user_id,
+            entity_type: 'skill',
+            entity_id: skill_id
+          }
+        })
+
+        let current_s = 0
+        if (!getCurrentSResponse.error && getCurrentSResponse.data?.success) {
+          current_s = getCurrentSResponse.data.data.cusum_s || 0
+        }
+
+        // Apply CUSUM algorithm
         const cusumResponse = await supabaseClient.functions.invoke('apply-cusum', {
           body: {
             user_id,
@@ -105,6 +120,40 @@ Deno.serve(async (req) => {
         if (cusumResponse.error) {
           console.error(`Error applying CUSUM for skill ${skill_id}:`, cusumResponse.error)
           results.errors.push(`Skill ${skill_id} CUSUM failed: ${cusumResponse.error.message}`)
+        } else {
+          const { new_s, adjustment } = cusumResponse.data?.data || { new_s: 0, adjustment: 0 }
+          
+          // Update cusum_s
+          const updateCusumResponse = await supabaseClient.functions.invoke('update-cusum-s', {
+            body: {
+              user_id,
+              entity_type: 'skill',
+              entity_id: skill_id,
+              new_s
+            }
+          })
+
+          if (updateCusumResponse.error) {
+            console.error(`Error updating cusum_s for skill ${skill_id}:`, updateCusumResponse.error)
+            results.errors.push(`Skill ${skill_id} cusum_s update failed: ${updateCusumResponse.error.message}`)
+          }
+
+          // Apply adjustment if needed
+          if (adjustment !== 0) {
+            const adjustmentResponse = await supabaseClient.functions.invoke('apply-cusum-adjustment', {
+              body: {
+                user_id,
+                entity_type: 'skill',
+                entity_id: skill_id,
+                adjustment
+              }
+            })
+
+            if (adjustmentResponse.error) {
+              console.error(`Error applying CUSUM adjustment for skill ${skill_id}:`, adjustmentResponse.error)
+              results.errors.push(`Skill ${skill_id} CUSUM adjustment failed: ${adjustmentResponse.error.message}`)
+            }
+          }
         }
 
         // Check mastery status for skill
@@ -249,6 +298,21 @@ Deno.serve(async (req) => {
       // Apply CUSUM for problem type
       const x_n = (finished_or_not && is_correct) || (finished_or_not && scores_fipi !== null && scores_fipi !== undefined && scores_fipi >= 1) ? 1 : 0
       
+      // Get current cusum_s for problem type
+      const getCurrentSProblemResponse = await supabaseClient.functions.invoke('get-cusum-s', {
+        body: {
+          user_id,
+          entity_type: 'problem_number_type',
+          entity_id: problem_number_type
+        }
+      })
+
+      let current_s_problem = 0
+      if (!getCurrentSProblemResponse.error && getCurrentSProblemResponse.data?.success) {
+        current_s_problem = getCurrentSProblemResponse.data.data.cusum_s || 0
+      }
+
+      // Apply CUSUM algorithm for problem type
       const cusumResponse = await supabaseClient.functions.invoke('apply-cusum', {
         body: {
           user_id,
@@ -261,6 +325,40 @@ Deno.serve(async (req) => {
       if (cusumResponse.error) {
         console.error('Error applying CUSUM for problem type:', cusumResponse.error)
         results.errors.push(`Problem type CUSUM failed: ${cusumResponse.error.message}`)
+      } else {
+        const { new_s, adjustment } = cusumResponse.data?.data || { new_s: 0, adjustment: 0 }
+        
+        // Update cusum_s for problem type
+        const updateCusumProblemResponse = await supabaseClient.functions.invoke('update-cusum-s', {
+          body: {
+            user_id,
+            entity_type: 'problem_number_type',
+            entity_id: problem_number_type,
+            new_s
+          }
+        })
+
+        if (updateCusumProblemResponse.error) {
+          console.error(`Error updating cusum_s for problem type ${problem_number_type}:`, updateCusumProblemResponse.error)
+          results.errors.push(`Problem type cusum_s update failed: ${updateCusumProblemResponse.error.message}`)
+        }
+
+        // Apply adjustment if needed for problem type
+        if (adjustment !== 0) {
+          const adjustmentProblemResponse = await supabaseClient.functions.invoke('apply-cusum-adjustment', {
+            body: {
+              user_id,
+              entity_type: 'problem_number_type',
+              entity_id: problem_number_type,
+              adjustment
+            }
+          })
+
+          if (adjustmentProblemResponse.error) {
+            console.error(`Error applying CUSUM adjustment for problem type ${problem_number_type}:`, adjustmentProblemResponse.error)
+            results.errors.push(`Problem type CUSUM adjustment failed: ${adjustmentProblemResponse.error.message}`)
+          }
+        }
       }
 
       // Check mastery status for problem type
