@@ -35,6 +35,8 @@ const PracticeByNumber = () => {
   const [showSolution, setShowSolution] = useState(false);
   const [solutionViewedBeforeAnswer, setSolutionViewedBeforeAnswer] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentAttemptId, setCurrentAttemptId] = useState<number | null>(null);
+  const [attemptStartTime, setAttemptStartTime] = useState<Date | null>(null);
   
   // Streak animation state
   const [showStreakAnimation, setShowStreakAnimation] = useState(false);
@@ -66,6 +68,11 @@ const PracticeByNumber = () => {
       setQuestions(filteredQuestions);
       setCurrentQuestionIndex(0);
       resetQuestionState();
+      
+      // Start attempt for the first question if user is logged in
+      if (filteredQuestions.length > 0 && user) {
+        await startAttempt(filteredQuestions[0].question_id);
+      }
     } catch (error) {
       console.error('Error fetching questions:', error);
       toast.error('Ошибка при загрузке вопросов');
@@ -80,11 +87,38 @@ const PracticeByNumber = () => {
     setIsCorrect(false);
     setShowSolution(false);
     setSolutionViewedBeforeAnswer(false);
+    setCurrentAttemptId(null);
+    setAttemptStartTime(null);
   };
 
   const handleNumberSelect = (value: string) => {
     setSelectedNumber(value);
     fetchQuestions(value);
+  };
+
+  // Start attempt logging when question is presented
+  const startAttempt = async (questionId: string) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('start-attempt', {
+        body: {
+          user_id: user.id,
+          question_id: questionId
+        }
+      });
+
+      if (error) {
+        console.error('Error starting attempt:', error);
+        return;
+      }
+
+      setCurrentAttemptId(data?.data?.attempt_id);
+      setAttemptStartTime(new Date());
+      console.log('Started attempt:', data?.data?.attempt_id);
+    } catch (error) {
+      console.error('Error starting attempt:', error);
+    }
   };
 
   const checkAnswer = async () => {
@@ -93,6 +127,11 @@ const PracticeByNumber = () => {
     const correct = userAnswer.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
     setIsCorrect(correct);
     setIsAnswered(true);
+
+    // Submit attempt to server for processing
+    if (currentAttemptId) {
+      await submitAnswer(correct, userAnswer.trim());
+    }
 
     // Award streak points immediately (regardless of correctness)
     const reward = calculateStreakReward(currentQuestion.difficulty);
@@ -116,6 +155,73 @@ const PracticeByNumber = () => {
     }
   };
 
+  // Submit answer and complete attempt processing
+  const submitAnswer = async (isCorrect: boolean, userAnswer: string) => {
+    if (!user || !currentQuestion || !currentAttemptId) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('handle-submission', {
+        body: {
+          user_id: user.id,
+          question_id: currentQuestion.question_id,
+          finished_or_not: true,
+          is_correct: isCorrect,
+          scores_fipi: null // This could be calculated based on question type
+        }
+      });
+
+      if (error) {
+        console.error('Error submitting answer:', error);
+        toast.error('Ошибка при отправке ответа на сервер');
+        return;
+      }
+
+      console.log('Answer submitted successfully:', data);
+    } catch (error) {
+      console.error('Error submitting answer:', error);
+      toast.error('Ошибка при отправке ответа на сервер');
+    }
+  };
+
+  // Handle skipping a question
+  const skipQuestion = async () => {
+    if (!user || !currentQuestion || !currentAttemptId) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('handle-submission', {
+        body: {
+          user_id: user.id,
+          question_id: currentQuestion.question_id,
+          finished_or_not: false,
+          is_correct: false,
+          scores_fipi: null
+        }
+      });
+
+      if (error) {
+        console.error('Error skipping question:', error);
+        return;
+      }
+
+      console.log('Question skipped successfully:', data);
+      
+      // Move to next question
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        resetQuestionState();
+        // Start attempt for next question
+        const nextQuestion = questions[currentQuestionIndex + 1];
+        if (nextQuestion) {
+          await startAttempt(nextQuestion.question_id);
+        }
+      } else {
+        toast.success("Все вопросы завершены!");
+      }
+    } catch (error) {
+      console.error('Error skipping question:', error);
+    }
+  };
+
   const handleShowSolution = () => {
     if (!isAnswered) {
       setSolutionViewedBeforeAnswer(true);
@@ -123,10 +229,16 @@ const PracticeByNumber = () => {
     setShowSolution(true);
   };
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       resetQuestionState();
+      
+      // Start attempt for the next question
+      const nextQ = questions[currentQuestionIndex + 1];
+      if (nextQ && user) {
+        await startAttempt(nextQ.question_id);
+      }
     } else {
       toast.success("Все вопросы завершены!");
     }
@@ -241,6 +353,17 @@ const PracticeByNumber = () => {
                     <BookOpen className="w-4 h-4 mr-2" />
                     Показать решение
                   </Button>
+                  
+                  {!isAnswered && (
+                    <Button
+                      variant="outline"
+                      onClick={skipQuestion}
+                      className="flex-1"
+                      disabled={!currentAttemptId}
+                    >
+                      Пропустить
+                    </Button>
+                  )}
                   
                   {isAnswered && currentQuestionIndex < questions.length - 1 && (
                     <Button onClick={nextQuestion} className="flex-1">
