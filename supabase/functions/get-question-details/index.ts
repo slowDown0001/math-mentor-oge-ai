@@ -35,10 +35,9 @@ Deno.serve(async (req) => {
 
     console.log(`Fetching question details for question_id: ${question_id}`)
 
-    // Fetch question details from the problems table
-    // Using copy table as it seems to be the main questions table based on the schema
+    // Fetch question details from the OGE_SHFIPI_problems_1_25 table
     const { data: questionData, error } = await supabaseClient
-      .from('copy')
+      .from('OGE_SHFIPI_problems_1_25')
       .select('skills, code, difficulty')
       .eq('question_id', question_id)
       .single()
