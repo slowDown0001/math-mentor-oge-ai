@@ -2,7 +2,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Home } from "lucide-react";
 
 const About = () => {
   const markdownContent = `### Встречай своего личного наставника для подготовки к ЕГЭ и ОГЭ. Твой цифровой друг, который знает о тебе всё.
@@ -102,6 +102,14 @@ const About = () => {
       <section className="bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
+            <div className="mb-6">
+              <Button asChild variant="outline" size="sm">
+                <Link to="/">
+                  <Home className="w-4 h-4 mr-2" />
+                  Главная
+                </Link>
+              </Button>
+            </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               О Платформе EGEChat
             </h1>
