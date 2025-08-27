@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
@@ -74,14 +75,14 @@ const About = () => {
 
 ### Давай сравним?
 
-| | **Обычный репетитор** | **Онлайн-курсы** | **Egechat-Наставник** |
+| **Критерий** | **Обычный репетитор** | **Онлайн-курсы** | **Egechat-Наставник** |
 | :--- | :--- | :--- | :--- |
 | **Доступность** | 2-3 раза в неделю | В любое время, но ты просто зритель | **Непрерывно, и он с тобой взаимодействует!** |
 | **Персонализация** | Общая программа для многих | Одинаково для всех | **Полностью подстраивается под тебя** |
 | **Цена** | Очень высокая (от 1500 р/ч) | Высокая (от 4500 р/месяц) | **Существенно дешевле (999 р/месяц)** |
 | **Глубина анализа** | Субъективная оценка прогресса | Видит только твои ошибки | **Анализирует каждую секунду твоей подготовки** |
 | **Ответы на вопросы** | Только на занятии | На семинаре, если повезет | **Мгновенно, на любой вопрос** |
-| **Пробные экзамены**	|	Организовать сложно	|	Чаще всего нет	|	**Полная имитация реального экзамена** |
+| **Пробные экзамены** | Организовать сложно | Чаще всего нет | **Полная имитация реального экзамена** |
 
 ### Короче говоря, если тебе нужен:
 
@@ -117,6 +118,7 @@ const About = () => {
           <div className="max-w-4xl mx-auto">
             <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-li:text-muted-foreground prose-table:text-foreground">
               <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
                 components={{
                   table: ({ children }) => (
                     <div className="overflow-x-auto my-8">
