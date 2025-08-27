@@ -45,6 +45,9 @@ const PracticeByNumber = () => {
     targetMinutes: 30,
     addedMinutes: 0
   });
+  
+  // Auth required message state
+  const [showAuthRequiredMessage, setShowAuthRequiredMessage] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -124,43 +127,42 @@ const PracticeByNumber = () => {
   const checkAnswer = async () => {
     if (!currentQuestion || !userAnswer.trim()) return;
 
+    // Check if user is authenticated
+    if (!user) {
+      setShowAuthRequiredMessage(true);
+      // Hide message after 5 seconds
+      setTimeout(() => setShowAuthRequiredMessage(false), 5000);
+      return;
+    }
+
     const correct = userAnswer.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
     setIsCorrect(correct);
     setIsAnswered(true);
 
-    // Submit attempt to server for processing if user is logged in
-    if (user && currentAttemptId) {
+    // Submit attempt to server for processing
+    if (currentAttemptId) {
       await submitAnswer(correct, userAnswer.trim());
     }
 
-    // Award streak points immediately (regardless of correctness) if user is logged in
-    if (user) {
-      const reward = calculateStreakReward(currentQuestion.difficulty);
-      const currentStreakInfo = await getCurrentStreakData(user.id);
-      
-      if (currentStreakInfo) {
-        setStreakData({
-          currentMinutes: currentStreakInfo.todayMinutes,
-          targetMinutes: currentStreakInfo.goalMinutes,
-          addedMinutes: reward.minutes
-        });
-        setShowStreakAnimation(true);
-      }
-      
-      await awardStreakPoints(user.id, reward);
+    // Award streak points immediately (regardless of correctness)
+    const reward = calculateStreakReward(currentQuestion.difficulty);
+    const currentStreakInfo = await getCurrentStreakData(user.id);
+    
+    if (currentStreakInfo) {
+      setStreakData({
+        currentMinutes: currentStreakInfo.todayMinutes,
+        targetMinutes: currentStreakInfo.goalMinutes,
+        addedMinutes: reward.minutes
+      });
+      setShowStreakAnimation(true);
+    }
+    
+    await awardStreakPoints(user.id, reward);
 
-      if (correct) {
-        toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
-      } else {
-        toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
-      }
+    if (correct) {
+      toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
     } else {
-      // Show result without streak points for non-logged-in users
-      if (correct) {
-        toast.success('Правильно!');
-      } else {
-        toast.error('Неправильно.');
-      }
+      toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
     }
   };
 
@@ -326,6 +328,15 @@ const PracticeByNumber = () => {
                       Проверить
                     </Button>
                   </div>
+
+                  {/* Auth Required Message */}
+                  {showAuthRequiredMessage && (
+                    <Alert className="border-orange-200 bg-orange-50">
+                      <AlertDescription className="text-orange-800">
+                        Чтобы решать задачи, войдите на платформу.
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
                   {/* Answer Result */}
                   {isAnswered && (
