@@ -122,36 +122,45 @@ const PracticeByNumber = () => {
   };
 
   const checkAnswer = async () => {
-    if (!currentQuestion || !userAnswer.trim() || !user) return;
+    if (!currentQuestion || !userAnswer.trim()) return;
 
     const correct = userAnswer.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
     setIsCorrect(correct);
     setIsAnswered(true);
 
-    // Submit attempt to server for processing
-    if (currentAttemptId) {
+    // Submit attempt to server for processing if user is logged in
+    if (user && currentAttemptId) {
       await submitAnswer(correct, userAnswer.trim());
     }
 
-    // Award streak points immediately (regardless of correctness)
-    const reward = calculateStreakReward(currentQuestion.difficulty);
-    const currentStreakInfo = await getCurrentStreakData(user.id);
-    
-    if (currentStreakInfo) {
-      setStreakData({
-        currentMinutes: currentStreakInfo.todayMinutes,
-        targetMinutes: currentStreakInfo.goalMinutes,
-        addedMinutes: reward.minutes
-      });
-      setShowStreakAnimation(true);
-    }
-    
-    await awardStreakPoints(user.id, reward);
+    // Award streak points immediately (regardless of correctness) if user is logged in
+    if (user) {
+      const reward = calculateStreakReward(currentQuestion.difficulty);
+      const currentStreakInfo = await getCurrentStreakData(user.id);
+      
+      if (currentStreakInfo) {
+        setStreakData({
+          currentMinutes: currentStreakInfo.todayMinutes,
+          targetMinutes: currentStreakInfo.goalMinutes,
+          addedMinutes: reward.minutes
+        });
+        setShowStreakAnimation(true);
+      }
+      
+      await awardStreakPoints(user.id, reward);
 
-    if (correct) {
-      toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
+      if (correct) {
+        toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
+      } else {
+        toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
+      }
     } else {
-      toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
+      // Show result without streak points for non-logged-in users
+      if (correct) {
+        toast.success('Правильно!');
+      } else {
+        toast.error('Неправильно.');
+      }
     }
   };
 
