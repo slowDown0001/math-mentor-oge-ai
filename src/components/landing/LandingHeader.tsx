@@ -181,6 +181,13 @@ export default function LandingHeader() {
           />
 
           <Link
+            to="/about"
+            className="text-foreground hover:text-primary transition-colors duration-200"
+          >
+            О Платформе
+          </Link>
+
+          <Link
             to="/faq"
             className="text-foreground hover:text-primary transition-colors duration-200"
           >

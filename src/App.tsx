@@ -40,6 +40,7 @@ const Db2 = lazy(() => import("./pages/Db2"));
 const Subscribe = lazy(() => import("./pages/Subscribe"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const FAQ = lazy(() => import("./pages/FAQ"));
+const About = lazy(() => import("./pages/About"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => (
                 <Route path="/subscribe" element={<Subscribe />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/faq" element={<FAQ />} />
+                <Route path="/about" element={<About />} />
         <Route path="/book-test" element={<BookTest />} />
         <Route path="/after-registration" element={<AfterRegistration />} />
         <Route path="/db2" element={<Db2 />} />
