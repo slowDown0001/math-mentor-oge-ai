@@ -196,40 +196,42 @@ const PracticeByNumber = () => {
 
   // Handle skipping a question
   const skipQuestion = async () => {
-    if (!user || !currentQuestion || !currentAttemptId) return;
+    if (!currentQuestion) return;
 
-    try {
-      const { data, error } = await supabase.functions.invoke('handle-submission', {
-        body: {
-          user_id: user.id,
-          question_id: currentQuestion.question_id,
-          finished_or_not: false,
-          is_correct: false,
-          scores_fipi: null
+    // If user is authenticated and has an attempt, submit skip to server
+    if (user && currentAttemptId) {
+      try {
+        const { data, error } = await supabase.functions.invoke('handle-submission', {
+          body: {
+            user_id: user.id,
+            question_id: currentQuestion.question_id,
+            finished_or_not: false,
+            is_correct: false,
+            scores_fipi: null
+          }
+        });
+
+        if (error) {
+          console.error('Error skipping question:', error);
+        } else {
+          console.log('Question skipped successfully:', data);
         }
-      });
-
-      if (error) {
+      } catch (error) {
         console.error('Error skipping question:', error);
-        return;
       }
-
-      console.log('Question skipped successfully:', data);
-      
-      // Move to next question
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        resetQuestionState();
-        // Start attempt for next question
-        const nextQuestion = questions[currentQuestionIndex + 1];
-        if (nextQuestion) {
-          await startAttempt(nextQuestion.question_id);
-        }
-      } else {
-        toast.success("Все вопросы завершены!");
+    }
+    
+    // Move to next question regardless of authentication status
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      resetQuestionState();
+      // Start attempt for next question if user is authenticated
+      const nextQuestion = questions[currentQuestionIndex + 1];
+      if (nextQuestion && user) {
+        await startAttempt(nextQuestion.question_id);
       }
-    } catch (error) {
-      console.error('Error skipping question:', error);
+    } else {
+      toast.success("Все вопросы завершены!");
     }
   };
 
@@ -379,7 +381,6 @@ const PracticeByNumber = () => {
                       variant="outline"
                       onClick={skipQuestion}
                       className="flex-1"
-                      disabled={!currentAttemptId}
                     >
                       Пропустить
                     </Button>
