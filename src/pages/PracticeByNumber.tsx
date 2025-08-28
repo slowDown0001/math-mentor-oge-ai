@@ -135,86 +135,98 @@ const PracticeByNumber = () => {
       return;
     }
 
-    const correct = userAnswer.trim().toLowerCase() === currentQuestion.answer.toLowerCase();
-    setIsCorrect(correct);
-    setIsAnswered(true);
-
-    // Submit attempt to server for processing
-    if (currentAttemptId) {
-      await submitAnswer(correct, userAnswer.trim());
-    }
-
-    // Award streak points immediately (regardless of correctness)
-    const reward = calculateStreakReward(currentQuestion.difficulty);
-    const currentStreakInfo = await getCurrentStreakData(user.id);
-    
-    if (currentStreakInfo) {
-      setStreakData({
-        currentMinutes: currentStreakInfo.todayMinutes,
-        targetMinutes: currentStreakInfo.goalMinutes,
-        addedMinutes: reward.minutes
-      });
-      setShowStreakAnimation(true);
-    }
-    
-    await awardStreakPoints(user.id, reward);
-
-    if (correct) {
-      toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
-    } else {
-      toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
-    }
-  };
-
-  // Submit answer and complete attempt processing
-  const submitAnswer = async (isCorrect: boolean, userAnswer: string) => {
-    if (!user || !currentQuestion || !currentAttemptId) return;
-
     try {
-      const { data, error } = await supabase.functions.invoke('complete-attempt', {
+      // Call check-text-answer function
+      const { data, error } = await supabase.functions.invoke('check-text-answer', {
         body: {
-          attempt_id: currentAttemptId,
-          finished_or_not: true,
-          is_correct: isCorrect,
-          scores_fipi: null // This could be calculated based on question type
+          user_id: user.id,
+          question_id: currentQuestion.question_id,
+          submitted_answer: userAnswer.trim()
         }
       });
 
       if (error) {
-        console.error('Error completing attempt:', error);
-        toast.error('Ошибка при отправке ответа на сервер');
+        console.error('Error checking answer:', error);
+        toast.error('Ошибка при проверке ответа');
         return;
       }
 
-      console.log('Attempt completed successfully:', data);
+      const isCorrect = data?.is_correct || false;
+      setIsCorrect(isCorrect);
+      setIsAnswered(true);
+
+      // Get latest student_activity data and submit to handle_submission
+      await submitToHandleSubmission();
+
+      // Award streak points immediately (regardless of correctness)
+      const reward = calculateStreakReward(currentQuestion.difficulty);
+      const currentStreakInfo = await getCurrentStreakData(user.id);
       
-      // Process attempt for mastery tracking
-      if (data.success) {
-        try {
-          await supabase.functions.invoke('process-attempt', {
-            body: {
-              user_id: user.id,
-              question_id: currentQuestion.question_id,
-              finished_or_not: true,
-              is_correct: isCorrect,
-              difficulty: currentQuestion.difficulty || 1,
-              skills_list: [], // Will be populated by process-attempt function
-              topics_list: [],
-              problem_number_type: parseInt(selectedNumber) || 1,
-              duration: data.duration_seconds || 0,
-              scores_fipi: null,
-              scaling_type: 'linear',
-              attempt_id: currentAttemptId
-            }
-          });
-        } catch (processError) {
-          console.error('Error processing attempt for mastery:', processError);
-          // Don't show error to user as the main submission succeeded
-        }
+      if (currentStreakInfo) {
+        setStreakData({
+          currentMinutes: currentStreakInfo.todayMinutes,
+          targetMinutes: currentStreakInfo.goalMinutes,
+          addedMinutes: reward.minutes
+        });
+        setShowStreakAnimation(true);
+      }
+      
+      await awardStreakPoints(user.id, reward);
+
+      if (isCorrect) {
+        toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
+      } else {
+        toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
       }
     } catch (error) {
-      console.error('Error submitting answer:', error);
-      toast.error('Ошибка при отправке ответа на сервер');
+      console.error('Error in checkAnswer:', error);
+      toast.error('Ошибка при проверке ответа');
+    }
+  };
+
+  // Get latest student_activity data and submit to handle_submission
+  const submitToHandleSubmission = async () => {
+    if (!user) return;
+
+    try {
+      // Get latest student_activity row for current user
+      const { data: activityData, error: activityError } = await supabase
+        .from('student_activity')
+        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (activityError || !activityData) {
+        console.error('Error getting latest activity:', activityError);
+        return;
+      }
+
+      // Create submission_data dictionary
+      const submissionData = {
+        user_id: user.id,
+        question_id: activityData.question_id,
+        attempt_id: activityData.attempt_id,
+        finished_or_not: activityData.finished_or_not,
+        duration: activityData.duration_answer,
+        scores_fipi: activityData.scores_fipi
+      };
+
+      // Call handle_submission function
+      const { data, error } = await supabase.functions.invoke('handle-submission', {
+        body: submissionData
+      });
+
+      if (error) {
+        console.error('Error in handle-submission:', error);
+        toast.error('Ошибка при обработке ответа');
+        return;
+      }
+
+      console.log('Handle submission completed:', data);
+    } catch (error) {
+      console.error('Error in submitToHandleSubmission:', error);
     }
   };
 
@@ -222,23 +234,41 @@ const PracticeByNumber = () => {
   const skipQuestion = async () => {
     if (!currentQuestion) return;
 
-    // If user is authenticated and has an attempt, submit skip to server
-    if (user && currentAttemptId) {
+    // If user is authenticated, get latest activity data and submit to handle_submission
+    if (user) {
       try {
-        const { data, error } = await supabase.functions.invoke('handle-submission', {
-          body: {
-            user_id: user.id,
-            question_id: currentQuestion.question_id,
-            finished_or_not: false,
-            is_correct: false,
-            scores_fipi: null
-          }
-        });
+        // Get latest student_activity row for current user
+        const { data: activityData, error: activityError } = await supabase
+          .from('student_activity')
+          .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .single();
 
-        if (error) {
-          console.error('Error skipping question:', error);
+        if (activityError || !activityData) {
+          console.error('Error getting latest activity for skip:', activityError);
         } else {
-          console.log('Question skipped successfully:', data);
+          // Create submission_data dictionary for skip
+          const submissionData = {
+            user_id: user.id,
+            question_id: activityData.question_id,
+            attempt_id: activityData.attempt_id,
+            finished_or_not: activityData.finished_or_not,
+            duration: activityData.duration_answer,
+            scores_fipi: activityData.scores_fipi
+          };
+
+          // Call handle_submission function
+          const { data, error } = await supabase.functions.invoke('handle-submission', {
+            body: submissionData
+          });
+
+          if (error) {
+            console.error('Error skipping question:', error);
+          } else {
+            console.log('Question skipped successfully:', data);
+          }
         }
       } catch (error) {
         console.error('Error skipping question:', error);
