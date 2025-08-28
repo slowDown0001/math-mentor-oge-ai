@@ -234,13 +234,13 @@ const PracticeByNumber = () => {
   const skipQuestion = async () => {
     if (!currentQuestion) return;
 
-    // If user is authenticated, get latest activity data and submit to handle_submission
+    // If user is authenticated, get latest activity data and calculate duration
     if (user) {
       try {
         // Get latest student_activity row for current user
         const { data: activityData, error: activityError } = await supabase
           .from('student_activity')
-          .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
+          .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi, answer_time_start')
           .eq('user_id', user.id)
           .order('updated_at', { ascending: false })
           .limit(1)
@@ -249,13 +249,29 @@ const PracticeByNumber = () => {
         if (activityError || !activityData) {
           console.error('Error getting latest activity for skip:', activityError);
         } else {
+          // Calculate duration between now and answer_time_start
+          const now = new Date();
+          const startTime = new Date(activityData.answer_time_start);
+          const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
+
+          // Update the duration_answer column for this row
+          const { error: updateError } = await supabase
+            .from('student_activity')
+            .update({ duration_answer: durationInSeconds })
+            .eq('user_id', user.id)
+            .eq('attempt_id', activityData.attempt_id);
+
+          if (updateError) {
+            console.error('Error updating duration for skip:', updateError);
+          }
+
           // Create submission_data dictionary for skip
           const submissionData = {
             user_id: user.id,
             question_id: activityData.question_id,
             attempt_id: activityData.attempt_id,
             finished_or_not: activityData.finished_or_not,
-            duration: activityData.duration_answer,
+            duration: durationInSeconds,
             scores_fipi: activityData.scores_fipi
           };
 
