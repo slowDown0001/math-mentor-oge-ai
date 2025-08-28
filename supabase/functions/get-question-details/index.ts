@@ -35,10 +35,10 @@ Deno.serve(async (req) => {
 
     console.log(`Fetching question details for question_id: ${question_id}`)
 
-    // Fetch question details from the OGE_SHFIPI_problems_1_25 table
+    // Fetch question details from the oge_math_fipi_bank table
     const { data: questionData, error } = await supabaseClient
-      .from('OGE_SHFIPI_problems_1_25')
-      .select('skills, code, difficulty')
+      .from('oge_math_fipi_bank')
+      .select('skills, problem_number_type, difficulty')
       .eq('question_id', question_id)
       .single()
 
@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     const questionDetails = {
       skills: skillsArray,
       topics: [], // Topics not available in current schema, can be derived from skills if mapping exists
-      problem_number_type: questionData.code ? Math.floor(questionData.code) : null,
+      problem_number_type: questionData.problem_number_type ? parseInt(questionData.problem_number_type) : null,
       difficulty: questionData.difficulty ? parseInt(questionData.difficulty) : 1
     }
 
