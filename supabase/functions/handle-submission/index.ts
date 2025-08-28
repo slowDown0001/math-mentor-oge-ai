@@ -41,20 +41,19 @@ Deno.serve(async (req) => {
 
     console.log(`Handling submission for user ${submissionData.user_id}, question ${submissionData.question_id}`)
 
-    // Step 1: Start attempt
-    const { data: startAttemptResponse, error: startAttemptError } = await supabaseClient.functions.invoke('start-attempt', {
+    // Step 1: Fetch question details
+    const { data: questionDetails, error: questionDetailsError } = await supabaseClient.functions.invoke('get-question-details', {
       body: {
-        user_id: submissionData.user_id,
         question_id: submissionData.question_id
       }
     })
 
-    if (startAttemptError || !startAttemptResponse.success) {
-      console.error('Failed to start attempt:', startAttemptError || startAttemptResponse.error)
+    if (questionDetailsError || !questionDetails) {
+      console.error('Failed to get question details:', questionDetailsError)
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to start attempt', 
-          details: startAttemptError?.message || startAttemptResponse.error 
+          error: 'Failed to get question details', 
+          details: questionDetailsError?.message || 'Question not found' 
         }),
         { 
           status: 500, 
@@ -63,34 +62,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    const attemptId = startAttemptResponse.attempt_id
-    const questionDetails = startAttemptResponse.question_details
-
-    // Step 2: Complete attempt
-    const { data: completeAttemptResponse, error: completeAttemptError } = await supabaseClient.functions.invoke('complete-attempt', {
-      body: {
-        attempt_id: attemptId,
-        finished_or_not: submissionData.finished_or_not,
-        is_correct: submissionData.is_correct,
-        scores_fipi: submissionData.scores_fipi
-      }
-    })
-
-    if (completeAttemptError || !completeAttemptResponse.success) {
-      console.error('Failed to complete attempt:', completeAttemptError || completeAttemptResponse.error)
-      return new Response(
-        JSON.stringify({ 
-          error: 'Failed to complete attempt', 
-          details: completeAttemptError?.message || completeAttemptResponse.error 
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
-
-    // Step 3: Construct attempt data for process-attempt
+    // Step 2: Construct attempt data for process-attempt
     const attemptData = {
       user_id: submissionData.user_id,
       question_id: submissionData.question_id,
@@ -100,32 +72,38 @@ Deno.serve(async (req) => {
       skills_list: questionDetails.skills || [],
       topics_list: questionDetails.topics || [],
       problem_number_type: questionDetails.problem_number_type,
-      duration: submissionData.duration || completeAttemptResponse.duration_seconds || 0,
+      duration: submissionData.duration || 0,
       scores_fipi: submissionData.scores_fipi,
       scaling_type: submissionData.scaling_type || 'linear',
-      attempt_id: attemptId
+      attempt_id: null // Will be set by process-attempt if needed
     }
 
-    // Step 4: Process attempt (update mastery estimates)
+    // Step 3: Process attempt (update mastery estimates)
     const { data: processAttemptResponse, error: processAttemptError } = await supabaseClient.functions.invoke('process-attempt', {
       body: attemptData
     })
 
     if (processAttemptError) {
       console.error('Failed to process attempt:', processAttemptError)
-      // Don't fail the whole submission if processing fails, just log it
-      console.warn('Continuing despite process-attempt failure')
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to process attempt', 
+          details: processAttemptError?.message 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
 
-    console.log(`Successfully handled submission for attempt ${attemptId}`)
+    console.log(`Successfully handled submission for user ${submissionData.user_id}`)
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        attempt_id: attemptId,
-        duration_seconds: completeAttemptResponse.duration_seconds,
         question_details: questionDetails,
-        processing_result: processAttemptResponse || { error: 'Processing failed but submission completed' }
+        processing_result: processAttemptResponse
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
