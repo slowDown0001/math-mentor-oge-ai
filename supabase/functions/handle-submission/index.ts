@@ -93,14 +93,16 @@ Deno.serve(async (req) => {
       finished_or_not: submissionData.finished_or_not,
       is_correct: activityData?.is_correct || false,
       difficulty: questionDetails.difficulty || 1,
-      skills_list: questionDetails.skills || [],
-      topics_list: questionDetails.topics || [],
-      problem_number_type: questionDetails.problem_number_type,
+      skills_list: Array.isArray(questionDetails.skills) ? questionDetails.skills : [],
+      topics_list: Array.isArray(questionDetails.topics) ? questionDetails.topics : [],
+      problem_number_type: questionDetails.problem_number_type || 0,
       duration: submissionData.duration || 0,
       scores_fipi: submissionData.scores_fipi,
       scaling_type: submissionData.scaling_type || 'linear',
       attempt_id: submissionData.attempt_id || null
     }
+
+    console.log('Attempting to process with data:', JSON.stringify(attemptData, null, 2))
 
     // Step 3: Process attempt (update mastery estimates)
     const { data: processAttemptResponse, error: processAttemptError } = await supabaseClient.functions.invoke('process-attempt', {
