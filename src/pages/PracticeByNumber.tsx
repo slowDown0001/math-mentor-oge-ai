@@ -171,10 +171,9 @@ const PracticeByNumber = () => {
     if (!user || !currentQuestion || !currentAttemptId) return;
 
     try {
-      const { data, error } = await supabase.functions.invoke('handle-submission', {
+      const { data, error } = await supabase.functions.invoke('complete-attempt', {
         body: {
-          user_id: user.id,
-          question_id: currentQuestion.question_id,
+          attempt_id: currentAttemptId,
           finished_or_not: true,
           is_correct: isCorrect,
           scores_fipi: null // This could be calculated based on question type
@@ -182,12 +181,37 @@ const PracticeByNumber = () => {
       });
 
       if (error) {
-        console.error('Error submitting answer:', error);
+        console.error('Error completing attempt:', error);
         toast.error('Ошибка при отправке ответа на сервер');
         return;
       }
 
-      console.log('Answer submitted successfully:', data);
+      console.log('Attempt completed successfully:', data);
+      
+      // Process attempt for mastery tracking
+      if (data.success) {
+        try {
+          await supabase.functions.invoke('process-attempt', {
+            body: {
+              user_id: user.id,
+              question_id: currentQuestion.question_id,
+              finished_or_not: true,
+              is_correct: isCorrect,
+              difficulty: currentQuestion.difficulty || 1,
+              skills_list: [], // Will be populated by process-attempt function
+              topics_list: [],
+              problem_number_type: parseInt(selectedNumber) || 1,
+              duration: data.duration_seconds || 0,
+              scores_fipi: null,
+              scaling_type: 'linear',
+              attempt_id: currentAttemptId
+            }
+          });
+        } catch (processError) {
+          console.error('Error processing attempt for mastery:', processError);
+          // Don't show error to user as the main submission succeeded
+        }
+      }
     } catch (error) {
       console.error('Error submitting answer:', error);
       toast.error('Ошибка при отправке ответа на сервер');
