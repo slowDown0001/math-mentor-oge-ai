@@ -62,12 +62,36 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Step 2: Construct attempt data for process-attempt
+    // Step 2: Get the is_correct value from student_activity table
+    const { data: activityData, error: activityError } = await supabaseClient
+      .from('student_activity')
+      .select('is_correct')
+      .eq('user_id', submissionData.user_id)
+      .eq('question_id', submissionData.question_id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (activityError) {
+      console.error('Failed to get activity data:', activityError)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to get activity data', 
+          details: activityError.message 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Step 3: Construct attempt data for process-attempt
     const attemptData = {
       user_id: submissionData.user_id,
       question_id: submissionData.question_id,
       finished_or_not: submissionData.finished_or_not,
-      is_correct: submissionData.is_correct || false,
+      is_correct: activityData?.is_correct || false,
       difficulty: questionDetails.difficulty || 1,
       skills_list: questionDetails.skills || [],
       topics_list: questionDetails.topics || [],
@@ -75,7 +99,7 @@ Deno.serve(async (req) => {
       duration: submissionData.duration || 0,
       scores_fipi: submissionData.scores_fipi,
       scaling_type: submissionData.scaling_type || 'linear',
-      attempt_id: null // Will be set by process-attempt if needed
+      attempt_id: submissionData.attempt_id || null
     }
 
     // Step 3: Process attempt (update mastery estimates)
