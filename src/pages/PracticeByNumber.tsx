@@ -55,7 +55,7 @@ const PracticeByNumber = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('OGE_SHFIPI_problems_1_25')
+        .from('oge_math_fipi_bank')
         .select('question_id, problem_text, answer, solution_text')
         .like('question_id', `%_${questionNumber}_%`)
         .order('question_id');
