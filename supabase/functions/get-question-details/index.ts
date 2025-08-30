@@ -74,7 +74,13 @@ Deno.serve(async (req) => {
       try {
         // Skills might be stored as comma-separated string or JSON
         if (typeof questionData.skills === 'string') {
-          skillsArray = questionData.skills.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n))
+          skillsArray = questionData.skills.split(',').map(s => {
+            const num = parseInt(s.trim(), 10)
+            return isNaN(num) ? null : num
+          }).filter(n => n !== null) as number[]
+        } else if (Array.isArray(questionData.skills)) {
+          // If already an array, ensure all elements are integers
+          skillsArray = questionData.skills.map(s => parseInt(s, 10)).filter(n => !isNaN(n))
         }
       } catch (e) {
         console.warn('Error parsing skills:', e)
