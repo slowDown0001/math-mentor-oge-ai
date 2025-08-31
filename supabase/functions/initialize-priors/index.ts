@@ -38,8 +38,12 @@ Deno.serve(async (req) => {
 
     const upsertData = []
 
-    // Initialize skills (1 to 195)
-    for (let skill_id = 1; skill_id <= 195; skill_id++) {
+    // Initialize skills (1 to 200, excluding 189, 193, 194)
+    for (let skill_id = 1; skill_id <= 200; skill_id++) {
+      // Skip skills 189, 193, and 194
+      if (skill_id === 189 || skill_id === 193 || skill_id === 194) {
+        continue
+      }
       let alpha, beta
 
       if (diagnostic_test_oge_result === null || diagnostic_test_oge_result === undefined) {
