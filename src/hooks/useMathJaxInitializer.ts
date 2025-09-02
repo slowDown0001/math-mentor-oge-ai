@@ -5,54 +5,92 @@ import 'katex/dist/katex.min.css';
 class KaTeXManager {
   renderMath(element: HTMLElement): void {
     try {
-      // Find all inline math patterns
-      this.processInlineMath(element);
-      
-      // Find all block math patterns
-      this.processBlockMath(element);
+      // Process math expressions without modifying innerHTML directly
+      this.processTextNodes(element);
     } catch (error) {
       console.error('KaTeX rendering error:', error);
     }
   }
 
-  private processInlineMath(element: HTMLElement): void {
-    // Process $...$ patterns
-    element.innerHTML = element.innerHTML.replace(/\$([^$]+)\$/g, (match, math) => {
-      try {
-        return katex.renderToString(math.trim(), { throwOnError: false, displayMode: false });
-      } catch {
-        return match;
-      }
-    });
+  private processTextNodes(element: HTMLElement): void {
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT
+    );
 
-    // Process \(...\) patterns
-    element.innerHTML = element.innerHTML.replace(/\\\(([^)]+)\\\)/g, (match, math) => {
-      try {
-        return katex.renderToString(math.trim(), { throwOnError: false, displayMode: false });
-      } catch {
-        return match;
+    const textNodes: Text[] = [];
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node as Text);
+    }
+
+    textNodes.forEach(textNode => {
+      const content = textNode.textContent || '';
+      if (this.hasMathExpressions(content)) {
+        this.replaceMathInTextNode(textNode);
       }
     });
   }
 
-  private processBlockMath(element: HTMLElement): void {
-    // Process $$...$$ patterns
-    element.innerHTML = element.innerHTML.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
+  private hasMathExpressions(text: string): boolean {
+    return /\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\$[^$]+\$|\\\([^)]+\\\)/.test(text);
+  }
+
+  private replaceMathInTextNode(textNode: Text): void {
+    const content = textNode.textContent || '';
+    const parent = textNode.parentNode;
+    
+    if (!parent) return;
+
+    // Create a temporary container to process the content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = this.processMathContent(content);
+    
+    // Replace the text node with processed content
+    const fragment = document.createDocumentFragment();
+    while (tempDiv.firstChild) {
+      fragment.appendChild(tempDiv.firstChild);
+    }
+    
+    parent.replaceChild(fragment, textNode);
+  }
+
+  private processMathContent(content: string): string {
+    // Process block math first ($$...$$ and \[...\])
+    content = content.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
       try {
-        return `<div class="katex-display">${katex.renderToString(math.trim(), { throwOnError: false, displayMode: true })}</div>`;
+        return `<span class="katex-display" style="display: block; text-align: center; margin: 12px 0;">${katex.renderToString(math.trim(), { throwOnError: false, displayMode: true })}</span>`;
       } catch {
         return match;
       }
     });
 
-    // Process \[...\] patterns
-    element.innerHTML = element.innerHTML.replace(/\\\[([^\]]+)\\\]/g, (match, math) => {
+    content = content.replace(/\\\[([^\]]+)\\\]/g, (match, math) => {
       try {
-        return `<div class="katex-display">${katex.renderToString(math.trim(), { throwOnError: false, displayMode: true })}</div>`;
+        return `<span class="katex-display" style="display: block; text-align: center; margin: 12px 0;">${katex.renderToString(math.trim(), { throwOnError: false, displayMode: true })}</span>`;
       } catch {
         return match;
       }
     });
+
+    // Process inline math ($...$ and \(...\))
+    content = content.replace(/\$([^$]+)\$/g, (match, math) => {
+      try {
+        return katex.renderToString(math.trim(), { throwOnError: false, displayMode: false });
+      } catch {
+        return match;
+      }
+    });
+
+    content = content.replace(/\\\(([^)]+)\\\)/g, (match, math) => {
+      try {
+        return katex.renderToString(math.trim(), { throwOnError: false, displayMode: false });
+      } catch {
+        return match;
+      }
+    });
+
+    return content;
   }
 
   renderAll(): void {
