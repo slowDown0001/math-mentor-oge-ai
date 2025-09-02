@@ -34,14 +34,10 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
       const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
       
       if (isNearBottom) {
-        // Delay scroll and MathJax rendering to ensure content is loaded
+        // Delay scroll to ensure content is loaded, MathJax will be handled by intersection observer
         setTimeout(() => {
           scrollToBottom();
-          // Re-render MathJax for all content after messages update
-          if (containerRef.current) {
-            mathJaxManager.renderAll();
-          }
-        }, 150);
+        }, 100);
       }
     }
   }, [messages, isTyping]);

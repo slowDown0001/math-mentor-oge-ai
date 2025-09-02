@@ -1,8 +1,9 @@
 import { type Message } from "@/contexts/ChatContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ChatRenderer2 from "./ChatRenderer2";
+import { mathJaxManager } from "@/hooks/useMathJaxInitializer";
 
 interface CourseChatMessageProps {
   message: Message;
@@ -11,6 +12,7 @@ interface CourseChatMessageProps {
 const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
   const { user } = useAuth();
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const messageRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     const fetchUserAvatar = async () => {
@@ -32,6 +34,47 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
     fetchUserAvatar();
   }, [user, message.isUser]);
 
+  // Intersection Observer to process MathJax when message becomes visible
+  useEffect(() => {
+    if (!messageRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Process MathJax for this specific message when it becomes visible
+            mathJaxManager.renderMath(entry.target as HTMLElement);
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: '50px',
+        threshold: 0.1
+      }
+    );
+
+    observer.observe(messageRef.current);
+
+    return () => {
+      if (messageRef.current) {
+        observer.unobserve(messageRef.current);
+      }
+    };
+  }, [message.text]);
+
+  // Also trigger MathJax when message content changes
+  useEffect(() => {
+    if (messageRef.current) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        if (messageRef.current) {
+          mathJaxManager.renderMath(messageRef.current);
+        }
+      }, 50);
+    }
+  }, [message.text]);
+
   const fallbackAvatar = "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/kawaiiboy1.jpg";
   const aiAvatar = "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png";
   
@@ -44,7 +87,7 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
 
   if (message.isUser) {
     return (
-      <div className="flex justify-end items-start gap-3 animate-fade-in slide-in-right mb-4">
+      <div ref={messageRef} className="flex justify-end items-start gap-3 animate-fade-in slide-in-right mb-4">
         <div className="flex flex-col items-end max-w-[70%]">
           <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 text-white font-medium text-[15px] px-4 py-3 rounded-2xl rounded-tr-md shadow-lg [&_.math-display]:text-center [&_.math-display]:my-3 [&_.math-inline]:text-white [&_.math-display]:text-white">
             <ChatRenderer2 text={message.text} isUserMessage={true} />
@@ -68,7 +111,7 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
   }
 
   return (
-    <div className="flex justify-start items-start gap-3 animate-fade-in animate-scale-in mb-4">
+    <div ref={messageRef} className="flex justify-start items-start gap-3 animate-fade-in animate-scale-in mb-4">
       <div className="flex-shrink-0">
         <img 
           src={aiAvatar}

@@ -27,11 +27,29 @@ class MathJaxManager {
           typeof window.MathJax !== 'undefined' &&
           typeof window.MathJax.typesetPromise === 'function'
         ) {
-          // Clear any existing MathJax content to prevent conflicts
-          const mjElements = element.querySelectorAll('.MathJax');
-          mjElements.forEach(el => el.remove());
+          // Only clear and re-render if MathJax elements don't exist or are incomplete
+          const existingMjElements = element.querySelectorAll('.MathJax');
+          const mathElements = element.querySelectorAll('span[data-math]');
           
-          await window.MathJax.typesetPromise([element]);
+          // If we have unprocessed math or incomplete rendering
+          if (mathElements.length > existingMjElements.length || 
+              element.textContent?.includes('\\(') || 
+              element.textContent?.includes('\\[') ||
+              element.textContent?.includes('$')) {
+            
+            // Clear existing MathJax elements
+            existingMjElements.forEach(el => el.remove());
+            
+            await window.MathJax.typesetPromise([element]);
+            
+            // Apply custom styling after rendering
+            const newMjElements = element.querySelectorAll('.MathJax');
+            newMjElements.forEach(mjEl => {
+              const mathElement = mjEl as HTMLElement;
+              mathElement.style.transition = 'opacity 0.3s ease-in-out';
+              mathElement.style.opacity = '1';
+            });
+          }
         }
       } catch (error) {
         console.error('MathJax rendering error:', error);
