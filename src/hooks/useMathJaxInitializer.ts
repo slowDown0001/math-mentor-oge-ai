@@ -27,27 +27,31 @@ class MathJaxManager {
           typeof window.MathJax !== 'undefined' &&
           typeof window.MathJax.typesetPromise === 'function'
         ) {
-          // Only clear and re-render if MathJax elements don't exist or are incomplete
-          const existingMjElements = element.querySelectorAll('.MathJax');
-          const mathElements = element.querySelectorAll('span[data-math]');
+          // Check if there's any math to process
+          const hasRawMath = element.textContent?.includes('\\(') || 
+                            element.textContent?.includes('\\[') ||
+                            element.textContent?.includes('$');
           
-          // If we have unprocessed math or incomplete rendering
-          if (mathElements.length > existingMjElements.length || 
-              element.textContent?.includes('\\(') || 
-              element.textContent?.includes('\\[') ||
-              element.textContent?.includes('$')) {
-            
-            // Clear existing MathJax elements
+          const existingMjElements = element.querySelectorAll('.MathJax');
+          const shouldProcess = hasRawMath || existingMjElements.length === 0;
+          
+          if (shouldProcess) {
+            // Clear existing MathJax elements to prevent duplicates
             existingMjElements.forEach(el => el.remove());
             
+            // Process the element
             await window.MathJax.typesetPromise([element]);
             
             // Apply custom styling after rendering
             const newMjElements = element.querySelectorAll('.MathJax');
             newMjElements.forEach(mjEl => {
               const mathElement = mjEl as HTMLElement;
-              mathElement.style.transition = 'opacity 0.3s ease-in-out';
+              mathElement.style.transition = 'opacity 0.2s ease-in-out';
               mathElement.style.opacity = '1';
+              
+              // Ensure proper visibility
+              mathElement.style.visibility = 'visible';
+              mathElement.style.display = mathElement.classList.contains('MathJax_Display') ? 'block' : 'inline';
             });
           }
         }

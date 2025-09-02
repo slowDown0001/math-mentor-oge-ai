@@ -34,10 +34,17 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
       const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
       
       if (isNearBottom) {
-        // Delay scroll to ensure content is loaded, MathJax will be handled by intersection observer
-        setTimeout(() => {
-          scrollToBottom();
-        }, 100);
+        // Process MathJax for visible messages first, then scroll
+        const visibleMessages = containerRef.current.querySelectorAll('[data-message]');
+        const promises = Array.from(visibleMessages).map(msg => 
+          mathJaxManager.renderMath(msg as HTMLElement)
+        );
+        
+        Promise.all(promises).then(() => {
+          setTimeout(() => {
+            scrollToBottom();
+          }, 50);
+        });
       }
     }
   }, [messages, isTyping]);

@@ -34,23 +34,26 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
     fetchUserAvatar();
   }, [user, message.isUser]);
 
-  // Intersection Observer to process MathJax when message becomes visible
+  // Process MathJax immediately when message mounts and when it becomes visible
   useEffect(() => {
     if (!messageRef.current) return;
+
+    // Initial processing
+    mathJaxManager.renderMath(messageRef.current);
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Process MathJax for this specific message when it becomes visible
+            // Re-process MathJax when message becomes visible after scrolling
             mathJaxManager.renderMath(entry.target as HTMLElement);
           }
         });
       },
       {
         root: null,
-        rootMargin: '50px',
-        threshold: 0.1
+        rootMargin: '100px', // Larger margin to preprocess before fully visible
+        threshold: 0.01 // Lower threshold for earlier processing
       }
     );
 
@@ -63,16 +66,25 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
     };
   }, [message.text]);
 
-  // Also trigger MathJax when message content changes
+  // Additional processing on scroll events for extra reliability
   useEffect(() => {
-    if (messageRef.current) {
-      // Small delay to ensure DOM is updated
-      setTimeout(() => {
-        if (messageRef.current) {
+    const handleScroll = () => {
+      if (messageRef.current) {
+        const rect = messageRef.current.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+        
+        if (isVisible) {
           mathJaxManager.renderMath(messageRef.current);
         }
-      }, 50);
-    }
+      }
+    };
+
+    const scrollContainer = document.querySelector('[data-radix-scroll-area-viewport]') || window;
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+    };
   }, [message.text]);
 
   const fallbackAvatar = "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/kawaiiboy1.jpg";
@@ -87,7 +99,7 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
 
   if (message.isUser) {
     return (
-      <div ref={messageRef} className="flex justify-end items-start gap-3 animate-fade-in slide-in-right mb-4">
+      <div ref={messageRef} data-message className="flex justify-end items-start gap-3 animate-fade-in slide-in-right mb-4">
         <div className="flex flex-col items-end max-w-[70%]">
           <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 text-white font-medium text-[15px] px-4 py-3 rounded-2xl rounded-tr-md shadow-lg [&_.math-display]:text-center [&_.math-display]:my-3 [&_.math-inline]:text-white [&_.math-display]:text-white">
             <ChatRenderer2 text={message.text} isUserMessage={true} />
@@ -111,7 +123,7 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
   }
 
   return (
-    <div ref={messageRef} className="flex justify-start items-start gap-3 animate-fade-in animate-scale-in mb-4">
+    <div ref={messageRef} data-message className="flex justify-start items-start gap-3 animate-fade-in animate-scale-in mb-4">
       <div className="flex-shrink-0">
         <img 
           src={aiAvatar}
