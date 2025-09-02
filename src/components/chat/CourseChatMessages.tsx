@@ -19,26 +19,6 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const scrollToShowUserMessageAndResponse = () => {
-    if (containerRef.current && messages.length > 0) {
-      const container = containerRef.current;
-      const lastMessage = messages[messages.length - 1];
-      
-      // If the last message is from user, scroll to show it plus space for AI response
-      if (lastMessage.isUser) {
-        // Scroll to show the user's message and leave space for AI response start
-        const targetScrollTop = container.scrollHeight - container.clientHeight + 100;
-        container.scrollTo({
-          top: Math.max(0, targetScrollTop),
-          behavior: "smooth"
-        });
-      } else {
-        // If AI message, scroll to show both user question and AI response start
-        scrollToBottom();
-      }
-    }
-  };
-
   const handleScroll = () => {
     if (containerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
@@ -48,24 +28,22 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
   };
 
   useEffect(() => {
-    if (containerRef.current && messages.length > 0) {
+    // Auto-scroll to bottom when new messages arrive, unless user has scrolled up
+    if (containerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
       const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
-      const lastMessage = messages[messages.length - 1];
       
-      // Force scroll when user sends a message, or auto-scroll if near bottom
-      const shouldAutoScroll = isNearBottom || lastMessage.isUser;
-      
-      if (shouldAutoScroll) {
+      if (isNearBottom) {
+        // Process KaTeX for visible messages first, then scroll
+        const visibleMessages = containerRef.current.querySelectorAll('[data-message]');
+        visibleMessages.forEach(msg => {
+          kaTeXManager.renderMath(msg as HTMLElement);
+        });
+        
+        // Scroll immediately since KaTeX renders synchronously
         setTimeout(() => {
-          // If user just sent a message, scroll to show it plus space for AI response
-          if (lastMessage.isUser) {
-            scrollToShowUserMessageAndResponse();
-          } else {
-            // If AI is responding or finished, show the conversation naturally
-            scrollToBottom();
-          }
-        }, 100); // Increased delay to let KaTeX render first
+          scrollToBottom();
+        }, 50);
       }
     }
   }, [messages, isTyping]);
@@ -78,15 +56,15 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
         className="h-full overflow-y-auto p-4 space-y-4 scroll-smooth"
         style={{ fontFamily: 'Inter, Poppins, Montserrat, sans-serif' }}
       >
-        {messages.length === 0 ? (
-          <div className="text-muted-foreground/60 text-center py-8 text-sm">
-            Начните беседу...
-          </div>
-        ) : (
-          messages.map((message) => (
-            <CourseChatMessage key={message.id} message={message} />
-          ))
-        )}
+      {messages.length === 0 ? (
+        <div className="text-muted-foreground/60 text-center py-8 text-sm">
+          Начните беседу...
+        </div>
+      ) : (
+        messages.map((message) => (
+          <CourseChatMessage key={message.id} message={message} />
+        ))
+      )}
         
         {isTyping && (
           <div className="flex justify-start items-start gap-3 animate-fade-in">

@@ -194,15 +194,8 @@ const MyDashboard = () => {
   };
 
   const renderMarkdownText = (text: string) => {
-    // Parse markdown for bold text safely
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    
-    return parts.map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index}>{part.slice(2, -2)}</strong>;
-      }
-      return part;
-    });
+    // Simple markdown rendering for bold text
+    return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   };
 
   return (
@@ -319,9 +312,12 @@ const MyDashboard = () => {
                             className="overflow-hidden"
                           >
                             <div className="px-4 pb-4 pt-2 backdrop-blur-xl bg-card/20 border-t border-border/20">
-                              <div className="text-sm text-muted-foreground leading-relaxed">
-                                {renderMarkdownText(courseContent[course.id] || '')}
-                              </div>
+                              <div 
+                                className="text-sm text-muted-foreground leading-relaxed"
+                                dangerouslySetInnerHTML={{ 
+                                  __html: renderMarkdownText(courseContent[course.id] || '') 
+                                }}
+                              />
                             </div>
                           </motion.div>
                         )}
@@ -438,9 +434,12 @@ const MyDashboard = () => {
                             className="overflow-hidden"
                           >
                             <div className="px-4 pb-4 pt-2 backdrop-blur-xl bg-card/20 border-t border-border/20">
-                              <div className="text-sm text-muted-foreground leading-relaxed">
-                                {renderMarkdownText(courseContent[course.id] || '')}
-                              </div>
+                              <div 
+                                className="text-sm text-muted-foreground leading-relaxed"
+                                dangerouslySetInnerHTML={{ 
+                                  __html: renderMarkdownText(courseContent[course.id] || '') 
+                                }}
+                              />
                             </div>
                           </motion.div>
                         )}
