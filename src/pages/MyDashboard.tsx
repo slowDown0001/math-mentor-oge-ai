@@ -120,7 +120,21 @@ const MyDashboard = () => {
 
   const handleStartCourse = (courseId: string) => {
     console.log('Starting course:', courseId);
-    // Navigation logic will be added later
+    
+    // Navigate to the appropriate course page
+    switch (courseId) {
+      case 'oge-math':
+        navigate('/ogemath');
+        break;
+      case 'ege-basic':
+        navigate('/egemathbasic');
+        break;
+      case 'ege-advanced':
+        navigate('/egemathprof');
+        break;
+      default:
+        console.warn('Unknown course ID:', courseId);
+    }
   };
 
   const handleLogout = async () => {
