@@ -1,13 +1,59 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
-import PromptBar from "@/components/PromptBar";
 import { useChatContext } from "@/contexts/ChatContext";
 import CourseChatMessages from "@/components/chat/CourseChatMessages";
+import ChatInput from "@/components/chat/ChatInput";
+import { sendChatMessage } from "@/services/chatService";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 const EgeMathProf = () => {
   const navigate = useNavigate();
-  const { messages, isTyping } = useChatContext();
+  const { user } = useAuth();
+  const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
+
+  // Initialize welcome messages if chat is empty
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([
+        {
+          id: 1,
+          text: `Привет, ${userName}! Я твой ИИ-репетитор по ЕГЭ профильной математике. Готов разобрать сложные задачи и концепции!`,
+          isUser: false,
+          timestamp: new Date()
+        },
+        {
+          id: 2,
+          text: "Хочешь решить задачи повышенной сложности или изучить продвинутые темы?",
+          isUser: false,
+          timestamp: new Date()
+        }
+      ]);
+    }
+  }, [messages.length, userName, setMessages]);
+
+  const handleSendMessage = async (userInput: string) => {
+    // Add user message
+    const newUserMessage = {
+      id: messages.length + 1,
+      text: userInput,
+      isUser: true,
+      timestamp: new Date()
+    };
+    
+    addMessage(newUserMessage);
+    setIsTyping(true);
+
+    try {
+      // Send message to AI and get response
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
+      addMessage(aiResponse);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   const handleNavigateToProfile = () => {
     navigate("/mydashboard");
@@ -118,8 +164,8 @@ const EgeMathProf = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 
                           rounded-2xl blur-sm transform scale-105" />
           <div className="relative bg-background/80 backdrop-blur-md border border-primary/20 rounded-2xl 
-                          shadow-2xl">
-            <PromptBar />
+                           shadow-2xl">
+            <ChatInput onSendMessage={handleSendMessage} isTyping={isTyping} />
           </div>
         </div>
       </div>
