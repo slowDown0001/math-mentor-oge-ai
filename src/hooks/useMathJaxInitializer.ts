@@ -6,6 +6,7 @@ import 'katex/dist/katex.min.css';
 declare global {
   interface Window {
     renderMathInElement: (element: HTMLElement, options?: any) => void;
+    katex: any;
   }
 }
 
@@ -26,6 +27,10 @@ class KaTeXManager {
     script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js';
     script.onload = () => {
       this.autoRenderLoaded = true;
+      // Ensure global katex is available for auto-render
+      if (typeof window !== 'undefined' && !window.katex) {
+        (window as any).katex = katex;
+      }
     };
     document.head.appendChild(script);
   }
@@ -35,10 +40,15 @@ class KaTeXManager {
   }
 
   renderMath(element: HTMLElement): void {
-    if (!window.renderMathInElement) {
+    if (!window.renderMathInElement || !this.autoRenderLoaded) {
       // If auto-render not loaded yet, wait and retry
       setTimeout(() => this.renderMath(element), 100);
       return;
+    }
+
+    // Ensure katex is available globally before rendering
+    if (!window.katex) {
+      (window as any).katex = katex;
     }
 
     try {
@@ -53,6 +63,44 @@ class KaTeXManager {
       });
     } catch (error) {
       console.error('KaTeX auto-render error:', error);
+      // Fallback: try manual rendering for simple cases
+      this.fallbackManualRender(element);
+    }
+  }
+
+  private fallbackManualRender(element: HTMLElement): void {
+    const textContent = element.textContent || '';
+    
+    // Simple regex-based fallback for basic math delimiters
+    const mathPatterns = [
+      { regex: /\$\$([^$]+)\$\$/g, display: true },
+      { regex: /\$([^$]+)\$/g, display: false },
+      { regex: /\\\[([^\]]+)\\\]/g, display: true },
+      { regex: /\\\(([^\)]+)\\\)/g, display: false }
+    ];
+
+    let hasMatches = false;
+    mathPatterns.forEach(pattern => {
+      if (pattern.regex.test(textContent)) {
+        hasMatches = true;
+      }
+    });
+
+    if (hasMatches) {
+      let html = element.innerHTML;
+      mathPatterns.forEach(pattern => {
+        html = html.replace(pattern.regex, (match, latex) => {
+          try {
+            return katex.renderToString(latex, { 
+              displayMode: pattern.display,
+              throwOnError: false 
+            });
+          } catch {
+            return match; // Return original if rendering fails
+          }
+        });
+      });
+      element.innerHTML = html;
     }
   }
 
