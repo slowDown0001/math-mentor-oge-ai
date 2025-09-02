@@ -2,9 +2,12 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import PromptBar from "@/components/PromptBar";
+import { useChatContext } from "@/contexts/ChatContext";
+import CourseChatMessages from "@/components/chat/CourseChatMessages";
 
 const OgeMath = () => {
   const navigate = useNavigate();
+  const { messages, isTyping } = useChatContext();
 
   const handleNavigateToProfile = () => {
     navigate("/mydashboard");
@@ -104,12 +107,8 @@ const OgeMath = () => {
 
       {/* Chat window */}
       <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-6">
-        <div className="relative h-[60vh] bg-white/40 backdrop-blur-[12px] rounded-2xl shadow-2xl p-4 overflow-y-auto">
-          <div className="space-y-4">
-            <div className="text-muted-foreground text-center py-8">
-              Начните беседу...
-            </div>
-          </div>
+        <div className="relative h-[60vh] bg-white/40 backdrop-blur-[12px] rounded-2xl shadow-2xl overflow-hidden">
+          <CourseChatMessages messages={messages} isTyping={isTyping} />
         </div>
       </div>
 
