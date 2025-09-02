@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Play, ArrowLeft, LogOut, Trash2 } from 'lucide-react';
+import { Plus, Play, ArrowLeft, LogOut, Trash2, ChevronDown } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +26,12 @@ const courseIdToNumber: Record<string, number> = {
   'ege-advanced': 3,
 };
 
+const courseContent: Record<string, string> = {
+  'oge-math': 'Банк задач **3500 ФИПИ**, **2000** задач для закрытия гэпов, **7000** аналогичных ФИПИ задач.',
+  'ege-basic': 'Банк задач **9000 ФИПИ**, **2000** задач для закрытия гэпов, **10000** аналогичных ФИПИ задач.',
+  'ege-advanced': 'Банк задач **900 ФИПИ**, **2000** задач для закрытия гэпов, **3000** аналогичных ФИПИ задач.',
+};
+
 const MyDashboard = () => {
   const { getDisplayName } = useProfile();
   const { user, signOut } = useAuth();
@@ -34,6 +40,7 @@ const MyDashboard = () => {
   const [myCourses, setMyCourses] = useState<Course[]>([]);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [expandedDropdowns, setExpandedDropdowns] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user) {
@@ -160,6 +167,23 @@ const MyDashboard = () => {
     }
   };
 
+  const toggleDropdown = (courseId: string) => {
+    setExpandedDropdowns(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(courseId)) {
+        newSet.delete(courseId);
+      } else {
+        newSet.add(courseId);
+      }
+      return newSet;
+    });
+  };
+
+  const renderMarkdownText = (text: string) => {
+    // Simple markdown rendering for bold text
+    return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-accent/20 p-6">
       {/* Navigation Buttons */}
@@ -237,19 +261,53 @@ const MyDashboard = () => {
                         filter: "blur(6px)",
                         transition: { duration: 0.4, ease: "easeInOut" }
                       }}
-                      className="flex items-center justify-between p-4 rounded-xl bg-secondary/50 border border-border/30 hover:bg-secondary/70 transition-all duration-200"
+                      className="rounded-xl bg-secondary/50 border border-border/30 hover:bg-secondary/70 transition-all duration-200 overflow-hidden"
                     >
-                      <span className="font-medium text-foreground">
-                        {course.name}
-                      </span>
-                      <Button
-                        onClick={() => handleAddCourse(course)}
-                        size="sm"
-                        className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Добавить
-                      </Button>
+                      <div className="flex items-center justify-between p-4">
+                        <div 
+                          className="flex items-center gap-2 cursor-pointer hover:scale-105 transition-all duration-200 flex-1"
+                          onClick={() => toggleDropdown(course.id)}
+                        >
+                          <span className="font-medium text-foreground">
+                            {course.name}
+                          </span>
+                          <motion.div
+                            animate={{ rotate: expandedDropdowns.has(course.id) ? 180 : 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                          >
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                          </motion.div>
+                        </div>
+                        <Button
+                          onClick={() => handleAddCourse(course)}
+                          size="sm"
+                          className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Добавить
+                        </Button>
+                      </div>
+                      
+                      <AnimatePresence>
+                        {expandedDropdowns.has(course.id) && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: "easeInOut" }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-4 pb-4 pt-2 backdrop-blur-xl bg-card/20 border-t border-border/20">
+                              <div 
+                                className="text-sm text-muted-foreground leading-relaxed"
+                                dangerouslySetInnerHTML={{ 
+                                  __html: renderMarkdownText(courseContent[course.id] || '') 
+                                }}
+                              />
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </motion.div>
                   ))}
                 </AnimatePresence>
@@ -313,31 +371,65 @@ const MyDashboard = () => {
                           delay: index * 0.1
                         }
                       }}
-                      className="flex items-center justify-between p-4 rounded-xl bg-accent/30 border border-border/30 hover:bg-accent/40 transition-all duration-200"
+                      className="rounded-xl bg-accent/30 border border-border/30 hover:bg-accent/40 transition-all duration-200 overflow-hidden"
                     >
-                      <div className="flex items-center gap-3">
-                        {isDeleteMode && (
-                          <Checkbox
-                            checked={selectedCourses.includes(course.id)}
-                            onCheckedChange={(checked) => handleCourseSelection(course.id, checked as boolean)}
-                            className="data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
-                          />
+                      <div className="flex items-center justify-between p-4">
+                        <div className="flex items-center gap-3 flex-1">
+                          {isDeleteMode && (
+                            <Checkbox
+                              checked={selectedCourses.includes(course.id)}
+                              onCheckedChange={(checked) => handleCourseSelection(course.id, checked as boolean)}
+                              className="data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                            />
+                          )}
+                          <div 
+                            className="flex items-center gap-2 cursor-pointer hover:scale-105 transition-all duration-200 flex-1"
+                            onClick={() => toggleDropdown(`my-${course.id}`)}
+                          >
+                            <span className="font-medium text-foreground">
+                              {course.name}
+                            </span>
+                            <motion.div
+                              animate={{ rotate: expandedDropdowns.has(`my-${course.id}`) ? 180 : 0 }}
+                              transition={{ duration: 0.3, ease: "easeInOut" }}
+                            >
+                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                            </motion.div>
+                          </div>
+                        </div>
+                        
+                        {!isDeleteMode && (
+                          <Button
+                            onClick={() => handleStartCourse(course.id)}
+                            size="sm"
+                            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+                          >
+                            <Play className="w-4 h-4 mr-1" />
+                            Начать
+                          </Button>
                         )}
-                        <span className="font-medium text-foreground">
-                          {course.name}
-                        </span>
                       </div>
                       
-                      {!isDeleteMode && (
-                        <Button
-                          onClick={() => handleStartCourse(course.id)}
-                          size="sm"
-                          className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
-                        >
-                          <Play className="w-4 h-4 mr-1" />
-                          Начать
-                        </Button>
-                      )}
+                      <AnimatePresence>
+                        {expandedDropdowns.has(`my-${course.id}`) && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: "easeInOut" }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-4 pb-4 pt-2 backdrop-blur-xl bg-card/20 border-t border-border/20">
+                              <div 
+                                className="text-sm text-muted-foreground leading-relaxed"
+                                dangerouslySetInnerHTML={{ 
+                                  __html: renderMarkdownText(courseContent[course.id] || '') 
+                                }}
+                              />
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </motion.div>
                   ))}
                 </AnimatePresence>
