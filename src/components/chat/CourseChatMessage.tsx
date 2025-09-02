@@ -34,26 +34,32 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
     fetchUserAvatar();
   }, [user, message.isUser]);
 
-  // Process MathJax immediately when message mounts and when it becomes visible
+  // Process MathJax when message mounts and becomes visible
   useEffect(() => {
     if (!messageRef.current) return;
 
-    // Initial processing
-    mathJaxManager.renderMath(messageRef.current);
+    // Initial processing when message mounts
+    const processInitial = () => {
+      if (messageRef.current) {
+        mathJaxManager.renderMath(messageRef.current);
+      }
+    };
+
+    // Process immediately and also when visible
+    processInitial();
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Re-process MathJax when message becomes visible after scrolling
             mathJaxManager.renderMath(entry.target as HTMLElement);
           }
         });
       },
       {
         root: null,
-        rootMargin: '100px', // Larger margin to preprocess before fully visible
-        threshold: 0.01 // Lower threshold for earlier processing
+        rootMargin: '50px',
+        threshold: 0.1
       }
     );
 
@@ -63,27 +69,6 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
       if (messageRef.current) {
         observer.unobserve(messageRef.current);
       }
-    };
-  }, [message.text]);
-
-  // Additional processing on scroll events for extra reliability
-  useEffect(() => {
-    const handleScroll = () => {
-      if (messageRef.current) {
-        const rect = messageRef.current.getBoundingClientRect();
-        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-        
-        if (isVisible) {
-          mathJaxManager.renderMath(messageRef.current);
-        }
-      }
-    };
-
-    const scrollContainer = document.querySelector('[data-radix-scroll-area-viewport]') || window;
-    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      scrollContainer.removeEventListener('scroll', handleScroll);
     };
   }, [message.text]);
 

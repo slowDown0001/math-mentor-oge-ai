@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
@@ -50,41 +50,30 @@ interface ChatRenderer2Props {
 const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRenderer2Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMathJaxReady = useMathJaxInitializer();
-  const [isProcessing, setIsProcessing] = useState(true);
 
   const normalizedText = normalizeMathDelimiters(text);
 
   useEffect(() => {
     if (!containerRef.current || !isMathJaxReady) return;
 
-    setIsProcessing(true);
-    
-    // Double RAF to ensure DOM is fully rendered
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (containerRef.current) {
-          mathJaxManager.renderMath(containerRef.current).then(() => {
-            // Apply styling after MathJax rendering is complete
-            const mathElements = containerRef.current?.querySelectorAll('.MathJax');
-            mathElements?.forEach(element => {
-              const mathJaxElement = element as HTMLElement;
-              mathJaxElement.classList.add('animate-math-fade-in');
-              
-              if (mathJaxElement.classList.contains('MathJax_Display')) {
-                mathJaxElement.style.textAlign = 'center';
-                mathJaxElement.style.margin = '12px 0';
-              }
-              
-              // Apply color based on message type
-              mathJaxElement.style.color = isUserMessage ? 'white' : '#333';
-            });
-            
-            setIsProcessing(false);
-          }).catch(() => {
-            setIsProcessing(false);
-          });
+    // Process MathJax immediately when component mounts or text changes
+    mathJaxManager.renderMath(containerRef.current).then(() => {
+      // Apply styling after MathJax rendering is complete
+      const mathElements = containerRef.current?.querySelectorAll('.MathJax');
+      mathElements?.forEach(element => {
+        const mathJaxElement = element as HTMLElement;
+        mathJaxElement.classList.add('animate-math-fade-in');
+        
+        if (mathJaxElement.classList.contains('MathJax_Display')) {
+          mathJaxElement.style.textAlign = 'center';
+          mathJaxElement.style.margin = '12px 0';
         }
+        
+        // Apply color based on message type
+        mathJaxElement.style.color = isUserMessage ? 'white' : '#333';
       });
+    }).catch((error) => {
+      console.error('MathJax rendering failed:', error);
     });
   }, [text, isMathJaxReady, isUserMessage]);
 
@@ -97,8 +86,7 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
   return (
     <div 
       ref={containerRef} 
-      className={`prose prose-sm max-w-none ${className} ${textColor} ${isProcessing ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
-      style={{ minHeight: isProcessing ? '1.5rem' : 'auto' }}
+      className={`prose prose-sm max-w-none ${className} ${textColor}`}
     >
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
