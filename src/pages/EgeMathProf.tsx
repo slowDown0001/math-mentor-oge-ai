@@ -95,29 +95,22 @@ const EgeMathProf = () => {
         </div>
       </div>
 
+      {/* Top-left title */}
+      <div className="absolute top-6 left-6 z-10">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          ЕГЭ Профильная Математика
+        </h1>
+      </div>
+
       {/* Bottom center prompt bar */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-6">
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 
                           rounded-2xl blur-sm transform scale-105" />
           <div className="relative bg-background/80 backdrop-blur-md border border-primary/20 rounded-2xl 
-                          shadow-2xl transform transition-all duration-300 ease-in-out
-                          hover:scale-[1.02] hover:shadow-xl hover:border-primary/30
-                          focus-within:scale-[1.02] focus-within:shadow-xl focus-within:border-primary/40">
+                          shadow-2xl">
             <PromptBar />
           </div>
-        </div>
-      </div>
-
-      {/* Central content area for future use */}
-      <div className="flex items-center justify-center min-h-screen px-8">
-        <div className="text-center space-y-4 opacity-50">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            ЕГЭ Профильная Математика
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Выберите действие из меню слева
-          </p>
         </div>
       </div>
     </div>
