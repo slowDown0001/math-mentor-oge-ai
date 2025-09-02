@@ -43,6 +43,7 @@ const Pricing = lazy(() => import("./pages/Pricing"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const About = lazy(() => import("./pages/About"));
 const EgeMathProf = lazy(() => import("./pages/EgeMathProf"));
+const EgeMathBasic = lazy(() => import("./pages/EgeMathBasic"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -75,6 +76,7 @@ const App = () => (
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/egemathprof" element={<EgeMathProf />} />
+                <Route path="/egemathbasic" element={<EgeMathBasic />} />
         <Route path="/book-test" element={<BookTest />} />
         <Route path="/after-registration" element={<AfterRegistration />} />
         <Route path="/db2" element={<Db2 />} />
