@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Play } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Play, ArrowLeft, LogOut, Trash2 } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface Course {
   id: string;
@@ -19,9 +21,12 @@ const availableCoursesData: Course[] = [
 
 const MyDashboard = () => {
   const { getDisplayName } = useProfile();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [availableCourses, setAvailableCourses] = useState<Course[]>(availableCoursesData);
   const [myCourses, setMyCourses] = useState<Course[]>([]);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
 
   const handleAddCourse = (course: Course) => {
     // Remove from available courses
@@ -38,9 +43,72 @@ const MyDashboard = () => {
     // Navigation logic will be added later
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  const handleBackToMain = () => {
+    navigate('/');
+  };
+
+  const handleDeleteMode = () => {
+    if (isDeleteMode) {
+      // Execute deletion
+      if (selectedCourses.length > 0) {
+        const coursesToRemove = myCourses.filter(course => selectedCourses.includes(course.id));
+        
+        // Remove from my courses with animation
+        setMyCourses(prev => prev.filter(course => !selectedCourses.includes(course.id)));
+        
+        // Add back to available courses with delay for animation
+        setTimeout(() => {
+          setAvailableCourses(prev => [...prev, ...coursesToRemove]);
+        }, 300);
+      }
+      
+      setIsDeleteMode(false);
+      setSelectedCourses([]);
+    } else {
+      setIsDeleteMode(true);
+      setSelectedCourses([]);
+    }
+  };
+
+  const handleCourseSelection = (courseId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedCourses(prev => [...prev, courseId]);
+    } else {
+      setSelectedCourses(prev => prev.filter(id => id !== courseId));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-accent/20 p-6">
-      <div className="max-w-7xl mx-auto">
+      {/* Navigation Buttons */}
+      <div className="fixed top-6 left-6 right-6 flex justify-between z-10">
+        <Button
+          onClick={handleBackToMain}
+          className="bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Назад
+        </Button>
+        
+        <Button
+          onClick={handleLogout}
+          className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Выйти
+        </Button>
+      </div>
+
+      <div className="max-w-7xl mx-auto pt-16">
         <h1 className="text-3xl font-bold text-foreground mb-8 text-center">
           Дашборд
         </h1>
@@ -124,6 +192,27 @@ const MyDashboard = () => {
 
           {/* Right Column: My Courses */}
           <div className="space-y-4">
+            {/* Delete Button - Only show if there are courses */}
+            {myCourses.length > 0 && (
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleDeleteMode}
+                  size="sm"
+                  variant={isDeleteMode && selectedCourses.length > 0 ? "destructive" : "outline"}
+                  className={`shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 ${
+                    isDeleteMode 
+                      ? selectedCourses.length > 0 
+                        ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white" 
+                        : "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+                      : "bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white"
+                  }`}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  {isDeleteMode ? (selectedCourses.length > 0 ? `Удалить (${selectedCourses.length})` : 'Отмена') : 'Удалить'}
+                </Button>
+              </div>
+            )}
+            
             <Card className="backdrop-blur-xl bg-card/40 border-border/20 shadow-lg">
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl font-semibold text-foreground">
@@ -153,17 +242,29 @@ const MyDashboard = () => {
                       }}
                       className="flex items-center justify-between p-4 rounded-xl bg-accent/30 border border-border/30 hover:bg-accent/40 transition-all duration-200"
                     >
-                      <span className="font-medium text-foreground">
-                        {course.name}
-                      </span>
-                      <Button
-                        onClick={() => handleStartCourse(course.id)}
-                        size="sm"
-                        className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
-                      >
-                        <Play className="w-4 h-4 mr-1" />
-                        Начать
-                      </Button>
+                      <div className="flex items-center gap-3">
+                        {isDeleteMode && (
+                          <Checkbox
+                            checked={selectedCourses.includes(course.id)}
+                            onCheckedChange={(checked) => handleCourseSelection(course.id, checked as boolean)}
+                            className="data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                          />
+                        )}
+                        <span className="font-medium text-foreground">
+                          {course.name}
+                        </span>
+                      </div>
+                      
+                      {!isDeleteMode && (
+                        <Button
+                          onClick={() => handleStartCourse(course.id)}
+                          size="sm"
+                          className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+                        >
+                          <Play className="w-4 h-4 mr-1" />
+                          Начать
+                        </Button>
+                      )}
                     </motion.div>
                   ))}
                 </AnimatePresence>
