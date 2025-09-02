@@ -2,95 +2,58 @@ import { useState, useEffect } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
+// Declare renderMathInElement function for auto-render
+declare global {
+  interface Window {
+    renderMathInElement: (element: HTMLElement, options?: any) => void;
+  }
+}
+
 class KaTeXManager {
+  private autoRenderLoaded = false;
+
+  constructor() {
+    this.loadAutoRender();
+  }
+
+  private loadAutoRender(): void {
+    if (this.autoRenderLoaded || window.renderMathInElement) {
+      this.autoRenderLoaded = true;
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js';
+    script.onload = () => {
+      this.autoRenderLoaded = true;
+    };
+    document.head.appendChild(script);
+  }
+
+  get isAutoRenderLoaded(): boolean {
+    return this.autoRenderLoaded;
+  }
+
   renderMath(element: HTMLElement): void {
+    if (!window.renderMathInElement) {
+      // If auto-render not loaded yet, wait and retry
+      setTimeout(() => this.renderMath(element), 100);
+      return;
+    }
+
     try {
-      // Process math expressions without modifying innerHTML directly
-      this.processTextNodes(element);
+      window.renderMathInElement(element, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false },
+          { left: "\\[", right: "\\]", display: true }
+        ],
+        throwOnError: false
+      });
     } catch (error) {
-      console.error('KaTeX rendering error:', error);
+      console.error('KaTeX auto-render error:', error);
     }
-  }
-
-  private processTextNodes(element: HTMLElement): void {
-    const walker = document.createTreeWalker(
-      element,
-      NodeFilter.SHOW_TEXT
-    );
-
-    const textNodes: Text[] = [];
-    let node;
-    while (node = walker.nextNode()) {
-      textNodes.push(node as Text);
-    }
-
-    textNodes.forEach(textNode => {
-      const content = textNode.textContent || '';
-      if (this.hasMathExpressions(content)) {
-        this.replaceMathInTextNode(textNode);
-      }
-    });
-  }
-
-  private hasMathExpressions(text: string): boolean {
-    return /\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\$[^$]+\$|\\\([^)]+\\\)/.test(text);
-  }
-
-  private replaceMathInTextNode(textNode: Text): void {
-    const content = textNode.textContent || '';
-    const parent = textNode.parentNode;
-    
-    if (!parent) return;
-
-    // Create a temporary container to process the content
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = this.processMathContent(content);
-    
-    // Replace the text node with processed content
-    const fragment = document.createDocumentFragment();
-    while (tempDiv.firstChild) {
-      fragment.appendChild(tempDiv.firstChild);
-    }
-    
-    parent.replaceChild(fragment, textNode);
-  }
-
-  private processMathContent(content: string): string {
-    // Process block math first ($$...$$ and \[...\])
-    content = content.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
-      try {
-        return `<span class="katex-display" style="display: block; text-align: center; margin: 12px 0;">${katex.renderToString(math.trim(), { throwOnError: false, displayMode: true })}</span>`;
-      } catch {
-        return match;
-      }
-    });
-
-    content = content.replace(/\\\[([^\]]+)\\\]/g, (match, math) => {
-      try {
-        return `<span class="katex-display" style="display: block; text-align: center; margin: 12px 0;">${katex.renderToString(math.trim(), { throwOnError: false, displayMode: true })}</span>`;
-      } catch {
-        return match;
-      }
-    });
-
-    // Process inline math ($...$ and \(...\))
-    content = content.replace(/\$([^$]+)\$/g, (match, math) => {
-      try {
-        return katex.renderToString(math.trim(), { throwOnError: false, displayMode: false });
-      } catch {
-        return match;
-      }
-    });
-
-    content = content.replace(/\\\(([^)]+)\\\)/g, (match, math) => {
-      try {
-        return katex.renderToString(math.trim(), { throwOnError: false, displayMode: false });
-      } catch {
-        return match;
-      }
-    });
-
-    return content;
   }
 
   renderAll(): void {
@@ -136,9 +99,17 @@ export const useKaTeXInitializer = (): boolean => {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // KaTeX is ready immediately since it's imported
-    setIsReady(true);
-    kaTeXManager.setupScrollObserver();
+    // Wait for auto-render to load
+    const checkReady = () => {
+      if (window.renderMathInElement || kaTeXManager.isAutoRenderLoaded) {
+        setIsReady(true);
+        kaTeXManager.setupScrollObserver();
+      } else {
+        setTimeout(checkReady, 100);
+      }
+    };
+    
+    checkReady();
   }, []);
 
   return isReady;

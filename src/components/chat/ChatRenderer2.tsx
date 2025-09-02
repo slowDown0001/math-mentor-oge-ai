@@ -1,43 +1,38 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
-import { useKaTeXInitializer, kaTeXManager } from '@/hooks/useMathJaxInitializer';
+import remarkGfm from 'remark-gfm';
 
-// 🧠 Converts [math] → $$math$$ and (math) → $math$
-function normalizeMathDelimiters(input: string): string {
-  // Replace \[ ... \] with $$ ... $$ (block math)
-  let result = input.replace(/\\\[\s*(.*?)\s*\\\]/gs, (_, content) => `\n\n$$${content.trim()}$$\n\n`);
-  
-  // Replace [ ... ] with $$ ... $$ (block math) - but be more careful
-  result = result.replace(/\[\s*([^[\]]*(?:\\.[^[\]]*)*)\s*\]/gs, (match, content) => {
-    // Skip if it looks like a markdown link
-    if (match.includes('](') || match.includes('http')) {
-      return match;
-    }
-    return `\n\n$$${content.trim()}$$\n\n`;
-  });
+// Math delimiter normalization functions
+const normalizeMathDelimiters = (input: string): string => {
+  let normalized = input;
 
-  // Replace \( ... \) with $ ... $ (inline math)
-  result = result.replace(/\\\(\s*(.*?)\s*\\\)/gs, (_, content) => `$${content.trim()}$`);
-  
-  // Replace ( ... ) with $ ... $ (inline math) - but be more careful
-  result = result.replace(/\(\s*([^()]*(?:\\.[^()]*)*)\s*\)/gs, (match, content) => {
-    // Skip if it looks like regular parentheses in text
-    if (content.length < 3 || /^[a-zA-Z\s]+$/.test(content) || content.includes(' ')) {
-      return match;
-    }
-    return `$${content.trim()}$`;
-  });
+  // Replace [math]...[/math] with $$...$$
+  normalized = normalized.replace(/\[math\]([\s\S]*?)\[\/math\]/g, '$$$$1$$');
 
-  return result;
-}
+  // Replace (math)...(math) with $$...$$ for display math
+  normalized = normalized.replace(/\(math\)([\s\S]*?)\(math\)/g, '$$$$1$$');
 
-function sanitizeLatex(input: string): string {
-  return input
-    .replace(/\{\{+/g, '{')                            // remove extra open braces
-    .replace(/\}\}+/g, '}')                            // remove extra close braces
-    .replace(/([^\\])%/g, '$1\\%');                    // escape % for MathJax
-}
+  // Replace {math}...{/math} with $$...$$ for display math
+  normalized = normalized.replace(/\{math\}([\s\S]*?)\{\/math\]/g, '$$$$1$$');
+
+  // Replace <math>...</math> with $$...$$ for display math
+  normalized = normalized.replace(/<math>([\s\S]*?)<\/math>/g, '$$$$1$$');
+
+  // Replace <m>...</m> with $...$ for inline math
+  normalized = normalized.replace(/<m>([\s\S]*?)<\/m>/g, '$$$1$$');
+
+  // Replace various other bracket patterns for display math
+  normalized = normalized.replace(/\[([^\]]*(?:frac|sqrt|sum|int|lim)[^\]]*)\]/g, '$$$$1$$');
+
+  return normalized;
+};
+
+// LaTeX content sanitization
+const sanitizeLatex = (input: string): string => {
+  // Remove extra braces and escape percentage signs
+  return input.replace(/\\%/g, '%').replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+};
 
 
 
@@ -47,79 +42,77 @@ interface ChatRenderer2Props {
   className?: string;
 }
 
-const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRenderer2Props) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isKaTeXReady = useKaTeXInitializer();
-
-  const normalizedText = normalizeMathDelimiters(text);
-
-  useEffect(() => {
-    if (!containerRef.current || !isKaTeXReady) return;
-
-    // Process KaTeX immediately when component mounts or text changes
-    kaTeXManager.renderMath(containerRef.current);
-    
-    // Apply styling to KaTeX elements
-    const katexElements = containerRef.current.querySelectorAll('.katex');
-    katexElements.forEach(element => {
-      const katexElement = element as HTMLElement;
-      katexElement.style.color = isUserMessage ? 'white' : '#333';
-    });
-
-    // Style display math containers
-    const displayElements = containerRef.current.querySelectorAll('.katex-display');
-    displayElements.forEach(element => {
-      const displayElement = element as HTMLElement;
-      displayElement.style.textAlign = 'center';
-      displayElement.style.margin = '12px 0';
-    });
-  }, [text, isKaTeXReady, isUserMessage]);
-
-  const linkColor = isUserMessage
-    ? 'text-blue-200 hover:text-blue-100'
-    : 'text-emerald-600 hover:text-emerald-700';
-
-  const textColor = isUserMessage ? 'text-white' : 'text-gray-800';
+const ChatRenderer2 = ({ 
+  text, 
+  isUserMessage = false, 
+  className = "" 
+}: ChatRenderer2Props) => {
+  // Preprocess the text to normalize delimiters and sanitize LaTeX
+  const processedText = useMemo(() => {
+    let processed = normalizeMathDelimiters(text);
+    processed = sanitizeLatex(processed);
+    return processed;
+  }, [text]);
 
   return (
-    <div 
-      ref={containerRef} 
-      className={`prose prose-sm max-w-none ${className} ${textColor}`}
-    >
+    <div className={className}>
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
         components={{
-          p: ({ children }) => (
-            <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>
-          ),
+          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
           a: ({ href, children }) => (
-            <a
-              href={href}
-              className={`${linkColor} underline underline-offset-2`}
-              target={href?.startsWith('http') ? '_blank' : '_self'}
+            <a 
+              href={href} 
+              target="_blank" 
               rel="noopener noreferrer"
+              className={`underline hover:no-underline ${
+                isUserMessage ? 'text-blue-100 hover:text-white' : 'text-blue-600 hover:text-blue-800'
+              }`}
             >
               {children}
             </a>
           ),
-          strong: ({ children }) => (
-            <strong className={`${isUserMessage ? 'text-white' : 'text-gray-800'} font-semibold`}>{children}</strong>
+          ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+          li: ({ children }) => <li className="mb-1">{children}</li>,
+          code: ({ children, className }) => {
+            const isInline = !className?.includes('language-');
+            return isInline ? (
+              <code className={`px-1 py-0.5 rounded text-sm font-mono ${
+                isUserMessage 
+                  ? 'bg-white/20 text-blue-100' 
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                {children}
+              </code>
+            ) : (
+              <pre className={`p-3 rounded-lg text-sm overflow-x-auto ${
+                isUserMessage 
+                  ? 'bg-white/20 text-blue-100' 
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                <code>{children}</code>
+              </pre>
+            );
+          },
+          blockquote: ({ children }) => (
+            <blockquote className={`pl-4 border-l-4 italic my-2 ${
+              isUserMessage 
+                ? 'border-blue-200 text-blue-100' 
+                : 'border-gray-300 text-gray-600'
+            }`}>
+              {children}
+            </blockquote>
           ),
-          em: ({ children }) => (
-            <em className={`${isUserMessage ? 'text-white/90' : 'text-gray-700'} italic`}>{children}</em>
-          ),
-          ul: ({ children }) => (
-            <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>
-          ),
-          ol: ({ children }) => (
-            <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>
-          ),
-          li: ({ children }) => (
-            <li className="leading-relaxed">{children}</li>
-          )
+          h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
+          h2: ({ children }) => <h2 className="text-lg font-bold mb-2">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-md font-bold mb-2">{children}</h3>,
+          strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+          em: ({ children }) => <em className="italic">{children}</em>,
         }}
       >
-        {normalizedText}
+        {processedText}
       </ReactMarkdown>
     </div>
   );

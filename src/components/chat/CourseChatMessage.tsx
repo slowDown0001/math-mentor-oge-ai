@@ -39,7 +39,15 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
     if (!messageRef.current) return;
 
     // Process KaTeX immediately when message mounts
-    kaTeXManager.renderMath(messageRef.current);
+    const processMessage = () => {
+      if (messageRef.current) {
+        kaTeXManager.renderMath(messageRef.current);
+      }
+    };
+
+    // Process immediately and after a short delay to ensure DOM is ready
+    processMessage();
+    const timeoutId = setTimeout(processMessage, 50);
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -59,6 +67,7 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
     observer.observe(messageRef.current);
 
     return () => {
+      clearTimeout(timeoutId);
       if (messageRef.current) {
         observer.unobserve(messageRef.current);
       }
