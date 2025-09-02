@@ -142,13 +142,8 @@ const MyDashboard = () => {
         const remainingCourseNumbers = remainingCourses.map(c => courseIdToNumber[c.id]);
         await updateUserCourses(remainingCourseNumbers);
         
-        // Remove from my courses with animation
-        setMyCourses(prev => prev.filter(course => !selectedCourses.includes(course.id)));
-        
-        // Add back to available courses with delay for animation
-        setTimeout(() => {
-          setAvailableCourses(prev => [...prev, ...coursesToRemove]);
-        }, 300);
+        // Reload courses from database to ensure consistency
+        await loadUserCourses();
       }
       
       setIsDeleteMode(false);
