@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import PrivateRoute from "./components/PrivateRoute";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const MyDashboard = lazy(() => import("./pages/MyDashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const DiagnosticTest = lazy(() => import("./pages/DiagnosticTest"));
 const Statistics = lazy(() => import("./pages/Statistics"));
@@ -82,6 +83,7 @@ const App = () => (
                 <Route path="/daily-practice" element={<DailyPractice />} />
                 <Route element={<PrivateRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/mydashboard" element={<MyDashboard />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/diagnostic" element={<DiagnosticTest />} />
           <Route path="/statistics" element={<Statistics />} />
