@@ -157,7 +157,7 @@ const EgeMathBasic = () => {
 
       {/* Chat window */}
       <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-6">
-        <div className="relative h-[60vh] bg-white/40 backdrop-blur-[12px] rounded-2xl shadow-2xl overflow-hidden">
+        <div id="chat-window" className="relative h-[60vh] bg-white/40 backdrop-blur-[12px] rounded-2xl shadow-2xl overflow-hidden">
           <CourseChatMessages messages={messages} isTyping={isTyping} />
         </div>
       </div>

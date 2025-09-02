@@ -123,6 +123,41 @@ class KaTeXManager {
     });
   }
 
+  initializeChatWindow(): void {
+    // Wait for auto-render to load, then initialize the chat window
+    const initializeWhenReady = () => {
+      if (!window.renderMathInElement || !this.autoRenderLoaded) {
+        setTimeout(initializeWhenReady, 100);
+        return;
+      }
+
+      // Ensure katex is available globally
+      if (!window.katex) {
+        (window as any).katex = katex;
+      }
+
+      // Find chat container and initialize auto-render
+      const chatContainer = document.querySelector('[data-radix-scroll-area-viewport]');
+      if (chatContainer) {
+        try {
+          window.renderMathInElement(chatContainer as HTMLElement, {
+            delimiters: [
+              { left: "$$", right: "$$", display: true },    // block
+              { left: "$", right: "$", display: false },     // inline
+              { left: "\\(", right: "\\)", display: false }, // inline
+              { left: "\\[", right: "\\]", display: true }   // block
+            ],
+            throwOnError: false
+          });
+        } catch (error) {
+          console.error('KaTeX chat window initialization error:', error);
+        }
+      }
+    };
+
+    initializeWhenReady();
+  }
+
   setupScrollObserver(): void {
     let scrollTimeout: NodeJS.Timeout;
     const handleScroll = () => {
@@ -152,6 +187,7 @@ export const useKaTeXInitializer = (): boolean => {
       if (window.renderMathInElement || kaTeXManager.isAutoRenderLoaded) {
         setIsReady(true);
         kaTeXManager.setupScrollObserver();
+        kaTeXManager.initializeChatWindow();
       } else {
         setTimeout(checkReady, 100);
       }
