@@ -53,12 +53,6 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
       const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
       const lastMessage = messages[messages.length - 1];
       
-      // Process KaTeX for visible messages first
-      const visibleMessages = containerRef.current.querySelectorAll('[data-message]');
-      visibleMessages.forEach(msg => {
-        kaTeXManager.renderMath(msg as HTMLElement);
-      });
-      
       // Force scroll when user sends a message, or auto-scroll if near bottom
       const shouldAutoScroll = isNearBottom || lastMessage.isUser;
       
@@ -71,7 +65,7 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
             // If AI is responding or finished, show the conversation naturally
             scrollToBottom();
           }
-        }, 50);
+        }, 100); // Increased delay to let KaTeX render first
       }
     }
   }, [messages, isTyping]);
