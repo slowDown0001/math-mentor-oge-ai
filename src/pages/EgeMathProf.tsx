@@ -69,8 +69,7 @@ const EgeMathProf = () => {
   };
 
   const handleTextbookClick = () => {
-    // TODO: Add textbook functionality  
-    console.log("Textbook clicked");
+    navigate("/new-textbook");
   };
 
   const handleProgressClick = () => {
