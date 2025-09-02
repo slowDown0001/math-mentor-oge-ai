@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { BookOpen, Target } from "lucide-react";
+import { useState } from "react";
 import FloatingElements from "./FloatingElements";
 import PromptBar from "../PromptBar";
+import AuthModal from "../auth/AuthModal";
 
 export default function LandingHero() {
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-muted/50">
       {/* Floating Math Elements */}
@@ -44,32 +46,17 @@ export default function LandingHero() {
           </motion.p>
           
           <motion.div 
-            className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+            className="flex justify-center"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
           >
             <Button 
-              asChild 
               size="lg" 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              onClick={() => setShowAuthModal(true)}
+              className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-6 text-lg rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
-              <Link to="/new-textbook" className="flex items-center gap-3">
-                <BookOpen className="w-6 h-6" />
-                Начать с ОГЭ
-              </Link>
-            </Button>
-            
-            <Button 
-              asChild 
-              variant="outline" 
-              size="lg" 
-              className="border-2 border-primary text-primary hover:bg-primary/5 px-8 py-6 text-lg rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-            >
-              <Link to="/questions" className="flex items-center gap-3">
-                <Target className="w-6 h-6" />
-                Посмотреть практику
-              </Link>
+              Войти с помощью Google, Yandex, VK, email
             </Button>
           </motion.div>
           
@@ -96,6 +83,13 @@ export default function LandingHero() {
       
       {/* Background Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent pointer-events-none" />
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+        initialView="signin"
+      />
     </section>
   );
 }
