@@ -2,6 +2,7 @@ import { type Message } from "@/contexts/ChatContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import ChatRenderer2 from "./ChatRenderer2";
 
 interface CourseChatMessageProps {
   message: Message;
@@ -45,8 +46,8 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
     return (
       <div className="flex justify-end items-start gap-3 animate-fade-in slide-in-right mb-4">
         <div className="flex flex-col items-end max-w-[70%]">
-          <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 text-white font-medium text-[15px] px-4 py-3 rounded-2xl rounded-tr-md shadow-lg">
-            {message.text}
+          <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 text-white font-medium text-[15px] px-4 py-3 rounded-2xl rounded-tr-md shadow-lg [&_.math-display]:text-center [&_.math-display]:my-3 [&_.math-inline]:text-white [&_.math-display]:text-white">
+            <ChatRenderer2 text={message.text} isUserMessage={true} />
           </div>
           <span className="text-[11px] text-muted-foreground/70 mt-1 mr-2">
             {formatTime(message.timestamp)}
@@ -76,8 +77,8 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
         />
       </div>
       <div className="flex flex-col items-start max-w-[70%]">
-        <div className="bg-white/60 backdrop-blur-md text-gray-800 text-[15px] px-4 py-3 rounded-2xl rounded-tl-md shadow-lg border border-white/30">
-          {message.text}
+        <div className="bg-white/60 backdrop-blur-md text-gray-800 text-[15px] px-4 py-3 rounded-2xl rounded-tl-md shadow-lg border border-white/30 [&_.math-display]:text-center [&_.math-display]:my-3 [&_.math-inline]:text-gray-800 [&_.math-display]:text-gray-800">
+          <ChatRenderer2 text={message.text} isUserMessage={false} />
         </div>
         <span className="text-[11px] text-muted-foreground/70 mt-1 ml-2">
           {formatTime(message.timestamp)}

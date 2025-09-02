@@ -68,15 +68,16 @@ export const useMathJaxInitializer = () => {
       return;
     }
 
-    // Configure MathJax
+    // Configure MathJax with all required delimiters
     window.MathJax = {
       tex: {
         inlineMath: [['$', '$'], ['\\(', '\\)']],
         displayMath: [['$$', '$$'], ['\\[', '\\]']],
         processEscapes: true,
         processEnvironments: true,
+        processRefs: true,
         // Enable \textbf{}, \textit{}, etc. in text mode
-        packages: {'[+]': ['textmacros', 'textcomp']},
+        packages: {'[+]': ['textmacros', 'textcomp', 'ams', 'newcommand']},
         textmacros: {
           packages: {'[+]': ['base']}
         }

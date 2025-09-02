@@ -75,8 +75,34 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
     ? 'text-blue-200 hover:text-blue-100'
     : 'text-emerald-600 hover:text-emerald-700';
 
+  const textColor = isUserMessage ? 'text-white' : 'text-gray-800';
+
+  useEffect(() => {
+    if (!containerRef.current || !isMathJaxReady) return;
+
+    const applyMathStyling = () => {
+      const mathElements = containerRef.current?.querySelectorAll('.MathJax');
+      mathElements?.forEach(element => {
+        const mathJaxElement = element as HTMLElement;
+        mathJaxElement.classList.add('animate-math-fade-in');
+        
+        if (mathJaxElement.classList.contains('MathJax_Display')) {
+          mathJaxElement.style.textAlign = 'center';
+          mathJaxElement.style.margin = '12px 0';
+        }
+        
+        // Apply color based on message type
+        mathJaxElement.style.color = isUserMessage ? 'white' : '#333';
+      });
+    };
+
+    // Apply styling with a delay to ensure MathJax has rendered
+    const timer = setTimeout(applyMathStyling, 200);
+    return () => clearTimeout(timer);
+  }, [text, isUserMessage, isMathJaxReady]);
+
   return (
-    <div ref={containerRef} className={`prose prose-sm max-w-none ${className}`}>
+    <div ref={containerRef} className={`prose prose-sm max-w-none ${className} ${textColor}`}>
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
         components={{
@@ -94,10 +120,10 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
             </a>
           ),
           strong: ({ children }) => (
-            <strong className="text-foreground font-semibold">{children}</strong>
+            <strong className={`${isUserMessage ? 'text-white' : 'text-gray-800'} font-semibold`}>{children}</strong>
           ),
           em: ({ children }) => (
-            <em className="text-foreground/80 italic">{children}</em>
+            <em className={`${isUserMessage ? 'text-white/90' : 'text-gray-700'} italic`}>{children}</em>
           ),
           ul: ({ children }) => (
             <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>

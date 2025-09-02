@@ -121,6 +121,10 @@ export default {
 				'scale-in': {
 					'0%': { transform: 'scale(0.95)', opacity: '0' },
 					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				'math-fade-in': {
+					'from': { opacity: '0', transform: 'translateY(5px)' },
+					'to': { opacity: '1', transform: 'translateY(0)' }
 				}
 			},
 			animation: {
@@ -134,7 +138,8 @@ export default {
 				'pulse-wave-3': 'pulse-wave-3 1.2s ease-in-out infinite 0.4s',
 				'fade-in': 'fade-in 0.3s ease-out',
 				'slide-in-right': 'slide-in-right 0.3s ease-out',
-				'scale-in': 'scale-in 0.2s ease-out'
+				'scale-in': 'scale-in 0.2s ease-out',
+				'math-fade-in': 'math-fade-in 0.3s ease-out forwards'
 			},
 			fontFamily: {
 				sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
