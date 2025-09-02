@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Plus, Play, ArrowLeft, LogOut, Trash2 } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Course {
   id: string;
@@ -19,16 +20,90 @@ const availableCoursesData: Course[] = [
   { id: 'ege-advanced', name: 'ЕГЭ профильная математика' },
 ];
 
+const courseIdToNumber: Record<string, number> = {
+  'oge-math': 1,
+  'ege-basic': 2,
+  'ege-advanced': 3,
+};
+
 const MyDashboard = () => {
   const { getDisplayName } = useProfile();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [availableCourses, setAvailableCourses] = useState<Course[]>(availableCoursesData);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [myCourses, setMyCourses] = useState<Course[]>([]);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
 
-  const handleAddCourse = (course: Course) => {
+  useEffect(() => {
+    if (user) {
+      loadUserCourses();
+    }
+  }, [user]);
+
+  const loadUserCourses = async () => {
+    if (!user) return;
+
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('courses')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading user courses:', error);
+        return;
+      }
+
+      const userCourseNumbers = profile?.courses || [];
+      const userCourses: Course[] = [];
+      const available: Course[] = [];
+
+      availableCoursesData.forEach(course => {
+        const courseNumber = courseIdToNumber[course.id];
+        if (userCourseNumbers.includes(courseNumber)) {
+          userCourses.push(course);
+        } else {
+          available.push(course);
+        }
+      });
+
+      setMyCourses(userCourses);
+      setAvailableCourses(available);
+    } catch (error) {
+      console.error('Error loading user courses:', error);
+      setAvailableCourses(availableCoursesData);
+    }
+  };
+
+  const updateUserCourses = async (courseNumbers: number[]) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({ 
+          user_id: user.id, 
+          courses: courseNumbers 
+        });
+
+      if (error) {
+        console.error('Error updating user courses:', error);
+      }
+    } catch (error) {
+      console.error('Error updating user courses:', error);
+    }
+  };
+
+  const handleAddCourse = async (course: Course) => {
+    const courseNumber = courseIdToNumber[course.id];
+    
+    // Update database
+    const currentCourseNumbers = myCourses.map(c => courseIdToNumber[c.id]);
+    const newCourseNumbers = [...currentCourseNumbers, courseNumber];
+    await updateUserCourses(newCourseNumbers);
+
     // Remove from available courses
     setAvailableCourses(prev => prev.filter(c => c.id !== course.id));
     
@@ -56,11 +131,16 @@ const MyDashboard = () => {
     navigate('/');
   };
 
-  const handleDeleteMode = () => {
+  const handleDeleteMode = async () => {
     if (isDeleteMode) {
       // Execute deletion
       if (selectedCourses.length > 0) {
         const coursesToRemove = myCourses.filter(course => selectedCourses.includes(course.id));
+        
+        // Update database - remove selected courses
+        const remainingCourses = myCourses.filter(course => !selectedCourses.includes(course.id));
+        const remainingCourseNumbers = remainingCourses.map(c => courseIdToNumber[c.id]);
+        await updateUserCourses(remainingCourseNumbers);
         
         // Remove from my courses with animation
         setMyCourses(prev => prev.filter(course => !selectedCourses.includes(course.id)));
@@ -93,7 +173,7 @@ const MyDashboard = () => {
       <div className="fixed top-6 left-6 right-6 flex justify-between z-10">
         <Button
           onClick={handleBackToMain}
-          className="bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+          className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Назад
@@ -204,7 +284,7 @@ const MyDashboard = () => {
                       ? selectedCourses.length > 0 
                         ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white" 
                         : "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
-                      : "bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white"
+                      : "bg-gradient-to-r from-red-200 to-red-300 hover:from-red-300 hover:to-red-400 text-black"
                   }`}
                 >
                   <Trash2 className="w-4 h-4 mr-1" />

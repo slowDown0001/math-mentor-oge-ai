@@ -1679,6 +1679,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          courses: number[] | null
           created_at: string
           full_name: string | null
           id: string
@@ -1688,6 +1689,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          courses?: number[] | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -1697,6 +1699,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          courses?: number[] | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -1741,7 +1744,7 @@ export type Database = {
           question_id: string
           scores_fipi: number | null
           skills: number[] | null
-          topics: number[] | null
+          topics: string[] | null
           updated_at: string
           user_id: string
         }
@@ -1756,7 +1759,7 @@ export type Database = {
           question_id: string
           scores_fipi?: number | null
           skills?: number[] | null
-          topics?: number[] | null
+          topics?: string[] | null
           updated_at?: string
           user_id: string
         }
@@ -1771,7 +1774,7 @@ export type Database = {
           question_id?: string
           scores_fipi?: number | null
           skills?: number[] | null
-          topics?: number[] | null
+          topics?: string[] | null
           updated_at?: string
           user_id?: string
         }
