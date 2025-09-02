@@ -56,50 +56,34 @@ const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRend
   useEffect(() => {
     if (!containerRef.current || !isMathJaxReady) return;
 
+    // Use requestAnimationFrame to ensure DOM is updated
     requestAnimationFrame(() => {
-      mathJaxManager.renderMath(containerRef.current!);
-    });
-  }, [text, isMathJaxReady]);
-
-  useEffect(() => {
-    const handler = () => {
-      if (document.visibilityState === 'visible' && containerRef.current && isMathJaxReady) {
-        mathJaxManager.renderMath(containerRef.current);
+      if (containerRef.current) {
+        mathJaxManager.renderMath(containerRef.current).then(() => {
+          // Apply styling after MathJax rendering is complete
+          const mathElements = containerRef.current?.querySelectorAll('.MathJax');
+          mathElements?.forEach(element => {
+            const mathJaxElement = element as HTMLElement;
+            mathJaxElement.classList.add('animate-math-fade-in');
+            
+            if (mathJaxElement.classList.contains('MathJax_Display')) {
+              mathJaxElement.style.textAlign = 'center';
+              mathJaxElement.style.margin = '12px 0';
+            }
+            
+            // Apply color based on message type
+            mathJaxElement.style.color = isUserMessage ? 'white' : '#333';
+          });
+        });
       }
-    };
-    document.addEventListener('visibilitychange', handler);
-    return () => document.removeEventListener('visibilitychange', handler);
-  }, [isMathJaxReady]);
+    });
+  }, [text, isMathJaxReady, isUserMessage]);
 
   const linkColor = isUserMessage
     ? 'text-blue-200 hover:text-blue-100'
     : 'text-emerald-600 hover:text-emerald-700';
 
   const textColor = isUserMessage ? 'text-white' : 'text-gray-800';
-
-  useEffect(() => {
-    if (!containerRef.current || !isMathJaxReady) return;
-
-    const applyMathStyling = () => {
-      const mathElements = containerRef.current?.querySelectorAll('.MathJax');
-      mathElements?.forEach(element => {
-        const mathJaxElement = element as HTMLElement;
-        mathJaxElement.classList.add('animate-math-fade-in');
-        
-        if (mathJaxElement.classList.contains('MathJax_Display')) {
-          mathJaxElement.style.textAlign = 'center';
-          mathJaxElement.style.margin = '12px 0';
-        }
-        
-        // Apply color based on message type
-        mathJaxElement.style.color = isUserMessage ? 'white' : '#333';
-      });
-    };
-
-    // Apply styling with a delay to ensure MathJax has rendered
-    const timer = setTimeout(applyMathStyling, 200);
-    return () => clearTimeout(timer);
-  }, [text, isUserMessage, isMathJaxReady]);
 
   return (
     <div ref={containerRef} className={`prose prose-sm max-w-none ${className} ${textColor}`}>

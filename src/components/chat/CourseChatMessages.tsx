@@ -3,6 +3,7 @@ import { type Message } from "@/contexts/ChatContext";
 import CourseChatMessage from "./CourseChatMessage";
 import TypingIndicator from "./TypingIndicator";
 import { ChevronDown } from "lucide-react";
+import { mathJaxManager } from "@/hooks/useMathJaxInitializer";
 
 interface CourseChatMessagesProps {
   messages: Message[];
@@ -33,7 +34,14 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
       const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
       
       if (isNearBottom) {
-        scrollToBottom();
+        // Delay scroll and MathJax rendering to ensure content is loaded
+        setTimeout(() => {
+          scrollToBottom();
+          // Re-render MathJax for all content after messages update
+          if (containerRef.current) {
+            mathJaxManager.renderAll();
+          }
+        }, 150);
       }
     }
   }, [messages, isTyping]);
