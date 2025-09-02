@@ -82,15 +82,15 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
         className="h-full overflow-y-auto p-4 space-y-4 scroll-smooth"
         style={{ fontFamily: 'Inter, Poppins, Montserrat, sans-serif' }}
       >
-      {messages.length === 0 ? (
-        <div className="text-muted-foreground/60 text-center py-8 text-sm">
-          Начните беседу...
-        </div>
-      ) : (
-        messages.map((message) => (
-          <CourseChatMessage key={message.id} message={message} />
-        ))
-      )}
+        {messages.length === 0 ? (
+          <div className="text-muted-foreground/60 text-center py-8 text-sm">
+            Начните беседу...
+          </div>
+        ) : (
+          messages.map((message) => (
+            <CourseChatMessage key={message.id} message={message} />
+          ))
+        )}
         
         {isTyping && (
           <div className="flex justify-start items-start gap-3 animate-fade-in">
