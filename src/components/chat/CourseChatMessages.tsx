@@ -19,6 +19,26 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const scrollToShowUserMessageAndResponse = () => {
+    if (containerRef.current && messages.length > 0) {
+      const container = containerRef.current;
+      const lastMessage = messages[messages.length - 1];
+      
+      // If the last message is from user, scroll to show it plus space for AI response
+      if (lastMessage.isUser) {
+        // Scroll to show the user's message and leave space for AI response start
+        const targetScrollTop = container.scrollHeight - container.clientHeight + 100;
+        container.scrollTo({
+          top: Math.max(0, targetScrollTop),
+          behavior: "smooth"
+        });
+      } else {
+        // If AI message, scroll to show both user question and AI response start
+        scrollToBottom();
+      }
+    }
+  };
+
   const handleScroll = () => {
     if (containerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
@@ -28,21 +48,27 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
   };
 
   useEffect(() => {
-    // Auto-scroll to bottom when new messages arrive, unless user has scrolled up
-    if (containerRef.current) {
+    if (containerRef.current && messages.length > 0) {
       const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
       const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
+      const lastMessage = messages[messages.length - 1];
       
+      // Process KaTeX for visible messages first
+      const visibleMessages = containerRef.current.querySelectorAll('[data-message]');
+      visibleMessages.forEach(msg => {
+        kaTeXManager.renderMath(msg as HTMLElement);
+      });
+      
+      // Only auto-scroll if user is near bottom (hasn't manually scrolled up)
       if (isNearBottom) {
-        // Process KaTeX for visible messages first, then scroll
-        const visibleMessages = containerRef.current.querySelectorAll('[data-message]');
-        visibleMessages.forEach(msg => {
-          kaTeXManager.renderMath(msg as HTMLElement);
-        });
-        
-        // Scroll immediately since KaTeX renders synchronously
         setTimeout(() => {
-          scrollToBottom();
+          // If user just sent a message, scroll to show it plus space for AI response
+          if (lastMessage.isUser) {
+            scrollToShowUserMessageAndResponse();
+          } else {
+            // If AI is responding or finished, show the conversation naturally
+            scrollToBottom();
+          }
         }, 50);
       }
     }
