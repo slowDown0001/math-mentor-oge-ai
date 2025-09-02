@@ -68,19 +68,14 @@ export const useMathJaxInitializer = () => {
       return;
     }
 
-    // Configure MathJax with all required delimiters
+    // Configure MathJax with correct options
     window.MathJax = {
       tex: {
         inlineMath: [['$', '$'], ['\\(', '\\)']],
         displayMath: [['$$', '$$'], ['\\[', '\\]']],
         processEscapes: true,
         processEnvironments: true,
-        processRefs: true,
-        // Enable \textbf{}, \textit{}, etc. in text mode
-        packages: {'[+]': ['textmacros', 'textcomp', 'ams', 'newcommand']},
-        textmacros: {
-          packages: {'[+]': ['base']}
-        }
+        packages: {'[+]': ['base', 'ams', 'newcommand']}
       },
       options: {
         skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
@@ -89,9 +84,13 @@ export const useMathJaxInitializer = () => {
       },
       startup: {
         ready: () => {
+          console.log('MathJax is ready');
           window.MathJax.startup.defaultReady();
           setIsMathJaxReady(true);
         }
+      },
+      loader: {
+        load: ['[tex]/base', '[tex]/ams', '[tex]/newcommand']
       }
     };
 

@@ -7,12 +7,16 @@ import ChatInput from "@/components/chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
+import { useMathJaxInitializer } from "@/hooks/useMathJaxInitializer";
 
 const OgeMath = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
+  
+  // Initialize MathJax
+  useMathJaxInitializer();
 
   // Initialize welcome messages if chat is empty
   useEffect(() => {
