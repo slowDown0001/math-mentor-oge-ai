@@ -3,7 +3,7 @@ import { type Message } from "@/contexts/ChatContext";
 import CourseChatMessage from "./CourseChatMessage";
 import TypingIndicator from "./TypingIndicator";
 import { ChevronDown } from "lucide-react";
-import { mathJaxManager } from "@/hooks/useMathJaxInitializer";
+import { kaTeXManager } from "@/hooks/useMathJaxInitializer";
 
 interface CourseChatMessagesProps {
   messages: Message[];
@@ -34,17 +34,16 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
       const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
       
       if (isNearBottom) {
-        // Process MathJax for visible messages first, then scroll
+        // Process KaTeX for visible messages first, then scroll
         const visibleMessages = containerRef.current.querySelectorAll('[data-message]');
-        const promises = Array.from(visibleMessages).map(msg => 
-          mathJaxManager.renderMath(msg as HTMLElement)
-        );
-        
-        Promise.all(promises).then(() => {
-          setTimeout(() => {
-            scrollToBottom();
-          }, 50);
+        visibleMessages.forEach(msg => {
+          kaTeXManager.renderMath(msg as HTMLElement);
         });
+        
+        // Scroll immediately since KaTeX renders synchronously
+        setTimeout(() => {
+          scrollToBottom();
+        }, 50);
       }
     }
   }, [messages, isTyping]);

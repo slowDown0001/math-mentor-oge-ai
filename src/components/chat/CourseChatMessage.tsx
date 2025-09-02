@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ChatRenderer2 from "./ChatRenderer2";
-import { mathJaxManager } from "@/hooks/useMathJaxInitializer";
+import { kaTeXManager } from "@/hooks/useMathJaxInitializer";
 
 interface CourseChatMessageProps {
   message: Message;
@@ -34,25 +34,18 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
     fetchUserAvatar();
   }, [user, message.isUser]);
 
-  // Process MathJax when message mounts and becomes visible
+  // Process KaTeX when message mounts and becomes visible
   useEffect(() => {
     if (!messageRef.current) return;
 
-    // Initial processing when message mounts
-    const processInitial = () => {
-      if (messageRef.current) {
-        mathJaxManager.renderMath(messageRef.current);
-      }
-    };
-
-    // Process immediately and also when visible
-    processInitial();
+    // Process KaTeX immediately when message mounts
+    kaTeXManager.renderMath(messageRef.current);
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            mathJaxManager.renderMath(entry.target as HTMLElement);
+            kaTeXManager.renderMath(entry.target as HTMLElement);
           }
         });
       },

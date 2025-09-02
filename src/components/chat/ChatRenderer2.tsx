@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
-import { useMathJaxInitializer, mathJaxManager } from '@/hooks/useMathJaxInitializer';
+import { useKaTeXInitializer, kaTeXManager } from '@/hooks/useMathJaxInitializer';
 
 // 🧠 Converts [math] → $$math$$ and (math) → $math$
 function normalizeMathDelimiters(input: string): string {
@@ -49,33 +49,31 @@ interface ChatRenderer2Props {
 
 const ChatRenderer2 = ({ text, isUserMessage = false, className = '' }: ChatRenderer2Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isMathJaxReady = useMathJaxInitializer();
+  const isKaTeXReady = useKaTeXInitializer();
 
   const normalizedText = normalizeMathDelimiters(text);
 
   useEffect(() => {
-    if (!containerRef.current || !isMathJaxReady) return;
+    if (!containerRef.current || !isKaTeXReady) return;
 
-    // Process MathJax immediately when component mounts or text changes
-    mathJaxManager.renderMath(containerRef.current).then(() => {
-      // Apply styling after MathJax rendering is complete
-      const mathElements = containerRef.current?.querySelectorAll('.MathJax');
-      mathElements?.forEach(element => {
-        const mathJaxElement = element as HTMLElement;
-        mathJaxElement.classList.add('animate-math-fade-in');
-        
-        if (mathJaxElement.classList.contains('MathJax_Display')) {
-          mathJaxElement.style.textAlign = 'center';
-          mathJaxElement.style.margin = '12px 0';
-        }
-        
-        // Apply color based on message type
-        mathJaxElement.style.color = isUserMessage ? 'white' : '#333';
-      });
-    }).catch((error) => {
-      console.error('MathJax rendering failed:', error);
+    // Process KaTeX immediately when component mounts or text changes
+    kaTeXManager.renderMath(containerRef.current);
+    
+    // Apply styling to KaTeX elements
+    const katexElements = containerRef.current.querySelectorAll('.katex');
+    katexElements.forEach(element => {
+      const katexElement = element as HTMLElement;
+      katexElement.style.color = isUserMessage ? 'white' : '#333';
     });
-  }, [text, isMathJaxReady, isUserMessage]);
+
+    // Style display math containers
+    const displayElements = containerRef.current.querySelectorAll('.katex-display');
+    displayElements.forEach(element => {
+      const displayElement = element as HTMLElement;
+      displayElement.style.textAlign = 'center';
+      displayElement.style.margin = '12px 0';
+    });
+  }, [text, isKaTeXReady, isUserMessage]);
 
   const linkColor = isUserMessage
     ? 'text-blue-200 hover:text-blue-100'

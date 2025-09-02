@@ -1,135 +1,111 @@
+import { useState, useEffect } from 'react';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 
-import { useEffect, useState } from 'react';
-
-declare global {
-  interface Window {
-    MathJax: any;
-    mathJaxQueue: Promise<any>;
-  }
-}
-
-// Global MathJax manager to prevent conflicts
-class MathJaxManager {
-  private static instance: MathJaxManager;
-  private queue: Promise<any> = Promise.resolve();
-
-  static getInstance(): MathJaxManager {
-    if (!MathJaxManager.instance) {
-      MathJaxManager.instance = new MathJaxManager();
+class KaTeXManager {
+  renderMath(element: HTMLElement): void {
+    try {
+      // Find all inline math patterns
+      this.processInlineMath(element);
+      
+      // Find all block math patterns
+      this.processBlockMath(element);
+    } catch (error) {
+      console.error('KaTeX rendering error:', error);
     }
-    return MathJaxManager.instance;
   }
 
-  async renderMath(element: HTMLElement): Promise<void> {
-    this.queue = this.queue.then(async () => {
+  private processInlineMath(element: HTMLElement): void {
+    // Process $...$ patterns
+    element.innerHTML = element.innerHTML.replace(/\$([^$]+)\$/g, (match, math) => {
       try {
-        if (
-          typeof window.MathJax !== 'undefined' &&
-          typeof window.MathJax.typesetPromise === 'function'
-        ) {
-          // Check if there's any math to process
-          const hasRawMath = element.textContent?.includes('\\(') || 
-                            element.textContent?.includes('\\[') ||
-                            element.textContent?.includes('$');
-          
-          const existingMjElements = element.querySelectorAll('.MathJax');
-          const shouldProcess = hasRawMath || existingMjElements.length === 0;
-          
-          if (shouldProcess) {
-            // Clear existing MathJax elements to prevent duplicates
-            existingMjElements.forEach(el => el.remove());
-            
-            // Process the element
-            await window.MathJax.typesetPromise([element]);
-            
-            // Apply custom styling after rendering
-            const newMjElements = element.querySelectorAll('.MathJax');
-            newMjElements.forEach(mjEl => {
-              const mathElement = mjEl as HTMLElement;
-              mathElement.style.transition = 'opacity 0.2s ease-in-out';
-              mathElement.style.opacity = '1';
-              
-              // Ensure proper visibility
-              mathElement.style.visibility = 'visible';
-              mathElement.style.display = mathElement.classList.contains('MathJax_Display') ? 'block' : 'inline';
-            });
-          }
-        }
-      } catch (error) {
-        console.error('MathJax rendering error:', error);
+        return katex.renderToString(math.trim(), { throwOnError: false, displayMode: false });
+      } catch {
+        return match;
       }
     });
-    return this.queue;
+
+    // Process \(...\) patterns
+    element.innerHTML = element.innerHTML.replace(/\\\(([^)]+)\\\)/g, (match, math) => {
+      try {
+        return katex.renderToString(math.trim(), { throwOnError: false, displayMode: false });
+      } catch {
+        return match;
+      }
+    });
   }
 
-  async renderAll(): Promise<void> {
-    this.queue = this.queue.then(async () => {
+  private processBlockMath(element: HTMLElement): void {
+    // Process $$...$$ patterns
+    element.innerHTML = element.innerHTML.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
       try {
-        if (
-          typeof window.MathJax !== 'undefined' &&
-          typeof window.MathJax.typesetPromise === 'function'
-        ) {
-          await window.MathJax.typesetPromise();
-        }
-      } catch (error) {
-        console.error('MathJax rendering error:', error);
+        return `<div class="katex-display">${katex.renderToString(math.trim(), { throwOnError: false, displayMode: true })}</div>`;
+      } catch {
+        return match;
       }
     });
-    return this.queue;
+
+    // Process \[...\] patterns
+    element.innerHTML = element.innerHTML.replace(/\\\[([^\]]+)\\\]/g, (match, math) => {
+      try {
+        return `<div class="katex-display">${katex.renderToString(math.trim(), { throwOnError: false, displayMode: true })}</div>`;
+      } catch {
+        return match;
+      }
+    });
+  }
+
+  renderAll(): void {
+    const messageElements = document.querySelectorAll('[data-message]');
+    messageElements.forEach((element) => {
+      this.renderMath(element as HTMLElement);
+    });
+  }
+
+  processVisibleMessages(): void {
+    const messageElements = document.querySelectorAll('[data-message]');
+    messageElements.forEach((element) => {
+      const rect = element.getBoundingClientRect();
+      const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+      
+      if (isVisible) {
+        this.renderMath(element as HTMLElement);
+      }
+    });
+  }
+
+  setupScrollObserver(): void {
+    let scrollTimeout: NodeJS.Timeout;
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        this.processVisibleMessages();
+      }, 100);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    const chatContainers = document.querySelectorAll('[data-radix-scroll-area-viewport]');
+    chatContainers.forEach(container => {
+      container.addEventListener('scroll', handleScroll, { passive: true });
+    });
   }
 }
 
-export const mathJaxManager = MathJaxManager.getInstance();
+export const kaTeXManager = new KaTeXManager();
 
-export const useMathJaxInitializer = () => {
-  const [isMathJaxReady, setIsMathJaxReady] = useState(false);
+export const useKaTeXInitializer = (): boolean => {
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (window.MathJax) {
-      setIsMathJaxReady(true);
-      return;
-    }
-
-    // Configure MathJax with correct options
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']],
-        processEscapes: true,
-        processEnvironments: true,
-        packages: {'[+]': ['base', 'ams', 'newcommand']}
-      },
-      options: {
-        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-        ignoreHtmlClass: 'tex2jax_ignore',
-        processHtmlClass: 'tex2jax_process'
-      },
-      startup: {
-        ready: () => {
-          console.log('MathJax is ready');
-          window.MathJax.startup.defaultReady();
-          setIsMathJaxReady(true);
-        }
-      },
-      loader: {
-        load: ['[tex]/base', '[tex]/ams', '[tex]/newcommand']
-      }
-    };
-
-    // Load MathJax script
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
-    script.async = true;
-    document.head.appendChild(script);
-
-    return () => {
-      // Cleanup if needed
-      const existingScript = document.querySelector('script[src*="mathjax"]');
-      if (existingScript && existingScript.parentNode) {
-        existingScript.parentNode.removeChild(existingScript);
-      }
-    };
+    // KaTeX is ready immediately since it's imported
+    setIsReady(true);
+    kaTeXManager.setupScrollObserver();
   }, []);
 
-  return isMathJaxReady;
+  return isReady;
 };
+
+// Legacy exports for backward compatibility
+export const mathJaxManager = kaTeXManager;
+export const useMathJaxInitializer = useKaTeXInitializer;
