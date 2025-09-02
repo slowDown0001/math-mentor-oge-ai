@@ -97,6 +97,30 @@ export default {
 					'0%': { transform: 'scale(0.8)', opacity: '0' },
 					'80%': { transform: 'scale(1.05)' },
 					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				'pulse-wave-1': {
+					'0%, 40%, 100%': { transform: 'translateY(0)' },
+					'20%': { transform: 'translateY(-6px)' }
+				},
+				'pulse-wave-2': {
+					'0%, 60%, 100%': { transform: 'translateY(0)' },
+					'40%': { transform: 'translateY(-6px)' }
+				},
+				'pulse-wave-3': {
+					'0%, 80%, 100%': { transform: 'translateY(0)' },
+					'60%': { transform: 'translateY(-6px)' }
+				},
+				'fade-in': {
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'slide-in-right': {
+					'0%': { transform: 'translateX(100%)' },
+					'100%': { transform: 'translateX(0)' }
+				},
+				'scale-in': {
+					'0%': { transform: 'scale(0.95)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
 				}
 			},
 			animation: {
@@ -104,7 +128,13 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'typing': 'typing 3.5s steps(40, end)',
 				'blink': 'blink 1s step-end infinite',
-				'bounce-in': 'bounce-in 0.5s ease-out'
+				'bounce-in': 'bounce-in 0.5s ease-out',
+				'pulse-wave-1': 'pulse-wave-1 1.2s ease-in-out infinite',
+				'pulse-wave-2': 'pulse-wave-2 1.2s ease-in-out infinite 0.2s',
+				'pulse-wave-3': 'pulse-wave-3 1.2s ease-in-out infinite 0.4s',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'slide-in-right': 'slide-in-right 0.3s ease-out',
+				'scale-in': 'scale-in 0.2s ease-out'
 			},
 			fontFamily: {
 				sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],

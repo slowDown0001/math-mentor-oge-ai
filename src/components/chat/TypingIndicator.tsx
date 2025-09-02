@@ -1,14 +1,13 @@
 
 const TypingIndicator = () => {
   return (
-    <div className="flex justify-start animate-fade-in mb-6">
-      <div className="max-w-[80%] mr-12">
-        <div className="flex space-x-1 text-muted-foreground">
-          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-pulse"></div>
-          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-pulse delay-100"></div>
-          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-pulse delay-200"></div>
-        </div>
+    <div className="flex items-center space-x-1 py-2">
+      <div className="flex space-x-1">
+        <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse-wave-1"></div>
+        <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse-wave-2"></div>
+        <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse-wave-3"></div>
       </div>
+      <span className="text-xs text-muted-foreground/70 ml-2">Печатает...</span>
     </div>
   );
 };
