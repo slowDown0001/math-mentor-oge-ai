@@ -2,14 +2,7 @@
 import { getChatCompletion, type Message as GroqMessage } from "./groqService";
 import { getRandomMathProblem, getMathProblemById, getCategoryByCode, type MathProblem } from "./mathProblemsService";
 import { toast } from "@/hooks/use-toast";
-
-export interface Message {
-  id: number;
-  text: string;
-  isUser: boolean;
-  timestamp: Date;
-  problemId?: string;
-}
+import { type Message } from "@/contexts/ChatContext";
 
 // Store current problem for follow-up questions
 let currentProblem: MathProblem | null = null;
