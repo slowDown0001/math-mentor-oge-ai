@@ -59,8 +59,10 @@ const CourseChatMessages = ({ messages, isTyping }: CourseChatMessagesProps) => 
         kaTeXManager.renderMath(msg as HTMLElement);
       });
       
-      // Only auto-scroll if user is near bottom (hasn't manually scrolled up)
-      if (isNearBottom) {
+      // Force scroll when user sends a message, or auto-scroll if near bottom
+      const shouldAutoScroll = isNearBottom || lastMessage.isUser;
+      
+      if (shouldAutoScroll) {
         setTimeout(() => {
           // If user just sent a message, scroll to show it plus space for AI response
           if (lastMessage.isUser) {
