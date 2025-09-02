@@ -188,6 +188,40 @@ export const useKaTeXInitializer = (): boolean => {
         setIsReady(true);
         kaTeXManager.setupScrollObserver();
         kaTeXManager.initializeChatWindow();
+        
+        // Initialize auto-render on chat containers for exam pages
+        const initializeChatContainers = () => {
+          const chatWindow = document.getElementById("chat-window");
+          if (chatWindow && window.renderMathInElement) {
+            try {
+              window.renderMathInElement(chatWindow, {
+                delimiters: [
+                  { left: "$$", right: "$$", display: true },    // block
+                  { left: "$", right: "$", display: false },     // inline
+                  { left: "\\(", right: "\\)", display: false }, // inline
+                  { left: "\\[", right: "\\]", display: true }   // block
+                ],
+                throwOnError: false
+              });
+            } catch (error) {
+              console.error('KaTeX auto-render initialization error:', error);
+            }
+          }
+        };
+        
+        // Initialize immediately and set up observer for dynamic initialization
+        initializeChatContainers();
+        
+        // Set up mutation observer to handle dynamically added chat windows
+        const observer = new MutationObserver(() => {
+          initializeChatContainers();
+        });
+        
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+        
       } else {
         setTimeout(checkReady, 100);
       }
