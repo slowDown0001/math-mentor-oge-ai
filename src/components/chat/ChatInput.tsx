@@ -30,13 +30,18 @@ const ChatInput = ({ onSendMessage, isTyping }: ChatInputProps) => {
   return (
     <div className="bg-transparent">
       <div className="p-4">
-        <div className="flex gap-3 items-center bg-gray-100/90 backdrop-blur-sm rounded-2xl p-3 shadow-inner">
+        <div className="flex gap-2 items-center bg-gray-100/90 backdrop-blur-sm rounded-2xl p-2 shadow-inner">
           <Toggle
             pressed={isDatabaseMode}
             onPressedChange={setIsDatabaseMode}
             variant="outline"
             size="sm"
-            className="shrink-0 h-8 w-8 p-0 border-gray-300 hover:bg-gray-200/50 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary"
+            className={`shrink-0 h-8 w-8 p-0 rounded-lg border transition-all ${
+              isDatabaseMode 
+                ? 'bg-blue-100 border-blue-300 text-blue-700 hover:bg-blue-200' 
+                : 'border-gray-300 hover:bg-gray-200/50 text-gray-600'
+            }`}
+            title="База"
           >
             <Database className="h-4 w-4" />
           </Toggle>
