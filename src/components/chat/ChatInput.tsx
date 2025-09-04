@@ -26,27 +26,29 @@ const ChatInput = ({ onSendMessage, isTyping }: ChatInputProps) => {
   };
 
   return (
-    <div className="bg-background">
-      <div className="p-3 border-b border-border">
+    <div className="bg-transparent">
+      <div className="p-3 border-b border-border/30">
         <DatabaseToggle />
       </div>
-      <div className="p-4 flex gap-3">
-        <Input 
-          value={userInput} 
-          onChange={e => setUserInput(e.target.value)} 
-          onKeyDown={handleKeyDown} 
-          placeholder="Задайте ваш вопрос по математике..." 
-          className="flex-1 border-border focus:ring-primary/50 bg-background rounded-xl text-base py-3 px-4" 
-          disabled={isTyping}
-        />
-        <Button 
-          onClick={handleSendMessage} 
-          size="icon"
-          className="bg-primary hover:bg-primary/90 rounded-xl p-3 transition-all duration-200" 
-          disabled={!userInput.trim() || isTyping}
-        >
-          <Send className="h-4 w-4" />
-        </Button>
+      <div className="p-4">
+        <div className="flex gap-3 items-center bg-gray-100/90 backdrop-blur-sm rounded-2xl p-3 shadow-inner">
+          <Input 
+            value={userInput} 
+            onChange={e => setUserInput(e.target.value)} 
+            onKeyDown={handleKeyDown} 
+            placeholder="Напишите вопрос..." 
+            className="flex-1 border-0 bg-transparent focus:ring-0 text-base placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0" 
+            disabled={isTyping}
+          />
+          <Button 
+            onClick={handleSendMessage} 
+            size="icon"
+            className="bg-purple-600 hover:bg-purple-700 rounded-full w-10 h-10 p-0 transition-all duration-200 shadow-md" 
+            disabled={!userInput.trim() || isTyping}
+          >
+            <Send className="h-4 w-4 text-white" />
+          </Button>
+        </div>
       </div>
     </div>
   );
