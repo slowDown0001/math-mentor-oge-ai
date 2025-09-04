@@ -49,7 +49,7 @@ const ChatInput = ({ onSendMessage, isTyping }: ChatInputProps) => {
             value={userInput} 
             onChange={e => setUserInput(e.target.value)} 
             onKeyDown={handleKeyDown} 
-            placeholder="Напишите вопрос..." 
+            placeholder={isDatabaseMode ? "Напиши 'дай задачу' и я дам тебе пример из нашей базы..." : "Напишите вопрос..."} 
             className="flex-1 border-0 bg-transparent focus:ring-0 text-base placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0" 
             disabled={isTyping}
           />
