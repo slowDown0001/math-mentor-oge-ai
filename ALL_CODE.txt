@@ -1,0 +1,4966 @@
+FULL PROJECT CODE DUMP - Mon Aug 11 20:56:34 CST 2025
+================================================================================
+
+--------------------------------------------------------------------------------
+File: ./documentation/calculation of skills.md
+--------------------------------------------------------------------------------
+Hedgehog — Skill Estimation Engine
+Overview
+Skill Estimation is the core intelligence behind the Hedgehog learning platform. It drives the personalized syllabus generation and predicted grade calculation for every student.
+
+The system models each student's mathematical proficiency across a network of 180 core knowledge skills and a set of special skills. For each skill, we track:
+
+Skill Level (SL) — current mastery, in percentage. (student dependent)
+
+Skill Velocity (SV) — rate of change, in percentage per activity. (student dependent)
+
+Skill Freshness (SF) — time since last engagement, in days. (student dependent)
+
+Skill weight (SW) — the importace of the skill. (independant of student)
+
+These metrics allow Hedgehog to dynamically adjust learning priorities, update predictions, and offer targeted learning paths.
+
+1. Graph Tree Structure
+To reflect interdependencies between skills, Hedgehog builds a Directed Acyclic Graph (DAG) of all skills:
+
+Parent–Child relationships represent pedagogical prerequisites.
+
+The structure allows inference of untested skills via related ones.
+
+It supports curriculum sequencing, ensuring prerequisites are mastered first.
+
+📊 Skill Weight (SW)
+Every skill is assigned a Skill Weight (SW) based on how many other skills depend on it (i.e., number of descendants in the graph). Skills with higher SW values:
+
+Have greater influence on SL inference.
+
+Are prioritized in personalized syllabus design.
+
+2. Diagnostic Test (DT)
+At the start of a student’s journey, they complete a Diagnostic Test:
+
+Questions are selected to cover high-impact, diverse skills.
+
+The results are used to initialize SL and SV values for a subset of skills.
+
+Unassessed skills are inferred using the skill graph and weighted propagation.
+
+📄 See detailed structure and logic in diagnostic_test.md.
+
+3. Ongoing Skill Calculation
+Post-DT, all student activities affect skill estimations:
+
+Activity Type	Effect on SL	Notes
+Ascertain quizzes	Moderate	Adaptive follow-up quizzes
+Video engagement	Light	Especially for conceptual skills
+Interactive simulations	Moderate	Effective for application skills
+Final tests	Strong	Most reliable for accurate estimation
+
+Each activity has an associated impact weight and confidence level depending on the context.
+
+4. Skill Velocity (SV)
+Skill Velocity reflects the rate and direction of learning. It is calculated using a logarithmic decay model:
+
+Early interactions with a skill (1st, 2nd questions) cause large SL updates (e.g. ±40%, ±20%).
+
+Further repetitions reduce influence gradually (e.g. 100th question → ±1%).
+
+This prevents overfitting from repetitive drilling while allowing genuine learning to shine.
+
+5. Skill Amortization
+To model skill decay over time, Hedgehog includes amortization:
+
+If a skill is not practiced, its SL gradually decreases, and SV increases.
+
+Example: A student last practiced Probability 60 days ago. SL drops from 75% to 73%, SV increases to ±5%.
+
+This dynamic ensures predictions reflect current proficiency, not just historical performance.
+
+6. Skill Freshness (SF)
+Skill Freshness (SF) tracks the number of days since a skill was last engaged:
+
+Weekly tests are dynamically generated to revive stale skills.
+
+Skills with the highest SF are prioritized in quizzes to maintain broad retention.
+
+SF is a crucial input in selecting review topics and maintaining readiness for final assessments.
+
+Conclusion
+The Hedgehog Skill Estimation Engine provides a nuanced, data-driven approach to student modeling. By combining initial diagnostics, graph-based inference, activity tracking, and temporal decay, it enables the creation of tailored, effective syllabi and precise performance predictions.
+
+--------------------------------------------------------------------------------
+File: ./documentation/diagnostic.md
+--------------------------------------------------------------------------------
+Function Workflow
+📊 Skill Graph Construction
+
+Load topic_skill_mapping_with_names.json.
+
+Build a directed acyclic graph (DAG) where:
+
+Basic prerequisite skills (e.g., solving linear equations) are parents.
+
+More complex skills (e.g., simultaneous equations, word problems) are children or grandchildren.
+
+Edges represent pedagogical dependencies.
+
+🧠 Diagnostic Test Generation
+
+A short set of 15–25 questions is created by selecting key foundational skills and a small number of advanced skills.
+
+Questions are chosen to cover different areas with minimal overlap, prioritizing high-impact nodes in the skill graph.
+
+📈 Graph-Based Skill Inference
+
+Once responses are collected:
+
+Directly tested skills are updated based on user answers.
+
+Untested but connected skills are estimated using propagation rules:
+
+If a user succeeds at an advanced skill, all its ancestors receive partial credit.
+
+If a user fails an elementary skill, children and grandchildren are downgraded accordingly.
+
+🎯 Dynamic Difficulty Adjustment
+
+The test starts at difficulty level 2–3.
+
+Rules:
+
+3 correct in a row: increase difficulty by 1.
+
+2 incorrect in a row: decrease difficulty by 1.
+
+The difficulty level determines the complexity of the next question.
+
+📐 Proportional Skill Estimation
+
+Each skill is scored between 0–100.
+
+The amount of change per answer is weighted by difficulty: harder problems contribute more to skill level adjustment.
+
+📉 Nonlinear Skill Update Scaling
+
+The first few answers have high impact, later ones contribute less:
+
+First correct/incorrect: ±40 points
+
+Second: ±20
+
+100th: ±1
+
+Follows a decay function:
+Δ = 40 / (1 + log_2(1 + n))
+where n is the number of updates made to a skill.
+
+
+--------------------------------------------------------------------------------
+File: ./documentation/readme.md
+--------------------------------------------------------------------------------
+Foldr for documentation
+
+--------------------------------------------------------------------------------
+File: ./documentation/topics.md
+--------------------------------------------------------------------------------
+
+1. Числа и вычисления 
+2. Алгебраические выражения 
+3. Уравнения и неравенства 
+4. Числовые последовательности 
+5. Функции 
+6. Координаты на прямой и плоскости
+7. Геометрия
+8. Вероятность и статистика
+
+--------------------------------------------------------------------------------
+File: ./eslint.config.js
+--------------------------------------------------------------------------------
+import js from "@eslint/js";
+import globals from "globals";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import tseslint from "typescript-eslint";
+
+export default tseslint.config(
+  { ignores: ["dist"] },
+  {
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+    },
+    plugins: {
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true },
+      ],
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  }
+);
+
+--------------------------------------------------------------------------------
+File: ./index.html
+--------------------------------------------------------------------------------
+<!DOCTYPE html>
+<html lang="ru"> 
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ёжик AI - ИИ-репетитор для подготовки к ОГЭ по математике</title>
+    <meta name="description" content="Освойте ОГЭ по математике с вашим персональным ИИ-репетитором. Получите индивидуальные учебные планы, практикуйтесь с прошлогодними заданиями и получайте мгновенную помощь." />
+    <meta name="author" content="Ёжик AI" />
+
+    <meta property="og:title" content="Ёжик AI - ИИ-репетитор для подготовки к ОГЭ по математике" />
+    <meta property="og:description" content="Освойте ОГЭ по математике с вашим персональным ИИ-репетитором. Получите индивидуальные учебные планы, практикуйтесь с прошлогодними заданиями и получайте мгновенную помощь." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png   " />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@lovable_dev" />
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png   " />
+    
+
+
+  <body>
+    <div id="root"></div>
+    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
+    <script src="https://cdn.gpteng.co/gptengineer.js   " type="module"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+--------------------------------------------------------------------------------
+File: ./postcss.config.js
+--------------------------------------------------------------------------------
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+--------------------------------------------------------------------------------
+File: ./public/marking_t.md
+--------------------------------------------------------------------------------
+\[
+\textbf{Рассмотрим твое решение:}
+\]
+
+\[
+\begin{aligned}
+&2x^2 + 3y^2 = 21 &&\text{(1)} \\
+&6x^2 + 9y^2 = 21x &&\text{(2)}
+\end{aligned}
+\]
+
+\[
+\text{Ты умножаешь первое уравнение на 3:}
+\]
+
+
+
+\[
+\textcolor{red}{
+\text{Комментарий: левая часть действительно стала } 6x^2 + 9y^2, \text{ но правая часть должна быть } 3 \cdot 21 = 63, \text{ а не } 21x.
+}
+\]
+
+\[
+\text{Ты записываешь систему:}
+\]
+
+\[
+\begin{cases}
+6x^2 + 9y^2 = 21 \quad \textcolor{red}{\text{(❌ Ошибка! — должно быть 63)}} \\
+6x^2 + 9y^2 = 21x
+\end{cases}
+\\
+\Rightarrow \text{Вычитаешь:}
+\]
+
+\[
+\textcolor{red}{
+0 = 21x - 21 \quad \Rightarrow \quad x = -1 \quad \text{❌ Ошибка! Решение вашего уравнения дает x=1}
+}
+\]
+
+\[
+\textcolor{red}{
+\text{Комментарий: правильное вычитание даёт } 63 - 21x = 0 \Rightarrow x = 3.
+}
+\]
+
+\[
+\text{Подстановка } x = \textcolor{red}{-1} \text{ в (1):}
+\quad 2(-1)^2 + 3y^2 = 21 \Rightarrow 2 + 3y^2 = 21
+\Rightarrow 3y^2 = 19 \Rightarrow y^2 = \frac{19}{3} \Rightarrow y = \textcolor{red}{\pm} \sqrt{\frac{19}{3}}
+\]
+
+\[
+\textcolor{red}{
+\boxed{\text{Ошибка: значение } x \text{ неверное, поэтому } y \text{ тоже посчитан неправильно. Также не забывай про знак "плюс-минус"}}
+}
+\]
+
+
+\[
+\\[2ex]
+
+\textbf{✔️ Теперь решим систему правильно:}
+\]
+
+\[
+\begin{cases}
+2x^2 + 3y^2 = 21 \\
+6x^2 + 9y^2 = 21x
+\end{cases}
+\]
+
+\[
+\text{Умножим первое уравнение на 3:}
+\quad 3(2x^2 + 3y^2) = 3 \cdot 21 \Rightarrow 6x^2 + 9y^2 = 63
+\]
+
+\[
+\text{Теперь вычтем:} \quad 6x^2 + 9y^2 = 63 \quad \text{и} \quad 6x^2 + 9y^2 = 21x
+\Rightarrow 63 = 21x \Rightarrow x = 3
+\]
+
+\[
+\text{Подставим } x = 3 \text{ в первое уравнение:}
+\quad 2(3)^2 + 3y^2 = 21 \Rightarrow 18 + 3y^2 = 21
+\Rightarrow 3y^2 = 3 \Rightarrow y^2 = 1 \Rightarrow y = \pm 1
+\]
+
+\[
+\textbf{Ответ:} \quad \boxed{(3, 1) \quad \text{и} \quad (3, -1)}
+\]
+
+
+\[
+
+\textbf{🧑‍🏫 Комментарии учителя:}
+\]
+
+\begin{array}{ll}
+\bullet & \text{Внимательно проверяй, что ты умножаешь обе части уравнения — и левую, и правую!} \\
+\bullet & \text{После преобразований всегда пересматривай, правильно ли ты подставил значения.} \\
+\bullet & \text{Не забывай про } \pm \text{ при извлечении корня!} \\
+\bullet & \text{Не торопись — одна ошибка в начале ведёт к цепочке неверных вычислений.}
+\end{array}
+
+
+\[
+{\text{👍 У тебя хорошая структура решения, но нужно быть внимательнее с вычислениями!}}
+\]
+
+
+\[
+\boxed{
+\textbf{Оценка: 0 / 2}
+}
+\]
+
+\[
+\begin{array}{l}
+\textit{Комментарий: В решении допущена грубая логическая ошибка в самом начале} \\
+\textit{(неверное умножение правой части уравнения),} \\
+\textit{которая приводит ко всем последующим неверным вычислениям} \\
+\textit{и неправильному ответу. Баллы не начисляются.}
+\end{array}
+\]
+
+
+--------------------------------------------------------------------------------
+File: ./README.md
+--------------------------------------------------------------------------------
+# Welcome to your Lovable project
+
+## Project info
+
+**URL**: https://lovable.dev/projects/d25f5130-eba2-41c4-b595-8a849ab4ab91
+
+## How can I edit this code?
+
+There are several ways of editing your application.
+
+**Use Lovable**
+
+Simply visit the [Lovable Project](https://lovable.dev/projects/d25f5130-eba2-41c4-b595-8a849ab4ab91) and start prompting.
+
+Changes made via Lovable will be committed automatically to this repo.
+
+**Use your preferred IDE**
+
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+Follow these steps:
+
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
+
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
+
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
+```
+
+**Edit a file directly in GitHub**
+
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
+
+**Use GitHub Codespaces**
+
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
+
+## What technologies are used for this project?
+
+This project is built with:
+
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
+
+## How can I deploy this project?
+
+Simply open [Lovable](https://lovable.dev/projects/d25f5130-eba2-41c4-b595-8a849ab4ab91) and click on Share -> Publish.
+
+## Can I connect a custom domain to my Lovable project?
+
+Yes, you can!
+
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+--------------------------------------------------------------------------------
+File: ./src/components/ui/use-toast.ts
+--------------------------------------------------------------------------------
+
+import { useToast, toast } from "@/hooks/use-toast";
+
+export { useToast, toast };
+
+--------------------------------------------------------------------------------
+File: ./src/hooks/use-toast.ts
+--------------------------------------------------------------------------------
+import * as React from "react"
+
+import type {
+  ToastActionElement,
+  ToastProps,
+} from "@/components/ui/toast"
+
+const TOAST_LIMIT = 1
+const TOAST_REMOVE_DELAY = 1000000
+
+type ToasterToast = ToastProps & {
+  id: string
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+}
+
+const actionTypes = {
+  ADD_TOAST: "ADD_TOAST",
+  UPDATE_TOAST: "UPDATE_TOAST",
+  DISMISS_TOAST: "DISMISS_TOAST",
+  REMOVE_TOAST: "REMOVE_TOAST",
+} as const
+
+let count = 0
+
+function genId() {
+  count = (count + 1) % Number.MAX_SAFE_INTEGER
+  return count.toString()
+}
+
+type ActionType = typeof actionTypes
+
+type Action =
+  | {
+      type: ActionType["ADD_TOAST"]
+      toast: ToasterToast
+    }
+  | {
+      type: ActionType["UPDATE_TOAST"]
+      toast: Partial<ToasterToast>
+    }
+  | {
+      type: ActionType["DISMISS_TOAST"]
+      toastId?: ToasterToast["id"]
+    }
+  | {
+      type: ActionType["REMOVE_TOAST"]
+      toastId?: ToasterToast["id"]
+    }
+
+interface State {
+  toasts: ToasterToast[]
+}
+
+const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+
+const addToRemoveQueue = (toastId: string) => {
+  if (toastTimeouts.has(toastId)) {
+    return
+  }
+
+  const timeout = setTimeout(() => {
+    toastTimeouts.delete(toastId)
+    dispatch({
+      type: "REMOVE_TOAST",
+      toastId: toastId,
+    })
+  }, TOAST_REMOVE_DELAY)
+
+  toastTimeouts.set(toastId, timeout)
+}
+
+export const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case "ADD_TOAST":
+      return {
+        ...state,
+        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+      }
+
+    case "UPDATE_TOAST":
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === action.toast.id ? { ...t, ...action.toast } : t
+        ),
+      }
+
+    case "DISMISS_TOAST": {
+      const { toastId } = action
+
+      // ! Side effects ! - This could be extracted into a dismissToast() action,
+      // but I'll keep it here for simplicity
+      if (toastId) {
+        addToRemoveQueue(toastId)
+      } else {
+        state.toasts.forEach((toast) => {
+          addToRemoveQueue(toast.id)
+        })
+      }
+
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === toastId || toastId === undefined
+            ? {
+                ...t,
+                open: false,
+              }
+            : t
+        ),
+      }
+    }
+    case "REMOVE_TOAST":
+      if (action.toastId === undefined) {
+        return {
+          ...state,
+          toasts: [],
+        }
+      }
+      return {
+        ...state,
+        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+      }
+  }
+}
+
+const listeners: Array<(state: State) => void> = []
+
+let memoryState: State = { toasts: [] }
+
+function dispatch(action: Action) {
+  memoryState = reducer(memoryState, action)
+  listeners.forEach((listener) => {
+    listener(memoryState)
+  })
+}
+
+type Toast = Omit<ToasterToast, "id">
+
+function toast({ ...props }: Toast) {
+  const id = genId()
+
+  const update = (props: ToasterToast) =>
+    dispatch({
+      type: "UPDATE_TOAST",
+      toast: { ...props, id },
+    })
+  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
+
+  dispatch({
+    type: "ADD_TOAST",
+    toast: {
+      ...props,
+      id,
+      open: true,
+      onOpenChange: (open) => {
+        if (!open) dismiss()
+      },
+    },
+  })
+
+  return {
+    id: id,
+    dismiss,
+    update,
+  }
+}
+
+function useToast() {
+  const [state, setState] = React.useState<State>(memoryState)
+
+  React.useEffect(() => {
+    listeners.push(setState)
+    return () => {
+      const index = listeners.indexOf(setState)
+      if (index > -1) {
+        listeners.splice(index, 1)
+      }
+    }
+  }, [state])
+
+  return {
+    ...state,
+    toast,
+    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+  }
+}
+
+export { useToast, toast }
+
+--------------------------------------------------------------------------------
+File: ./src/hooks/useMasterySystem.ts
+--------------------------------------------------------------------------------
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Database } from '@/integrations/supabase/types';
+
+type UserMastery = Database['public']['Tables']['user_mastery']['Row'];
+type UserActivity = Database['public']['Tables']['user_activities']['Row'];
+
+export type { UserMastery, UserActivity };
+
+// Points system like Khan Academy
+const POINTS_SYSTEM = {
+  video: 10,        // Watching a video
+  article: 15,      // Reading an article
+  practice: 20,     // Completing a practice exercise
+  quiz: 50,         // Completing a quiz
+  unit_test: 100    // Completing a unit test
+};
+
+const MASTERY_THRESHOLDS = {
+  not_started: 0,
+  attempted: 20,
+  familiar: 40,
+  proficient: 70,
+  mastered: 90
+};
+
+export const useMasterySystem = () => {
+  const { user } = useAuth();
+  const [userMastery, setUserMastery] = useState<UserMastery[]>([]);
+  const [userActivities, setUserActivities] = useState<UserActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user's mastery data
+  useEffect(() => {
+    if (user) {
+      fetchUserMastery();
+      fetchUserActivities();
+    }
+  }, [user]);
+
+  const fetchUserMastery = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('user_mastery')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error fetching user mastery:', error);
+    } else {
+      setUserMastery(data || []);
+    }
+    setLoading(false);
+  };
+
+  const fetchUserActivities = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('user_activities')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('completed_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user activities:', error);
+    } else {
+      setUserActivities(data || []);
+    }
+  };
+
+  // Award points for completing an activity
+  const awardPoints = async (
+    activityType: UserActivity['activity_type'],
+    unitNumber: number,
+    subunitNumber: number | null,
+    activityId: string,
+    timeSpentMinutes: number = 0
+  ) => {
+    if (!user) return;
+
+    const pointsEarned = POINTS_SYSTEM[activityType];
+
+    // Record the activity
+    const { error: activityError } = await supabase
+      .from('user_activities')
+      .insert({
+        user_id: user.id,
+        activity_type: activityType,
+        unit_number: unitNumber,
+        subunit_number: subunitNumber,
+        activity_id: activityId,
+        points_earned: pointsEarned,
+        time_spent_minutes: timeSpentMinutes
+      });
+
+    if (activityError) {
+      console.error('Error recording activity:', activityError);
+      return;
+    }
+
+    // Update or create mastery record
+    await updateMasteryProgress(unitNumber, subunitNumber, pointsEarned);
+    
+    // Refresh data
+    fetchUserMastery();
+    fetchUserActivities();
+
+    return pointsEarned;
+  };
+
+  const updateMasteryProgress = async (
+    unitNumber: number,
+    subunitNumber: number | null,
+    pointsToAdd: number
+  ) => {
+    if (!user) return;
+
+    // Check if mastery record exists
+    const { data: existingMastery } = await supabase
+      .from('user_mastery')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('unit_number', unitNumber)
+      .eq('subunit_number', subunitNumber)
+      .single();
+
+    if (existingMastery) {
+      // Update existing record
+      const newPoints = existingMastery.mastery_points + pointsToAdd;
+      const newLevel = calculateMasteryLevel(newPoints, existingMastery.total_possible_points);
+
+      await supabase
+        .from('user_mastery')
+        .update({
+          mastery_points: newPoints,
+          mastery_level: newLevel
+        })
+        .eq('id', existingMastery.id);
+    } else {
+      // Create new record
+      const totalPossiblePoints = calculateTotalPossiblePoints(unitNumber, subunitNumber);
+      const newLevel = calculateMasteryLevel(pointsToAdd, totalPossiblePoints);
+
+      await supabase
+        .from('user_mastery')
+        .insert({
+          user_id: user.id,
+          unit_number: unitNumber,
+          subunit_number: subunitNumber,
+          mastery_points: pointsToAdd,
+          total_possible_points: totalPossiblePoints,
+          mastery_level: newLevel
+        });
+    }
+  };
+
+  const calculateTotalPossiblePoints = (unitNumber: number, subunitNumber: number | null): number => {
+    // This would be calculated based on the unit structure
+    // For now, using a simple formula
+    if (subunitNumber) {
+      // Subunit: videos + articles + practices (assuming 3-5 skills per subunit)
+      return (4 * POINTS_SYSTEM.video) + (4 * POINTS_SYSTEM.article) + (3 * POINTS_SYSTEM.practice);
+    } else {
+      // Unit: all subunit points + quizzes + unit test
+      return 500 + (2 * POINTS_SYSTEM.quiz) + POINTS_SYSTEM.unit_test; // Approximate
+    }
+  };
+
+  const calculateMasteryLevel = (points: number, totalPoints: number): UserMastery['mastery_level'] => {
+    const percentage = (points / totalPoints) * 100;
+    
+    if (percentage >= MASTERY_THRESHOLDS.mastered) return 'mastered';
+    if (percentage >= MASTERY_THRESHOLDS.proficient) return 'proficient';
+    if (percentage >= MASTERY_THRESHOLDS.familiar) return 'familiar';
+    if (percentage >= MASTERY_THRESHOLDS.attempted) return 'attempted';
+    return 'not_started';
+  };
+
+  // Get mastery progress for a unit or subunit
+  const getUserMastery = (unitNumber: number, subunitNumber?: number): UserMastery | null => {
+    return userMastery.find(m => 
+      m.unit_number === unitNumber && 
+      (subunitNumber ? m.subunit_number === subunitNumber : m.subunit_number === null)
+    ) || null;
+  };
+
+  // Calculate progress percentage
+  const calculateUnitProgress = (unitNumber: number, subunitId?: string): number => {
+    const subunitNumber = subunitId ? parseFloat(subunitId.split('.')[1]) : undefined;
+    const mastery = getUserMastery(unitNumber, subunitNumber);
+    
+    if (!mastery) return 0;
+    return Math.min((mastery.mastery_points / mastery.total_possible_points) * 100, 100);
+  };
+
+  // Get mastery level from progress percentage
+  const getMasteryLevel = (progressPercentage: number): UserMastery['mastery_level'] => {
+    if (progressPercentage >= MASTERY_THRESHOLDS.mastered) return 'mastered';
+    if (progressPercentage >= MASTERY_THRESHOLDS.proficient) return 'proficient';
+    if (progressPercentage >= MASTERY_THRESHOLDS.familiar) return 'familiar';
+    if (progressPercentage >= MASTERY_THRESHOLDS.attempted) return 'attempted';
+    return 'not_started';
+  };
+
+  // Get total points earned by user
+  const getTotalPoints = (): number => {
+    return userActivities.reduce((total, activity) => total + activity.points_earned, 0);
+  };
+
+  // Get recent activities
+  const getRecentActivities = (limit: number = 10): UserActivity[] => {
+    return userActivities.slice(0, limit);
+  };
+
+  return {
+    userMastery,
+    userActivities,
+    loading,
+    awardPoints,
+    getUserMastery,
+    calculateUnitProgress,
+    getMasteryLevel,
+    getTotalPoints,
+    getRecentActivities,
+    POINTS_SYSTEM
+  };
+};
+--------------------------------------------------------------------------------
+File: ./src/hooks/useMathJaxInitializer.ts
+--------------------------------------------------------------------------------
+
+import { useEffect, useState } from 'react';
+
+declare global {
+  interface Window {
+    MathJax: any;
+    mathJaxQueue: Promise<any>;
+  }
+}
+
+// Global MathJax manager to prevent conflicts
+class MathJaxManager {
+  private static instance: MathJaxManager;
+  private queue: Promise<any> = Promise.resolve();
+
+  static getInstance(): MathJaxManager {
+    if (!MathJaxManager.instance) {
+      MathJaxManager.instance = new MathJaxManager();
+    }
+    return MathJaxManager.instance;
+  }
+
+  async renderMath(element: HTMLElement): Promise<void> {
+    this.queue = this.queue.then(async () => {
+      try {
+        if (
+          typeof window.MathJax !== 'undefined' &&
+          typeof window.MathJax.typesetPromise === 'function'
+        ) {
+          // Clear any existing MathJax content to prevent conflicts
+          const mjElements = element.querySelectorAll('.MathJax');
+          mjElements.forEach(el => el.remove());
+          
+          await window.MathJax.typesetPromise([element]);
+        }
+      } catch (error) {
+        console.error('MathJax rendering error:', error);
+      }
+    });
+    return this.queue;
+  }
+
+  async renderAll(): Promise<void> {
+    this.queue = this.queue.then(async () => {
+      try {
+        if (
+          typeof window.MathJax !== 'undefined' &&
+          typeof window.MathJax.typesetPromise === 'function'
+        ) {
+          await window.MathJax.typesetPromise();
+        }
+      } catch (error) {
+        console.error('MathJax rendering error:', error);
+      }
+    });
+    return this.queue;
+  }
+}
+
+export const mathJaxManager = MathJaxManager.getInstance();
+
+export const useMathJaxInitializer = () => {
+  const [isMathJaxReady, setIsMathJaxReady] = useState(false);
+
+  useEffect(() => {
+    if (window.MathJax) {
+      setIsMathJaxReady(true);
+      return;
+    }
+
+    // Configure MathJax
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true,
+        // Enable \textbf{}, \textit{}, etc. in text mode
+        packages: {'[+]': ['textmacros', 'textcomp']},
+        textmacros: {
+          packages: {'[+]': ['base']}
+        }
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        ignoreHtmlClass: 'tex2jax_ignore',
+        processHtmlClass: 'tex2jax_process'
+      },
+      startup: {
+        ready: () => {
+          window.MathJax.startup.defaultReady();
+          setIsMathJaxReady(true);
+        }
+      }
+    };
+
+    // Load MathJax script
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup if needed
+      const existingScript = document.querySelector('script[src*="mathjax"]');
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
+      }
+    };
+  }, []);
+
+  return isMathJaxReady;
+};
+
+--------------------------------------------------------------------------------
+File: ./src/hooks/useProfile.ts
+--------------------------------------------------------------------------------
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+
+export interface Profile {
+  id?: string;
+  user_id?: string;
+  full_name?: string;
+  avatar_url?: string;
+  bio?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export const useProfile = () => {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const { data, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (fetchError) {
+          throw fetchError;
+        }
+
+        setProfile(data);
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setError('Ошибка загрузки профиля');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  const updateProfile = (newProfile: Profile) => {
+    setProfile(newProfile);
+  };
+
+  // Get display name with fallback logic
+  const getDisplayName = () => {
+    if (profile?.full_name) return profile.full_name;
+    if (user?.user_metadata?.full_name) return user.user_metadata.full_name;
+    if (user?.email) return user.email.split('@')[0];
+    return 'Пользователь';
+  };
+
+  // Get avatar URL with fallback
+  const getAvatarUrl = () => {
+    return profile?.avatar_url || null;
+  };
+
+  return {
+    profile,
+    isLoading,
+    error,
+    updateProfile,
+    getDisplayName,
+    getAvatarUrl,
+  };
+};
+--------------------------------------------------------------------------------
+File: ./src/hooks/useStreakTracking.ts
+--------------------------------------------------------------------------------
+
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+
+export const useStreakTracking = () => {
+  const { user } = useAuth();
+
+  const trackActivity = async (
+    activityType: 'article' | 'video' | 'problem' | 'practice_test',
+    durationMinutes: number = 0
+  ) => {
+    if (!user) return;
+
+    try {
+      // Add activity record
+      await supabase
+        .from('daily_activities')
+        .insert({
+          user_id: user.id,
+          activity_type: activityType,
+          duration_minutes: durationMinutes,
+          activity_date: new Date().toISOString().split('T')[0]
+        });
+
+      // Update streak data
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Get current streak info
+      const { data: currentStreak } = await supabase
+        .from('user_streaks')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (currentStreak) {
+        const lastActivityDate = currentStreak.last_activity_date;
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+        let newStreak = currentStreak.current_streak;
+
+        // Check if this is the first activity today
+        if (lastActivityDate !== today) {
+          if (lastActivityDate === yesterdayStr) {
+            // Continue streak
+            newStreak += 1;
+          } else if (lastActivityDate && lastActivityDate < yesterdayStr) {
+            // Streak broken, reset to 1
+            newStreak = 1;
+          } else if (!lastActivityDate) {
+            // First ever activity
+            newStreak = 1;
+          }
+
+          // Update streak
+          await supabase
+            .from('user_streaks')
+            .update({
+              current_streak: newStreak,
+              longest_streak: Math.max(newStreak, currentStreak.longest_streak),
+              last_activity_date: today
+            })
+            .eq('user_id', user.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error tracking activity:', error);
+    }
+  };
+
+  return { trackActivity };
+};
+
+--------------------------------------------------------------------------------
+File: ./src/hooks/useStudentSkills.ts
+--------------------------------------------------------------------------------
+
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import topicMappingData from '../../documentation/topic_skill_mapping_with_names.json';
+
+interface TopicProgress {
+  topic: string;
+  name: string;
+  averageScore: number;
+}
+
+interface SkillData {
+  topicProgress: TopicProgress[];
+  generalPreparedness: number;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export const useStudentSkills = (): SkillData => {
+  const [topicProgress, setTopicProgress] = useState<TopicProgress[]>([]);
+  const [generalPreparedness, setGeneralPreparedness] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchSkillData = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Fetch user's skill data from Supabase
+        const { data: skillData, error: fetchError } = await supabase
+          .from('student_skills')
+          .select('*')
+          .eq('uid', user.id)
+          .single();
+
+        if (fetchError) {
+          throw fetchError;
+        }
+
+        if (!skillData) {
+          // If no skill data exists, create default values
+          const defaultTopicProgress = [
+            { topic: "1", name: "Числа и вычисления", averageScore: 0 },
+            { topic: "2", name: "Алгебраические выражения", averageScore: 0 },
+            { topic: "3", name: "Уравнения и неравенства", averageScore: 0 },
+            { topic: "4", name: "Числовые последовательности", averageScore: 0 },
+            { topic: "5", name: "Функции", averageScore: 0 },
+            { topic: "6", name: "Координаты на прямой и плоскости", averageScore: 0 },
+            { topic: "7", name: "Геометрия", averageScore: 0 },
+            { topic: "8", name: "Вероятность и статистика", averageScore: 0 }
+          ];
+          setTopicProgress(defaultTopicProgress);
+          setGeneralPreparedness(0);
+          setIsLoading(false);
+          return;
+        }
+
+        // Define the main topic groups
+        const mainTopics = [
+          { id: "1", name: "Числа и вычисления", subtopics: ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"] },
+          { id: "2", name: "Алгебраические выражения", subtopics: ["2.1", "2.2", "2.3", "2.4", "2.5"] },
+          { id: "3", name: "Уравнения и неравенства", subtopics: ["3.1", "3.2", "3.3"] },
+          { id: "4", name: "Числовые последовательности", subtopics: ["4.1", "4.2"] },
+          { id: "5", name: "Функции", subtopics: ["5.1"] },
+          { id: "6", name: "Координаты на прямой и плоскости", subtopics: ["6.1", "6.2"] },
+          { id: "7", name: "Геометрия", subtopics: ["7.1", "7.2", "7.3", "7.4", "7.5", "7.6", "7.7"] },
+          { id: "8", name: "Вероятность и статистика", subtopics: ["8.1", "8.2", "8.3", "8.4", "8.5"] }
+        ];
+
+        // Calculate averages for each main topic
+        const calculatedTopicProgress = mainTopics.map(mainTopic => {
+          const allSkillScores: number[] = [];
+
+          // Get all skills for the subtopics of this main topic
+          mainTopic.subtopics.forEach(subtopicId => {
+            const subtopic = topicMappingData.find(topic => topic.topic === subtopicId);
+            if (subtopic) {
+              subtopic.skills.forEach(skillNum => {
+                const skillKey = `skill_${skillNum}` as keyof typeof skillData;
+                const skillValue = skillData[skillKey] as number || 0;
+                allSkillScores.push(skillValue);
+              });
+            }
+          });
+
+          const averageScore = allSkillScores.length > 0 
+            ? Math.round(allSkillScores.reduce((sum, score) => sum + score, 0) / allSkillScores.length)
+            : 0;
+
+          return {
+            topic: mainTopic.id,
+            name: mainTopic.name,
+            averageScore
+          };
+        });
+
+        // Calculate general preparedness (average of all 181 skills)
+        const allSkillScores: number[] = [];
+        for (let i = 1; i <= 181; i++) {
+          const skillKey = `skill_${i}` as keyof typeof skillData;
+          const skillValue = skillData[skillKey] as number;
+          if (skillValue !== undefined && skillValue !== null) {
+            allSkillScores.push(skillValue);
+          }
+        }
+
+        const generalPrep = allSkillScores.length > 0 
+          ? Math.round(allSkillScores.reduce((sum, score) => sum + score, 0) / allSkillScores.length)
+          : 0;
+
+        setTopicProgress(calculatedTopicProgress);
+        setGeneralPreparedness(generalPrep);
+      } catch (err) {
+        console.error('Error fetching skill data:', err);
+        setError('Ошибка загрузки данных о навыках');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSkillData();
+  }, [user]);
+
+  return {
+    topicProgress,
+    generalPreparedness,
+    isLoading,
+    error
+  };
+};
+
+--------------------------------------------------------------------------------
+File: ./src/hooks/useUserStatistics.ts
+--------------------------------------------------------------------------------
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface UserStatistics {
+  completedLessons: number;
+  practiceProblems: number;
+  quizzesCompleted: number;
+  averageScore: number;
+  dailyGoalMinutes: number;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export const useUserStatistics = (): UserStatistics => {
+  const [statistics, setStatistics] = useState({
+    completedLessons: 0,
+    practiceProblems: 0,
+    quizzesCompleted: 0,
+    averageScore: 0,
+    dailyGoalMinutes: 30,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Fetch user statistics
+        const { data: statsData, error: statsError } = await supabase
+          .from('user_statistics')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (statsError) {
+          throw statsError;
+        }
+
+        // Fetch daily goal from user_streaks
+        const { data: streakData, error: streakError } = await supabase
+          .from('user_streaks')
+          .select('daily_goal_minutes')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (streakError) {
+          throw streakError;
+        }
+
+        setStatistics({
+          completedLessons: statsData?.completed_lessons || 0,
+          practiceProblems: statsData?.practice_problems || 0,
+          quizzesCompleted: statsData?.quizzes_completed || 0,
+          averageScore: Number(statsData?.average_score) || 0,
+          dailyGoalMinutes: streakData?.daily_goal_minutes || 30,
+        });
+      } catch (err) {
+        console.error('Error fetching user statistics:', err);
+        setError('Ошибка загрузки статистики пользователя');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStatistics();
+  }, [user]);
+
+  return {
+    ...statistics,
+    isLoading,
+    error
+  };
+};
+--------------------------------------------------------------------------------
+File: ./src/integrations/supabase/client.ts
+--------------------------------------------------------------------------------
+// This file is automatically generated. Do not edit it directly.
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from './types';
+
+const SUPABASE_URL = "https://kbaazksvkvnafrwtmkcw.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYWF6a3N2a3ZuYWZyd3Rta2N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3NTg2NTAsImV4cCI6MjA2MjMzNDY1MH0.aSyfch6PX1fr9wyWSGpUPNzT6jjIdfu9eA3E3J4uqzs";
+
+// Import the supabase client like this:
+// import { supabase } from "@/integrations/supabase/client";
+
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+--------------------------------------------------------------------------------
+File: ./src/integrations/supabase/types.ts
+--------------------------------------------------------------------------------
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
+  public: {
+    Tables: {
+      articles: {
+        Row: {
+          art: string | null
+          skill: number
+        }
+        Insert: {
+          art?: string | null
+          skill?: number
+        }
+        Update: {
+          art?: string | null
+          skill?: number
+        }
+        Relationships: []
+      }
+      articles2: {
+        Row: {
+          art: string | null
+          skill: number
+        }
+        Insert: {
+          art?: string | null
+          skill?: number
+        }
+        Update: {
+          art?: string | null
+          skill?: number
+        }
+        Relationships: []
+      }
+      articles3: {
+        Row: {
+          art: string | null
+          skill: number
+        }
+        Insert: {
+          art?: string | null
+          skill?: number
+        }
+        Update: {
+          art?: string | null
+          skill?: number
+        }
+        Relationships: []
+      }
+      copy: {
+        Row: {
+          answer: string | null
+          calculation_required: string | null
+          calculator_allowed: boolean | null
+          checked: boolean | null
+          code: string | null
+          corrected: boolean | null
+          difficulty: string | null
+          problem_image: string | null
+          problem_number: number | null
+          problem_text: string | null
+          question_id: string
+          rec_time: string | null
+          skills: string | null
+          skills_for_step_1: string | null
+          skills_for_step_10: string | null
+          skills_for_step_11: string | null
+          skills_for_step_12: string | null
+          skills_for_step_13: string | null
+          skills_for_step_14: string | null
+          skills_for_step_15: string | null
+          skills_for_step_2: string | null
+          skills_for_step_3: string | null
+          skills_for_step_4: string | null
+          skills_for_step_5: string | null
+          skills_for_step_6: string | null
+          skills_for_step_7: string | null
+          skills_for_step_8: string | null
+          skills_for_step_9: string | null
+          solution_text: string | null
+          solutiontextexpanded: string | null
+          source: string | null
+          step1_expanded_text: string | null
+          step1_text: string | null
+          step10_expanded_text: string | null
+          step10_text: string | null
+          step11_expanded_text: string | null
+          step11_text: string | null
+          step12_expanded_text: string | null
+          step12_text: string | null
+          step13_expanded_text: string | null
+          step13_text: string | null
+          step14_expanded_text: string | null
+          step14_text: string | null
+          step15_expanded_text: string | null
+          step15_text: string | null
+          step2_expanded_text: string | null
+          step2_text: string | null
+          step3_expanded_text: string | null
+          step3_text: string | null
+          step4_expanded_text: string | null
+          step4_text: string | null
+          step5_expanded_text: string | null
+          step5_text: string | null
+          step6_expanded_text: string | null
+          step6_text: string | null
+          step7_expanded_text: string | null
+          step7_text: string | null
+          step8_expanded_text: string | null
+          step8_text: string | null
+          step9_expanded_text: string | null
+          step9_text: string | null
+          steps_number: number | null
+          type: string | null
+        }
+        Insert: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: boolean | null
+          checked?: boolean | null
+          code?: string | null
+          corrected?: boolean | null
+          difficulty?: string | null
+          problem_image?: string | null
+          problem_number?: number | null
+          problem_text?: string | null
+          question_id: string
+          rec_time?: string | null
+          skills?: string | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Update: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: boolean | null
+          checked?: boolean | null
+          code?: string | null
+          corrected?: boolean | null
+          difficulty?: string | null
+          problem_image?: string | null
+          problem_number?: number | null
+          problem_text?: string | null
+          question_id?: string
+          rec_time?: string | null
+          skills?: string | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      daily_activities: {
+        Row: {
+          activity_date: string
+          activity_type: string
+          created_at: string | null
+          duration_minutes: number | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_date?: string
+          activity_type: string
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          activity_type?: string
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      diagnostic_responses: {
+        Row: {
+          answered_at: string
+          correct_answer: string
+          difficulty: number
+          id: string
+          is_correct: boolean
+          question_id: string
+          response_time_seconds: number | null
+          session_id: string
+          skill_id: number
+          user_answer: string | null
+        }
+        Insert: {
+          answered_at?: string
+          correct_answer: string
+          difficulty: number
+          id?: string
+          is_correct: boolean
+          question_id: string
+          response_time_seconds?: number | null
+          session_id: string
+          skill_id: number
+          user_answer?: string | null
+        }
+        Update: {
+          answered_at?: string
+          correct_answer?: string
+          difficulty?: number
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          response_time_seconds?: number | null
+          session_id?: string
+          skill_id?: number
+          user_answer?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostic_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "diagnostic_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnostic_sessions: {
+        Row: {
+          completed_at: string | null
+          correct_answers: number
+          final_difficulty: number
+          id: string
+          started_at: string
+          status: string
+          total_questions: number
+          uid: string
+        }
+        Insert: {
+          completed_at?: string | null
+          correct_answers?: number
+          final_difficulty?: number
+          id?: string
+          started_at?: string
+          status?: string
+          total_questions?: number
+          uid: string
+        }
+        Update: {
+          completed_at?: string | null
+          correct_answers?: number
+          final_difficulty?: number
+          id?: string
+          started_at?: string
+          status?: string
+          total_questions?: number
+          uid?: string
+        }
+        Relationships: []
+      }
+      diagnostic_test_problems_1: {
+        Row: {
+          answer: string | null
+          calculation_required: string | null
+          calculator_allowed: string | null
+          checked: boolean | null
+          code: string | null
+          corrected: boolean | null
+          difficulty: number | null
+          problem_answer: string | null
+          problem_image: string | null
+          problem_number: number | null
+          problem_text: string | null
+          question_id: string
+          rec_time: string | null
+          skill: number | null
+          skills: number | null
+          skills_for_step_1: string | null
+          skills_for_step_10: string | null
+          skills_for_step_11: string | null
+          skills_for_step_12: string | null
+          skills_for_step_13: string | null
+          skills_for_step_14: string | null
+          skills_for_step_15: string | null
+          skills_for_step_2: string | null
+          skills_for_step_3: string | null
+          skills_for_step_4: string | null
+          skills_for_step_5: string | null
+          skills_for_step_6: string | null
+          skills_for_step_7: string | null
+          skills_for_step_8: string | null
+          skills_for_step_9: string | null
+          solution_text: string | null
+          solutiontextexpanded: string | null
+          source: string | null
+          step1_expanded_text: string | null
+          step1_text: string | null
+          step10_expanded_text: string | null
+          step10_text: string | null
+          step11_expanded_text: string | null
+          step11_text: string | null
+          step12_expanded_text: string | null
+          step12_text: string | null
+          step13_expanded_text: string | null
+          step13_text: string | null
+          step14_expanded_text: string | null
+          step14_text: string | null
+          step15_expanded_text: string | null
+          step15_text: string | null
+          step2_expanded_text: string | null
+          step2_text: string | null
+          step3_expanded_text: string | null
+          step3_text: string | null
+          step4_expanded_text: string | null
+          step4_text: string | null
+          step5_expanded_text: string | null
+          step5_text: string | null
+          step6_expanded_text: string | null
+          step6_text: string | null
+          step7_expanded_text: string | null
+          step7_text: string | null
+          step8_expanded_text: string | null
+          step8_text: string | null
+          step9_expanded_text: string | null
+          step9_text: string | null
+          steps_number: number | null
+          type: string | null
+        }
+        Insert: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: boolean | null
+          code?: string | null
+          corrected?: boolean | null
+          difficulty?: number | null
+          problem_answer?: string | null
+          problem_image?: string | null
+          problem_number?: number | null
+          problem_text?: string | null
+          question_id: string
+          rec_time?: string | null
+          skill?: number | null
+          skills?: number | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Update: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: boolean | null
+          code?: string | null
+          corrected?: boolean | null
+          difficulty?: number | null
+          problem_answer?: string | null
+          problem_image?: string | null
+          problem_number?: number | null
+          problem_text?: string | null
+          question_id?: string
+          rec_time?: string | null
+          skill?: number | null
+          skills?: number | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      marking: {
+        Row: {
+          id: number
+          marking_text: string | null
+          text: string | null
+        }
+        Insert: {
+          id?: number
+          marking_text?: string | null
+          text?: string | null
+        }
+        Update: {
+          id?: number
+          marking_text?: string | null
+          text?: string | null
+        }
+        Relationships: []
+      }
+      mcq: {
+        Row: {
+          answer: string | null
+          calculation_required: string | null
+          calculator_allowed: string | null
+          checked: boolean | null
+          code: string | null
+          corrected: boolean | null
+          difficulty: number | null
+          problem_image: string | null
+          problem_number: number | null
+          problem_text: string | null
+          question_id: string
+          rec_time: string | null
+          skills: number | null
+          skills_for_step_1: string | null
+          skills_for_step_10: string | null
+          skills_for_step_11: string | null
+          skills_for_step_12: string | null
+          skills_for_step_13: string | null
+          skills_for_step_14: string | null
+          skills_for_step_15: string | null
+          skills_for_step_2: string | null
+          skills_for_step_3: string | null
+          skills_for_step_4: string | null
+          skills_for_step_5: string | null
+          skills_for_step_6: string | null
+          skills_for_step_7: string | null
+          skills_for_step_8: string | null
+          skills_for_step_9: string | null
+          solution_text: string | null
+          solutiontextexpanded: string | null
+          source: string | null
+          step1_expanded_text: string | null
+          step1_text: string | null
+          step10_expanded_text: string | null
+          step10_text: string | null
+          step11_expanded_text: string | null
+          step11_text: string | null
+          step12_expanded_text: string | null
+          step12_text: string | null
+          step13_expanded_text: string | null
+          step13_text: string | null
+          step14_expanded_text: string | null
+          step14_text: string | null
+          step15_expanded_text: string | null
+          step15_text: string | null
+          step2_expanded_text: string | null
+          step2_text: string | null
+          step3_expanded_text: string | null
+          step3_text: string | null
+          step4_expanded_text: string | null
+          step4_text: string | null
+          step5_expanded_text: string | null
+          step5_text: string | null
+          step6_expanded_text: string | null
+          step6_text: string | null
+          step7_expanded_text: string | null
+          step7_text: string | null
+          step8_expanded_text: string | null
+          step8_text: string | null
+          step9_expanded_text: string | null
+          step9_text: string | null
+          steps_number: number | null
+          type: string | null
+        }
+        Insert: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: boolean | null
+          code?: string | null
+          corrected?: boolean | null
+          difficulty?: number | null
+          problem_image?: string | null
+          problem_number?: number | null
+          problem_text?: string | null
+          question_id: string
+          rec_time?: string | null
+          skills?: number | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Update: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: boolean | null
+          code?: string | null
+          corrected?: boolean | null
+          difficulty?: number | null
+          problem_image?: string | null
+          problem_number?: number | null
+          problem_text?: string | null
+          question_id?: string
+          rec_time?: string | null
+          skills?: number | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      mcq_with_options: {
+        Row: {
+          answer: string | null
+          calculation_required: string | null
+          calculator_allowed: string | null
+          checked: boolean | null
+          code: string | null
+          corrected: boolean | null
+          difficulty: number | null
+          option1: string | null
+          option2: string | null
+          option3: string | null
+          option4: string | null
+          problem_image: string | null
+          problem_number: number | null
+          problem_text: string | null
+          question_id: string
+          rec_time: string | null
+          skills: number | null
+          skills_for_step_1: string | null
+          skills_for_step_10: string | null
+          skills_for_step_11: string | null
+          skills_for_step_12: string | null
+          skills_for_step_13: string | null
+          skills_for_step_14: string | null
+          skills_for_step_15: string | null
+          skills_for_step_2: string | null
+          skills_for_step_3: string | null
+          skills_for_step_4: string | null
+          skills_for_step_5: string | null
+          skills_for_step_6: string | null
+          skills_for_step_7: string | null
+          skills_for_step_8: string | null
+          skills_for_step_9: string | null
+          solution_text: string | null
+          solutiontextexpanded: string | null
+          source: string | null
+          step1_expanded_text: string | null
+          step1_text: string | null
+          step10_expanded_text: string | null
+          step10_text: string | null
+          step11_expanded_text: string | null
+          step11_text: string | null
+          step12_expanded_text: string | null
+          step12_text: string | null
+          step13_expanded_text: string | null
+          step13_text: string | null
+          step14_expanded_text: string | null
+          step14_text: string | null
+          step15_expanded_text: string | null
+          step15_text: string | null
+          step2_expanded_text: string | null
+          step2_text: string | null
+          step3_expanded_text: string | null
+          step3_text: string | null
+          step4_expanded_text: string | null
+          step4_text: string | null
+          step5_expanded_text: string | null
+          step5_text: string | null
+          step6_expanded_text: string | null
+          step6_text: string | null
+          step7_expanded_text: string | null
+          step7_text: string | null
+          step8_expanded_text: string | null
+          step8_text: string | null
+          step9_expanded_text: string | null
+          step9_text: string | null
+          steps_number: number | null
+          type: string | null
+        }
+        Insert: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: boolean | null
+          code?: string | null
+          corrected?: boolean | null
+          difficulty?: number | null
+          option1?: string | null
+          option2?: string | null
+          option3?: string | null
+          option4?: string | null
+          problem_image?: string | null
+          problem_number?: number | null
+          problem_text?: string | null
+          question_id: string
+          rec_time?: string | null
+          skills?: number | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Update: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: boolean | null
+          code?: string | null
+          corrected?: boolean | null
+          difficulty?: number | null
+          option1?: string | null
+          option2?: string | null
+          option3?: string | null
+          option4?: string | null
+          problem_image?: string | null
+          problem_number?: number | null
+          problem_text?: string | null
+          question_id?: string
+          rec_time?: string | null
+          skills?: number | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      OGE_SHFIPI_problems_1_25: {
+        Row: {
+          answer: string | null
+          calculation_required: string | null
+          calculator_allowed: boolean | null
+          checked: boolean | null
+          code: number | null
+          corrected: boolean | null
+          difficulty: number | null
+          problem_image: string | null
+          problem_number: string | null
+          problem_text: string | null
+          question_id: string
+          rec_time: string | null
+          skills: string | null
+          skills_for_step_1: string | null
+          skills_for_step_10: string | null
+          skills_for_step_11: string | null
+          skills_for_step_12: string | null
+          skills_for_step_13: string | null
+          skills_for_step_14: string | null
+          skills_for_step_15: string | null
+          skills_for_step_2: string | null
+          skills_for_step_3: string | null
+          skills_for_step_4: string | null
+          skills_for_step_5: string | null
+          skills_for_step_6: string | null
+          skills_for_step_7: string | null
+          skills_for_step_8: string | null
+          skills_for_step_9: string | null
+          solution_image: string | null
+          solution_text: string | null
+          solutiontextexpanded: string | null
+          source: string | null
+          step1_expanded_text: string | null
+          step1_text: string | null
+          step10_expanded_text: string | null
+          step10_text: string | null
+          step11_expanded_text: string | null
+          step11_text: string | null
+          step12_expanded_text: string | null
+          step12_text: string | null
+          step13_expanded_text: string | null
+          step13_text: string | null
+          step14_expanded_text: string | null
+          step14_text: string | null
+          step15_expanded_text: string | null
+          step15_text: string | null
+          step2_expanded_text: string | null
+          step2_text: string | null
+          step3_expanded_text: string | null
+          step3_text: string | null
+          step4_expanded_text: string | null
+          step4_text: string | null
+          step5_expanded_text: string | null
+          step5_text: string | null
+          step6_expanded_text: string | null
+          step6_text: string | null
+          step7_expanded_text: string | null
+          step7_text: string | null
+          step8_expanded_text: string | null
+          step8_text: string | null
+          step9_expanded_text: string | null
+          step9_text: string | null
+          steps_number: number | null
+          type: string | null
+        }
+        Insert: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: boolean | null
+          checked?: boolean | null
+          code?: number | null
+          corrected?: boolean | null
+          difficulty?: number | null
+          problem_image?: string | null
+          problem_number?: string | null
+          problem_text?: string | null
+          question_id: string
+          rec_time?: string | null
+          skills?: string | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Update: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: boolean | null
+          checked?: boolean | null
+          code?: number | null
+          corrected?: boolean | null
+          difficulty?: number | null
+          problem_image?: string | null
+          problem_number?: string | null
+          problem_text?: string | null
+          question_id?: string
+          rec_time?: string | null
+          skills?: string | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      OGE_SHFIPI_problems_1_25_old: {
+        Row: {
+          answer: string | null
+          calculation_required: string | null
+          calculator_allowed: boolean | null
+          checked: boolean | null
+          code: number | null
+          corrected: boolean | null
+          difficulty: string | null
+          problem_image: string | null
+          problem_number: string | null
+          problem_text: string | null
+          question_id: string
+          rec_time: string | null
+          skills: string | null
+          skills_for_step_1: string | null
+          skills_for_step_10: string | null
+          skills_for_step_11: string | null
+          skills_for_step_12: string | null
+          skills_for_step_13: string | null
+          skills_for_step_14: string | null
+          skills_for_step_15: string | null
+          skills_for_step_2: string | null
+          skills_for_step_3: string | null
+          skills_for_step_4: string | null
+          skills_for_step_5: string | null
+          skills_for_step_6: string | null
+          skills_for_step_7: string | null
+          skills_for_step_8: string | null
+          skills_for_step_9: string | null
+          solution_image: string | null
+          solution_text: string | null
+          solutiontextexpanded: string | null
+          source: string | null
+          step1_expanded_text: string | null
+          step1_text: string | null
+          step10_expanded_text: string | null
+          step10_text: string | null
+          step11_expanded_text: string | null
+          step11_text: string | null
+          step12_expanded_text: string | null
+          step12_text: string | null
+          step13_expanded_text: string | null
+          step13_text: string | null
+          step14_expanded_text: string | null
+          step14_text: string | null
+          step15_expanded_text: string | null
+          step15_text: string | null
+          step2_expanded_text: string | null
+          step2_text: string | null
+          step3_expanded_text: string | null
+          step3_text: string | null
+          step4_expanded_text: string | null
+          step4_text: string | null
+          step5_expanded_text: string | null
+          step5_text: string | null
+          step6_expanded_text: string | null
+          step6_text: string | null
+          step7_expanded_text: string | null
+          step7_text: string | null
+          step8_expanded_text: string | null
+          step8_text: string | null
+          step9_expanded_text: string | null
+          step9_text: string | null
+          steps_number: number | null
+          type: string | null
+        }
+        Insert: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: boolean | null
+          checked?: boolean | null
+          code?: number | null
+          corrected?: boolean | null
+          difficulty?: string | null
+          problem_image?: string | null
+          problem_number?: string | null
+          problem_text?: string | null
+          question_id: string
+          rec_time?: string | null
+          skills?: string | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Update: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: boolean | null
+          checked?: boolean | null
+          code?: number | null
+          corrected?: boolean | null
+          difficulty?: string | null
+          problem_image?: string | null
+          problem_number?: string | null
+          problem_text?: string | null
+          question_id?: string
+          rec_time?: string | null
+          skills?: string | null
+          skills_for_step_1?: string | null
+          skills_for_step_10?: string | null
+          skills_for_step_11?: string | null
+          skills_for_step_12?: string | null
+          skills_for_step_13?: string | null
+          skills_for_step_14?: string | null
+          skills_for_step_15?: string | null
+          skills_for_step_2?: string | null
+          skills_for_step_3?: string | null
+          skills_for_step_4?: string | null
+          skills_for_step_5?: string | null
+          skills_for_step_6?: string | null
+          skills_for_step_7?: string | null
+          skills_for_step_8?: string | null
+          skills_for_step_9?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          step1_expanded_text?: string | null
+          step1_text?: string | null
+          step10_expanded_text?: string | null
+          step10_text?: string | null
+          step11_expanded_text?: string | null
+          step11_text?: string | null
+          step12_expanded_text?: string | null
+          step12_text?: string | null
+          step13_expanded_text?: string | null
+          step13_text?: string | null
+          step14_expanded_text?: string | null
+          step14_text?: string | null
+          step15_expanded_text?: string | null
+          step15_text?: string | null
+          step2_expanded_text?: string | null
+          step2_text?: string | null
+          step3_expanded_text?: string | null
+          step3_text?: string | null
+          step4_expanded_text?: string | null
+          step4_text?: string | null
+          step5_expanded_text?: string | null
+          step5_text?: string | null
+          step6_expanded_text?: string | null
+          step6_text?: string | null
+          step7_expanded_text?: string | null
+          step7_text?: string | null
+          step8_expanded_text?: string | null
+          step8_text?: string | null
+          step9_expanded_text?: string | null
+          step9_text?: string | null
+          steps_number?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      ogemath_fipi_bank: {
+        Row: {
+          answer: string | null
+          checked: string | null
+          comments: string | null
+          corrected: string | null
+          problem_image: string | null
+          problem_link: string | null
+          problem_number_type: number | null
+          problem_text: string | null
+          question_id: number
+          solution_text: string | null
+          solutiontextexpanded: string | null
+        }
+        Insert: {
+          answer?: string | null
+          checked?: string | null
+          comments?: string | null
+          corrected?: string | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: number | null
+          problem_text?: string | null
+          question_id: number
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+        }
+        Update: {
+          answer?: string | null
+          checked?: string | null
+          comments?: string | null
+          corrected?: string | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: number | null
+          problem_text?: string | null
+          question_id?: number
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      student_skills: {
+        Row: {
+          created_at: string | null
+          skill_1: number | null
+          skill_10: number | null
+          skill_100: number | null
+          skill_101: number | null
+          skill_102: number | null
+          skill_103: number | null
+          skill_104: number | null
+          skill_105: number | null
+          skill_106: number | null
+          skill_107: number | null
+          skill_108: number | null
+          skill_109: number | null
+          skill_11: number | null
+          skill_110: number | null
+          skill_111: number | null
+          skill_112: number | null
+          skill_113: number | null
+          skill_114: number | null
+          skill_115: number | null
+          skill_116: number | null
+          skill_117: number | null
+          skill_118: number | null
+          skill_119: number | null
+          skill_12: number | null
+          skill_120: number | null
+          skill_121: number | null
+          skill_122: number | null
+          skill_123: number | null
+          skill_124: number | null
+          skill_125: number | null
+          skill_126: number | null
+          skill_127: number | null
+          skill_128: number | null
+          skill_129: number | null
+          skill_13: number | null
+          skill_130: number | null
+          skill_131: number | null
+          skill_132: number | null
+          skill_133: number | null
+          skill_134: number | null
+          skill_135: number | null
+          skill_136: number | null
+          skill_137: number | null
+          skill_138: number | null
+          skill_139: number | null
+          skill_14: number | null
+          skill_140: number | null
+          skill_141: number | null
+          skill_142: number | null
+          skill_143: number | null
+          skill_144: number | null
+          skill_145: number | null
+          skill_146: number | null
+          skill_147: number | null
+          skill_148: number | null
+          skill_149: number | null
+          skill_15: number | null
+          skill_150: number | null
+          skill_151: number | null
+          skill_152: number | null
+          skill_153: number | null
+          skill_154: number | null
+          skill_155: number | null
+          skill_156: number | null
+          skill_157: number | null
+          skill_158: number | null
+          skill_159: number | null
+          skill_16: number | null
+          skill_160: number | null
+          skill_161: number | null
+          skill_162: number | null
+          skill_163: number | null
+          skill_164: number | null
+          skill_165: number | null
+          skill_166: number | null
+          skill_167: number | null
+          skill_168: number | null
+          skill_169: number | null
+          skill_17: number | null
+          skill_170: number | null
+          skill_171: number | null
+          skill_172: number | null
+          skill_173: number | null
+          skill_174: number | null
+          skill_175: number | null
+          skill_176: number | null
+          skill_177: number | null
+          skill_178: number | null
+          skill_179: number | null
+          skill_18: number | null
+          skill_180: number | null
+          skill_181: number | null
+          skill_19: number | null
+          skill_2: number | null
+          skill_20: number | null
+          skill_21: number | null
+          skill_22: number | null
+          skill_23: number | null
+          skill_24: number | null
+          skill_25: number | null
+          skill_26: number | null
+          skill_27: number | null
+          skill_28: number | null
+          skill_29: number | null
+          skill_3: number | null
+          skill_30: number | null
+          skill_31: number | null
+          skill_32: number | null
+          skill_33: number | null
+          skill_34: number | null
+          skill_35: number | null
+          skill_36: number | null
+          skill_37: number | null
+          skill_38: number | null
+          skill_39: number | null
+          skill_4: number | null
+          skill_40: number | null
+          skill_41: number | null
+          skill_42: number | null
+          skill_43: number | null
+          skill_44: number | null
+          skill_45: number | null
+          skill_46: number | null
+          skill_47: number | null
+          skill_48: number | null
+          skill_49: number | null
+          skill_5: number | null
+          skill_50: number | null
+          skill_51: number | null
+          skill_52: number | null
+          skill_53: number | null
+          skill_54: number | null
+          skill_55: number | null
+          skill_56: number | null
+          skill_57: number | null
+          skill_58: number | null
+          skill_59: number | null
+          skill_6: number | null
+          skill_60: number | null
+          skill_61: number | null
+          skill_62: number | null
+          skill_63: number | null
+          skill_64: number | null
+          skill_65: number | null
+          skill_66: number | null
+          skill_67: number | null
+          skill_68: number | null
+          skill_69: number | null
+          skill_7: number | null
+          skill_70: number | null
+          skill_71: number | null
+          skill_72: number | null
+          skill_73: number | null
+          skill_74: number | null
+          skill_75: number | null
+          skill_76: number | null
+          skill_77: number | null
+          skill_78: number | null
+          skill_79: number | null
+          skill_8: number | null
+          skill_80: number | null
+          skill_81: number | null
+          skill_82: number | null
+          skill_83: number | null
+          skill_84: number | null
+          skill_85: number | null
+          skill_86: number | null
+          skill_87: number | null
+          skill_88: number | null
+          skill_89: number | null
+          skill_9: number | null
+          skill_90: number | null
+          skill_91: number | null
+          skill_92: number | null
+          skill_93: number | null
+          skill_94: number | null
+          skill_95: number | null
+          skill_96: number | null
+          skill_97: number | null
+          skill_98: number | null
+          skill_99: number | null
+          uid: string
+        }
+        Insert: {
+          created_at?: string | null
+          skill_1?: number | null
+          skill_10?: number | null
+          skill_100?: number | null
+          skill_101?: number | null
+          skill_102?: number | null
+          skill_103?: number | null
+          skill_104?: number | null
+          skill_105?: number | null
+          skill_106?: number | null
+          skill_107?: number | null
+          skill_108?: number | null
+          skill_109?: number | null
+          skill_11?: number | null
+          skill_110?: number | null
+          skill_111?: number | null
+          skill_112?: number | null
+          skill_113?: number | null
+          skill_114?: number | null
+          skill_115?: number | null
+          skill_116?: number | null
+          skill_117?: number | null
+          skill_118?: number | null
+          skill_119?: number | null
+          skill_12?: number | null
+          skill_120?: number | null
+          skill_121?: number | null
+          skill_122?: number | null
+          skill_123?: number | null
+          skill_124?: number | null
+          skill_125?: number | null
+          skill_126?: number | null
+          skill_127?: number | null
+          skill_128?: number | null
+          skill_129?: number | null
+          skill_13?: number | null
+          skill_130?: number | null
+          skill_131?: number | null
+          skill_132?: number | null
+          skill_133?: number | null
+          skill_134?: number | null
+          skill_135?: number | null
+          skill_136?: number | null
+          skill_137?: number | null
+          skill_138?: number | null
+          skill_139?: number | null
+          skill_14?: number | null
+          skill_140?: number | null
+          skill_141?: number | null
+          skill_142?: number | null
+          skill_143?: number | null
+          skill_144?: number | null
+          skill_145?: number | null
+          skill_146?: number | null
+          skill_147?: number | null
+          skill_148?: number | null
+          skill_149?: number | null
+          skill_15?: number | null
+          skill_150?: number | null
+          skill_151?: number | null
+          skill_152?: number | null
+          skill_153?: number | null
+          skill_154?: number | null
+          skill_155?: number | null
+          skill_156?: number | null
+          skill_157?: number | null
+          skill_158?: number | null
+          skill_159?: number | null
+          skill_16?: number | null
+          skill_160?: number | null
+          skill_161?: number | null
+          skill_162?: number | null
+          skill_163?: number | null
+          skill_164?: number | null
+          skill_165?: number | null
+          skill_166?: number | null
+          skill_167?: number | null
+          skill_168?: number | null
+          skill_169?: number | null
+          skill_17?: number | null
+          skill_170?: number | null
+          skill_171?: number | null
+          skill_172?: number | null
+          skill_173?: number | null
+          skill_174?: number | null
+          skill_175?: number | null
+          skill_176?: number | null
+          skill_177?: number | null
+          skill_178?: number | null
+          skill_179?: number | null
+          skill_18?: number | null
+          skill_180?: number | null
+          skill_181?: number | null
+          skill_19?: number | null
+          skill_2?: number | null
+          skill_20?: number | null
+          skill_21?: number | null
+          skill_22?: number | null
+          skill_23?: number | null
+          skill_24?: number | null
+          skill_25?: number | null
+          skill_26?: number | null
+          skill_27?: number | null
+          skill_28?: number | null
+          skill_29?: number | null
+          skill_3?: number | null
+          skill_30?: number | null
+          skill_31?: number | null
+          skill_32?: number | null
+          skill_33?: number | null
+          skill_34?: number | null
+          skill_35?: number | null
+          skill_36?: number | null
+          skill_37?: number | null
+          skill_38?: number | null
+          skill_39?: number | null
+          skill_4?: number | null
+          skill_40?: number | null
+          skill_41?: number | null
+          skill_42?: number | null
+          skill_43?: number | null
+          skill_44?: number | null
+          skill_45?: number | null
+          skill_46?: number | null
+          skill_47?: number | null
+          skill_48?: number | null
+          skill_49?: number | null
+          skill_5?: number | null
+          skill_50?: number | null
+          skill_51?: number | null
+          skill_52?: number | null
+          skill_53?: number | null
+          skill_54?: number | null
+          skill_55?: number | null
+          skill_56?: number | null
+          skill_57?: number | null
+          skill_58?: number | null
+          skill_59?: number | null
+          skill_6?: number | null
+          skill_60?: number | null
+          skill_61?: number | null
+          skill_62?: number | null
+          skill_63?: number | null
+          skill_64?: number | null
+          skill_65?: number | null
+          skill_66?: number | null
+          skill_67?: number | null
+          skill_68?: number | null
+          skill_69?: number | null
+          skill_7?: number | null
+          skill_70?: number | null
+          skill_71?: number | null
+          skill_72?: number | null
+          skill_73?: number | null
+          skill_74?: number | null
+          skill_75?: number | null
+          skill_76?: number | null
+          skill_77?: number | null
+          skill_78?: number | null
+          skill_79?: number | null
+          skill_8?: number | null
+          skill_80?: number | null
+          skill_81?: number | null
+          skill_82?: number | null
+          skill_83?: number | null
+          skill_84?: number | null
+          skill_85?: number | null
+          skill_86?: number | null
+          skill_87?: number | null
+          skill_88?: number | null
+          skill_89?: number | null
+          skill_9?: number | null
+          skill_90?: number | null
+          skill_91?: number | null
+          skill_92?: number | null
+          skill_93?: number | null
+          skill_94?: number | null
+          skill_95?: number | null
+          skill_96?: number | null
+          skill_97?: number | null
+          skill_98?: number | null
+          skill_99?: number | null
+          uid: string
+        }
+        Update: {
+          created_at?: string | null
+          skill_1?: number | null
+          skill_10?: number | null
+          skill_100?: number | null
+          skill_101?: number | null
+          skill_102?: number | null
+          skill_103?: number | null
+          skill_104?: number | null
+          skill_105?: number | null
+          skill_106?: number | null
+          skill_107?: number | null
+          skill_108?: number | null
+          skill_109?: number | null
+          skill_11?: number | null
+          skill_110?: number | null
+          skill_111?: number | null
+          skill_112?: number | null
+          skill_113?: number | null
+          skill_114?: number | null
+          skill_115?: number | null
+          skill_116?: number | null
+          skill_117?: number | null
+          skill_118?: number | null
+          skill_119?: number | null
+          skill_12?: number | null
+          skill_120?: number | null
+          skill_121?: number | null
+          skill_122?: number | null
+          skill_123?: number | null
+          skill_124?: number | null
+          skill_125?: number | null
+          skill_126?: number | null
+          skill_127?: number | null
+          skill_128?: number | null
+          skill_129?: number | null
+          skill_13?: number | null
+          skill_130?: number | null
+          skill_131?: number | null
+          skill_132?: number | null
+          skill_133?: number | null
+          skill_134?: number | null
+          skill_135?: number | null
+          skill_136?: number | null
+          skill_137?: number | null
+          skill_138?: number | null
+          skill_139?: number | null
+          skill_14?: number | null
+          skill_140?: number | null
+          skill_141?: number | null
+          skill_142?: number | null
+          skill_143?: number | null
+          skill_144?: number | null
+          skill_145?: number | null
+          skill_146?: number | null
+          skill_147?: number | null
+          skill_148?: number | null
+          skill_149?: number | null
+          skill_15?: number | null
+          skill_150?: number | null
+          skill_151?: number | null
+          skill_152?: number | null
+          skill_153?: number | null
+          skill_154?: number | null
+          skill_155?: number | null
+          skill_156?: number | null
+          skill_157?: number | null
+          skill_158?: number | null
+          skill_159?: number | null
+          skill_16?: number | null
+          skill_160?: number | null
+          skill_161?: number | null
+          skill_162?: number | null
+          skill_163?: number | null
+          skill_164?: number | null
+          skill_165?: number | null
+          skill_166?: number | null
+          skill_167?: number | null
+          skill_168?: number | null
+          skill_169?: number | null
+          skill_17?: number | null
+          skill_170?: number | null
+          skill_171?: number | null
+          skill_172?: number | null
+          skill_173?: number | null
+          skill_174?: number | null
+          skill_175?: number | null
+          skill_176?: number | null
+          skill_177?: number | null
+          skill_178?: number | null
+          skill_179?: number | null
+          skill_18?: number | null
+          skill_180?: number | null
+          skill_181?: number | null
+          skill_19?: number | null
+          skill_2?: number | null
+          skill_20?: number | null
+          skill_21?: number | null
+          skill_22?: number | null
+          skill_23?: number | null
+          skill_24?: number | null
+          skill_25?: number | null
+          skill_26?: number | null
+          skill_27?: number | null
+          skill_28?: number | null
+          skill_29?: number | null
+          skill_3?: number | null
+          skill_30?: number | null
+          skill_31?: number | null
+          skill_32?: number | null
+          skill_33?: number | null
+          skill_34?: number | null
+          skill_35?: number | null
+          skill_36?: number | null
+          skill_37?: number | null
+          skill_38?: number | null
+          skill_39?: number | null
+          skill_4?: number | null
+          skill_40?: number | null
+          skill_41?: number | null
+          skill_42?: number | null
+          skill_43?: number | null
+          skill_44?: number | null
+          skill_45?: number | null
+          skill_46?: number | null
+          skill_47?: number | null
+          skill_48?: number | null
+          skill_49?: number | null
+          skill_5?: number | null
+          skill_50?: number | null
+          skill_51?: number | null
+          skill_52?: number | null
+          skill_53?: number | null
+          skill_54?: number | null
+          skill_55?: number | null
+          skill_56?: number | null
+          skill_57?: number | null
+          skill_58?: number | null
+          skill_59?: number | null
+          skill_6?: number | null
+          skill_60?: number | null
+          skill_61?: number | null
+          skill_62?: number | null
+          skill_63?: number | null
+          skill_64?: number | null
+          skill_65?: number | null
+          skill_66?: number | null
+          skill_67?: number | null
+          skill_68?: number | null
+          skill_69?: number | null
+          skill_7?: number | null
+          skill_70?: number | null
+          skill_71?: number | null
+          skill_72?: number | null
+          skill_73?: number | null
+          skill_74?: number | null
+          skill_75?: number | null
+          skill_76?: number | null
+          skill_77?: number | null
+          skill_78?: number | null
+          skill_79?: number | null
+          skill_8?: number | null
+          skill_80?: number | null
+          skill_81?: number | null
+          skill_82?: number | null
+          skill_83?: number | null
+          skill_84?: number | null
+          skill_85?: number | null
+          skill_86?: number | null
+          skill_87?: number | null
+          skill_88?: number | null
+          skill_89?: number | null
+          skill_9?: number | null
+          skill_90?: number | null
+          skill_91?: number | null
+          skill_92?: number | null
+          skill_93?: number | null
+          skill_94?: number | null
+          skill_95?: number | null
+          skill_96?: number | null
+          skill_97?: number | null
+          skill_98?: number | null
+          skill_99?: number | null
+          uid?: string
+        }
+        Relationships: []
+      }
+      user_activities: {
+        Row: {
+          activity_id: string
+          activity_type: string
+          completed_at: string
+          id: string
+          points_earned: number
+          subunit_number: number | null
+          time_spent_minutes: number | null
+          unit_number: number
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          activity_type: string
+          completed_at?: string
+          id?: string
+          points_earned?: number
+          subunit_number?: number | null
+          time_spent_minutes?: number | null
+          unit_number: number
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          activity_type?: string
+          completed_at?: string
+          id?: string
+          points_earned?: number
+          subunit_number?: number | null
+          time_spent_minutes?: number | null
+          unit_number?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_mastery: {
+        Row: {
+          created_at: string
+          id: string
+          mastery_level: string
+          mastery_points: number
+          subunit_number: number | null
+          total_possible_points: number
+          unit_number: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mastery_level?: string
+          mastery_points?: number
+          subunit_number?: number | null
+          total_possible_points?: number
+          unit_number: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mastery_level?: string
+          mastery_points?: number
+          subunit_number?: number | null
+          total_possible_points?: number
+          unit_number?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_statistics: {
+        Row: {
+          average_score: number
+          completed_lessons: number
+          created_at: string
+          energy_points: number
+          id: string
+          practice_problems: number
+          quizzes_completed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          average_score?: number
+          completed_lessons?: number
+          created_at?: string
+          energy_points?: number
+          id?: string
+          practice_problems?: number
+          quizzes_completed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          average_score?: number
+          completed_lessons?: number
+          created_at?: string
+          energy_points?: number
+          id?: string
+          practice_problems?: number
+          quizzes_completed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_streaks: {
+        Row: {
+          created_at: string | null
+          current_streak: number
+          daily_goal_minutes: number
+          id: string
+          last_activity_date: string | null
+          longest_streak: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_streak?: number
+          daily_goal_minutes?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_streak?: number
+          daily_goal_minutes?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
+
+--------------------------------------------------------------------------------
+File: ./src/lib/supabase.ts
+--------------------------------------------------------------------------------
+
+import { createClient } from '@supabase/supabase-js';
+
+// Use the actual Supabase URL and anonymous key for your project
+const supabaseUrl = "https://kbaazksvkvnafrwtmkcw.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYWF6a3N2a3ZuYWZyd3Rta2N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3NTg2NTAsImV4cCI6MjA2MjMzNDY1MH0.aSyfch6PX1fr9wyWSGpUPNzT6jjIdfu9eA3E3J4uqzs";
+
+export const supabase = createClient(
+  supabaseUrl,
+  supabaseAnonKey,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      storage: localStorage
+    }
+  }
+);
+
+--------------------------------------------------------------------------------
+File: ./src/lib/utils.ts
+--------------------------------------------------------------------------------
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+--------------------------------------------------------------------------------
+File: ./src/services/chatService.ts
+--------------------------------------------------------------------------------
+
+import { getChatCompletion, type Message as GroqMessage } from "./groqService";
+import { getRandomMathProblem, getMathProblemById, getCategoryByCode, type MathProblem } from "./mathProblemsService";
+import { toast } from "@/hooks/use-toast";
+
+export interface Message {
+  id: number;
+  text: string;
+  isUser: boolean;
+  timestamp: Date;
+  problemId?: string;
+}
+
+// Store current problem for follow-up questions
+let currentProblem: MathProblem | null = null;
+
+const formatProblemResponse = (problem: MathProblem): string => {
+  const category = getCategoryByCode(problem.code);
+  let response = `**Задача по теме: ${category}** (${problem.code})\n\n`;
+  
+  if (problem.problem_image) {
+    response += `*[Изображение к задаче доступно]*\n\n`;
+  }
+  
+  response += problem.problem_text + '\n\n';
+  response += `Если нужна помощь, скажи:\n`;
+  response += `• "покажи ответ" - для получения ответа\n`;
+  response += `• "покажи решение" - для получения решения\n`;
+  response += `• "объясни подробнее" - для подробного объяснения`;
+  
+  return response;
+};
+
+const handleHelpRequest = (userMessage: string): string | null => {
+  if (!currentProblem) {
+    return null;
+  }
+  
+  const message = userMessage.toLowerCase();
+  
+  if (message.includes('покажи ответ') || message.includes('ответ')) {
+    return `**Ответ:** ${currentProblem.answer}`;
+  }
+  
+  if (message.includes('покажи решение') || message.includes('решение')) {
+    return currentProblem.solution_text || "Решение для этой задачи пока недоступно.";
+  }
+  
+  if (message.includes('объясни подробнее') || message.includes('подробнее') || message.includes('не понял')) {
+    return currentProblem.solutiontextexpanded || currentProblem.solution_text || "Подробное объяснение для этой задачи пока недоступно.";
+  }
+  
+  return null;
+};
+
+const handleGapsRequest = (userMessage: string): string | null => {
+  const message = userMessage.toLowerCase();
+  
+  if (message.includes('мои пробелы') || message.includes('пробелы')) {
+    return `<b>Алексей, ты спросил про свои пробелы — хорошее решение 💪</b><br><br>
+
+Во время практики я заметил, что ты часто ошибаешься в заданиях на <b>степени с рациональным показателем</b>.<br><br>
+📌 *Краткое напоминание формул:*
+
+**Степени с рациональными показателями 🧠**
+
+Это степени, у которых показатель — дробь.  
+Например: $a^{\frac{1}{2}}$ или $a^{-\frac{3}{4}}$
+
+---
+
+**Основные формулы, которые нужно запомнить:**
+
+$$a^{\frac{1}{n}} = \sqrt[n]{a}$$
+
+$$a^{\frac{m}{n}} = \sqrt[n]{a^m} = \left(\sqrt[n]{a}\right)^m$$
+
+$$a^{-\frac{m}{n}} = \frac{1}{a^{\frac{m}{n}}}$$
+
+---
+
+**Пример:**
+
+$$9^{\frac{3}{2}} = \left(\sqrt{9}\right)^3 = 3^3 = 27$$
+
+$$16^{\frac{3}{2}} = \left( \sqrt{16} \right)^3 = 4^3 = 64$$
+
+
+📘 <a href="/textbook2" style="color:#10b981;">Изучи теорию →</a><br>
+🧠 <a href="https://lovable.dev/projects/your-mcq-link" style="color:#10b981;">Пройди тренировочный тест</a> — специально по этой теме`;
+  }
+  
+  return null;
+};
+
+const shouldFetchProblem = (userMessage: string): string | null => {
+  const message = userMessage.toLowerCase();
+  
+  // Check for practice problem requests
+  if (message.includes('дай задач') || message.includes('хочу задач') || 
+      message.includes('покажи задач') || message.includes('практик') ||
+      message.includes('тренировк') || message.includes('упражнен')) {
+    
+    if (message.includes('арифметик')) return 'арифметика';
+    if (message.includes('алгебр')) return 'алгебра';
+    if (message.includes('геометри')) return 'геометрия';
+    if (message.includes('практическ')) return 'практическая математика';
+    
+    return 'random';
+  }
+  
+  return null;
+};
+
+const handleDatabaseOnlyMode = async (userMessage: string): Promise<string> => {
+  // Check for help requests first
+  const helpResponse = handleHelpRequest(userMessage);
+  if (helpResponse) {
+    return helpResponse;
+  }
+  
+  // Check for problem requests
+  const problemCategory = shouldFetchProblem(userMessage);
+  if (problemCategory) {
+    const requestedCategory = problemCategory === 'random' ? undefined : problemCategory;
+    const problem = await getRandomMathProblem(requestedCategory);
+    
+    if (problem) {
+      currentProblem = problem;
+      return formatProblemResponse(problem);
+    } else {
+      return "Извините, не удалось найти подходящую задачу в базе данных.";
+    }
+  }
+  
+  // For any other input in database mode, provide standard database responses
+  if (userMessage.toLowerCase().includes('помощь') || userMessage.toLowerCase().includes('что ты умеешь')) {
+    return `В режиме "База" я могу:\n\n• Предоставить задачи из базы данных\n• Показать ответы к задачам\n• Показать решения\n• Дать подробные объяснения\n\nЧтобы получить задачу, скажите "дай задачу" или укажите тему (алгебра, геометрия, арифметика).`;
+  }
+  
+  // Default response for database mode
+  return "В режиме работы с базой данных я могу предоставить только задачи и решения из базы. Скажите 'дай задачу' или укажите нужную тему.";
+};
+
+export const sendChatMessage = async (
+  userMessage: Message,
+  messageHistory: Message[],
+  isDatabaseMode: boolean = false
+): Promise<Message> => {
+  try {
+    let responseText: string;
+    
+    if (isDatabaseMode) {
+      // Handle database-only mode
+      responseText = await handleDatabaseOnlyMode(userMessage.text);
+    } else {
+      // Check if user is asking about their gaps
+      const gapsResponse = handleGapsRequest(userMessage.text);
+      if (gapsResponse) {
+        return {
+          id: messageHistory.length + 2,
+          text: gapsResponse,
+          isUser: false,
+          timestamp: new Date()
+        };
+      }
+      
+      // Check if user is asking for help with current problem
+      const helpResponse = handleHelpRequest(userMessage.text);
+      if (helpResponse) {
+        return {
+          id: messageHistory.length + 2,
+          text: helpResponse,
+          isUser: false,
+          timestamp: new Date(),
+          problemId: currentProblem?.question_id
+        };
+      }
+      
+      // Check if user wants a practice problem
+      const problemCategory = shouldFetchProblem(userMessage.text);
+      if (problemCategory) {
+        const requestedCategory = problemCategory === 'random' ? undefined : problemCategory;
+        const problem = await getRandomMathProblem(requestedCategory);
+        
+        if (problem) {
+          currentProblem = problem;
+          return {
+            id: messageHistory.length + 2,
+            text: formatProblemResponse(problem),
+            isUser: false,
+            timestamp: new Date(),
+            problemId: problem.question_id
+          };
+        } else {
+          return {
+            id: messageHistory.length + 2,
+            text: "Извините, не удалось найти подходящую задачу. Попробуйте запросить другую тему.",
+            isUser: false,
+            timestamp: new Date()
+          };
+        }
+      }
+      
+      // For all other messages, send to AI for general math conversation
+      const groqMessages = [...messageHistory, userMessage].map(msg => ({
+        role: msg.isUser ? 'user' as const : 'assistant' as const,
+        content: msg.text
+      }));
+      
+      // Call Groq API for general conversation
+      responseText = await getChatCompletion(groqMessages);
+    }
+    
+    // Create and return AI message
+    return {
+      id: messageHistory.length + 2,
+      text: responseText,
+      isUser: false,
+      timestamp: new Date(),
+      problemId: currentProblem?.question_id
+    };
+  } catch (error) {
+    console.error('Error getting response:', error);
+    
+    // Display more specific error message
+    let errorMessage = "Не удалось получить ответ от ассистента. ";
+    
+    if (error instanceof Error) {
+      errorMessage += error.message;
+    } else {
+      errorMessage += "Пожалуйста, проверьте консоль для получения дополнительной информации.";
+    }
+    
+    toast({
+      title: "Ошибка",
+      description: errorMessage,
+      variant: "destructive"
+    });
+    
+    // Return error message
+    return {
+      id: messageHistory.length + 2,
+      text: "Извините, произошла ошибка при обработке вашего запроса. " + errorMessage,
+      isUser: false,
+      timestamp: new Date()
+    };
+  }
+};
+
+--------------------------------------------------------------------------------
+File: ./src/services/energyPoints.ts
+--------------------------------------------------------------------------------
+import { supabase } from '@/integrations/supabase/client';
+
+export type ActivityType = 'article' | 'video' | 'problem' | 'practice_test' | 'question';
+
+// Energy points awarded for different activities
+const ENERGY_POINTS = {
+  article: 50,      // Reading an article
+  video: 75,        // Watching a video  
+  problem: 25,      // Solving a single problem
+  practice_test: 100, // Completing a practice test
+  question: 15      // Answering a question
+};
+
+export const awardEnergyPoints = async (
+  userId: string,
+  activityType: ActivityType,
+  customPoints?: number
+): Promise<{ success: boolean; pointsAwarded?: number; error?: string }> => {
+  try {
+    const pointsToAward = customPoints || ENERGY_POINTS[activityType];
+
+    // Get current user statistics
+    const { data: currentStats, error: fetchError } = await supabase
+      .from('user_statistics')
+      .select('energy_points')
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      // PGRST116 is "not found" error, which means no stats exist yet
+      console.error('Error fetching user statistics:', fetchError);
+      return { success: false, error: 'Failed to fetch user statistics' };
+    }
+
+    const currentPoints = currentStats?.energy_points || 0;
+    const newTotalPoints = currentPoints + pointsToAward;
+
+    if (currentStats) {
+      // Update existing statistics
+      const { error: updateError } = await supabase
+        .from('user_statistics')
+        .update({ 
+          energy_points: newTotalPoints,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+
+      if (updateError) {
+        console.error('Error updating energy points:', updateError);
+        return { success: false, error: 'Failed to update energy points' };
+      }
+    } else {
+      // Create new statistics record
+      const { error: insertError } = await supabase
+        .from('user_statistics')
+        .insert({
+          user_id: userId,
+          energy_points: pointsToAward,
+          completed_lessons: 0,
+          practice_problems: 0,
+          quizzes_completed: 0,
+          average_score: 0
+        });
+
+      if (insertError) {
+        console.error('Error creating user statistics:', insertError);
+        return { success: false, error: 'Failed to create user statistics' };
+      }
+    }
+
+    return { success: true, pointsAwarded: pointsToAward };
+  } catch (error) {
+    console.error('Error in awardEnergyPoints:', error);
+    return { success: false, error: 'Unexpected error occurred' };
+  }
+};
+
+export const getCurrentEnergyPoints = async (userId: string): Promise<number> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_statistics')
+      .select('energy_points')
+      .eq('user_id', userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching energy points:', error);
+      return 0;
+    }
+
+    return data?.energy_points || 0;
+  } catch (error) {
+    console.error('Error in getCurrentEnergyPoints:', error);
+    return 0;
+  }
+};
+
+export const getEnergyPointsForActivity = (activityType: ActivityType): number => {
+  return ENERGY_POINTS[activityType];
+};
+--------------------------------------------------------------------------------
+File: ./src/services/groqService.ts
+--------------------------------------------------------------------------------
+
+import { getRandomMathProblem, getMathProblemById } from "@/services/mathProblemsService";
+import { supabase } from "@/integrations/supabase/client";
+
+// Groq API service for chat completions
+export interface Message {
+  role: 'system' | 'user' | 'assistant'; 
+  content: string;
+}
+
+// Enhanced system prompt for the math tutor
+const SYSTEM_PROMPT: Message = {
+  role: 'system',
+  content: `You are "Ёжик" (Hedgehog), a helpful and patient high school math teacher specializing in Russian OGE (ОГЭ) exam preparation. You explain math concepts step-by-step and adapt to the student's level. 
+
+Key capabilities:
+- Use LaTeX notation for mathematical expressions: inline math with \\(...\\) or $...$ and block math with \\[...\\] or $$...$$
+- Keep responses in Russian language
+- Break down complex topics into simple steps
+- Answer general math questions and provide explanations
+- Help students understand mathematical concepts
+
+When user asks you to explain something "коротко и по делу" (short and to the point), provide concise, focused explanations in 1-3 sentences maximum. Be direct and essential, avoiding lengthy elaborations.
+
+You can discuss any math-related topics, explain formulas, solve problems, and provide educational guidance. When students need practice problems, they will be provided automatically from our database.
+
+Remember: You are a patient, encouraging teacher who helps students learn mathematics effectively through conversation and explanation.`
+};
+
+export async function streamChatCompletion(messages: Message[]): Promise<ReadableStream<Uint8Array> | null> {
+  try {
+    const fullMessages = [SYSTEM_PROMPT, ...messages];
+
+    const { data, error } = await supabase.functions.invoke('groq-chat', {
+      body: { messages: fullMessages, stream: true }
+    });
+
+    if (error) {
+      console.error('Groq function error:', error);
+      throw new Error(`Groq function error: ${error.message}`);
+    }
+
+    // The response should be a stream
+    return data;
+  } catch (error) {
+    console.error('Error streaming from Groq:', error);
+    return null;
+  }
+}
+
+function extractLastQuestionId(messages: Message[]): string | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const match = messages[i].content.match(/ID задачи: ([\w-]+)/);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+export async function getChatCompletion(messages: Message[]): Promise<string> {
+  try {
+    const lastMessage = messages[messages.length - 1]?.content.toLowerCase();
+
+    // Step 1: Handle follow-up (answer/solution/details)
+    if (lastMessage.includes('показать ответ') || lastMessage.includes('покажи решение') || lastMessage.includes('не понял')) {
+      const questionId = extractLastQuestionId(messages);
+      if (!questionId) return "Я не могу найти последнюю задачу. Пожалуйста, запроси новую.";
+
+      const problem = await getMathProblemById(questionId);
+      if (!problem) return "Не удалось найти задачу по ID.";
+
+      if (lastMessage.includes('показать ответ')) {
+        return `📌 Ответ: **${problem.answer}**`;
+      }
+
+      if (lastMessage.includes('покажи решение')) {
+        return problem.solution_text || "Решение пока недоступно.";
+      }
+
+      if (lastMessage.includes('не понял')) {
+        return problem.solutiontextexpanded || "Подробного объяснения нет.";
+      }
+    }
+
+    // Step 2: Handle new problem request
+    if (lastMessage.includes('задачу')) {
+      let category: string | undefined = undefined;
+
+      if (lastMessage.includes('алгебр')) category = 'алгебра';
+      else if (lastMessage.includes('арифметик')) category = 'арифметика';
+      else if (lastMessage.includes('геометр')) category = 'геометрия';
+      else if (lastMessage.includes('практич')) category = 'практическая математика';
+
+      const problem = await getRandomMathProblem(category);
+
+      if (problem) {
+       
+        const rawImage = problem.problem_image?.replace(/^\/+/, '');
+        const imageUrl = rawImage?.startsWith('http')
+          ? rawImage
+          : `https://casohrqgydyyvcclqwqm.supabase.co/storage/v1/object/public/images/${rawImage}`;
+
+        
+        const imagePart = problem.problem_image ? `🖼️ ![изображение](${imageUrl})\n\n` : "";
+
+        return `Вот задача по категории *${category ?? 'Общее'}*:\n\n${imagePart}${problem.problem_text}\n\n(📌 ID задачи: ${problem.question_id})\n\nНапиши *показать ответ* или *покажи решение*, если хочешь продолжить.`;
+      }
+
+      return "Не удалось найти задачу. Попробуй ещё раз позже.";
+    }
+
+    // Step 3: Default to Groq completion
+    const fullMessages = [SYSTEM_PROMPT, ...messages];
+    
+    const { data, error } = await supabase.functions.invoke('groq-chat', {
+      body: { messages: fullMessages, stream: false }
+    });
+
+    if (error) {
+      console.error('Groq function error:', error);
+      throw new Error(`Groq function error: ${error.message}`);
+    }
+
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('Chat completion error:', error);
+    return 'Произошла ошибка. Попробуй позже.';
+  }
+}
+
+--------------------------------------------------------------------------------
+File: ./src/services/mathProblemsService.ts
+--------------------------------------------------------------------------------
+
+import { supabase } from "@/integrations/supabase/client";
+
+export interface MathProblem {
+  question_id: string;
+  problem_text: string;
+  problem_image?: string;
+  answer: string;
+  solution_text?: string;
+  solutiontextexpanded?: string;
+  code: string;
+}
+
+export const getCategoryByCode = (code: string): string => {
+  if (!code) return 'Общее';
+  
+  if (code.startsWith('1.')) return 'Арифметика';
+  if (code.startsWith('2.') || code.startsWith('3.') || code.startsWith('4.') || code.startsWith('5.') || code.startsWith('6.')) return 'Алгебра';
+  if (code.startsWith('7.')) return 'Геометрия';
+  if (code.startsWith('8.')) return 'Практическая математика';
+  
+  return 'Общее';
+};
+
+export const getRandomMathProblem = async (category?: string): Promise<MathProblem | null> => {
+  try {
+    let query = supabase.from('copy').select('*');
+    
+    // Filter by category if specified
+    if (category) {
+      switch (category.toLowerCase()) {
+        case 'арифметика':
+          query = query.like('code', '1.%');
+          break;
+        case 'алгебра':
+          query = query.or('code.like.2.%,code.like.3.%,code.like.4.%,code.like.5.%,code.like.6.%');
+          break;
+        case 'геометрия':
+          query = query.like('code', '7.%');
+          break;
+        case 'практическая математика':
+          query = query.like('code', '8.%');
+          break;
+      }
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching math problems:', error);
+      return null;
+    }
+    
+    if (!data || data.length === 0) {
+      return null;
+    }
+    
+    // Get random problem from results
+    const randomIndex = Math.floor(Math.random() * data.length);
+    return data[randomIndex] as MathProblem;
+    
+  } catch (error) {
+    console.error('Error in getRandomMathProblem:', error);
+    return null;
+  }
+};
+
+export const getMathProblemById = async (questionId: string): Promise<MathProblem | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('copy')
+      .select('*')
+      .eq('question_id', questionId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching math problem by ID:', error);
+      return null;
+    }
+    
+    return data as MathProblem;
+  } catch (error) {
+    console.error('Error in getMathProblemById:', error);
+    return null;
+  }
+};
+
+--------------------------------------------------------------------------------
+File: ./src/services/streakPointsService.ts
+--------------------------------------------------------------------------------
+import { supabase } from '@/integrations/supabase/client';
+
+export interface StreakReward {
+  minutes: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+}
+
+export const calculateStreakReward = (difficulty?: string | number): StreakReward => {
+  // Convert different difficulty formats to consistent format
+  let normalizedDifficulty: 'easy' | 'medium' | 'hard' = 'medium';
+  let minutes = 2; // default
+
+  if (typeof difficulty === 'string') {
+    const diffLower = difficulty.toLowerCase();
+    if (diffLower.includes('easy') || diffLower.includes('легк')) {
+      normalizedDifficulty = 'easy';
+      minutes = 1;
+    } else if (diffLower.includes('hard') || diffLower.includes('сложн') || diffLower.includes('трудн')) {
+      normalizedDifficulty = 'hard';
+      minutes = 5;
+    } else {
+      normalizedDifficulty = 'medium';
+      minutes = 2;
+    }
+  } else if (typeof difficulty === 'number') {
+    if (difficulty <= 1) {
+      normalizedDifficulty = 'easy';
+      minutes = 1;
+    } else if (difficulty >= 3) {
+      normalizedDifficulty = 'hard';
+      minutes = 5;
+    } else {
+      normalizedDifficulty = 'medium';
+      minutes = 2;
+    }
+  }
+
+  return { minutes, difficulty: normalizedDifficulty };
+};
+
+export const awardStreakPoints = async (userId: string, reward: StreakReward) => {
+  try {
+    // Get current streak data
+    const { data: currentStreak, error: fetchError } = await supabase
+      .from('user_streaks')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      throw fetchError;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const currentDate = new Date();
+    
+    if (!currentStreak) {
+      // Create new streak record
+      const { error: insertError } = await supabase
+        .from('user_streaks')
+        .insert({
+          user_id: userId,
+          current_streak: 1,
+          longest_streak: 1,
+          last_activity_date: today,
+          daily_goal_minutes: 30
+        });
+      
+      if (insertError) throw insertError;
+    } else {
+      // Update existing streak
+      const lastActivityDate = currentStreak.last_activity_date ? new Date(currentStreak.last_activity_date) : null;
+      const isToday = lastActivityDate && lastActivityDate.toISOString().split('T')[0] === today;
+      
+      let newCurrentStreak = currentStreak.current_streak;
+      if (!isToday) {
+        const yesterday = new Date(currentDate);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const isYesterday = lastActivityDate && lastActivityDate.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0];
+        
+        if (isYesterday) {
+          newCurrentStreak += 1;
+        } else if (lastActivityDate) {
+          newCurrentStreak = 1; // Reset streak if gap > 1 day
+        }
+      }
+
+      const { error: updateError } = await supabase
+        .from('user_streaks')
+        .update({
+          current_streak: newCurrentStreak,
+          longest_streak: Math.max(currentStreak.longest_streak, newCurrentStreak),
+          last_activity_date: today,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+      
+      if (updateError) throw updateError;
+    }
+
+    // Add daily activity record
+    const { error: activityError } = await supabase
+      .from('daily_activities')
+      .insert({
+        user_id: userId,
+        activity_type: 'question_attempt',
+        duration_minutes: reward.minutes,
+        activity_date: today
+      });
+
+    if (activityError) throw activityError;
+
+    return { success: true, reward };
+  } catch (error) {
+    console.error('Error awarding streak points:', error);
+    return { success: false, error };
+  }
+};
+
+export const getCurrentStreakData = async (userId: string) => {
+  try {
+    const { data: streakData, error: streakError } = await supabase
+      .from('user_streaks')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (streakError && streakError.code !== 'PGRST116') {
+      throw streakError;
+    }
+
+    // Get today's total activity minutes
+    const today = new Date().toISOString().split('T')[0];
+    const { data: activityData, error: activityError } = await supabase
+      .from('daily_activities')
+      .select('duration_minutes')
+      .eq('user_id', userId)
+      .eq('activity_date', today);
+
+    if (activityError) {
+      throw activityError;
+    }
+
+    const todayMinutes = activityData?.reduce((sum, activity) => sum + (activity.duration_minutes || 0), 0) || 0;
+    const goalMinutes = streakData?.daily_goal_minutes || 30;
+
+    return {
+      currentStreak: streakData?.current_streak || 0,
+      longestStreak: streakData?.longest_streak || 0,
+      todayMinutes,
+      goalMinutes,
+      lastActivityDate: streakData?.last_activity_date
+    };
+  } catch (error) {
+    console.error('Error fetching streak data:', error);
+    return null;
+  }
+};
+--------------------------------------------------------------------------------
+File: ./src/services/streakService.ts
+--------------------------------------------------------------------------------
+
+import { supabase } from '@/integrations/supabase/client';
+
+export const trackStreakActivity = async (
+  userId: string,
+  activityType: 'article' | 'video' | 'problem' | 'practice_test',
+  durationMinutes: number = 0
+) => {
+  try {
+    // Add activity record
+    await supabase
+      .from('daily_activities')
+      .insert({
+        user_id: userId,
+        activity_type: activityType,
+        duration_minutes: durationMinutes,
+        activity_date: new Date().toISOString().split('T')[0]
+      });
+
+    // Update streak data
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Get current streak info
+    const { data: currentStreak } = await supabase
+      .from('user_streaks')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (currentStreak) {
+      const lastActivityDate = currentStreak.last_activity_date;
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      let newStreak = currentStreak.current_streak;
+
+      // Check if this is the first activity today
+      if (lastActivityDate !== today) {
+        if (lastActivityDate === yesterdayStr) {
+          // Continue streak
+          newStreak += 1;
+        } else if (lastActivityDate && lastActivityDate < yesterdayStr) {
+          // Streak broken, reset to 1
+          newStreak = 1;
+        } else if (!lastActivityDate) {
+          // First ever activity
+          newStreak = 1;
+        }
+
+        // Update streak
+        await supabase
+          .from('user_streaks')
+          .update({
+            current_streak: newStreak,
+            longest_streak: Math.max(newStreak, currentStreak.longest_streak),
+            last_activity_date: today
+          })
+          .eq('user_id', userId);
+      }
+    }
+  } catch (error) {
+    console.error('Error tracking streak activity:', error);
+  }
+};
+
+--------------------------------------------------------------------------------
+File: ./src/services/subtitleService.ts
+--------------------------------------------------------------------------------
+
+export interface SubtitleSegment {
+  start: number;
+  end: number;
+  text: string;
+}
+
+export const parseVTT = (vttContent: string): SubtitleSegment[] => {
+  const segments: SubtitleSegment[] = [];
+  const lines = vttContent.split('\n');
+  
+  let currentSegment: Partial<SubtitleSegment> = {};
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Skip empty lines and headers
+    if (!line || line.startsWith('WEBVTT') || line.startsWith('NOTE')) {
+      continue;
+    }
+    
+    // Check if line contains timestamp
+    if (line.includes('-->')) {
+      const [startTime, endTime] = line.split('-->').map(t => t.trim());
+      currentSegment.start = parseTimestamp(startTime);
+      currentSegment.end = parseTimestamp(endTime);
+    } else if (currentSegment.start !== undefined && currentSegment.end !== undefined) {
+      // This is subtitle text
+      currentSegment.text = line;
+      segments.push(currentSegment as SubtitleSegment);
+      currentSegment = {};
+    }
+  }
+  
+  return segments;
+};
+
+const parseTimestamp = (timestamp: string): number => {
+  const parts = timestamp.split(':');
+  const seconds = parts[parts.length - 1].split(',')[0]; // Remove milliseconds
+  const minutes = parts[parts.length - 2] || '0';
+  const hours = parts[parts.length - 3] || '0';
+  
+  return parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseInt(seconds);
+};
+
+export const findSubtitleAtTimestamp = (
+  segments: SubtitleSegment[], 
+  timestamp: number, 
+  bufferSeconds: number = 5
+): string => {
+  // Find segments within the buffer range
+  const relevantSegments = segments.filter(segment => 
+    (segment.start <= timestamp + bufferSeconds && segment.end >= timestamp - bufferSeconds)
+  );
+  
+  if (relevantSegments.length === 0) {
+    return "No subtitles available for this timestamp.";
+  }
+  
+  // Return the most relevant segment (closest to timestamp)
+  const closestSegment = relevantSegments.reduce((closest, current) => {
+    const closestDistance = Math.min(
+      Math.abs(closest.start - timestamp),
+      Math.abs(closest.end - timestamp)
+    );
+    const currentDistance = Math.min(
+      Math.abs(current.start - timestamp),
+      Math.abs(current.end - timestamp)
+    );
+    
+    return currentDistance < closestDistance ? current : closest;
+  });
+  
+  return closestSegment.text;
+};
+
+export const fetchSubtitlesFromSupabase = async (videoId: string): Promise<SubtitleSegment[]> => {
+  // This would fetch VTT files from Supabase storage
+  // For now, return empty array as placeholder
+  console.log(`Fetching subtitles for video: ${videoId}`);
+  return [];
+};
+
+--------------------------------------------------------------------------------
+File: ./src/services/videoAwareChatService.ts
+--------------------------------------------------------------------------------
+
+import { getChatCompletion, type Message as GroqMessage } from "./groqService";
+import { toast } from "@/hooks/use-toast";
+
+export interface Message {
+  id: number;
+  text: string;
+  isUser: boolean;
+  timestamp: Date;
+}
+
+export const sendVideoAwareChatMessage = async (
+  userMessage: Message,
+  messageHistory: Message[],
+  subtitleContext: string = "",
+  videoTitle: string = ""
+): Promise<Message> => {
+  try {
+    // Build the conversation history
+    const groqMessages: GroqMessage[] = [];
+
+    // Add system message with video context
+    let systemPrompt = "You are a helpful mathematics tutor. You help students understand mathematical concepts and solve problems.";
+    
+    if (subtitleContext) {
+      systemPrompt += `\n\nThe student is watching a video titled: "${videoTitle}". The video content at the current timestamp says: "${subtitleContext}". Use this context to provide relevant explanations and help the student understand the concepts being discussed in the video.`;
+    }
+
+    groqMessages.push({
+      role: 'system',
+      content: systemPrompt
+    });
+
+    // Add conversation history
+    messageHistory.forEach(msg => {
+      groqMessages.push({
+        role: msg.isUser ? 'user' : 'assistant',
+        content: msg.text
+      });
+    });
+
+    // Add current user message
+    groqMessages.push({
+      role: 'user',
+      content: userMessage.text
+    });
+
+    // Get AI response
+    const responseText = await getChatCompletion(groqMessages);
+
+    // Create response message with subtitle context indicator
+    let finalResponse = responseText;
+    if (subtitleContext) {
+      finalResponse = `📺 **Video context:** "${subtitleContext}"\n\n${responseText}`;
+    }
+
+    return {
+      id: messageHistory.length + 2,
+      text: finalResponse,
+      isUser: false,
+      timestamp: new Date()
+    };
+  } catch (error) {
+    console.error('Error getting video-aware response:', error);
+    
+    toast({
+      title: "Ошибка",
+      description: "Не удалось получить ответ от ассистента.",
+      variant: "destructive"
+    });
+    
+    return {
+      id: messageHistory.length + 2,
+      text: "Извините, произошла ошибка при обработке вашего запроса.",
+      isUser: false,
+      timestamp: new Date()
+    };
+  }
+};
+
+--------------------------------------------------------------------------------
+File: ./src/vite-env.d.ts
+--------------------------------------------------------------------------------
+
+/// <reference types="vite/client" />
+
+interface Window {
+  MathJax: any;
+}
+
+--------------------------------------------------------------------------------
+File: ./supabase/functions/groq-chat/index.ts
+--------------------------------------------------------------------------------
+
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const groqApiKey = Deno.env.get('GROQ_API_KEY');
+    
+    if (!groqApiKey) {
+      throw new Error('GROQ_API_KEY is not configured in Supabase secrets');
+    }
+
+    const { messages, stream = false } = await req.json();
+
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${groqApiKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: messages,
+        stream: stream
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Groq API error:', errorData);
+      throw new Error(`Groq API error: ${response.status}`);
+    }
+
+    if (stream) {
+      // Return the streaming response directly
+      return new Response(response.body, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/plain; charset=utf-8',
+        },
+      });
+    } else {
+      // Return the JSON response
+      const data = await response.json();
+      return new Response(JSON.stringify(data), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      });
+    }
+  } catch (error) {
+    console.error('Error in groq-chat function:', error);
+    return new Response(JSON.stringify({ 
+      error: error.message || 'An error occurred while processing your request'
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
+
+--------------------------------------------------------------------------------
+File: ./tailwind.config.ts
+--------------------------------------------------------------------------------
+import type { Config } from "tailwindcss";
+
+export default {
+	darkMode: ["class"],
+	content: [
+		"./pages/**/*.{ts,tsx}",
+		"./components/**/*.{ts,tsx}",
+		"./app/**/*.{ts,tsx}",
+		"./src/**/*.{ts,tsx}",
+	],
+	prefix: "",
+	theme: {
+		container: {
+			center: true,
+			padding: '2rem',
+			screens: {
+				'2xl': '1400px'
+			}
+		},
+		extend: {
+			colors: {
+				border: 'hsl(var(--border))',
+				input: 'hsl(var(--input))',
+				ring: 'hsl(var(--ring))',
+				background: 'hsl(var(--background))',
+				foreground: 'hsl(var(--foreground))',
+				primary: {
+					DEFAULT: '#0A2540', // Deep navy blue like Kognity
+					foreground: '#ffffff'
+				},
+				secondary: {
+					DEFAULT: '#33C3F0', // Light blue accent like Kognity
+					foreground: '#ffffff'
+				},
+				destructive: {
+					DEFAULT: 'hsl(var(--destructive))',
+					foreground: 'hsl(var(--destructive-foreground))'
+				},
+				muted: {
+					DEFAULT: 'hsl(var(--muted))',
+					foreground: 'hsl(var(--muted-foreground))'
+				},
+				accent: {
+					DEFAULT: '#2EC5CE', // Teal accent like Kognity
+					foreground: '#ffffff'
+				},
+				popover: {
+					DEFAULT: 'hsl(var(--popover))',
+					foreground: 'hsl(var(--popover-foreground))'
+				},
+				card: {
+					DEFAULT: 'hsl(var(--card))',
+					foreground: 'hsl(var(--card-foreground))'
+				},
+				sidebar: {
+					DEFAULT: 'hsl(var(--sidebar-background))',
+					foreground: 'hsl(var(--sidebar-foreground))',
+					primary: 'hsl(var(--sidebar-primary))',
+					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+					accent: 'hsl(var(--sidebar-accent))',
+					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+					border: 'hsl(var(--sidebar-border))',
+					ring: 'hsl(var(--sidebar-ring))'
+				}
+			},
+			borderRadius: {
+				lg: 'var(--radius)',
+				md: 'calc(var(--radius) - 2px)',
+				sm: 'calc(var(--radius) - 4px)'
+			},
+			keyframes: {
+				'accordion-down': {
+					from: {
+						height: '0'
+					},
+					to: {
+						height: 'var(--radix-accordion-content-height)'
+					}
+				},
+				'accordion-up': {
+					from: {
+						height: 'var(--radix-accordion-content-height)'
+					},
+					to: {
+						height: '0'
+					}
+				},
+				typing: {
+					'0%': { width: '0' },
+					'100%': { width: '100%' }
+				},
+				blink: {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0' }
+				},
+				'bounce-in': {
+					'0%': { transform: 'scale(0.8)', opacity: '0' },
+					'80%': { transform: 'scale(1.05)' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				}
+			},
+			animation: {
+				'accordion-down': 'accordion-down 0.2s ease-out',
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'typing': 'typing 3.5s steps(40, end)',
+				'blink': 'blink 1s step-end infinite',
+				'bounce-in': 'bounce-in 0.5s ease-out'
+			},
+			fontFamily: {
+				sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+				heading: ['"Montserrat"', 'sans-serif']
+			}
+		}
+	},
+	plugins: [require("tailwindcss-animate")],
+} satisfies Config;
+
+--------------------------------------------------------------------------------
+File: ./vite.config.ts
+--------------------------------------------------------------------------------
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+import { componentTagger } from "lovable-tagger";
+
+// https://vitejs.dev/config/
+export default defineConfig(({ mode }) => ({
+  server: {
+    base: mode === 'production' ? '/math-mentor-oge-ai/' : '/',
+    host: "::",
+    port: 8080,
+  },
+  plugins: [
+    react(),
+    mode === 'development' &&
+    componentTagger(),
+  ].filter(Boolean),
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+}));
+
