@@ -155,8 +155,8 @@ const EgeMathProf = () => {
       </div>
 
       {/* Chat window */}
-      <div className="absolute bottom-40 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-6">
-        <div id="chat-window" className="relative h-[calc(60vh+144px)] bg-white/40 backdrop-blur-[12px] rounded-2xl shadow-2xl overflow-hidden">
+      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-6 bottom-32">
+        <div id="chat-window" className="relative h-full bg-white/40 backdrop-blur-[12px] rounded-2xl shadow-2xl overflow-hidden">
           <CourseChatMessages messages={messages} isTyping={isTyping} />
         </div>
       </div>
