@@ -2,8 +2,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send } from "lucide-react";
-import DatabaseToggle from "./DatabaseToggle";
+import { Send, Database } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
+import { useChatContext } from "@/contexts/ChatContext";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -12,6 +13,7 @@ interface ChatInputProps {
 
 const ChatInput = ({ onSendMessage, isTyping }: ChatInputProps) => {
   const [userInput, setUserInput] = useState("");
+  const { isDatabaseMode, setIsDatabaseMode } = useChatContext();
 
   const handleSendMessage = () => {
     if (userInput.trim() === "") return;
@@ -27,11 +29,17 @@ const ChatInput = ({ onSendMessage, isTyping }: ChatInputProps) => {
 
   return (
     <div className="bg-transparent">
-      <div className="p-3 border-b border-border/30">
-        <DatabaseToggle />
-      </div>
       <div className="p-4">
         <div className="flex gap-3 items-center bg-gray-100/90 backdrop-blur-sm rounded-2xl p-3 shadow-inner">
+          <Toggle
+            pressed={isDatabaseMode}
+            onPressedChange={setIsDatabaseMode}
+            variant="outline"
+            size="sm"
+            className="shrink-0 h-8 w-8 p-0 border-gray-300 hover:bg-gray-200/50 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary"
+          >
+            <Database className="h-4 w-4" />
+          </Toggle>
           <Input 
             value={userInput} 
             onChange={e => setUserInput(e.target.value)} 
