@@ -13,7 +13,7 @@ import { MessageCircle, X, Highlighter } from "lucide-react";
 import syllabusData from "../../documentation/new_syllabus_hierarchy_topics_skills.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import "/src/styles/style_for_textbook.css";
+import "@/styles/style_for_textbook.css";
 
 interface Unit {
   code: string;
