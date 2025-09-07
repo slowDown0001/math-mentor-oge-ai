@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ArticleRenderer from "@/components/ArticleRenderer";
+import { useKaTeXInitializer } from "@/hooks/useMathJaxInitializer";
 import "@/styles/style_for_textbook.css";
 
 // A minimal Article shape for the renderer
@@ -17,6 +18,9 @@ const BookTest: React.FC = () => {
   const [rawInput, setRawInput] = useState<string>("");
   const [renderText, setRenderText] = useState<string>("");
   const [article, setArticle] = useState<ArticleShape>({ skill: 0, art: "" });
+  
+  // Initialize KaTeX for math rendering
+  const isKaTeXReady = useKaTeXInitializer();
 
   // Basic SEO setup without extra deps
   useEffect(() => {
