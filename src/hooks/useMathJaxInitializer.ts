@@ -5,7 +5,6 @@ import 'katex/dist/katex.min.css';
 // Declare renderMathInElement function for auto-render
 declare global {
   interface Window {
-    renderMathInElement: (element: HTMLElement, options?: any) => void;
     katex: any;
   }
 }

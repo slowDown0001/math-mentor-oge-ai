@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 
 // Math delimiter normalization functions
 const normalizeMathDelimiters = (input: string): string => {
@@ -55,10 +57,10 @@ const ChatRenderer2 = ({
   }, [text]);
 
   return (
-    <div className={className}>
+    <div className={className} data-message="chat-content">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeRaw, rehypeKatex]}
         components={{
           p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
           a: ({ href, children }) => (

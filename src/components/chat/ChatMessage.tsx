@@ -40,7 +40,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
           </div>
         )}
         
-        <div className={`${message.isUser ? "text-foreground" : "text-foreground"}`}>
+        <div className={`${message.isUser ? "text-foreground" : "text-foreground"}`} data-message="chat-content">
           <ChatRenderer2 text={message.text} isUserMessage={message.isUser} />
         </div>
       </div>

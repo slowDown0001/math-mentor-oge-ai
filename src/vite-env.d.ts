@@ -2,5 +2,5 @@
 /// <reference types="vite/client" />
 
 interface Window {
-  MathJax: any;
+  renderMathInElement?: (element: HTMLElement, options?: any) => void;
 }

@@ -135,73 +135,23 @@
   @apply border-l-4 border-primary pl-4 italic text-gray-700 mb-4;
 }
 
-/* MathJax styling */
-.MathJax {
+/* KaTeX styling */
+.katex {
   @apply text-gray-800;
 }
 
-/* Math Renderer specific styles - Enhanced for better LaTeX support */
-.math-renderer.math-inline {
-  display: inline !important;
-  white-space: nowrap;
-  vertical-align: baseline;
+/* KaTeX display math styling */
+.katex-display {
+  @apply my-4;
 }
 
-.math-renderer.math-inline .MathJax {
-  display: inline !important;
-  margin: 0 !important;
-  vertical-align: baseline !important;
+/* Ensure proper styling for KaTeX in chat messages */
+[data-message] .katex-display {
+  @apply text-center my-3;
 }
 
-.math-renderer.math-display {
-  display: block;
-  margin: 0.75em 0;
-  text-align: center;
-}
-
-.math-renderer.math-display .MathJax {
-  display: block !important;
-  text-align: center;
-  margin: 0.5em auto !important;
-}
-
-/* Enhanced MathJax container styling for better alignment */
-.math-renderer.math-inline mjx-container {
-  display: inline !important;
-  margin: 0 !important;
-  vertical-align: baseline !important;
-  line-height: 1 !important;
-}
-
-.math-renderer.math-display mjx-container {
-  display: block !important;
-  margin: 0.5em auto !important;
-  text-align: center !important;
-}
-
-/* Prevent unwanted line breaks in inline math */
-.math-renderer.math-inline mjx-math {
-  display: inline !important;
-  white-space: nowrap !important;
-}
-
-/* Ensure proper spacing for display math */
-.math-renderer.math-display mjx-math {
-  display: block !important;
-  margin: 0 auto !important;
-}
-
-/* Fix for MathJax in lists and paragraphs */
-li .math-renderer.math-inline,
-p .math-renderer.math-inline {
-  display: inline !important;
-  vertical-align: baseline !important;
-}
-
-/* Warning: Avoid placing MathRenderer inside <p> tags for display math */
-p .math-renderer.math-display {
-  display: block !important;
-  margin: 0.5em 0 !important;
+[data-message] .katex {
+  @apply inline;
 }
 
 /* Custom scrollbar */

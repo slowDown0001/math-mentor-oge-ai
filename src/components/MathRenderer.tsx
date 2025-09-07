@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useMathJaxInitializer } from '../hooks/useMathJaxInitializer';
+import { kaTeXManager } from '../hooks/useMathJaxInitializer';
 
 interface MathRendererProps {
   text: string;
@@ -8,34 +8,24 @@ interface MathRendererProps {
 
 const MathRenderer = ({ text, className = '' }: MathRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isMathJaxReady = useMathJaxInitializer(); // 🟢 Get readiness flag
 
   useEffect(() => {
-    if (!containerRef.current || !text || !isMathJaxReady) return;
+    if (!containerRef.current || !text) return;
 
     try {
       containerRef.current.innerHTML = text;
-
-      if (
-        typeof window.MathJax !== 'undefined' &&
-        typeof window.MathJax.typesetPromise === 'function'
-      ) {
-        window.MathJax.typesetPromise([containerRef.current]).catch((err) => {
-          console.error('MathJax rendering error:', err);
-        });
-      } else {
-        console.warn('MathJax not ready or typesetPromise not found');
-      }
+      // Use KaTeX manager to render math
+      kaTeXManager.renderMath(containerRef.current);
     } catch (error) {
       console.error('Error rendering math:', error);
       if (containerRef.current) {
         containerRef.current.textContent = text;
       }
     }
-  }, [text, isMathJaxReady]); // 🔁 Watch for readiness
+  }, [text]);
 
   return (
-    <div ref={containerRef} className={className}>
+    <div ref={containerRef} className={className} data-message="math-content">
       {!text && ''}
     </div>
   );
