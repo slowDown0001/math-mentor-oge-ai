@@ -87,15 +87,33 @@ Deno.serve(async (req) => {
     }
 
     // Step 3: Construct attempt data for process-attempt
+    let problemNumberType = questionDetails.data?.problem_number_type;
+    
+    // If problem_number_type is null/undefined, try to extract from question_id
+    if (problemNumberType === null || problemNumberType === undefined) {
+      const questionIdParts = submissionData.question_id.split('_');
+      if (questionIdParts.length >= 3) {
+        const extractedType = parseInt(questionIdParts[2]);
+        if (!isNaN(extractedType)) {
+          problemNumberType = extractedType;
+        }
+      }
+    }
+    
+    // Fallback to 0 if still no valid problem_number_type
+    if (problemNumberType === null || problemNumberType === undefined) {
+      problemNumberType = 0;
+    }
+
     const attemptData = {
       user_id: submissionData.user_id,
       question_id: submissionData.question_id,
       finished_or_not: submissionData.finished_or_not,
       is_correct: activityData?.is_correct || false,
-      difficulty: questionDetails.difficulty || 1,
-      skills_list: Array.isArray(questionDetails.skills) ? questionDetails.skills : [],
-      topics_list: Array.isArray(questionDetails.topics) ? questionDetails.topics : [],
-      problem_number_type: questionDetails.problem_number_type || 0,
+      difficulty: questionDetails.data?.difficulty || 1,
+      skills_list: Array.isArray(questionDetails.data?.skills) ? questionDetails.data.skills : [],
+      topics_list: Array.isArray(questionDetails.data?.topics) ? questionDetails.data.topics : [],
+      problem_number_type: problemNumberType,
       duration: submissionData.duration || 0,
       scores_fipi: submissionData.scores_fipi,
       scaling_type: submissionData.scaling_type || 'linear',

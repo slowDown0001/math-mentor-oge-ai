@@ -135,8 +135,8 @@ Deno.serve(async (req) => {
     const questionDetails = {
       skills: skillsArray,
       topics: topicsArray,
-      problem_number_type: questionData.problem_number_type ? parseInt(questionData.problem_number_type) : null,
-      difficulty: questionData.difficulty ? parseInt(questionData.difficulty) : 1
+      problem_number_type: questionData.problem_number_type ? parseInt(questionData.problem_number_type.toString()) : null,
+      difficulty: questionData.difficulty ? parseInt(questionData.difficulty.toString()) : 1
     }
 
     console.log(`Successfully fetched question details for ${question_id}:`, questionDetails)
