@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
       })
 
       const velocityData = await velocityResponse.json()
-      const f = velocityData.data?.velocityFactor
+      const f = velocityData.data?.velocity_factor
 
       alpha += f * w
       console.log(`Correct answer: alpha increased by ${f * w}, new alpha=${alpha}`)
