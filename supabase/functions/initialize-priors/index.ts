@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
       // Course 3: Initialize problem types (1 to 19)
       for (let problem_type = 1; problem_type <= 19; problem_type++) {
         const alpha = 1
-        const beta = 25
+        const beta = problem_type >= 13 ? 40 : 25
 
         upsertData.push({
           user_id,
