@@ -52,6 +52,7 @@ const MyDashboard = () => {
   useEffect(() => {
     if (user) {
       loadUserCourses();
+      loadUserGoals();
     }
   }, [user]);
 
@@ -85,9 +86,45 @@ const MyDashboard = () => {
 
       setMyCourses(userCourses);
       setAvailableCourses(available);
+      
+      // Show goal input boxes for existing courses
+      userCourses.forEach(course => {
+        if (course.id === 'oge-math') {
+          setShowGoalInput(true);
+        } else if (course.id === 'ege-basic') {
+          setShowEgeBasicGoal(true);
+        } else if (course.id === 'ege-advanced') {
+          setShowEgeAdvancedGoal(true);
+        }
+      });
     } catch (error) {
       console.error('Error loading user courses:', error);
       setAvailableCourses(availableCoursesData);
+    }
+  };
+
+  const loadUserGoals = async () => {
+    if (!user) return;
+
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('course_1_goal, course_2_goal, course_3_goal')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading user goals:', error);
+        return;
+      }
+
+      if (profile) {
+        setGoalText(profile.course_1_goal || '');
+        setEgeBasicGoalText(profile.course_2_goal || '');
+        setEgeAdvancedGoalText(profile.course_3_goal || '');
+      }
+    } catch (error) {
+      console.error('Error loading user goals:', error);
     }
   };
 
@@ -171,9 +208,7 @@ const MyDashboard = () => {
         return;
       }
 
-      // Reset state
-      setShowGoalInput(false);
-      setGoalText('');
+      // Keep the goal input visible after saving
     } catch (error) {
       console.error('Error saving goal:', error);
     }
@@ -193,9 +228,7 @@ const MyDashboard = () => {
         return;
       }
 
-      // Reset state
-      setShowEgeBasicGoal(false);
-      setEgeBasicGoalText('');
+      // Keep the goal input visible after saving
     } catch (error) {
       console.error('Error saving ЕГЭ базовая goal:', error);
     }
@@ -215,9 +248,7 @@ const MyDashboard = () => {
         return;
       }
 
-      // Reset state
-      setShowEgeAdvancedGoal(false);
-      setEgeAdvancedGoalText('');
+      // Keep the goal input visible after saving
     } catch (error) {
       console.error('Error saving ЕГЭ профильная goal:', error);
     }
