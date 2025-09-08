@@ -44,10 +44,6 @@ const MyDashboard = () => {
   const [expandedDropdowns, setExpandedDropdowns] = useState<Set<string>>(new Set());
   const [showGoalInput, setShowGoalInput] = useState(false);
   const [goalText, setGoalText] = useState('');
-  const [showGoalInput2, setShowGoalInput2] = useState(false);
-  const [goalText2, setGoalText2] = useState('');
-  const [showGoalInput3, setShowGoalInput3] = useState(false);
-  const [goalText3, setGoalText3] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -112,18 +108,6 @@ const MyDashboard = () => {
     // If it's ОГЭ математика, show goal input
     if (course.id === 'oge-math') {
       setShowGoalInput(true);
-      return;
-    }
-    
-    // If it's ЕГЭ базовая математика, show goal input
-    if (course.id === 'ege-basic') {
-      setShowGoalInput2(true);
-      return;
-    }
-    
-    // If it's ЕГЭ профильная математика, show goal input
-    if (course.id === 'ege-advanced') {
-      setShowGoalInput3(true);
       return;
     }
 
@@ -193,62 +177,6 @@ const MyDashboard = () => {
     }
   };
 
-  const handleSaveGoal2 = async () => {
-    if (!user || !goalText2.trim()) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ course_2_goal: goalText2.trim() })
-        .eq('user_id', user.id);
-
-      if (error) {
-        console.error('Error saving goal:', error);
-        return;
-      }
-
-      // Add the course after saving the goal
-      const egeBasicCourse = availableCoursesData.find(c => c.id === 'ege-basic');
-      if (egeBasicCourse) {
-        await addCourseInternal(egeBasicCourse);
-      }
-
-      // Reset state
-      setShowGoalInput2(false);
-      setGoalText2('');
-    } catch (error) {
-      console.error('Error saving goal:', error);
-    }
-  };
-
-  const handleSaveGoal3 = async () => {
-    if (!user || !goalText3.trim()) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ course_3_goal: goalText3.trim() })
-        .eq('user_id', user.id);
-
-      if (error) {
-        console.error('Error saving goal:', error);
-        return;
-      }
-
-      // Add the course after saving the goal
-      const egeAdvancedCourse = availableCoursesData.find(c => c.id === 'ege-advanced');
-      if (egeAdvancedCourse) {
-        await addCourseInternal(egeAdvancedCourse);
-      }
-
-      // Reset state
-      setShowGoalInput3(false);
-      setGoalText3('');
-    } catch (error) {
-      console.error('Error saving goal:', error);
-    }
-  };
-
   const handleStartCourse = (courseId: string) => {
     console.log('Starting course:', courseId);
     
@@ -306,20 +234,6 @@ const MyDashboard = () => {
           } catch (error) {
             console.error('Error calling delete-mastery-data function:', error);
           }
-        }
-        
-        // Hide goal inputs for deleted courses
-        if (selectedCourses.includes('oge-math')) {
-          setShowGoalInput(false);
-          setGoalText('');
-        }
-        if (selectedCourses.includes('ege-basic')) {
-          setShowGoalInput2(false);
-          setGoalText2('');
-        }
-        if (selectedCourses.includes('ege-advanced')) {
-          setShowGoalInput3(false);
-          setGoalText3('');
         }
         
         // Update database - remove selected courses
@@ -417,7 +331,7 @@ const MyDashboard = () => {
                   </p>
                 </div>
                 
-                {/* Goal Input Sections */}
+                {/* Goal Input Section */}
                 <AnimatePresence>
                   {showGoalInput && (
                     <motion.div
@@ -449,88 +363,6 @@ const MyDashboard = () => {
                             onClick={() => {
                               setShowGoalInput(false);
                               setGoalText('');
-                            }}
-                            variant="outline"
-                            className="border-green-300 text-green-700 hover:bg-green-50"
-                          >
-                            Отмена
-                          </Button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                  
-                  {showGoalInput2 && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="mt-4 p-4 rounded-lg bg-green-50 border border-green-200"
-                    >
-                      <h3 className="text-lg font-semibold text-green-800 mb-3">
-                        Напишите свою цель для экзамена ЕГЭ базовая математика
-                      </h3>
-                      <div className="space-y-3">
-                        <Input
-                          placeholder="Например: Сдать ЕГЭ базовую математику на 5 баллов..."
-                          value={goalText2}
-                          onChange={(e) => setGoalText2(e.target.value)}
-                          className="bg-white border-green-300 focus:border-green-500"
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={handleSaveGoal2}
-                            disabled={!goalText2.trim()}
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            Сохранить
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              setShowGoalInput2(false);
-                              setGoalText2('');
-                            }}
-                            variant="outline"
-                            className="border-green-300 text-green-700 hover:bg-green-50"
-                          >
-                            Отмена
-                          </Button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                  
-                  {showGoalInput3 && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="mt-4 p-4 rounded-lg bg-green-50 border border-green-200"
-                    >
-                      <h3 className="text-lg font-semibold text-green-800 mb-3">
-                        Напишите свою цель для экзамена ЕГЭ профильная математика
-                      </h3>
-                      <div className="space-y-3">
-                        <Input
-                          placeholder="Например: Сдать ЕГЭ профильную математику на 80+ баллов..."
-                          value={goalText3}
-                          onChange={(e) => setGoalText3(e.target.value)}
-                          className="bg-white border-green-300 focus:border-green-500"
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={handleSaveGoal3}
-                            disabled={!goalText3.trim()}
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            Сохранить
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              setShowGoalInput3(false);
-                              setGoalText3('');
                             }}
                             variant="outline"
                             className="border-green-300 text-green-700 hover:bg-green-50"
