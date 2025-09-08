@@ -72,8 +72,7 @@ const OgeMath = () => {
   };
 
   const handleProgressClick = () => {
-    // TODO: Add progress functionality
-    console.log("Progress clicked");
+    navigate("/ogemath-progress");
   };
 
   return (

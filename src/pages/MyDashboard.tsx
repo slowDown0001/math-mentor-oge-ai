@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Plus, Play, ArrowLeft, LogOut, Trash2, ChevronDown } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,6 +42,8 @@ const MyDashboard = () => {
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [expandedDropdowns, setExpandedDropdowns] = useState<Set<string>>(new Set());
+  const [showGoalInput, setShowGoalInput] = useState(false);
+  const [goalText, setGoalText] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -102,6 +105,16 @@ const MyDashboard = () => {
   };
 
   const handleAddCourse = async (course: Course) => {
+    // If it's ОГЭ математика, show goal input
+    if (course.id === 'oge-math') {
+      setShowGoalInput(true);
+      return;
+    }
+
+    await addCourseInternal(course);
+  };
+
+  const addCourseInternal = async (course: Course) => {
     const courseNumber = courseIdToNumber[course.id];
     
     // Update database
@@ -134,6 +147,34 @@ const MyDashboard = () => {
     setTimeout(() => {
       setMyCourses(prev => [...prev, course]);
     }, 300);
+  };
+
+  const handleSaveGoal = async () => {
+    if (!user || !goalText.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ course_1_goal: goalText.trim() })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error saving goal:', error);
+        return;
+      }
+
+      // Add the course after saving the goal
+      const ogeMathCourse = availableCoursesData.find(c => c.id === 'oge-math');
+      if (ogeMathCourse) {
+        await addCourseInternal(ogeMathCourse);
+      }
+
+      // Reset state
+      setShowGoalInput(false);
+      setGoalText('');
+    } catch (error) {
+      console.error('Error saving goal:', error);
+    }
   };
 
   const handleStartCourse = (courseId: string) => {
@@ -289,6 +330,50 @@ const MyDashboard = () => {
                     {user?.email || 'Не указан'}
                   </p>
                 </div>
+                
+                {/* Goal Input Section */}
+                <AnimatePresence>
+                  {showGoalInput && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-4 p-4 rounded-lg bg-green-50 border border-green-200"
+                    >
+                      <h3 className="text-lg font-semibold text-green-800 mb-3">
+                        Напишите свою цель для экзамена ОГЭ математика
+                      </h3>
+                      <div className="space-y-3">
+                        <Input
+                          placeholder="Например: Сдать ОГЭ на 5 баллов..."
+                          value={goalText}
+                          onChange={(e) => setGoalText(e.target.value)}
+                          className="bg-white border-green-300 focus:border-green-500"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={handleSaveGoal}
+                            disabled={!goalText.trim()}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            Сохранить
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setShowGoalInput(false);
+                              setGoalText('');
+                            }}
+                            variant="outline"
+                            className="border-green-300 text-green-700 hover:bg-green-50"
+                          >
+                            Отмена
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </CardContent>
             </Card>
           </div>
