@@ -44,10 +44,6 @@ const MyDashboard = () => {
   const [expandedDropdowns, setExpandedDropdowns] = useState<Set<string>>(new Set());
   const [showGoalInput, setShowGoalInput] = useState(false);
   const [goalText, setGoalText] = useState('');
-  const [showGoalInputEgeBasic, setShowGoalInputEgeBasic] = useState(false);
-  const [goalTextEgeBasic, setGoalTextEgeBasic] = useState('');
-  const [showGoalInputEgeAdvanced, setShowGoalInputEgeAdvanced] = useState(false);
-  const [goalTextEgeAdvanced, setGoalTextEgeAdvanced] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -109,19 +105,9 @@ const MyDashboard = () => {
   };
 
   const handleAddCourse = async (course: Course) => {
-    // Show goal input for each course type
+    // If it's ОГЭ математика, show goal input
     if (course.id === 'oge-math') {
       setShowGoalInput(true);
-      return;
-    }
-    
-    if (course.id === 'ege-basic') {
-      setShowGoalInputEgeBasic(true);
-      return;
-    }
-    
-    if (course.id === 'ege-advanced') {
-      setShowGoalInputEgeAdvanced(true);
       return;
     }
 
@@ -191,62 +177,6 @@ const MyDashboard = () => {
     }
   };
 
-  const handleSaveGoalEgeBasic = async () => {
-    if (!user || !goalTextEgeBasic.trim()) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ course_2_goal: goalTextEgeBasic.trim() })
-        .eq('user_id', user.id);
-
-      if (error) {
-        console.error('Error saving goal:', error);
-        return;
-      }
-
-      // Add the course after saving the goal
-      const egeBasicCourse = availableCoursesData.find(c => c.id === 'ege-basic');
-      if (egeBasicCourse) {
-        await addCourseInternal(egeBasicCourse);
-      }
-
-      // Reset state
-      setShowGoalInputEgeBasic(false);
-      setGoalTextEgeBasic('');
-    } catch (error) {
-      console.error('Error saving goal:', error);
-    }
-  };
-
-  const handleSaveGoalEgeAdvanced = async () => {
-    if (!user || !goalTextEgeAdvanced.trim()) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ course_3_goal: goalTextEgeAdvanced.trim() })
-        .eq('user_id', user.id);
-
-      if (error) {
-        console.error('Error saving goal:', error);
-        return;
-      }
-
-      // Add the course after saving the goal
-      const egeAdvancedCourse = availableCoursesData.find(c => c.id === 'ege-advanced');
-      if (egeAdvancedCourse) {
-        await addCourseInternal(egeAdvancedCourse);
-      }
-
-      // Reset state
-      setShowGoalInputEgeAdvanced(false);
-      setGoalTextEgeAdvanced('');
-    } catch (error) {
-      console.error('Error saving goal:', error);
-    }
-  };
-
   const handleStartCourse = (courseId: string) => {
     console.log('Starting course:', courseId);
     
@@ -310,20 +240,6 @@ const MyDashboard = () => {
         const remainingCourses = myCourses.filter(course => !selectedCourses.includes(course.id));
         const remainingCourseNumbers = remainingCourses.map(c => courseIdToNumber[c.id]);
         await updateUserCourses(remainingCourseNumbers);
-        
-        // Hide goal inputs for deleted courses
-        if (selectedCourses.includes('oge-math')) {
-          setShowGoalInput(false);
-          setGoalText('');
-        }
-        if (selectedCourses.includes('ege-basic')) {
-          setShowGoalInputEgeBasic(false);
-          setGoalTextEgeBasic('');
-        }
-        if (selectedCourses.includes('ege-advanced')) {
-          setShowGoalInputEgeAdvanced(false);
-          setGoalTextEgeAdvanced('');
-        }
         
         // Reload courses from database to ensure consistency
         await loadUserCourses();
@@ -415,7 +331,7 @@ const MyDashboard = () => {
                   </p>
                 </div>
                 
-                {/* Goal Input Sections */}
+                {/* Goal Input Section */}
                 <AnimatePresence>
                   {showGoalInput && (
                     <motion.div
@@ -447,88 +363,6 @@ const MyDashboard = () => {
                             onClick={() => {
                               setShowGoalInput(false);
                               setGoalText('');
-                            }}
-                            variant="outline"
-                            className="border-green-300 text-green-700 hover:bg-green-50"
-                          >
-                            Отмена
-                          </Button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                  
-                  {showGoalInputEgeBasic && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="mt-4 p-4 rounded-lg bg-green-50 border border-green-200"
-                    >
-                      <h3 className="text-lg font-semibold text-green-800 mb-3">
-                        Напишите свою цель для экзамена ЕГЭ базовая математика
-                      </h3>
-                      <div className="space-y-3">
-                        <Input
-                          placeholder="Например: Сдать ЕГЭ базовый уровень на отлично..."
-                          value={goalTextEgeBasic}
-                          onChange={(e) => setGoalTextEgeBasic(e.target.value)}
-                          className="bg-white border-green-300 focus:border-green-500"
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={handleSaveGoalEgeBasic}
-                            disabled={!goalTextEgeBasic.trim()}
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            Сохранить
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              setShowGoalInputEgeBasic(false);
-                              setGoalTextEgeBasic('');
-                            }}
-                            variant="outline"
-                            className="border-green-300 text-green-700 hover:bg-green-50"
-                          >
-                            Отмена
-                          </Button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                  
-                  {showGoalInputEgeAdvanced && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="mt-4 p-4 rounded-lg bg-green-50 border border-green-200"
-                    >
-                      <h3 className="text-lg font-semibold text-green-800 mb-3">
-                        Напишите свою цель для экзамена ЕГЭ профильная математика
-                      </h3>
-                      <div className="space-y-3">
-                        <Input
-                          placeholder="Например: Набрать 80+ баллов на ЕГЭ профиль..."
-                          value={goalTextEgeAdvanced}
-                          onChange={(e) => setGoalTextEgeAdvanced(e.target.value)}
-                          className="bg-white border-green-300 focus:border-green-500"
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={handleSaveGoalEgeAdvanced}
-                            disabled={!goalTextEgeAdvanced.trim()}
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            Сохранить
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              setShowGoalInputEgeAdvanced(false);
-                              setGoalTextEgeAdvanced('');
                             }}
                             variant="outline"
                             className="border-green-300 text-green-700 hover:bg-green-50"
