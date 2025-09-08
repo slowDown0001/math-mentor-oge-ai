@@ -9,14 +9,14 @@ const OgemathPractice = () => {
       title: "По номеру вопроса",
       description: "Практика всех вопросов выбранного номера (1-25)",
       icon: Hash,
-      link: "/practice-by-number",
+      link: "/practice-by-number-ogemath",
       color: "bg-indigo-50 hover:bg-indigo-100 border-indigo-200"
     },
     {
       title: "По теме",
       description: "Практика по конкретным темам и экзаменам",
       icon: ClipboardList,
-      link: "/new-practice",
+      link: "/new-practice-skills",
       color: "bg-blue-50 hover:bg-blue-100 border-blue-200"
     }
   ];
