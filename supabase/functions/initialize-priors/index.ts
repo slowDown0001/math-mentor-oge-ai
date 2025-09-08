@@ -39,24 +39,10 @@ Deno.serve(async (req) => {
 
     const upsertData = []
 
-    // Initialize skills (1 to 550)
+    // Initialize skills (1 to 550) - all with Beta(1,40)
     for (let skill_id = 1; skill_id <= 550; skill_id++) {
-      let alpha, beta
-
-      if (diagnostic_test_oge_result === null || diagnostic_test_oge_result === undefined) {
-        // No diagnostic test: all skills get Beta(1,40)
-        alpha = 1
-        beta = 40
-      } else {
-        // Diagnostic test exists: weak skills get Beta(1,40), others get Beta(5,45)
-        if (diagnostic_test_oge_result.includes(skill_id)) {
-          alpha = 1
-          beta = 40
-        } else {
-          alpha = 5
-          beta = 45
-        }
-      }
+      const alpha = 1
+      const beta = 40
 
       upsertData.push({
         user_id,
@@ -68,15 +54,14 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Initialize problem types based on course_id
+    // Initialize problem types based on course_id - all with Beta(1,40)
     if (course_id === '1') {
       // Course 1: Initialize problem types (-1, 1, 6 to 25)
       const problem_number_types = [-1, 1, ...Array.from({ length: 20 }, (_, i) => i + 6)]
       
       for (const problem_number_type of problem_number_types) {
-        // Problem types 20–25 get Beta(1,40), others get Beta(1,25)
         const alpha = 1
-        const beta = problem_number_type >= 20 ? 40 : 25
+        const beta = 40
 
         upsertData.push({
           user_id,
@@ -91,7 +76,7 @@ Deno.serve(async (req) => {
       // Course 2: Initialize problem types (1 to 21)
       for (let problem_type = 1; problem_type <= 21; problem_type++) {
         const alpha = 1
-        const beta = 25
+        const beta = 40
 
         upsertData.push({
           user_id,
@@ -106,7 +91,7 @@ Deno.serve(async (req) => {
       // Course 3: Initialize problem types (1 to 19)
       for (let problem_type = 1; problem_type <= 19; problem_type++) {
         const alpha = 1
-        const beta = problem_type >= 13 ? 40 : 25
+        const beta = 40
 
         upsertData.push({
           user_id,

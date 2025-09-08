@@ -9,6 +9,7 @@ interface SubmissionData {
   scores_fipi?: number
   duration?: number
   scaling_type?: string
+  course_id?: string
 }
 
 Deno.serve(async (req) => {
@@ -117,7 +118,8 @@ Deno.serve(async (req) => {
       duration: submissionData.duration || 0,
       scores_fipi: submissionData.scores_fipi,
       scaling_type: submissionData.scaling_type || 'linear',
-      attempt_id: submissionData.attempt_id || null
+      attempt_id: submissionData.attempt_id || null,
+      course_id: submissionData.course_id || '1'
     }
 
     console.log('Attempting to process with data:', JSON.stringify(attemptData, null, 2))
