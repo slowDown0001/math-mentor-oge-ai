@@ -246,7 +246,7 @@ const MyDashboard = () => {
           className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Назад
+          На Главную
         </Button>
         
         <Button

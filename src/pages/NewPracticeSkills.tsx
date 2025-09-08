@@ -14,11 +14,16 @@ const NewPracticeSkills: React.FC = () => {
       {/* Navigation Bar */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-start">
+          <div className="flex justify-between items-center">
             <Link to="/">
               <Button variant="outline" size="sm" className="flex items-center gap-2">
                 <Home className="w-4 h-4" />
                 Главная
+              </Button>
+            </Link>
+            <Link to="/mydashboard">
+              <Button className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                Профиль
               </Button>
             </Link>
           </div>

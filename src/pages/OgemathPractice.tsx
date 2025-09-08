@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ClipboardList, Hash } from "lucide-react";
-import Header from "@/components/Header";
 
 const OgemathPractice = () => {
   const questionTypes = [
@@ -23,8 +23,19 @@ const OgemathPractice = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Header />
-      <div className="pt-20 container mx-auto px-4 py-8">
+      {/* Navigation Bar */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex justify-start">
+            <Link to="/ogemath">
+              <Button className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                Назад
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+      <div className="pt-8 container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Практика ОГЭ</h1>

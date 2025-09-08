@@ -330,16 +330,10 @@ const PracticeByNumberOgemath = () => {
       {/* Navigation Bar */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
-            <Link to="/">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Home className="w-4 h-4" />
-                Главная
-              </Button>
-            </Link>
-            <Link to="/ogemath">
-              <Button size="sm" className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black">
-                <ArrowLeft className="w-4 h-4" />
+          <div className="flex justify-start">
+            <Link to="/ogemath-practice">
+              <Button className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                <ArrowLeft className="w-4 h-4 mr-2" />
                 Назад
               </Button>
             </Link>
