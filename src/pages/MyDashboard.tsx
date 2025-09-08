@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Plus, Play, ArrowLeft, LogOut, Trash2, ChevronDown } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -37,6 +39,7 @@ const MyDashboard = () => {
   const { getDisplayName } = useProfile();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [myCourses, setMyCourses] = useState<Course[]>([]);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
@@ -209,6 +212,10 @@ const MyDashboard = () => {
       }
 
       // Keep the goal input visible after saving
+      toast({
+        title: "Цель обновлена",
+        duration: 2000,
+      });
     } catch (error) {
       console.error('Error saving goal:', error);
     }
@@ -229,6 +236,10 @@ const MyDashboard = () => {
       }
 
       // Keep the goal input visible after saving
+      toast({
+        title: "Цель обновлена",
+        duration: 2000,
+      });
     } catch (error) {
       console.error('Error saving ЕГЭ базовая goal:', error);
     }
@@ -249,6 +260,10 @@ const MyDashboard = () => {
       }
 
       // Keep the goal input visible after saving
+      toast({
+        title: "Цель обновлена",
+        duration: 2000,
+      });
     } catch (error) {
       console.error('Error saving ЕГЭ профильная goal:', error);
     }
@@ -455,11 +470,12 @@ const MyDashboard = () => {
                         Напишите свою цель для экзамена ОГЭ математика
                       </h3>
                       <div className="space-y-3">
-                        <Input
+                        <Textarea
                           placeholder="Например: Сдать ОГЭ на 5 баллов..."
                           value={goalText}
                           onChange={(e) => setGoalText(e.target.value)}
-                          className="bg-white border-green-300 focus:border-green-500"
+                          className="bg-white border-green-300 focus:border-green-500 min-h-[80px] resize-none"
+                          rows={3}
                         />
                         <div className="flex gap-2">
                           <Button
@@ -498,11 +514,12 @@ const MyDashboard = () => {
                         Напишите свою цель для экзамена ЕГЭ базовая математика
                       </h3>
                       <div className="space-y-3">
-                        <Input
+                        <Textarea
                           placeholder="Например: Сдать ЕГЭ базовую на 5 баллов..."
                           value={egeBasicGoalText}
                           onChange={(e) => setEgeBasicGoalText(e.target.value)}
-                          className="bg-white border-green-300 focus:border-green-500"
+                          className="bg-white border-green-300 focus:border-green-500 min-h-[80px] resize-none"
+                          rows={3}
                         />
                         <div className="flex gap-2">
                           <Button
@@ -541,11 +558,12 @@ const MyDashboard = () => {
                         Напишите свою цель для экзамена ЕГЭ профильная математика
                       </h3>
                       <div className="space-y-3">
-                        <Input
+                        <Textarea
                           placeholder="Например: Сдать ЕГЭ профильную на 80+ баллов..."
                           value={egeAdvancedGoalText}
                           onChange={(e) => setEgeAdvancedGoalText(e.target.value)}
-                          className="bg-white border-green-300 focus:border-green-500"
+                          className="bg-white border-green-300 focus:border-green-500 min-h-[80px] resize-none"
+                          rows={3}
                         />
                         <div className="flex gap-2">
                           <Button
