@@ -64,8 +64,7 @@ const OgeMath = () => {
   };
 
   const handlePracticeClick = () => {
-    // TODO: Add practice functionality
-    console.log("Practice clicked");
+    navigate("/ogemath-practice");
   };
 
   const handleTextbookClick = () => {

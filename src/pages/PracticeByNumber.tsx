@@ -57,16 +57,12 @@ const PracticeByNumber = () => {
       const { data, error } = await supabase
         .from('oge_math_fipi_bank')
         .select('question_id, problem_text, answer, solution_text')
-        .like('question_id', `%_${questionNumber}_%`)
+        .eq('problem_number_type', parseInt(questionNumber))
         .order('question_id');
 
       if (error) throw error;
 
-      // Filter to ensure the number is in the correct position (third element)
-      const filteredQuestions = data?.filter(q => {
-        const parts = q.question_id.split('_');
-        return parts.length >= 3 && parts[2] === questionNumber;
-      }) || [];
+      const filteredQuestions = data || [];
 
       setQuestions(filteredQuestions);
       setCurrentQuestionIndex(0);
