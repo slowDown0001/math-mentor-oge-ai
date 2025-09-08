@@ -1784,6 +1784,7 @@ export type Database = {
         Row: {
           alpha: number
           beta: number
+          course_id: string | null
           created_at: string | null
           cusum_s: number | null
           entity_id: number
@@ -1795,6 +1796,7 @@ export type Database = {
         Insert: {
           alpha: number
           beta: number
+          course_id?: string | null
           created_at?: string | null
           cusum_s?: number | null
           entity_id: number
@@ -1806,6 +1808,7 @@ export type Database = {
         Update: {
           alpha?: number
           beta?: number
+          course_id?: string | null
           created_at?: string | null
           cusum_s?: number | null
           entity_id?: number
