@@ -109,6 +109,24 @@ const MyDashboard = () => {
     const newCourseNumbers = [...currentCourseNumbers, courseNumber];
     await updateUserCourses(newCourseNumbers);
 
+    // Initialize priors for the course
+    try {
+      const { error } = await supabase.functions.invoke('initialize-priors', {
+        body: { 
+          user_id: user?.id,
+          course_id: courseNumber.toString()
+        }
+      });
+
+      if (error) {
+        console.error('Error initializing priors:', error);
+      } else {
+        console.log('Priors initialized successfully for course:', course.name);
+      }
+    } catch (error) {
+      console.error('Error calling initialize-priors function:', error);
+    }
+
     // Remove from available courses
     setAvailableCourses(prev => prev.filter(c => c.id !== course.id));
     
@@ -155,6 +173,27 @@ const MyDashboard = () => {
       // Execute deletion
       if (selectedCourses.length > 0) {
         const coursesToRemove = myCourses.filter(course => selectedCourses.includes(course.id));
+        
+        // Delete mastery data for each removed course
+        for (const course of coursesToRemove) {
+          const courseNumber = courseIdToNumber[course.id];
+          try {
+            const { error } = await supabase.functions.invoke('delete-mastery-data', {
+              body: { 
+                user_id: user?.id,
+                course_id: courseNumber.toString()
+              }
+            });
+
+            if (error) {
+              console.error('Error deleting mastery data for course:', course.name, error);
+            } else {
+              console.log('Mastery data deleted successfully for course:', course.name);
+            }
+          } catch (error) {
+            console.error('Error calling delete-mastery-data function:', error);
+          }
+        }
         
         // Update database - remove selected courses
         const remainingCourses = myCourses.filter(course => !selectedCourses.includes(course.id));
