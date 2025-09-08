@@ -178,3 +178,41 @@
 }
 
 
+/* 1) Replace the broad span rule with a specific class */
+.textbook-preview .definition-card .highlight {
+  background: #eef2ff;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+/* (Optional) a lighter inline key label style you can use instead of .highlight */
+.textbook-preview .definition-card .key {
+  background: #f3f4f6;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* 2) Don’t let math get “pills” or padding inside definition cards */
+.textbook-preview .definition-card mjx-container,
+.textbook-preview .definition-card .katex,
+.textbook-preview .definition-card .katex * {
+  background: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Optional niceties for math rhythm in cards */
+.textbook-preview .definition-card mjx-container[display="true"],
+.textbook-preview .definition-card .katex-display {
+  display: block;
+  margin: 0.6em 0;
+}
+
+.textbook-preview .definition-card mjx-container,
+.textbook-preview .definition-card .katex {
+  line-height: 1.25;
+  font-size: 1em; /* tweak if you want bigger math */
+}
+
+
