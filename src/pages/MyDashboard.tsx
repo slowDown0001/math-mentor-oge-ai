@@ -282,10 +282,43 @@ const MyDashboard = () => {
           }
         }
         
-        // Update database - remove selected courses
+        // Hide goal input boxes and clear goal data from database for deleted courses
+        const goalUpdates: Record<string, string | null> = {};
+        coursesToRemove.forEach(course => {
+          if (course.id === 'oge-math') {
+            setShowGoalInput(false);
+            setGoalText('');
+            goalUpdates.course_1_goal = null;
+          } else if (course.id === 'ege-basic') {
+            setShowEgeBasicGoal(false);
+            setEgeBasicGoalText('');
+            goalUpdates.course_2_goal = null;
+          } else if (course.id === 'ege-advanced') {
+            setShowEgeAdvancedGoal(false);
+            setEgeAdvancedGoalText('');
+            goalUpdates.course_3_goal = null;
+          }
+        });
+
+        // Update database - remove selected courses and clear goals
         const remainingCourses = myCourses.filter(course => !selectedCourses.includes(course.id));
         const remainingCourseNumbers = remainingCourses.map(c => courseIdToNumber[c.id]);
-        await updateUserCourses(remainingCourseNumbers);
+        
+        const updateData: any = { courses: remainingCourseNumbers };
+        Object.assign(updateData, goalUpdates);
+        
+        try {
+          const { error } = await supabase
+            .from('profiles')
+            .update(updateData)
+            .eq('user_id', user?.id);
+
+          if (error) {
+            console.error('Error updating user courses and goals:', error);
+          }
+        } catch (error) {
+          console.error('Error updating user courses and goals:', error);
+        }
         
         // Reload courses from database to ensure consistency
         await loadUserCourses();
