@@ -43,7 +43,11 @@ const MyDashboard = () => {
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [expandedDropdowns, setExpandedDropdowns] = useState<Set<string>>(new Set());
   const [showGoalInput, setShowGoalInput] = useState(false);
+  const [showEgeBasicGoal, setShowEgeBasicGoal] = useState(false);
+  const [showEgeAdvancedGoal, setShowEgeAdvancedGoal] = useState(false);
   const [goalText, setGoalText] = useState('');
+  const [egeBasicGoalText, setEgeBasicGoalText] = useState('');
+  const [egeAdvancedGoalText, setEgeAdvancedGoalText] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -105,13 +109,17 @@ const MyDashboard = () => {
   };
 
   const handleAddCourse = async (course: Course) => {
-    // If it's ОГЭ математика, show goal input
+    // First add the course with existing logic
+    await addCourseInternal(course);
+    
+    // Then show goal input for specific courses
     if (course.id === 'oge-math') {
       setShowGoalInput(true);
-      return;
+    } else if (course.id === 'ege-basic') {
+      setShowEgeBasicGoal(true);
+    } else if (course.id === 'ege-advanced') {
+      setShowEgeAdvancedGoal(true);
     }
-
-    await addCourseInternal(course);
   };
 
   const addCourseInternal = async (course: Course) => {
@@ -163,17 +171,55 @@ const MyDashboard = () => {
         return;
       }
 
-      // Add the course after saving the goal
-      const ogeMathCourse = availableCoursesData.find(c => c.id === 'oge-math');
-      if (ogeMathCourse) {
-        await addCourseInternal(ogeMathCourse);
-      }
-
       // Reset state
       setShowGoalInput(false);
       setGoalText('');
     } catch (error) {
       console.error('Error saving goal:', error);
+    }
+  };
+
+  const handleSaveEgeBasicGoal = async () => {
+    if (!user || !egeBasicGoalText.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ course_2_goal: egeBasicGoalText.trim() })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error saving ЕГЭ базовая goal:', error);
+        return;
+      }
+
+      // Reset state
+      setShowEgeBasicGoal(false);
+      setEgeBasicGoalText('');
+    } catch (error) {
+      console.error('Error saving ЕГЭ базовая goal:', error);
+    }
+  };
+
+  const handleSaveEgeAdvancedGoal = async () => {
+    if (!user || !egeAdvancedGoalText.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ course_3_goal: egeAdvancedGoalText.trim() })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error saving ЕГЭ профильная goal:', error);
+        return;
+      }
+
+      // Reset state
+      setShowEgeAdvancedGoal(false);
+      setEgeAdvancedGoalText('');
+    } catch (error) {
+      console.error('Error saving ЕГЭ профильная goal:', error);
     }
   };
 
@@ -331,7 +377,7 @@ const MyDashboard = () => {
                   </p>
                 </div>
                 
-                {/* Goal Input Section */}
+                {/* Goal Input Sections */}
                 <AnimatePresence>
                   {showGoalInput && (
                     <motion.div
@@ -363,6 +409,92 @@ const MyDashboard = () => {
                             onClick={() => {
                               setShowGoalInput(false);
                               setGoalText('');
+                            }}
+                            variant="outline"
+                            className="border-green-300 text-green-700 hover:bg-green-50"
+                          >
+                            Отмена
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                  {showEgeBasicGoal && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-4 p-4 rounded-lg bg-green-50 border border-green-200"
+                    >
+                      <h3 className="text-lg font-semibold text-green-800 mb-3">
+                        Напишите свою цель для экзамена ЕГЭ базовая математика
+                      </h3>
+                      <div className="space-y-3">
+                        <Input
+                          placeholder="Например: Сдать ЕГЭ базовую на 5 баллов..."
+                          value={egeBasicGoalText}
+                          onChange={(e) => setEgeBasicGoalText(e.target.value)}
+                          className="bg-white border-green-300 focus:border-green-500"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={handleSaveEgeBasicGoal}
+                            disabled={!egeBasicGoalText.trim()}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            Сохранить
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setShowEgeBasicGoal(false);
+                              setEgeBasicGoalText('');
+                            }}
+                            variant="outline"
+                            className="border-green-300 text-green-700 hover:bg-green-50"
+                          >
+                            Отмена
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                  {showEgeAdvancedGoal && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-4 p-4 rounded-lg bg-green-50 border border-green-200"
+                    >
+                      <h3 className="text-lg font-semibold text-green-800 mb-3">
+                        Напишите свою цель для экзамена ЕГЭ профильная математика
+                      </h3>
+                      <div className="space-y-3">
+                        <Input
+                          placeholder="Например: Сдать ЕГЭ профильную на 80+ баллов..."
+                          value={egeAdvancedGoalText}
+                          onChange={(e) => setEgeAdvancedGoalText(e.target.value)}
+                          className="bg-white border-green-300 focus:border-green-500"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={handleSaveEgeAdvancedGoal}
+                            disabled={!egeAdvancedGoalText.trim()}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            Сохранить
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setShowEgeAdvancedGoal(false);
+                              setEgeAdvancedGoalText('');
                             }}
                             variant="outline"
                             className="border-green-300 text-green-700 hover:bg-green-50"
