@@ -4,6 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 interface RequestBody {
   user_id: string
   topic_code: string
+  course_id?: string
 }
 
 Deno.serve(async (req) => {
@@ -19,7 +20,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { user_id, topic_code }: RequestBody = await req.json()
+    const { user_id, topic_code, course_id = '1' }: RequestBody = await req.json()
 
     // Validate required parameters
     if (!user_id || !topic_code) {
@@ -34,31 +35,35 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`Computing topic mastery for user ${user_id}, topic ${topic_code}`)
+    console.log(`Computing topic mastery for user ${user_id}, topic ${topic_code}, course ${course_id}`)
 
     // Step 1: Get skill IDs for the topic
-    const { data: skillsData, error: skillsError } = await supabaseClient.functions.invoke(
-      'get-skills-for-topic',
-      {
-        body: { topic_code }
-      }
-    )
-
-    if (skillsError) {
-      console.error('Error getting skills for topic:', skillsError)
-      return new Response(
-        JSON.stringify({ 
-          error: 'Failed to get skills for topic', 
-          details: skillsError.message 
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    let skillIds: number[] = []
+    
+    if (course_id === '1') {
+      const { data: skillsData, error: skillsError } = await supabaseClient.functions.invoke(
+        'get-skills-for-topic',
+        {
+          body: { topic_code }
         }
       )
-    }
 
-    const skillIds = skillsData?.skill_ids || []
+      if (skillsError) {
+        console.error('Error getting skills for topic:', skillsError)
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to get skills for topic', 
+            details: skillsError.message 
+          }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      skillIds = skillsData?.skill_ids || []
+    }
     
     if (!skillIds || skillIds.length === 0) {
       console.log(`No skills found for topic ${topic_code}`)
