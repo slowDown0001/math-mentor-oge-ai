@@ -330,6 +330,7 @@ const DailyPractice = () => {
                         <MathRenderer 
                           text={currentQuestion.problem_text} 
                           className="text-base leading-snug"
+                          compiler="mathjax"
                         />
                       </div>
 
@@ -414,6 +415,7 @@ const DailyPractice = () => {
                             <MathRenderer 
                               text={getOptionContent(index)} 
                               className="flex-1 text-sm"
+                              compiler="mathjax"
                             />
                           </div>
                         </div>

@@ -66,7 +66,7 @@ const ArticleRenderer: React.FC<ArticleRendererProps> = ({ text, article }) => {
       if (part.trim()) {
         return (
           <div key={index}>
-            <MathRenderer text={convertLinksToMarkdown(part)} />
+            <MathRenderer text={convertLinksToMarkdown(part)} compiler="mathjax" />
           </div>
         );
       }

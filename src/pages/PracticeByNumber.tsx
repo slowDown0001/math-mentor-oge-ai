@@ -373,7 +373,7 @@ const PracticeByNumber = () => {
               <CardContent className="space-y-6">
                 {/* Problem Text */}
                 <div className="prose max-w-none">
-                  <MathRenderer text={currentQuestion.problem_text || "Текст задачи не найден"} />
+                  <MathRenderer text={currentQuestion.problem_text || "Текст задачи не найден"} compiler="mathjax" />
                 </div>
 
                 {/* Answer Input */}
@@ -467,7 +467,7 @@ const PracticeByNumber = () => {
                       <CardTitle className="text-blue-800">Решение</CardTitle>
                     </CardHeader>
                     <CardContent className="prose max-w-none">
-                      <MathRenderer text={currentQuestion.solution_text} />
+                      <MathRenderer text={currentQuestion.solution_text} compiler="mathjax" />
                     </CardContent>
                   </Card>
                 )}

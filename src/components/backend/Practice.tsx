@@ -320,7 +320,7 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
               </div>
             )}
             {/* Question text below the image */}
-            <MathRenderer text={currentQuestion.problem_text || ''} className="text-lg" />
+            <MathRenderer text={currentQuestion.problem_text || ''} className="text-lg" compiler="mathjax" />
           </div>
 
           {/* Answer Input */}
@@ -418,7 +418,7 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
                       </div>
                     )}
                     
-                    <MathRenderer text={question.problem_text || ''} className="mb-3" />
+                    <MathRenderer text={question.problem_text || ''} className="mb-3" compiler="mathjax" />
                     
                     <div className="space-y-2 text-sm">
                       <div>
@@ -444,7 +444,7 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
                         </Button>
                         {showSolution[question.question_id] && (
                           <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                            <MathRenderer text={question.solution_text} />
+                            <MathRenderer text={question.solution_text} compiler="mathjax" />
                           </div>
                         )}
                       </div>

@@ -332,7 +332,7 @@ export const DiagnosticTest: React.FC<DiagnosticTestProps> = ({ onComplete }) =>
         {!showFeedback && (
           <>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <MathRenderer text={currentQuestion.problem_text} className="text-lg" />
+              <MathRenderer text={currentQuestion.problem_text} className="text-lg" compiler="mathjax" />
             </div>
 
             <div className="space-y-2">
@@ -351,7 +351,7 @@ export const DiagnosticTest: React.FC<DiagnosticTestProps> = ({ onComplete }) =>
                   }`}
                   onClick={() => setSelectedOption(option.key)}
                 >
-                  <MathRenderer text={option.text} />
+                  <MathRenderer text={option.text} compiler="mathjax" />
                 </button>
               ))}
             </div>

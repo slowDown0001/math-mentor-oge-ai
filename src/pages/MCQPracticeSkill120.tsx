@@ -274,7 +274,7 @@ const MCQPracticeSkill120 = () => {
                 className={`mb-4 ${isSelecterActive ? 'cursor-text select-text' : ''}`}
                 style={{ userSelect: isSelecterActive ? 'text' : 'auto' }}
               >
-                <MathRenderer text={currentQuestion.problem_text} />
+                <MathRenderer text={currentQuestion.problem_text} compiler="mathjax" />
               </div>
 
               {/* Answer Options - Grid Layout */}
@@ -314,7 +314,7 @@ const MCQPracticeSkill120 = () => {
                           {optionLetter}.
                         </span>
                         <div className="flex-1">
-                          <MathRenderer text={option} className="inline-block" />
+                          <MathRenderer text={option} className="inline-block" compiler="mathjax" />
                         </div>
                         {isAnswered && isCorrect && (
                           <CheckCircle className="w-4 h-4 text-green-600 ml-2" />
@@ -388,7 +388,7 @@ const MCQPracticeSkill120 = () => {
                     className={`text-sm ${isSelecterActive ? 'cursor-text select-text' : ''}`}
                     style={{ userSelect: isSelecterActive ? 'text' : 'auto' }}
                   >
-                    <MathRenderer text={currentQuestion.solution_text} />
+                    <MathRenderer text={currentQuestion.solution_text} compiler="mathjax" />
                   </div>
                 </div>
               )}

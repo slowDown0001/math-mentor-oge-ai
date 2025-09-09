@@ -386,7 +386,7 @@ const PracticeByNumberOgemath = () => {
               <CardContent className="space-y-6">
                 {/* Problem Text */}
                 <div className="prose max-w-none">
-                  <MathRenderer text={currentQuestion.problem_text || "Текст задачи не найден"} />
+                  <MathRenderer text={currentQuestion.problem_text || "Текст задачи не найден"} compiler="mathjax" />
                 </div>
 
                 {/* Answer Input */}
@@ -481,7 +481,7 @@ const PracticeByNumberOgemath = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="prose max-w-none">
-                        <MathRenderer text={currentQuestion.solution_text} />
+                        <MathRenderer text={currentQuestion.solution_text} compiler="mathjax" />
                       </div>
                     </CardContent>
                   </Card>
