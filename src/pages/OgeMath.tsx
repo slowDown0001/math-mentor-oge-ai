@@ -136,9 +136,12 @@ const OgeMath = () => {
                        text-white font-medium rounded-2xl shadow-lg min-w-[160px]
                        transform transition-all duration-300 ease-in-out
                        hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30
-                       active:scale-95 active:transition-all active:duration-150"
+                       active:scale-95 active:transition-all active:duration-150 text-center"
           >
-            Прогресс
+            <div className="flex flex-col items-center leading-tight">
+              <div>Личный кабинет</div>
+              <div>ОГЭ математика</div>
+            </div>
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/10 to-white/5 
                             opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </Button>

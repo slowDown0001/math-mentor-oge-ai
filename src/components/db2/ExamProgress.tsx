@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
+import { Button } from "@/components/ui/button";
 import { Calendar, Clock, TrendingUp, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -10,6 +12,7 @@ interface ExamProgressProps {
 }
 
 const ExamProgress = ({ currentProgress }: ExamProgressProps) => {
+  const navigate = useNavigate();
   const [studyHoursPerWeek, setStudyHoursPerWeek] = useState([10]);
   
   // Calculate days until May 27, 2026
@@ -150,6 +153,14 @@ const ExamProgress = ({ currentProgress }: ExamProgressProps) => {
                 : "🌱 Каждый час учёбы приближает тебя к успеху!"}
             </p>
           </div>
+
+          {/* Progress Button */}
+          <Button
+            onClick={() => navigate('/ogemath-progress')}
+            className="w-full bg-yellow-100 hover:bg-yellow-200 text-black font-medium py-3 rounded-lg transition-colors"
+          >
+            Прогресс по темам и типам задач
+          </Button>
         </div>
       </Card>
     </motion.div>
