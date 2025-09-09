@@ -14,12 +14,10 @@ interface ProgressData {
 const OgemathProgress: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [skillsProgress, setSkillsProgress] = useState<ProgressData[]>([]);
   const [problemTypesProgress, setProblemTypesProgress] = useState<ProgressData[]>([]);
   const [topicMastery, setTopicMastery] = useState<ProgressData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [skillsOpen, setSkillsOpen] = useState(false);
   const [problemTypesOpen, setProblemTypesOpen] = useState(true);
   const [topicMasteryOpen, setTopicMasteryOpen] = useState(false);
 
@@ -43,18 +41,6 @@ const OgemathProgress: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-
-      // Fetch skills progress
-      const skillsResponse = await supabase.functions.invoke('compute-skills-progress-bars', {
-        body: {
-          user_id: user.id,
-          skill_ids: skillIds
-        }
-      });
-
-      if (skillsResponse.error) {
-        throw new Error('Ошибка загрузки прогресса навыков');
-      }
 
       // Fetch problem types progress
       const problemTypesResponse = await supabase.functions.invoke('compute-problem-number-type-progress-bars', {
@@ -89,7 +75,6 @@ const OgemathProgress: React.FC = () => {
 
       const topicMasteryResults = await Promise.all(topicMasteryPromises);
 
-      setSkillsProgress(skillsResponse.data?.data?.progress_bars || []);
       setProblemTypesProgress(problemTypesResponse.data?.data?.progress_bars || []);
       setTopicMastery(topicMasteryResults);
     } catch (err) {
@@ -173,17 +158,17 @@ const OgemathProgress: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Общий прогресс навыков</CardTitle>
+              <CardTitle className="text-sm font-medium">Общий прогресс типов задач</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{calculateOverallProgress(skillsProgress)}%</div>
-              <Progress value={calculateOverallProgress(skillsProgress)} className="mt-2" />
+              <div className="text-2xl font-bold">{calculateOverallProgress(problemTypesProgress)}%</div>
+              <Progress value={calculateOverallProgress(problemTypesProgress)} className="mt-2" />
               <p className="text-xs text-muted-foreground mt-2">
-                {skillsProgress.length} навыков отслеживается
+                {problemTypesProgress.length} типов задач отслеживается
               </p>
             </CardContent>
           </Card>
@@ -303,48 +288,6 @@ const OgemathProgress: React.FC = () => {
           </Collapsible>
         </Card>
 
-        {/* Skills Progress */}
-        <Card>
-          <Collapsible open={skillsOpen} onOpenChange={setSkillsOpen}>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Прогресс по навыкам</CardTitle>
-                  {skillsOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-                {skillsProgress.map((item, index) => {
-                  const key = Object.keys(item)[0];
-                  const value = item[key];
-                  const percentage = Math.round(value * 100);
-                  
-                  return (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Навык номер {key}</span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-600">{percentage}%</span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            value >= 0.8 ? 'bg-green-100 text-green-800' :
-                            value >= 0.6 ? 'bg-yellow-100 text-yellow-800' :
-                            value >= 0.4 ? 'bg-orange-100 text-orange-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {getProgressStatus(value)}
-                          </span>
-                        </div>
-                      </div>
-                      <Progress value={percentage} className="h-2" />
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </Card>
       </div>
     </div>
   );
