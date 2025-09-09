@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import katex from 'katex';
-import renderMathInElement from 'katex/contrib/auto-render';
 import 'katex/dist/katex.min.css';
 
 // Declare renderMathInElement function for auto-render
 declare global {
   interface Window {
     katex: any;
-    renderMathInElement?: (element: HTMLElement, options?: any) => void;
   }
 }
 
@@ -19,17 +17,21 @@ class KaTeXManager {
   }
 
   private loadAutoRender(): void {
-    if (this.autoRenderLoaded) {
+    if (this.autoRenderLoaded || window.renderMathInElement) {
+      this.autoRenderLoaded = true;
       return;
     }
 
-    // Use the imported renderMathInElement directly
-    if (typeof window !== 'undefined' && !window.renderMathInElement) {
-      window.renderMathInElement = renderMathInElement;
-      window.katex = katex;
-    }
-    
-    this.autoRenderLoaded = true;
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js';
+    script.onload = () => {
+      this.autoRenderLoaded = true;
+      // Ensure global katex is available for auto-render
+      if (typeof window !== 'undefined' && !window.katex) {
+        (window as any).katex = katex;
+      }
+    };
+    document.head.appendChild(script);
   }
 
   get isAutoRenderLoaded(): boolean {
@@ -37,17 +39,24 @@ class KaTeXManager {
   }
 
   renderMath(element: HTMLElement): void {
-    if (!this.autoRenderLoaded) {
-      this.loadAutoRender();
+    if (!window.renderMathInElement || !this.autoRenderLoaded) {
+      // If auto-render not loaded yet, wait and retry
+      setTimeout(() => this.renderMath(element), 100);
+      return;
+    }
+
+    // Ensure katex is available globally before rendering
+    if (!window.katex) {
+      (window as any).katex = katex;
     }
 
     try {
-      renderMathInElement(element, {
+      window.renderMathInElement(element, {
         delimiters: [
           { left: "$$", right: "$$", display: true },
-          { left: "\\[", right: "\\]", display: true },
           { left: "$", right: "$", display: false },
-          { left: "\\(", right: "\\)", display: false }
+          { left: "\\(", right: "\\)", display: false },
+          { left: "\\[", right: "\\]", display: true }
         ],
         throwOnError: false
       });
@@ -114,27 +123,38 @@ class KaTeXManager {
   }
 
   initializeChatWindow(): void {
-    if (!this.autoRenderLoaded) {
-      this.loadAutoRender();
-    }
-
-    // Find chat container and initialize auto-render
-    const chatContainer = document.querySelector('[data-radix-scroll-area-viewport]');
-    if (chatContainer) {
-      try {
-        renderMathInElement(chatContainer as HTMLElement, {
-          delimiters: [
-            { left: "$$", right: "$$", display: true },    // block
-            { left: "\\[", right: "\\]", display: true },   // block
-            { left: "$", right: "$", display: false },     // inline
-            { left: "\\(", right: "\\)", display: false }, // inline
-          ],
-          throwOnError: false
-        });
-      } catch (error) {
-        console.error('KaTeX chat window initialization error:', error);
+    // Wait for auto-render to load, then initialize the chat window
+    const initializeWhenReady = () => {
+      if (!window.renderMathInElement || !this.autoRenderLoaded) {
+        setTimeout(initializeWhenReady, 100);
+        return;
       }
-    }
+
+      // Ensure katex is available globally
+      if (!window.katex) {
+        (window as any).katex = katex;
+      }
+
+      // Find chat container and initialize auto-render
+      const chatContainer = document.querySelector('[data-radix-scroll-area-viewport]');
+      if (chatContainer) {
+        try {
+          window.renderMathInElement(chatContainer as HTMLElement, {
+            delimiters: [
+              { left: "$$", right: "$$", display: true },    // block
+              { left: "$", right: "$", display: false },     // inline
+              { left: "\\(", right: "\\)", display: false }, // inline
+              { left: "\\[", right: "\\]", display: true }   // block
+            ],
+            throwOnError: false
+          });
+        } catch (error) {
+          console.error('KaTeX chat window initialization error:', error);
+        }
+      }
+    };
+
+    initializeWhenReady();
   }
 
   setupScrollObserver(): void {
@@ -161,42 +181,52 @@ export const useKaTeXInitializer = (): boolean => {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    setIsReady(true);
-    kaTeXManager.setupScrollObserver();
-    kaTeXManager.initializeChatWindow();
-    
-    // Initialize auto-render on chat containers for exam pages
-    const initializeChatContainers = () => {
-      const chatWindow = document.getElementById("chat-window");
-      if (chatWindow) {
-        try {
-          renderMathInElement(chatWindow, {
-            delimiters: [
-              { left: "$$", right: "$$", display: true },    // block
-              { left: "\\[", right: "\\]", display: true },   // block
-              { left: "$", right: "$", display: false },     // inline
-              { left: "\\(", right: "\\)", display: false }, // inline
-            ],
-            throwOnError: false
-          });
-        } catch (error) {
-          console.error('KaTeX auto-render initialization error:', error);
-        }
+    // Wait for auto-render to load
+    const checkReady = () => {
+      if (window.renderMathInElement || kaTeXManager.isAutoRenderLoaded) {
+        setIsReady(true);
+        kaTeXManager.setupScrollObserver();
+        kaTeXManager.initializeChatWindow();
+        
+        // Initialize auto-render on chat containers for exam pages
+        const initializeChatContainers = () => {
+          const chatWindow = document.getElementById("chat-window");
+          if (chatWindow && window.renderMathInElement) {
+            try {
+              window.renderMathInElement(chatWindow, {
+                delimiters: [
+                  { left: "$$", right: "$$", display: true },    // block
+                  { left: "$", right: "$", display: false },     // inline
+                  { left: "\\(", right: "\\)", display: false }, // inline
+                  { left: "\\[", right: "\\]", display: true }   // block
+                ],
+                throwOnError: false
+              });
+            } catch (error) {
+              console.error('KaTeX auto-render initialization error:', error);
+            }
+          }
+        };
+        
+        // Initialize immediately and set up observer for dynamic initialization
+        initializeChatContainers();
+        
+        // Set up mutation observer to handle dynamically added chat windows
+        const observer = new MutationObserver(() => {
+          initializeChatContainers();
+        });
+        
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+        
+      } else {
+        setTimeout(checkReady, 100);
       }
     };
     
-    // Initialize immediately and set up observer for dynamic initialization
-    initializeChatContainers();
-    
-    // Set up mutation observer to handle dynamically added chat windows
-    const observer = new MutationObserver(() => {
-      initializeChatContainers();
-    });
-    
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+    checkReady();
   }, []);
 
   return isReady;
