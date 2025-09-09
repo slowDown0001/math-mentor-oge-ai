@@ -34,45 +34,7 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
     fetchUserAvatar();
   }, [user, message.isUser]);
 
-  // Process KaTeX when message mounts and becomes visible
-  useEffect(() => {
-    if (!messageRef.current) return;
-
-    // Process KaTeX immediately when message mounts
-    const processMessage = () => {
-      if (messageRef.current) {
-        kaTeXManager.renderMath(messageRef.current);
-      }
-    };
-
-    // Process immediately and after a short delay to ensure DOM is ready
-    processMessage();
-    const timeoutId = setTimeout(processMessage, 50);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            kaTeXManager.renderMath(entry.target as HTMLElement);
-          }
-        });
-      },
-      {
-        root: null,
-        rootMargin: '50px',
-        threshold: 0.1
-      }
-    );
-
-    observer.observe(messageRef.current);
-
-    return () => {
-      clearTimeout(timeoutId);
-      if (messageRef.current) {
-        observer.unobserve(messageRef.current);
-      }
-    };
-  }, [message.text]);
+  // No additional KaTeX processing needed - ChatRenderer2 handles it via ReactMarkdown
 
   const fallbackAvatar = "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/kawaiiboy1.jpg";
   const aiAvatar = "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png";
