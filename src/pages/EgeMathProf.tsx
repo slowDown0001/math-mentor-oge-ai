@@ -64,8 +64,7 @@ const EgeMathProf = () => {
   };
 
   const handlePracticeClick = () => {
-    // TODO: Add practice functionality
-    console.log("Practice clicked");
+    navigate("/egemathprof-practice");
   };
 
   const handleTextbookClick = () => {
@@ -86,16 +85,16 @@ const EgeMathProf = () => {
       <div className="absolute top-6 right-6 z-10">
         <Button
           onClick={handleNavigateToProfile}
-          className="group relative px-6 py-3 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 
-                     hover:from-blue-400 hover:via-blue-500 hover:to-blue-600 
-                     text-white font-medium rounded-2xl shadow-lg 
+          className="group relative px-6 py-3 bg-gradient-to-r from-yellow-200 to-yellow-300 
+                     hover:from-yellow-300 hover:to-yellow-400 
+                     text-black font-medium rounded-2xl shadow-lg 
                      transform transition-all duration-300 ease-in-out
-                     hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30
+                     hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/30
                      active:scale-95 active:transition-all active:duration-150"
         >
           <User className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:rotate-12" />
           Профиль
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400/20 to-blue-600/20 
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 
                           opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </Button>
       </div>
@@ -140,7 +139,10 @@ const EgeMathProf = () => {
                        hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30
                        active:scale-95 active:transition-all active:duration-150"
           >
-            Прогресс
+            <div className="flex flex-col items-center">
+              <div>Личный кабинет</div>
+              <div className="text-sm">ЕГЭ Профильная Математика</div>
+            </div>
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/10 to-white/5 
                             opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </Button>
