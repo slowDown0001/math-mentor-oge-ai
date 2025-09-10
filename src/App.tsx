@@ -49,6 +49,7 @@ const OgemathPractice = lazy(() => import("./pages/OgemathPractice"));
 const OgemathProgress = lazy(() => import("./pages/OgemathProgress"));
 const PracticeByNumberOgemath = lazy(() => import("./pages/PracticeByNumberOgemath"));
 const PracticeByNumberEgeBasicMath = lazy(() => import("./pages/PracticeByNumberEgeBasicMath"));
+const PracticeByNumberEgeProfMath = lazy(() => import("./pages/PracticeByNumberEgeProfMath"));
 const EgemathbasicPractice = lazy(() => import("./pages/EgemathbasicPractice"));
 const NewPracticeSkills = lazy(() => import("./pages/NewPracticeSkills"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -88,8 +89,9 @@ const App = () => (
                 <Route path="/ogemath-practice" element={<OgemathPractice />} />
                 <Route path="/ogemath-progress" element={<OgemathProgress />} />
                 <Route path="/practice-by-number-ogemath" element={<PracticeByNumberOgemath />} />
-        <Route path="/practice-by-number-egebasicmath" element={<PracticeByNumberEgeBasicMath />} />
-        <Route path="/egemathbasic-practice" element={<EgemathbasicPractice />} />
+                <Route path="/practice-by-number-egebasicmath" element={<PracticeByNumberEgeBasicMath />} />
+                <Route path="/practice-by-number-egeprofmath" element={<PracticeByNumberEgeProfMath />} />
+                <Route path="/egemathbasic-practice" element={<EgemathbasicPractice />} />
                 <Route path="/new-practice-skills" element={<NewPracticeSkills />} />
         <Route path="/book-test" element={<BookTest />} />
         <Route path="/after-registration" element={<AfterRegistration />} />
