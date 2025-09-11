@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Play, ArrowLeft, LogOut, Trash2, ChevronDown } from 'lucide-react';
+import { Plus, Play, ArrowLeft, LogOut, Trash2, ChevronDown, X, Check } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
@@ -52,6 +53,7 @@ const MyDashboard = () => {
   const [egeBasicGoalText, setEgeBasicGoalText] = useState('');
   const [egeAdvancedGoalText, setEgeAdvancedGoalText] = useState('');
   const [telegramCode, setTelegramCode] = useState<number | null>(null);
+  const [telegramUserId, setTelegramUserId] = useState<number | null>(null);
   const [showTelegramButton, setShowTelegramButton] = useState(false);
 
   useEffect(() => {
@@ -140,20 +142,23 @@ const MyDashboard = () => {
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('telegram_code')
+        .select('telegram_code, telegram_user_id')
         .eq('user_id', user.id)
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error loading telegram code:', error);
+        console.error('Error loading telegram data:', error);
         return;
       }
 
       if (profile?.telegram_code) {
         setTelegramCode(profile.telegram_code);
       }
+      if (profile?.telegram_user_id) {
+        setTelegramUserId(profile.telegram_user_id);
+      }
     } catch (error) {
-      console.error('Error loading telegram code:', error);
+      console.error('Error loading telegram data:', error);
     }
   };
 
@@ -532,9 +537,30 @@ const MyDashboard = () => {
                       Telegram код
                     </label>
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-blue-800 font-mono text-lg font-bold">
-                        {telegramCode}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-blue-800 font-mono text-lg font-bold">
+                          {telegramCode}
+                        </p>
+                        {telegramUserId ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Check className="w-5 h-5 text-green-600" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Телеграм код подтвержден</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <X className="w-5 h-5 text-red-600" />
+                        )}
+                      </div>
+                      {!telegramUserId && (
+                        <p className="text-sm text-blue-600 mt-2">
+                          Введите этот код в телеграм-боте egechat_bot
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
