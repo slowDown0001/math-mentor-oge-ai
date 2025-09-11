@@ -574,6 +574,156 @@ export type Database = {
         }
         Relationships: []
       }
+      egemathbase: {
+        Row: {
+          answer: string | null
+          calculation_required: string | null
+          calculator_allowed: string | null
+          checked: string | null
+          code: string | null
+          comments: string | null
+          corrected: string | null
+          difficulty: string | null
+          fipi_id: string | null
+          problem_image: string | null
+          problem_link: string | null
+          problem_number_type: string | null
+          problem_text: string | null
+          question_id: string
+          rec_time: string | null
+          skills: string | null
+          solution_image: string | null
+          solution_text: string | null
+          solutiontextexpanded: string | null
+          source: string | null
+          steps_number: string | null
+          type: string | null
+        }
+        Insert: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: string | null
+          code?: string | null
+          comments?: string | null
+          corrected?: string | null
+          difficulty?: string | null
+          fipi_id?: string | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: string | null
+          problem_text?: string | null
+          question_id: string
+          rec_time?: string | null
+          skills?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          steps_number?: string | null
+          type?: string | null
+        }
+        Update: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: string | null
+          code?: string | null
+          comments?: string | null
+          corrected?: string | null
+          difficulty?: string | null
+          fipi_id?: string | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: string | null
+          problem_text?: string | null
+          question_id?: string
+          rec_time?: string | null
+          skills?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          steps_number?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      egemathprof: {
+        Row: {
+          answer: string | null
+          calculation_required: string | null
+          calculator_allowed: string | null
+          checked: string | null
+          code: string | null
+          comments: string | null
+          corrected: string | null
+          difficulty: string | null
+          fipi_id: string | null
+          problem_image: string | null
+          problem_link: string | null
+          problem_number_type: number | null
+          problem_text: string | null
+          question_id: string
+          rec_time: string | null
+          skills: string | null
+          solution_image: string | null
+          solution_text: string | null
+          solutiontextexpanded: string | null
+          source: string | null
+          steps_number: string | null
+          type: string | null
+        }
+        Insert: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: string | null
+          code?: string | null
+          comments?: string | null
+          corrected?: string | null
+          difficulty?: string | null
+          fipi_id?: string | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: number | null
+          problem_text?: string | null
+          question_id: string
+          rec_time?: string | null
+          skills?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          steps_number?: string | null
+          type?: string | null
+        }
+        Update: {
+          answer?: string | null
+          calculation_required?: string | null
+          calculator_allowed?: string | null
+          checked?: string | null
+          code?: string | null
+          comments?: string | null
+          corrected?: string | null
+          difficulty?: string | null
+          fipi_id?: string | null
+          problem_image?: string | null
+          problem_link?: string | null
+          problem_number_type?: number | null
+          problem_text?: string | null
+          question_id?: string
+          rec_time?: string | null
+          skills?: string | null
+          solution_image?: string | null
+          solution_text?: string | null
+          solutiontextexpanded?: string | null
+          source?: string | null
+          steps_number?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
       entrypage_query_data: {
         Row: {
           timestamp: string
@@ -1686,6 +1836,10 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          image_proccessing_command: string | null
+          telegram_code: number | null
+          telegram_input: string | null
+          telegram_user_id: number | null
           updated_at: string
           user_id: string
         }
@@ -1699,6 +1853,10 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          image_proccessing_command?: string | null
+          telegram_code?: number | null
+          telegram_input?: string | null
+          telegram_user_id?: number | null
           updated_at?: string
           user_id: string
         }
@@ -1712,6 +1870,10 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          image_proccessing_command?: string | null
+          telegram_code?: number | null
+          telegram_input?: string | null
+          telegram_user_id?: number | null
           updated_at?: string
           user_id?: string
         }

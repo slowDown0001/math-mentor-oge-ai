@@ -51,11 +51,14 @@ const MyDashboard = () => {
   const [goalText, setGoalText] = useState('');
   const [egeBasicGoalText, setEgeBasicGoalText] = useState('');
   const [egeAdvancedGoalText, setEgeAdvancedGoalText] = useState('');
+  const [telegramCode, setTelegramCode] = useState<number | null>(null);
+  const [showTelegramButton, setShowTelegramButton] = useState(false);
 
   useEffect(() => {
     if (user) {
       loadUserCourses();
       loadUserGoals();
+      loadTelegramCode();
     }
   }, [user]);
 
@@ -131,6 +134,29 @@ const MyDashboard = () => {
     }
   };
 
+  const loadTelegramCode = async () => {
+    if (!user) return;
+
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('telegram_code')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading telegram code:', error);
+        return;
+      }
+
+      if (profile?.telegram_code) {
+        setTelegramCode(profile.telegram_code);
+      }
+    } catch (error) {
+      console.error('Error loading telegram code:', error);
+    }
+  };
+
   const updateUserCourses = async (courseNumbers: number[]) => {
     if (!user) return;
 
@@ -159,6 +185,11 @@ const MyDashboard = () => {
       setShowEgeBasicGoal(true);
     } else if (course.id === 'ege-advanced') {
       setShowEgeAdvancedGoal(true);
+    }
+
+    // Show telegram button if no telegram code exists
+    if (!telegramCode) {
+      setShowTelegramButton(true);
     }
   };
 
@@ -398,6 +429,44 @@ const MyDashboard = () => {
     });
   };
 
+  const generateTelegramCode = async () => {
+    if (!user) return;
+
+    // Generate random 6-digit number
+    const randomCode = Math.floor(100000 + Math.random() * 900000);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ telegram_code: randomCode })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error saving telegram code:', error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось создать Telegram код",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setTelegramCode(randomCode);
+      setShowTelegramButton(false);
+      toast({
+        title: "Telegram код создан",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Error creating telegram code:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось создать Telegram код",
+        variant: "destructive",
+      });
+    }
+  };
+
   const renderMarkdownText = (text: string) => {
     // Simple markdown rendering for bold text
     return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -455,6 +524,32 @@ const MyDashboard = () => {
                     {user?.email || 'Не указан'}
                   </p>
                 </div>
+
+                {/* Telegram Code Section */}
+                {telegramCode && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Telegram код
+                    </label>
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-blue-800 font-mono text-lg font-bold">
+                        {telegramCode}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Telegram Button */}
+                {showTelegramButton && !telegramCode && (
+                  <div className="mt-4">
+                    <Button
+                      onClick={generateTelegramCode}
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                    >
+                      Создать Telegram код
+                    </Button>
+                  </div>
+                )}
                 
                 {/* Goal Input Sections */}
                 <AnimatePresence>
