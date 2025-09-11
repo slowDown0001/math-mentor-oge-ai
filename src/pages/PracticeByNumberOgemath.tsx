@@ -120,6 +120,19 @@ const PracticeByNumberOgemath = () => {
     }
   };
 
+  // Helper function to check if a string is purely numeric
+  const isNumeric = (str: string): boolean => {
+    // Remove spaces and check if the string contains only digits, dots, commas, and negative signs
+    const cleaned = str.trim();
+    // Check if it's purely numeric (digits, decimal separators, negative sign)
+    return /^-?\d+([.,]\d+)?$/.test(cleaned);
+  };
+
+  // Helper function to sanitize numeric input
+  const sanitizeNumericAnswer = (answer: string): string => {
+    return answer.trim().replace(/\s/g, '').replace(',', '.');
+  };
+
   const checkAnswer = async () => {
     if (!currentQuestion || !userAnswer.trim()) return;
 
@@ -132,8 +145,56 @@ const PracticeByNumberOgemath = () => {
     }
 
     try {
-      // Call check-text-answer function
-      const { data, error } = await supabase.functions.invoke('check-text-answer', {
+      const correctAnswer = currentQuestion.answer;
+      let isCorrect = false;
+
+      // Check if the correct answer is numeric
+      if (isNumeric(correctAnswer)) {
+        // Simple numeric comparison with sanitization
+        const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
+        const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
+        isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
+        
+        console.log('Numeric answer check:', {
+          user: sanitizedUserAnswer,
+          correct: sanitizedCorrectAnswer,
+          isCorrect
+        });
+      } else {
+        // Use OpenRouter API for non-numeric answers
+        console.log('Non-numeric answer detected, using OpenRouter API');
+        
+        const { data, error } = await supabase.functions.invoke('check-non-numeric-answer', {
+          body: {
+            student_answer: userAnswer.trim(),
+            correct_answer: correctAnswer,
+            problem_text: currentQuestion.problem_text
+          }
+        });
+
+        if (error) {
+          console.error('Error checking non-numeric answer:', error);
+          
+          // Check if there's a retry message from the API
+          if (data?.retry_message) {
+            toast.error(data.retry_message);
+          } else {
+            toast.error('Ошибка при проверке ответа. Пожалуйста, попробуйте ещё раз.');
+          }
+          return;
+        }
+
+        if (data?.retry_message) {
+          toast.error(data.retry_message);
+          return;
+        }
+
+        isCorrect = data?.is_correct || false;
+        console.log('OpenRouter API result:', { isCorrect });
+      }
+
+      // Call check-text-answer function for logging purposes
+      const { data: logData, error: logError } = await supabase.functions.invoke('check-text-answer', {
         body: {
           user_id: user.id,
           question_id: currentQuestion.question_id,
@@ -141,13 +202,10 @@ const PracticeByNumberOgemath = () => {
         }
       });
 
-      if (error) {
-        console.error('Error checking answer:', error);
-        toast.error('Ошибка при проверке ответа');
-        return;
+      if (logError) {
+        console.error('Error logging answer check:', logError);
       }
 
-      const isCorrect = data?.is_correct || false;
       setIsCorrect(isCorrect);
       setIsAnswered(true);
 
