@@ -8,7 +8,12 @@ const corsHeaders = {
 // Function to fetch topic-skill mapping from external file
 async function getTopicSkillMapping(courseType: string = 'ogemath'): Promise<Record<string, number[]>> {
   try {
-    const fileName = courseType === 'egebasic' ? 'egemathbase_topic_skills_json.txt' : 'ogemath_topic_skills_json.txt';
+    let fileName = 'ogemath_topic_skills_json.txt'; // default
+    if (courseType === 'egebasic') {
+      fileName = 'egemathbase_topic_skills_json.txt';
+    } else if (courseType === 'egeprof') {
+      fileName = 'egemathprof_topic_skills_json.txt';
+    }
     const response = await fetch(`https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/${fileName}`);
     if (!response.ok) {
       console.warn('Failed to fetch topic-skill mapping, using fallback');
