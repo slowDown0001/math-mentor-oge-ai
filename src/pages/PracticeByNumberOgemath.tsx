@@ -110,21 +110,34 @@ const PracticeByNumberOgemath = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase.functions.invoke('start-attempt', {
-        body: {
+      // Insert directly into student_activity table
+      const { data, error } = await supabase
+        .from('student_activity')
+        .insert({
           user_id: user.id,
-          question_id: questionId
-        }
-      });
+          question_id: questionId,
+          answer_time_start: new Date().toISOString(),
+          finished_or_not: false,
+          problem_number_type: parseInt(selectedNumber || '1'),
+          is_correct: null,
+          duration_answer: null,
+          scores_fipi: null,
+          skills: null,
+          topics: null
+        })
+        .select('attempt_id')
+        .single();
 
       if (error) {
         console.error('Error starting attempt:', error);
         return;
       }
 
-      setCurrentAttemptId(data?.data?.attempt_id);
-      setAttemptStartTime(new Date());
-      console.log('Started attempt:', data?.data?.attempt_id);
+      if (data) {
+        setCurrentAttemptId(data.attempt_id);
+        setAttemptStartTime(new Date());
+        console.log('Started attempt:', data.attempt_id);
+      }
     } catch (error) {
       console.error('Error starting attempt:', error);
     }
@@ -219,8 +232,8 @@ const PracticeByNumberOgemath = () => {
       setIsCorrect(isCorrect);
       setIsAnswered(true);
 
-      // Get latest student_activity data and submit to handle_submission
-      await submitToHandleSubmission();
+      // Update student_activity directly instead of using failing edge function
+      await updateStudentActivity(isCorrect, 0);
 
       // Award streak points immediately (regardless of correctness)
       const reward = calculateStreakReward(currentQuestion.difficulty);
@@ -248,80 +261,17 @@ const PracticeByNumberOgemath = () => {
     }
   };
 
-  // Get latest student_activity data and submit to handle_submission
-  const submitToHandleSubmission = async () => {
-    if (!user) return;
+  // Update student_activity directly with answer results
+  const updateStudentActivity = async (isCorrect: boolean, scores: number, isSkipped: boolean = false) => {
+    if (!user || !currentAttemptId) return;
 
     try {
-      // Get latest student_activity row for current user
-      const { data: activityData, error: activityError } = await supabase
-        .from('student_activity')
-        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (activityError || !activityData) {
-        console.error('Error getting latest activity:', activityError);
-        return;
-      }
-
-      // Create submission_data dictionary
-      const submissionData = {
-        user_id: user.id,
-        question_id: activityData.question_id,
-        attempt_id: activityData.attempt_id,
-        finished_or_not: activityData.finished_or_not,
-        duration: activityData.duration_answer,
-        scores_fipi: activityData.scores_fipi
-      };
-
-      // Call handle_submission function
-      const { data, error } = await supabase.functions.invoke('handle-submission', {
-        body: submissionData
-      });
-
-      if (error) {
-        console.error('Error in handle-submission:', error);
-        toast.error('Ошибка при обработке ответа');
-        return;
-      }
-
-      console.log('Handle submission completed:', data);
-    } catch (error) {
-      console.error('Error in submitToHandleSubmission:', error);
-    }
-  };
-
-  // Handle photo submission to student_activity
-  const submitPhotoToActivity = async (scores: number) => {
-    if (!user) return;
-
-    try {
-      // Get latest student_activity row for current user
-      const { data: activityData, error: activityError } = await supabase
-        .from('student_activity')
-        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi, answer_time_start')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (activityError || !activityData) {
-        console.error('Error getting latest activity for photo:', activityError);
-        return;
-      }
-
-      // Calculate duration between now and answer_time_start
+      // Calculate duration from attempt start time
       const now = new Date();
-      const startTime = new Date(activityData.answer_time_start);
+      const startTime = attemptStartTime || new Date();
       const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
 
-      // Determine if correct based on scores
-      const isCorrect = scores > 0;
-
-      // Update the student_activity row with photo results
+      // Update the student_activity row
       const { error: updateError } = await supabase
         .from('student_activity')
         .update({ 
@@ -331,39 +281,19 @@ const PracticeByNumberOgemath = () => {
           finished_or_not: true
         })
         .eq('user_id', user.id)
-        .eq('attempt_id', activityData.attempt_id);
+        .eq('attempt_id', currentAttemptId);
 
       if (updateError) {
-        console.error('Error updating activity for photo:', updateError);
+        console.error('Error updating student_activity:', updateError);
         return;
       }
 
-      // Create submission_data dictionary for photo submission
-      const submissionData = {
-        user_id: user.id,
-        question_id: activityData.question_id,
-        attempt_id: activityData.attempt_id,
-        finished_or_not: true,
-        duration: durationInSeconds,
-        scores_fipi: scores
-      };
-
-      // Call handle_submission function
-      const { data, error } = await supabase.functions.invoke('handle-submission', {
-        body: submissionData
-      });
-
-      if (error) {
-        console.error('Error in photo handle-submission:', error);
-      } else {
-        console.log('Photo submission completed:', data);
-        setIsCorrect(isCorrect);
-        setIsAnswered(true);
-      }
+      console.log(`Updated student_activity: correct=${isCorrect}, scores=${scores}, duration=${durationInSeconds}s`);
     } catch (error) {
-      console.error('Error in submitPhotoToActivity:', error);
+      console.error('Error in updateStudentActivity:', error);
     }
   };
+
 
   // Handle skipping a question
   const skipQuestion = async () => {
@@ -410,16 +340,8 @@ const PracticeByNumberOgemath = () => {
             scores_fipi: activityData.scores_fipi
           };
 
-          // Call handle_submission function
-          const { data, error } = await supabase.functions.invoke('handle-submission', {
-            body: submissionData
-          });
-
-          if (error) {
-            console.error('Error skipping question:', error);
-          } else {
-            console.log('Question skipped successfully:', data);
-          }
+          // Mark as skipped - not correct, not answered
+          await updateStudentActivity(false, 0, true);
         }
       } catch (error) {
         console.error('Error skipping question:', error);
@@ -549,8 +471,13 @@ const PracticeByNumberOgemath = () => {
             setPhotoFeedback(feedbackData.review);
             setPhotoScores(feedbackData.scores);
             
-            // Handle photo submission using existing pattern
-            await submitPhotoToActivity(feedbackData.scores);
+            // Handle photo submission using direct update
+            const isCorrect = feedbackData.scores > 0;
+            await updateStudentActivity(isCorrect, feedbackData.scores);
+            
+            // Update UI states
+            setIsCorrect(isCorrect);
+            setIsAnswered(true);
             
             setShowUploadPrompt(false);
             setShowPhotoDialog(true);
