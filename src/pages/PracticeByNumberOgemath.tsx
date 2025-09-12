@@ -294,6 +294,77 @@ const PracticeByNumberOgemath = () => {
     }
   };
 
+  // Handle photo submission to student_activity
+  const submitPhotoToActivity = async (scores: number) => {
+    if (!user) return;
+
+    try {
+      // Get latest student_activity row for current user
+      const { data: activityData, error: activityError } = await supabase
+        .from('student_activity')
+        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi, answer_time_start')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (activityError || !activityData) {
+        console.error('Error getting latest activity for photo:', activityError);
+        return;
+      }
+
+      // Calculate duration between now and answer_time_start
+      const now = new Date();
+      const startTime = new Date(activityData.answer_time_start);
+      const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
+
+      // Determine if correct based on scores
+      const isCorrect = scores > 0;
+
+      // Update the student_activity row with photo results
+      const { error: updateError } = await supabase
+        .from('student_activity')
+        .update({ 
+          duration_answer: durationInSeconds,
+          is_correct: isCorrect,
+          scores_fipi: scores,
+          finished_or_not: true
+        })
+        .eq('user_id', user.id)
+        .eq('attempt_id', activityData.attempt_id);
+
+      if (updateError) {
+        console.error('Error updating activity for photo:', updateError);
+        return;
+      }
+
+      // Create submission_data dictionary for photo submission
+      const submissionData = {
+        user_id: user.id,
+        question_id: activityData.question_id,
+        attempt_id: activityData.attempt_id,
+        finished_or_not: true,
+        duration: durationInSeconds,
+        scores_fipi: scores
+      };
+
+      // Call handle_submission function
+      const { data, error } = await supabase.functions.invoke('handle-submission', {
+        body: submissionData
+      });
+
+      if (error) {
+        console.error('Error in photo handle-submission:', error);
+      } else {
+        console.log('Photo submission completed:', data);
+        setIsCorrect(isCorrect);
+        setIsAnswered(true);
+      }
+    } catch (error) {
+      console.error('Error in submitPhotoToActivity:', error);
+    }
+  };
+
   // Handle skipping a question
   const skipQuestion = async () => {
     if (!currentQuestion) return;
@@ -478,20 +549,8 @@ const PracticeByNumberOgemath = () => {
             setPhotoFeedback(feedbackData.review);
             setPhotoScores(feedbackData.scores);
             
-            // Update student_activity with scores_fipi
-            if (user) {
-              const { error: updateError } = await supabase
-                .from('student_activity')
-                .update({ scores_fipi: feedbackData.scores })
-                .eq('user_id', user.id)
-                .eq('question_id', currentQuestion.question_id)
-                .order('updated_at', { ascending: false })
-                .limit(1);
-              
-              if (updateError) {
-                console.error('Error updating scores_fipi:', updateError);
-              }
-            }
+            // Handle photo submission using existing pattern
+            await submitPhotoToActivity(feedbackData.scores);
             
             setShowUploadPrompt(false);
             setShowPhotoDialog(true);
