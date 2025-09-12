@@ -44,7 +44,10 @@ Deno.serve(async (req) => {
       const { data: skillsData, error: skillsError } = await supabaseClient.functions.invoke(
         'get-skills-for-topic',
         {
-          body: { topic_code }
+          body: { 
+            topic_code,
+            course_type: 'ogemath'
+          }
         }
       )
 
