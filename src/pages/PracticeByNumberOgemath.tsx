@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, XCircle, BookOpen, ArrowRight, Home, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CheckCircle, XCircle, BookOpen, ArrowRight, Home, ArrowLeft, Camera, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import MathRenderer from "@/components/MathRenderer";
 import { useStreakTracking } from "@/hooks/useStreakTracking";
@@ -21,6 +22,7 @@ interface Question {
   answer: string;
   solution_text: string;
   difficulty?: string | number;
+  problem_number_type?: number;
 }
 
 const PracticeByNumberOgemath = () => {
@@ -48,6 +50,13 @@ const PracticeByNumberOgemath = () => {
   
   // Auth required message state
   const [showAuthRequiredMessage, setShowAuthRequiredMessage] = useState(false);
+  
+  // Photo attachment states
+  const [showPhotoDialog, setShowPhotoDialog] = useState(false);
+  const [showTelegramNotConnected, setShowTelegramNotConnected] = useState(false);
+  const [showUploadPrompt, setShowUploadPrompt] = useState(false);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+  const [photoFeedback, setPhotoFeedback] = useState<string>("");
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -56,7 +65,7 @@ const PracticeByNumberOgemath = () => {
     try {
       const { data, error } = await supabase
         .from('oge_math_fipi_bank')
-        .select('question_id, problem_text, answer, solution_text')
+        .select('question_id, problem_text, answer, solution_text, problem_number_type')
         .eq('problem_number_type', parseInt(questionNumber))
         .order('question_id');
 
@@ -381,6 +390,105 @@ const PracticeByNumberOgemath = () => {
     }
   };
 
+  // Photo attachment functionality
+  const handlePhotoAttachment = async () => {
+    if (!user) {
+      setShowAuthRequiredMessage(true);
+      setTimeout(() => setShowAuthRequiredMessage(false), 5000);
+      return;
+    }
+
+    try {
+      // Check if user has telegram_user_id
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('telegram_user_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking telegram connection:', error);
+        toast.error('Ошибка при проверке подключения Telegram');
+        return;
+      }
+
+      if (!profile?.telegram_user_id) {
+        setShowTelegramNotConnected(true);
+      } else {
+        setShowUploadPrompt(true);
+      }
+    } catch (error) {
+      console.error('Error in handlePhotoAttachment:', error);
+      toast.error('Ошибка при проверке подключения Telegram');
+    }
+  };
+
+  const handlePhotoCheck = async () => {
+    if (!user || !currentQuestion) return;
+
+    setIsProcessingPhoto(true);
+    
+    try {
+      // Check telegram_input for data
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('telegram_input')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error getting telegram input:', profileError);
+        toast.error('Ошибка при получении данных');
+        setIsProcessingPhoto(false);
+        return;
+      }
+
+      if (!profile?.telegram_input) {
+        toast.error('Фото не загружено.');
+        setIsProcessingPhoto(false);
+        return;
+      }
+
+      // Make OpenRouter API call
+      const { data: apiResponse, error: apiError } = await supabase.functions.invoke('check-photo-solution', {
+        body: {
+          student_solution: profile.telegram_input,
+          problem_text: currentQuestion.problem_text,
+          solution_text: currentQuestion.solution_text
+        }
+      });
+
+      if (apiError) {
+        console.error('Error calling check-photo-solution:', apiError);
+        if (apiResponse?.retry_message) {
+          toast.error(apiResponse.retry_message);
+        } else {
+          toast.error('Ошибка API. Попробуйте ввести решение снова.');
+        }
+        setIsProcessingPhoto(false);
+        return;
+      }
+
+      if (apiResponse?.feedback) {
+        setPhotoFeedback(apiResponse.feedback);
+        setShowUploadPrompt(false);
+        setShowPhotoDialog(true);
+      } else {
+        toast.error('Не удалось получить обратную связь');
+      }
+    } catch (error) {
+      console.error('Error in handlePhotoCheck:', error);
+      toast.error('Произошла ошибка при обработке решения');
+    } finally {
+      setIsProcessingPhoto(false);
+    }
+  };
+
+  const closePhotoDialog = () => {
+    setShowPhotoDialog(false);
+    setPhotoFeedback("");
+  };
+
   const questionNumbers = Array.from({ length: 25 }, (_, i) => (i + 1).toString());
 
   return (
@@ -447,7 +555,7 @@ const PracticeByNumberOgemath = () => {
                   <MathRenderer text={currentQuestion.problem_text || "Текст задачи не найден"} compiler="mathjax" />
                 </div>
 
-                {/* Answer Input */}
+                   {/* Answer Input */}
                 <div className="space-y-4">
                   <div className="flex gap-2">
                     <Input
@@ -467,6 +575,20 @@ const PracticeByNumberOgemath = () => {
                       Проверить
                     </Button>
                   </div>
+
+                  {/* Photo Attachment Button for questions 20+ */}
+                  {currentQuestion.problem_number_type && currentQuestion.problem_number_type >= 20 && (
+                    <div className="flex justify-center">
+                      <Button
+                        variant="outline"
+                        onClick={handlePhotoAttachment}
+                        className="bg-blue-50 hover:bg-blue-100 border-blue-200"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Прикрепить фото
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Auth Required Message */}
                   {showAuthRequiredMessage && (
@@ -575,6 +697,72 @@ const PracticeByNumberOgemath = () => {
           addedMinutes={streakData.addedMinutes}
         />
       )}
+
+      {/* Telegram Not Connected Dialog */}
+      <Dialog open={showTelegramNotConnected} onOpenChange={setShowTelegramNotConnected}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <X className="w-5 h-5 text-red-500" />
+              Telegram не подключен
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-gray-700">
+              Зайдите в Дашборд и потвердите Telegram код.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <Button onClick={() => setShowTelegramNotConnected(false)}>
+              Понятно
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Prompt Dialog */}
+      <Dialog open={showUploadPrompt} onOpenChange={setShowUploadPrompt}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Загрузка фото решения</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-blue-800">
+                Загрузите фото в телеграм бот egechat_bot. Уже загрузили? Нажмите кнопку 'Да'
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <Button 
+                onClick={handlePhotoCheck}
+                disabled={isProcessingPhoto}
+                className="min-w-24"
+              >
+                {isProcessingPhoto ? 'Обработка...' : 'Да'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Photo Feedback Dialog */}
+      <Dialog open={showPhotoDialog} onOpenChange={closePhotoDialog}>
+        <DialogContent className="sm:max-w-2xl max-h-96 overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              Обратная связь по решению
+              <Button variant="ghost" size="sm" onClick={closePhotoDialog}>
+                <X className="w-4 h-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="prose max-w-none">
+              <MathRenderer text={photoFeedback} compiler="mathjax" />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
