@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 // Function to fetch topic-skill mapping from external file
-async function getTopicSkillMapping(courseType: string = 'ogemath'): Promise<Record<string, number[]>> {
+async function getTopicSkillMapping(courseType: string = 'ogemath', origin?: string): Promise<Record<string, number[]>> {
   try {
     let fileName = 'ogemath_topic_skills_json.txt'; // default
     if (courseType === 'egebasic') {
@@ -14,13 +14,28 @@ async function getTopicSkillMapping(courseType: string = 'ogemath'): Promise<Rec
     } else if (courseType === 'egeprof') {
       fileName = 'egemathprof_topic_skills_json.txt';
     }
-    const response = await fetch(`https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/${fileName}`);
-    if (!response.ok) {
-      console.warn('Failed to fetch topic-skill mapping, using fallback');
-      return {};
+
+    // 1) Try Supabase Storage (preferred and stable for production)
+    const storageUrl = `https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/${fileName}`;
+    const response = await fetch(storageUrl);
+    if (response.ok) {
+      const mapping = await response.json();
+      return mapping;
     }
-    const mapping = await response.json();
-    return mapping;
+
+    // 2) Fallback to app's public assets using request origin (useful in preview)
+    if (origin) {
+      const appAssetUrl = `${origin.replace(/\/$/, '')}/${fileName}`;
+      const fallbackResp = await fetch(appAssetUrl);
+      if (fallbackResp.ok) {
+        const mapping = await fallbackResp.json();
+        return mapping;
+      }
+      console.warn(`Failed to fetch mapping from app assets at ${appAssetUrl}`);
+    }
+
+    console.warn('Failed to fetch topic-skill mapping from storage and app assets, returning empty mapping');
+    return {};
   } catch (error) {
     console.error('Error fetching topic-skill mapping:', error);
     return {};
@@ -44,10 +59,13 @@ serve(async (req) => {
       throw new Error('topic_code parameter is required');
     }
 
-    console.log(`Looking up skills for topic_code: ${topic_code}, course_type: ${course_type}`);
+    // Derive origin for fallback fetching of public assets
+    const originHeader = req.headers.get('origin') || req.headers.get('referer') || '';
+
+    console.log(`Looking up skills for topic_code: ${topic_code}, course_type: ${course_type}, origin: ${originHeader}`);
 
     // Fetch topic-skill mapping from external file
-    const topicSkillMapping = await getTopicSkillMapping(course_type);
+    const topicSkillMapping = await getTopicSkillMapping(course_type, originHeader);
     
     // Get skill IDs for the topic code, return empty array if not found
     const skillIds = topicSkillMapping[topic_code] || [];
