@@ -98,9 +98,10 @@ Deno.serve(async (req) => {
     }
 
     // Function to fetch topic-skill mapping from external file
-    async function getTopicSkillMapping(): Promise<Array<{topic: string, skills: number[]}>> {
+    async function getTopicSkillMapping(courseType: string): Promise<Array<{topic: string, skills: number[]}>> {
       try {
-        const response = await fetch('https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/ogemath_topic_skills_json.txt');
+        const fileName = courseType === 'egebasic' ? 'egemathbase_topic_skills_json.txt' : 'ogemath_topic_skills_json.txt';
+        const response = await fetch(`https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/${fileName}`);
         if (!response.ok) {
           console.warn('Failed to fetch topic-skill mapping, using fallback');
           return [];
@@ -117,8 +118,16 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Determine course type based on question_id
+    let courseType = 'ogemath' // default
+    if (question_id.startsWith('EGEBASIC_')) {
+      courseType = 'egebasic'
+    } else if (question_id.startsWith('EGEPROF_')) {
+      courseType = 'egeprof'
+    }
+
     // Get topic-skill mapping from external file
-    const topicSkillMapping = await getTopicSkillMapping();
+    const topicSkillMapping = await getTopicSkillMapping(courseType);
 
     // Derive topics from skills
     const topicsArray: string[] = []

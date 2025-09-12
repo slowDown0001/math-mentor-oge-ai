@@ -6,9 +6,10 @@ const corsHeaders = {
 };
 
 // Function to fetch topic-skill mapping from external file
-async function getTopicSkillMapping(): Promise<Record<string, number[]>> {
+async function getTopicSkillMapping(courseType: string = 'ogemath'): Promise<Record<string, number[]>> {
   try {
-    const response = await fetch('https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/ogemath_topic_skills_json.txt');
+    const fileName = courseType === 'egebasic' ? 'egemathbase_topic_skills_json.txt' : 'ogemath_topic_skills_json.txt';
+    const response = await fetch(`https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/${fileName}`);
     if (!response.ok) {
       console.warn('Failed to fetch topic-skill mapping, using fallback');
       return {};
@@ -32,16 +33,16 @@ serve(async (req) => {
       throw new Error('Method not allowed');
     }
 
-    const { topic_code } = await req.json();
+    const { topic_code, course_type } = await req.json();
 
     if (!topic_code) {
       throw new Error('topic_code parameter is required');
     }
 
-    console.log(`Looking up skills for topic_code: ${topic_code}`);
+    console.log(`Looking up skills for topic_code: ${topic_code}, course_type: ${course_type}`);
 
     // Fetch topic-skill mapping from external file
-    const topicSkillMapping = await getTopicSkillMapping();
+    const topicSkillMapping = await getTopicSkillMapping(course_type);
     
     // Get skill IDs for the topic code, return empty array if not found
     const skillIds = topicSkillMapping[topic_code] || [];
