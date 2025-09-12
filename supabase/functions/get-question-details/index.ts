@@ -3,6 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 
 interface RequestBody {
   question_id: string
+  origin?: string
 }
 
 Deno.serve(async (req) => {
@@ -18,7 +19,13 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { question_id }: RequestBody = await req.json()
+const { question_id, origin: originOverride }: RequestBody = await req.json()
+
+// Derive origin for fallback fetching of public assets
+let originHeader = req.headers.get('origin') || req.headers.get('referer') || ''
+if (originOverride && typeof originOverride === 'string') {
+  originHeader = originOverride
+}
 
     // Validate required parameters
     if (!question_id) {
@@ -97,29 +104,46 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Function to fetch topic-skill mapping from external file
-    async function getTopicSkillMapping(courseType: string): Promise<Array<{topic: string, skills: number[]}>> {
+// Function to fetch topic-skill mapping from external file
+    async function getTopicSkillMapping(courseType: string, origin?: string): Promise<Array<{topic: string, skills: number[]}>> {
       try {
-        let fileName = 'ogemath_topic_skills_json.txt'; // default
+        let fileName = 'ogemath_topic_skills_json.txt' // default
         if (courseType === 'egebasic') {
-          fileName = 'egemathbase_topic_skills_json.txt';
+          fileName = 'egemathbase_topic_skills_json.txt'
         } else if (courseType === 'egeprof') {
-          fileName = 'egemathprof_topic_skills_json.txt';
+          fileName = 'egemathprof_topic_skills_json.txt'
         }
-        const response = await fetch(`https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/${fileName}`);
-        if (!response.ok) {
-          console.warn('Failed to fetch topic-skill mapping, using fallback');
-          return [];
+
+        // 1) Try Supabase Storage (preferred)
+        const storageUrl = `https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/${fileName}`
+        const response = await fetch(storageUrl)
+        if (response.ok) {
+          const mapping = await response.json()
+          return Object.entries(mapping).map(([topic, skills]: [string, any]) => ({
+            topic,
+            skills: skills as number[]
+          }))
         }
-        const mapping = await response.json();
-        // Convert object format to array format
-        return Object.entries(mapping).map(([topic, skills]) => ({
-          topic,
-          skills: skills as number[]
-        }));
+
+        // 2) Fallback to app's public assets using request origin
+        if (origin) {
+          const appAssetUrl = `${origin.replace(/\/$/, '')}/${fileName}`
+          const fallbackResp = await fetch(appAssetUrl)
+          if (fallbackResp.ok) {
+            const mapping = await fallbackResp.json()
+            return Object.entries(mapping).map(([topic, skills]: [string, any]) => ({
+              topic,
+              skills: skills as number[]
+            }))
+          }
+          console.warn(`Failed to fetch mapping from app assets at ${appAssetUrl}`)
+        }
+
+        console.warn('Failed to fetch topic-skill mapping from storage and app assets, returning empty mapping')
+        return []
       } catch (error) {
-        console.error('Error fetching topic-skill mapping:', error);
-        return [];
+        console.error('Error fetching topic-skill mapping:', error)
+        return []
       }
     }
 
@@ -131,8 +155,8 @@ Deno.serve(async (req) => {
       courseType = 'egeprof'
     }
 
-    // Get topic-skill mapping from external file
-    const topicSkillMapping = await getTopicSkillMapping(courseType);
+// Get topic-skill mapping from external file (with robust fallbacks)
+    const topicSkillMapping = await getTopicSkillMapping(courseType, originHeader);
 
     // Derive topics from skills
     const topicsArray: string[] = []

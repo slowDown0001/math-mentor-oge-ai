@@ -34,11 +34,14 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`Starting attempt for user ${user_id}, question ${question_id}`)
+console.log(`Starting attempt for user ${user_id}, question ${question_id}`)
+
+    // Capture client origin to pass along for asset fallback
+    const clientOrigin = req.headers.get('origin') || req.headers.get('referer') || ''
 
     // First, get question details by calling the get-question-details function
     const { data: questionDetailsResponse, error: questionDetailsError } = await supabaseClient.functions.invoke('get-question-details', {
-      body: { question_id }
+      body: { question_id, origin: clientOrigin }
     })
 
     if (questionDetailsError || !questionDetailsResponse.success) {

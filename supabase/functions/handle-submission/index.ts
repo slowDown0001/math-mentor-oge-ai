@@ -40,12 +40,16 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`Handling submission for user ${submissionData.user_id}, question ${submissionData.question_id}`)
+console.log(`Handling submission for user ${submissionData.user_id}, question ${submissionData.question_id}`)
+
+    // Capture client origin to pass along for asset fallback
+    const clientOrigin = req.headers.get('origin') || req.headers.get('referer') || ''
 
     // Step 1: Fetch question details
     const { data: questionDetails, error: questionDetailsError } = await supabaseClient.functions.invoke('get-question-details', {
       body: {
-        question_id: submissionData.question_id
+        question_id: submissionData.question_id,
+        origin: clientOrigin
       }
     })
 
