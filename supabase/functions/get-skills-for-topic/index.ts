@@ -53,14 +53,17 @@ serve(async (req) => {
       throw new Error('Method not allowed');
     }
 
-    const { topic_code, course_type } = await req.json();
+    const { topic_code, course_type, origin: originOverride } = await req.json();
 
     if (!topic_code) {
       throw new Error('topic_code parameter is required');
     }
 
     // Derive origin for fallback fetching of public assets
-    const originHeader = req.headers.get('origin') || req.headers.get('referer') || '';
+    let originHeader = req.headers.get('origin') || req.headers.get('referer') || '';
+    if (originOverride && typeof originOverride === 'string') {
+      originHeader = originOverride;
+    }
 
     console.log(`Looking up skills for topic_code: ${topic_code}, course_type: ${course_type}, origin: ${originHeader}`);
 

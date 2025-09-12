@@ -22,6 +22,9 @@ Deno.serve(async (req) => {
 
     const { user_id, topic_code, course_id = '1' }: RequestBody = await req.json()
 
+    // Capture client origin to pass along for asset fallback
+    const clientOrigin = req.headers.get('origin') || req.headers.get('referer') || ''
+
     // Validate required parameters
     if (!user_id || !topic_code) {
       return new Response(
@@ -46,7 +49,8 @@ Deno.serve(async (req) => {
         {
           body: { 
             topic_code,
-            course_type: 'ogemath'
+            course_type: 'ogemath',
+            origin: clientOrigin
           }
         }
       )
@@ -110,12 +114,31 @@ Deno.serve(async (req) => {
 
         const { alpha, beta } = alphaBetaData?.data || {}
         
-        if (alpha === null || beta === null) {
-          console.log(`No alpha/beta data found for user ${user_id}, skill ${skillId}`)
-          return null
+        if (alpha == null || beta == null) {
+          console.log(`No alpha/beta data found for user ${user_id}, skill ${skillId}. Falling back to attempts.`)
+          // Fallback: compute naive mastery from student_activity for this skill
+          const { data: attempts, error: attemptsError } = await supabaseClient
+            .from('student_activity')
+            .select('is_correct')
+            .eq('user_id', user_id)
+            .contains('skills', [skillId])
+
+          if (attemptsError) {
+            console.error(`Error fetching attempts for skill ${skillId}:`, attemptsError)
+            return null
+          }
+
+          if (!attempts || attempts.length === 0) {
+            return null
+          }
+
+          const correct = attempts.filter(a => a.is_correct === true).length
+          const masteryProbability = correct / attempts.length
+          console.log(`Skill ${skillId}: attempts=${attempts.length}, correct=${correct}, mastery=${masteryProbability}`)
+          return masteryProbability
         }
 
-        // Compute mastery probability
+        // Compute mastery probability using alpha/beta when available
         const { data: masteryData, error: masteryError } = await supabaseClient.functions.invoke(
           'compute-mastery-probability',
           {
