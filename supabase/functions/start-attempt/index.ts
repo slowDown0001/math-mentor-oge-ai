@@ -4,6 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 interface RequestBody {
   user_id: string
   question_id: string
+  course_id?: string | number
 }
 
 Deno.serve(async (req) => {
@@ -19,7 +20,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { user_id, question_id }: RequestBody = await req.json()
+    const { user_id, question_id, course_id }: RequestBody = await req.json()
 
     // Validate required parameters
     if (!user_id || !question_id) {
@@ -41,7 +42,7 @@ console.log(`Starting attempt for user ${user_id}, question ${question_id}`)
 
     // First, get question details by calling the get-question-details function
     const { data: questionDetailsResponse, error: questionDetailsError } = await supabaseClient.functions.invoke('get-question-details', {
-      body: { question_id, origin: clientOrigin }
+      body: { question_id, origin: clientOrigin, course_id }
     })
 
     if (questionDetailsError || !questionDetailsResponse.success) {

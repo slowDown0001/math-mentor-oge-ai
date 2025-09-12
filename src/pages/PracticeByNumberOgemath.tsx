@@ -117,7 +117,7 @@ const PracticeByNumberOgemath = () => {
 
       try {
         const { data: detailsResp, error: detailsErr } = await supabase.functions.invoke('get-question-details', {
-          body: { question_id: questionId }
+          body: { question_id: questionId, course_id: '1' }
         });
         if (detailsErr) {
           console.warn('get-question-details error (will fallback):', detailsErr);

@@ -49,7 +49,8 @@ console.log(`Handling submission for user ${submissionData.user_id}, question ${
     const { data: questionDetails, error: questionDetailsError } = await supabaseClient.functions.invoke('get-question-details', {
       body: {
         question_id: submissionData.question_id,
-        origin: clientOrigin
+        origin: clientOrigin,
+        course_id: submissionData.course_id
       }
     })
 
