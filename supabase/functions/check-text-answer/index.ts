@@ -37,9 +37,19 @@ Deno.serve(async (req) => {
 
     console.log(`Checking answer for question ${question_id}, user ${user_id}`)
 
-    // Step 1: Query oge_math_fipi_bank for answer and problem_text
+    // Determine which table to query based on question_id format
+    let tableName = 'oge_math_fipi_bank' // default
+    if (question_id.startsWith('EGEBASIC_')) {
+      tableName = 'egemathbase'
+    } else if (question_id.startsWith('EGEPROF_')) {
+      tableName = 'egemathprof'
+    }
+
+    console.log(`Querying table: ${tableName}`)
+
+    // Step 1: Query the appropriate table for answer and problem_text
     const { data: questionData, error: questionError } = await supabaseClient
-      .from('oge_math_fipi_bank')
+      .from(tableName)
       .select('answer, problem_text')
       .eq('question_id', question_id)
       .maybeSingle()
