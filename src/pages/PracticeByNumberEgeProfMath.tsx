@@ -100,21 +100,38 @@ const PracticeByNumberEgeProfMath = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase.functions.invoke('start-attempt', {
-        body: {
-          user_id: user.id,
-          question_id: questionId
-        }
+      // Get question details first to populate skills and topics
+      const { data: questionDetails, error: detailsError } = await supabase.functions.invoke('get-question-details', {
+        body: { question_id: questionId }
       });
+
+      if (detailsError) {
+        console.error('Error getting question details:', detailsError);
+      }
+
+      // Insert new activity record directly
+      const { data, error } = await supabase
+        .from('student_activity')
+        .insert({
+          user_id: user.id,
+          question_id: questionId,
+          answer_time_start: new Date().toISOString(),
+          finished_or_not: true,
+          problem_number_type: parseInt(selectedNumber) || 0,
+          skills: questionDetails?.data?.skills || [],
+          topics: questionDetails?.data?.topics || []
+        })
+        .select('attempt_id')
+        .single();
 
       if (error) {
         console.error('Error starting attempt:', error);
         return;
       }
 
-      setCurrentAttemptId(data?.data?.attempt_id);
+      setCurrentAttemptId(data?.attempt_id);
       setAttemptStartTime(new Date());
-      console.log('Started attempt:', data?.data?.attempt_id);
+      console.log('Started attempt:', data?.attempt_id);
     } catch (error) {
       console.error('Error starting attempt:', error);
     }
@@ -132,27 +149,50 @@ const PracticeByNumberEgeProfMath = () => {
     }
 
     try {
-      // Call check-text-answer function
-      const { data, error } = await supabase.functions.invoke('check-text-answer', {
-        body: {
-          user_id: user.id,
-          question_id: currentQuestion.question_id,
-          submitted_answer: userAnswer.trim()
-        }
-      });
+      // Determine if the answer is correct
+      const normalizedUserAnswer = userAnswer.trim().toLowerCase().replace(/\s+/g, '');
+      const normalizedCorrectAnswer = currentQuestion.answer.trim().toLowerCase().replace(/\s+/g, '');
+      const isCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
 
-      if (error) {
-        console.error('Error checking answer:', error);
-        toast.error('Ошибка при проверке ответа');
-        return;
-      }
-
-      const isCorrect = data?.is_correct || false;
       setIsCorrect(isCorrect);
       setIsAnswered(true);
 
-      // Get latest student_activity data and submit to handle_submission
-      await submitToHandleSubmission();
+      // Update the current attempt with answer correctness and duration
+      if (currentAttemptId && attemptStartTime) {
+        const duration = (new Date().getTime() - attemptStartTime.getTime()) / 1000;
+        
+        const { error: updateError } = await supabase
+          .from('student_activity')
+          .update({
+            is_correct: isCorrect,
+            duration_answer: duration
+          })
+          .eq('attempt_id', currentAttemptId);
+
+        if (updateError) {
+          console.error('Error updating attempt:', updateError);
+        }
+
+        // Call handle-submission with course_id=3
+        const submissionData = {
+          user_id: user.id,
+          question_id: currentQuestion.question_id,
+          attempt_id: currentAttemptId,
+          finished_or_not: true,
+          duration: duration,
+          course_id: '3' // EGE Prof Math course
+        };
+
+        const { data: submissionResult, error: submissionError } = await supabase.functions.invoke('handle-submission', {
+          body: submissionData
+        });
+
+        if (submissionError) {
+          console.error('Error in handle-submission:', submissionError);
+        } else {
+          console.log('Handle submission completed:', submissionResult);
+        }
+      }
 
       // Award streak points immediately (regardless of correctness)
       const reward = calculateStreakReward(currentQuestion.difficulty);
@@ -180,104 +220,45 @@ const PracticeByNumberEgeProfMath = () => {
     }
   };
 
-  // Get latest student_activity data and submit to handle_submission
-  const submitToHandleSubmission = async () => {
-    if (!user) return;
-
-    try {
-      // Get latest student_activity row for current user
-      const { data: activityData, error: activityError } = await supabase
-        .from('student_activity')
-        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (activityError || !activityData) {
-        console.error('Error getting latest activity:', activityError);
-        return;
-      }
-
-      // Create submission_data dictionary
-      const submissionData = {
-        user_id: user.id,
-        question_id: activityData.question_id,
-        attempt_id: activityData.attempt_id,
-        finished_or_not: activityData.finished_or_not,
-        duration: activityData.duration_answer,
-        scores_fipi: activityData.scores_fipi
-      };
-
-      // Call handle_submission function
-      const { data, error } = await supabase.functions.invoke('handle-submission', {
-        body: submissionData
-      });
-
-      if (error) {
-        console.error('Error in handle-submission:', error);
-        toast.error('Ошибка при обработке ответа');
-        return;
-      }
-
-      console.log('Handle submission completed:', data);
-    } catch (error) {
-      console.error('Error in submitToHandleSubmission:', error);
-    }
-  };
 
   // Handle skipping a question
   const skipQuestion = async () => {
     if (!currentQuestion) return;
 
-    // If user is authenticated, get latest activity data and calculate duration
-    if (user) {
+    // If user is authenticated, update current attempt and submit
+    if (user && currentAttemptId && attemptStartTime) {
       try {
-        // Get latest student_activity row for current user
-        const { data: activityData, error: activityError } = await supabase
+        // Calculate duration
+        const duration = (new Date().getTime() - attemptStartTime.getTime()) / 1000;
+
+        // Update the current attempt
+        const { error: updateError } = await supabase
           .from('student_activity')
-          .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi, answer_time_start')
-          .eq('user_id', user.id)
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .single();
+          .update({ 
+            duration_answer: duration,
+            is_correct: false // skipped questions are marked as incorrect
+          })
+          .eq('attempt_id', currentAttemptId);
 
-        if (activityError || !activityData) {
-          console.error('Error getting latest activity for skip:', activityError);
+        if (updateError) {
+          console.error('Error updating attempt for skip:', updateError);
         } else {
-          // Calculate duration between now and answer_time_start
-          const now = new Date();
-          const startTime = new Date(activityData.answer_time_start);
-          const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
-
-          // Update the duration_answer column for this row
-          const { error: updateError } = await supabase
-            .from('student_activity')
-            .update({ duration_answer: durationInSeconds })
-            .eq('user_id', user.id)
-            .eq('attempt_id', activityData.attempt_id);
-
-          if (updateError) {
-            console.error('Error updating duration for skip:', updateError);
-          }
-
-          // Create submission_data dictionary for skip
+          // Call handle-submission with course_id=3
           const submissionData = {
             user_id: user.id,
-            question_id: activityData.question_id,
-            attempt_id: activityData.attempt_id,
-            finished_or_not: activityData.finished_or_not,
-            duration: durationInSeconds,
-            scores_fipi: activityData.scores_fipi
+            question_id: currentQuestion.question_id,
+            attempt_id: currentAttemptId,
+            finished_or_not: true,
+            duration: duration,
+            course_id: '3' // EGE Prof Math course
           };
 
-          // Call handle_submission function
           const { data, error } = await supabase.functions.invoke('handle-submission', {
             body: submissionData
           });
 
           if (error) {
-            console.error('Error skipping question:', error);
+            console.error('Error in handle-submission for skip:', error);
           } else {
             console.log('Question skipped successfully:', data);
           }
@@ -389,26 +370,70 @@ const PracticeByNumberEgeProfMath = () => {
                   <MathRenderer text={currentQuestion.problem_text || "Текст задачи не найден"} compiler="mathjax" />
                 </div>
 
-                {/* Answer Input */}
+                  {/* Answer Input */}
                 <div className="space-y-4">
-                  <div className="flex gap-2">
-                    <Input
-                      value={userAnswer}
-                      onChange={(e) => setUserAnswer(e.target.value)}
-                      placeholder="Введите ваш ответ"
-                      disabled={isAnswered}
-                      onKeyPress={(e) => e.key === 'Enter' && !isAnswered && checkAnswer()}
-                      className="flex-1"
-                    />
-                    <Button
-                      onClick={checkAnswer}
-                      disabled={isAnswered || !userAnswer.trim()}
-                      className="min-w-32"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Проверить
-                    </Button>
-                  </div>
+                  {/* Show photo upload button for problems 13 and higher */}
+                  {parseInt(selectedNumber) >= 13 ? (
+                    <div className="space-y-4">
+                      <div className="flex gap-2">
+                        <Input
+                          value={userAnswer}
+                          onChange={(e) => setUserAnswer(e.target.value)}
+                          placeholder="Введите ваш ответ (или прикрепите фото)"
+                          disabled={isAnswered}
+                          onKeyPress={(e) => e.key === 'Enter' && !isAnswered && checkAnswer()}
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={checkAnswer}
+                          disabled={isAnswered || !userAnswer.trim()}
+                          className="min-w-32"
+                        >
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Проверить
+                        </Button>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = async (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file && user && currentQuestion) {
+                              // TODO: Implement photo processing
+                              toast.info('Обработка фото пока не реализована');
+                            }
+                          };
+                          input.click();
+                        }}
+                        className="w-full"
+                        disabled={isAnswered}
+                      >
+                        📷 Прикрепить Фото
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        value={userAnswer}
+                        onChange={(e) => setUserAnswer(e.target.value)}
+                        placeholder="Введите ваш ответ"
+                        disabled={isAnswered}
+                        onKeyPress={(e) => e.key === 'Enter' && !isAnswered && checkAnswer()}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={checkAnswer}
+                        disabled={isAnswered || !userAnswer.trim()}
+                        className="min-w-32"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Проверить
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Auth Required Message */}
                   {showAuthRequiredMessage && (
