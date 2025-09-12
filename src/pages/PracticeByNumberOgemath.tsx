@@ -110,7 +110,29 @@ const PracticeByNumberOgemath = () => {
     if (!user) return;
     
     try {
-      // Insert directly into student_activity table
+      // Fetch question details to populate skills and topics
+      let skillsArray: number[] = [];
+      let topicsArray: string[] = [];
+      let problemNumberType = parseInt(selectedNumber || '1');
+
+      try {
+        const { data: detailsResp, error: detailsErr } = await supabase.functions.invoke('get-question-details', {
+          body: { question_id: questionId }
+        });
+        if (detailsErr) {
+          console.warn('get-question-details error (will fallback):', detailsErr);
+        } else if (detailsResp?.data) {
+          skillsArray = Array.isArray(detailsResp.data.skills) ? detailsResp.data.skills : [];
+          topicsArray = Array.isArray(detailsResp.data.topics) ? detailsResp.data.topics : [];
+          if (detailsResp.data.problem_number_type) {
+            problemNumberType = parseInt(detailsResp.data.problem_number_type.toString(), 10);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to fetch question details, proceeding without skills/topics:', e);
+      }
+
+      // Insert into student_activity table with skills and topics
       const { data, error } = await supabase
         .from('student_activity')
         .insert({
@@ -118,12 +140,12 @@ const PracticeByNumberOgemath = () => {
           question_id: questionId,
           answer_time_start: new Date().toISOString(),
           finished_or_not: false,
-          problem_number_type: parseInt(selectedNumber || '1'),
+          problem_number_type: problemNumberType,
           is_correct: null,
           duration_answer: null,
           scores_fipi: null,
-          skills: null,
-          topics: null
+          skills: skillsArray.length ? skillsArray : null,
+          topics: topicsArray.length ? topicsArray : null
         })
         .select('attempt_id')
         .single();
