@@ -57,6 +57,7 @@ const PracticeByNumberOgemath = () => {
   const [showUploadPrompt, setShowUploadPrompt] = useState(false);
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [photoFeedback, setPhotoFeedback] = useState<string>("");
+  const [photoScores, setPhotoScores] = useState<number | null>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -470,9 +471,41 @@ const PracticeByNumberOgemath = () => {
       }
 
       if (apiResponse?.feedback) {
-        setPhotoFeedback(apiResponse.feedback);
-        setShowUploadPrompt(false);
-        setShowPhotoDialog(true);
+        try {
+          // Parse JSON response
+          const feedbackData = JSON.parse(apiResponse.feedback);
+          if (feedbackData.review && typeof feedbackData.scores === 'number') {
+            setPhotoFeedback(feedbackData.review);
+            setPhotoScores(feedbackData.scores);
+            
+            // Update student_activity with scores_fipi
+            if (user) {
+              const { error: updateError } = await supabase
+                .from('student_activity')
+                .update({ scores_fipi: feedbackData.scores })
+                .eq('user_id', user.id)
+                .eq('question_id', currentQuestion.question_id)
+                .order('updated_at', { ascending: false })
+                .limit(1);
+              
+              if (updateError) {
+                console.error('Error updating scores_fipi:', updateError);
+              }
+            }
+            
+            setShowUploadPrompt(false);
+            setShowPhotoDialog(true);
+          } else {
+            toast.error('Неверный формат ответа API');
+          }
+        } catch (parseError) {
+          console.error('Error parsing API response:', parseError);
+          // Fallback to treating as plain text
+          setPhotoFeedback(apiResponse.feedback);
+          setPhotoScores(null);
+          setShowUploadPrompt(false);
+          setShowPhotoDialog(true);
+        }
       } else {
         toast.error('Не удалось получить обратную связь');
       }
@@ -487,6 +520,7 @@ const PracticeByNumberOgemath = () => {
   const closePhotoDialog = () => {
     setShowPhotoDialog(false);
     setPhotoFeedback("");
+    setPhotoScores(null);
   };
 
   const questionNumbers = Array.from({ length: 25 }, (_, i) => (i + 1).toString());
@@ -759,6 +793,13 @@ const PracticeByNumberOgemath = () => {
           <div className="py-4">
             <div className="prose max-w-none">
               <MathRenderer text={photoFeedback} compiler="mathjax" />
+              {photoScores !== null && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border">
+                  <p className="text-lg font-semibold text-blue-800">
+                    Баллы: {photoScores} из 2
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>
