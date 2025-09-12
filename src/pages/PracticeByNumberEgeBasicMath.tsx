@@ -100,21 +100,34 @@ const PracticeByNumberEgeBasicMath = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase.functions.invoke('start-attempt', {
-        body: {
-          user_id: user.id,
-          question_id: questionId
-        }
+      // Get question details first
+      const questionDetails = await supabase.functions.invoke('get-question-details', {
+        body: { question_id: questionId }
       });
+
+      // Insert into student_activity table directly
+      const { data, error } = await supabase
+        .from('student_activity')
+        .insert({
+          user_id: user.id,
+          question_id: questionId,
+          answer_time_start: new Date().toISOString(),
+          finished_or_not: false,
+          problem_number_type: parseInt(selectedNumber) || 0,
+          skills: questionDetails?.data?.skills || [],
+          topics: questionDetails?.data?.topics || []
+        })
+        .select('attempt_id')
+        .single();
 
       if (error) {
         console.error('Error starting attempt:', error);
         return;
       }
 
-      setCurrentAttemptId(data?.data?.attempt_id);
+      setCurrentAttemptId(data?.attempt_id);
       setAttemptStartTime(new Date());
-      console.log('Started attempt:', data?.data?.attempt_id);
+      console.log('Started attempt:', data?.attempt_id);
     } catch (error) {
       console.error('Error starting attempt:', error);
     }
@@ -132,6 +145,11 @@ const PracticeByNumberEgeBasicMath = () => {
     }
 
     try {
+      // Calculate duration
+      const endTime = new Date();
+      const startTime = attemptStartTime || endTime;
+      const durationInSeconds = (endTime.getTime() - startTime.getTime()) / 1000;
+
       // Call check-text-answer function
       const { data, error } = await supabase.functions.invoke('check-text-answer', {
         body: {
@@ -151,8 +169,32 @@ const PracticeByNumberEgeBasicMath = () => {
       setIsCorrect(isCorrect);
       setIsAnswered(true);
 
-      // Get latest student_activity data and submit to handle_submission
-      await submitToHandleSubmission();
+      // Update student_activity with completion data
+      if (currentAttemptId) {
+        await supabase
+          .from('student_activity')
+          .update({
+            finished_or_not: true,
+            is_correct: isCorrect,
+            duration_answer: durationInSeconds
+          })
+          .eq('attempt_id', currentAttemptId);
+      }
+
+      // Call handle-submission with course_id=2
+      const submissionData = {
+        user_id: user.id,
+        question_id: currentQuestion.question_id,
+        attempt_id: currentAttemptId,
+        finished_or_not: true,
+        duration: durationInSeconds,
+        scores_fipi: null,
+        course_id: 2
+      };
+
+      await supabase.functions.invoke('handle-submission', {
+        body: submissionData
+      });
 
       // Award streak points immediately (regardless of correctness)
       const reward = calculateStreakReward(currentQuestion.difficulty);
@@ -180,107 +222,48 @@ const PracticeByNumberEgeBasicMath = () => {
     }
   };
 
-  // Get latest student_activity data and submit to handle_submission
-  const submitToHandleSubmission = async () => {
-    if (!user) return;
-
-    try {
-      // Get latest student_activity row for current user
-      const { data: activityData, error: activityError } = await supabase
-        .from('student_activity')
-        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (activityError || !activityData) {
-        console.error('Error getting latest activity:', activityError);
-        return;
-      }
-
-      // Create submission_data dictionary
-      const submissionData = {
-        user_id: user.id,
-        question_id: activityData.question_id,
-        attempt_id: activityData.attempt_id,
-        finished_or_not: activityData.finished_or_not,
-        duration: activityData.duration_answer,
-        scores_fipi: activityData.scores_fipi
-      };
-
-      // Call handle_submission function
-      const { data, error } = await supabase.functions.invoke('handle-submission', {
-        body: submissionData
-      });
-
-      if (error) {
-        console.error('Error in handle-submission:', error);
-        toast.error('Ошибка при обработке ответа');
-        return;
-      }
-
-      console.log('Handle submission completed:', data);
-    } catch (error) {
-      console.error('Error in submitToHandleSubmission:', error);
-    }
-  };
 
   // Handle skipping a question
   const skipQuestion = async () => {
     if (!currentQuestion) return;
 
-    // If user is authenticated, get latest activity data and calculate duration
-    if (user) {
+    // If user is authenticated, update current attempt and handle submission
+    if (user && currentAttemptId) {
       try {
-        // Get latest student_activity row for current user
-        const { data: activityData, error: activityError } = await supabase
+        // Calculate duration between now and attempt start
+        const endTime = new Date();
+        const startTime = attemptStartTime || endTime;
+        const durationInSeconds = (endTime.getTime() - startTime.getTime()) / 1000;
+
+        // Update student_activity with skip data
+        await supabase
           .from('student_activity')
-          .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi, answer_time_start')
-          .eq('user_id', user.id)
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .single();
+          .update({
+            finished_or_not: true,
+            is_correct: false,
+            duration_answer: durationInSeconds
+          })
+          .eq('attempt_id', currentAttemptId);
 
-        if (activityError || !activityData) {
-          console.error('Error getting latest activity for skip:', activityError);
+        // Call handle-submission with course_id=2
+        const submissionData = {
+          user_id: user.id,
+          question_id: currentQuestion.question_id,
+          attempt_id: currentAttemptId,
+          finished_or_not: true,
+          duration: durationInSeconds,
+          scores_fipi: null,
+          course_id: 2
+        };
+
+        const { data, error } = await supabase.functions.invoke('handle-submission', {
+          body: submissionData
+        });
+
+        if (error) {
+          console.error('Error skipping question:', error);
         } else {
-          // Calculate duration between now and answer_time_start
-          const now = new Date();
-          const startTime = new Date(activityData.answer_time_start);
-          const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
-
-          // Update the duration_answer column for this row
-          const { error: updateError } = await supabase
-            .from('student_activity')
-            .update({ duration_answer: durationInSeconds })
-            .eq('user_id', user.id)
-            .eq('attempt_id', activityData.attempt_id);
-
-          if (updateError) {
-            console.error('Error updating duration for skip:', updateError);
-          }
-
-          // Create submission_data dictionary for skip
-          const submissionData = {
-            user_id: user.id,
-            question_id: activityData.question_id,
-            attempt_id: activityData.attempt_id,
-            finished_or_not: activityData.finished_or_not,
-            duration: durationInSeconds,
-            scores_fipi: activityData.scores_fipi
-          };
-
-          // Call handle_submission function
-          const { data, error } = await supabase.functions.invoke('handle-submission', {
-            body: submissionData
-          });
-
-          if (error) {
-            console.error('Error skipping question:', error);
-          } else {
-            console.log('Question skipped successfully:', data);
-          }
+          console.log('Question skipped successfully:', data);
         }
       } catch (error) {
         console.error('Error skipping question:', error);
