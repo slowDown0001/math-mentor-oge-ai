@@ -97,41 +97,28 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Topic-skill mapping to derive topics from skills (using string topic IDs)
-    const topicSkillMapping = [
-      { topic: "1.1", skills: [1, 2, 3, 4, 5] },
-      { topic: "1.2", skills: [6, 7, 8, 9, 10, 195] },
-      { topic: "1.3", skills: [11, 12, 13, 14, 15, 16, 17, 180] },
-      { topic: "1.4", skills: [18, 19, 20, 197] },
-      { topic: "1.5", skills: [21, 22, 23] },
-      { topic: "2.1", skills: [35, 36, 37, 38] },
-      { topic: "2.2", skills: [39, 40, 41, 42, 43, 44] },
-      { topic: "2.3", skills: [45, 46, 47, 48, 49, 179] },
-      { topic: "2.4", skills: [50, 51, 52, 53] },
-      { topic: "2.5", skills: [54, 55, 56, 57] },
-      { topic: "3.1", skills: [58, 59, 60, 61, 62, 188, 190, 191] },
-      { topic: "3.2", skills: [63, 64, 65, 66, 67, 68] },
-      { topic: "3.3", skills: [69, 70, 71, 72, 73, 74, 75, 184, 185] },
-      { topic: "4.1", skills: [76, 77, 78, 79] },
-      { topic: "4.2", skills: [80, 81, 82, 83, 84, 85, 86, 87, 88] },
-      { topic: "5.1", skills: [89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 186, 187] },
-      { topic: "6.1", skills: [103, 104, 105, 106, 107, 108, 109] },
-      { topic: "6.2", skills: [110, 111] },
-      { topic: "7.1", skills: [112, 113, 114, 115, 116] },
-      { topic: "7.2", skills: [117, 118, 119, 120, 121, 122, 123, 124] },
-      { topic: "7.3", skills: [125, 126, 127, 128, 129, 130, 131, 132, 133, 134] },
-      { topic: "7.4", skills: [135, 136, 137, 138] },
-      { topic: "7.5", skills: [139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153] },
-      { topic: "7.6", skills: [154, 155, 156, 157, 196] },
-      { topic: "7.7", skills: [158, 159, 160, 161] },
-      { topic: "8.1", skills: [162, 163, 164, 165] },
-      { topic: "8.2", skills: [166, 167, 168] },
-      { topic: "8.3", skills: [169, 170, 171, 172] },
-      { topic: "8.4", skills: [173, 174] },
-      { topic: "8.5", skills: [175, 176, 177, 178] },
-      { topic: "9.1", skills: [24, 25, 181, 182, 183, 192, 198, 199, 200] },
-      { topic: "9.2", skills: [26, 27, 28, 29, 30, 31, 32, 33, 34] }
-    ]
+    // Function to fetch topic-skill mapping from external file
+    async function getTopicSkillMapping(): Promise<Array<{topic: string, skills: number[]}>> {
+      try {
+        const response = await fetch('https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/ogemath_topic_skills_json.txt');
+        if (!response.ok) {
+          console.warn('Failed to fetch topic-skill mapping, using fallback');
+          return [];
+        }
+        const mapping = await response.json();
+        // Convert object format to array format
+        return Object.entries(mapping).map(([topic, skills]) => ({
+          topic,
+          skills: skills as number[]
+        }));
+      } catch (error) {
+        console.error('Error fetching topic-skill mapping:', error);
+        return [];
+      }
+    }
+
+    // Get topic-skill mapping from external file
+    const topicSkillMapping = await getTopicSkillMapping();
 
     // Derive topics from skills
     const topicsArray: string[] = []
