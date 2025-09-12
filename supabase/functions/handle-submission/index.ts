@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     // Step 2: Get the is_correct value from student_activity table
     const { data: activityData, error: activityError } = await supabaseClient
       .from('student_activity')
-      .select('is_correct')
+      .select('is_correct, attempt_id')
       .eq('user_id', submissionData.user_id)
       .eq('question_id', submissionData.question_id)
       .order('updated_at', { ascending: false })
@@ -86,10 +86,28 @@ Deno.serve(async (req) => {
         }
       )
     }
-
+    
+    // Step 2.5: Update skills/topics on latest student_activity row if available
+    const attemptId = activityData?.attempt_id
+    const skillsArr = Array.isArray(questionDetails.data?.skills) ? questionDetails.data.skills : []
+    const topicsArr = Array.isArray(questionDetails.data?.topics) ? questionDetails.data.topics : []
+    if (attemptId && (skillsArr.length > 0 || topicsArr.length > 0)) {
+      const updatePayload: Record<string, any> = {}
+      if (skillsArr.length > 0) updatePayload.skills = skillsArr
+      if (topicsArr.length > 0) updatePayload.topics = topicsArr
+      const { error: updateActivityError } = await supabaseClient
+        .from('student_activity')
+        .update(updatePayload)
+        .eq('attempt_id', attemptId)
+      if (updateActivityError) {
+        console.warn('Failed to update skills/topics for activity:', updateActivityError)
+      } else {
+        console.log('Updated skills/topics for attempt_id', attemptId)
+      }
+    }
+    
     // Step 3: Construct attempt data for process-attempt
     let problemNumberType = questionDetails.data?.problem_number_type;
-    
     // If problem_number_type is null/undefined, try to extract from question_id
     if (problemNumberType === null || problemNumberType === undefined) {
       const questionIdParts = submissionData.question_id.split('_');
