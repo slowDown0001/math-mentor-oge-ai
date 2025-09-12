@@ -116,7 +116,7 @@ const PracticeByNumberEgeProfMath = () => {
           user_id: user.id,
           question_id: questionId,
           answer_time_start: new Date().toISOString(),
-          finished_or_not: true,
+          finished_or_not: false,
           problem_number_type: parseInt(selectedNumber) || 0,
           skills: questionDetails?.data?.skills || [],
           topics: questionDetails?.data?.topics || []
