@@ -6,12 +6,12 @@ const corsHeaders = {
 };
 
 // Function to fetch topic-skill mapping from external file
-async function getTopicSkillMapping(courseType: string = 'ogemath', origin?: string): Promise<Record<string, number[]>> {
+async function getTopicSkillMapping(courseId: string = '1', origin?: string): Promise<Record<string, number[]>> {
   try {
-    let fileName = 'ogemath_topic_skills_json.txt'; // default
-    if (courseType === 'egebasic') {
+    let fileName = 'ogemath_topic_skills_json.txt'; // default for course_id '1'
+    if (courseId === '2') {
       fileName = 'egemathbase_topic_skills_json.txt';
-    } else if (courseType === 'egeprof') {
+    } else if (courseId === '3') {
       fileName = 'egemathprof_topic_skills_json.txt';
     }
 
@@ -53,10 +53,14 @@ serve(async (req) => {
       throw new Error('Method not allowed');
     }
 
-    const { topic_code, course_type, origin: originOverride } = await req.json();
+    const { topic_code, course_id, origin: originOverride } = await req.json();
 
     if (!topic_code) {
       throw new Error('topic_code parameter is required');
+    }
+
+    if (!course_id) {
+      throw new Error('course_id parameter is required');
     }
 
     // Derive origin for fallback fetching of public assets
@@ -65,10 +69,10 @@ serve(async (req) => {
       originHeader = originOverride;
     }
 
-    console.log(`Looking up skills for topic_code: ${topic_code}, course_type: ${course_type}, origin: ${originHeader}`);
+    console.log(`Looking up skills for topic_code: ${topic_code}, course_id: ${course_id}, origin: ${originHeader}`);
 
     // Fetch topic-skill mapping from external file
-    const topicSkillMapping = await getTopicSkillMapping(course_type, originHeader);
+    const topicSkillMapping = await getTopicSkillMapping(course_id, originHeader);
     
     // Get skill IDs for the topic code, return empty array if not found
     const skillIds = topicSkillMapping[topic_code] || [];
