@@ -6,6 +6,7 @@ interface RequestBody {
   entity_type: 'skill' | 'problem_number_type'
   entity_id: number
   new_s: number
+  course_id?: string
 }
 
 Deno.serve(async (req) => {
@@ -21,7 +22,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { user_id, entity_type, entity_id, new_s }: RequestBody = await req.json()
+    const { user_id, entity_type, entity_id, new_s, course_id }: RequestBody = await req.json()
 
     // Validate required parameters
     if (!user_id || !entity_type || entity_id === undefined || new_s === undefined) {
@@ -59,9 +60,10 @@ Deno.serve(async (req) => {
         entity_type,
         entity_id,
         cusum_s: new_s,
+        course_id: course_id || 'default',
         updated_at: new Date().toISOString()
       }, {
-        onConflict: 'user_id,entity_type,entity_id'
+        onConflict: 'user_id,entity_type,entity_id,course_id'
       })
 
     if (error) {
