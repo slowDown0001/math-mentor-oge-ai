@@ -5,7 +5,7 @@ interface RequestBody {
   user_id: string
   question_id: string
   finished_or_not: boolean
-  is_correct?: boolean
+  is_correct: boolean
   difficulty: number
   skills_list: number[]
   topics_list: number[]
@@ -14,6 +14,7 @@ interface RequestBody {
   scores_fipi?: number
   scaling_type: string
   attempt_id?: number
+  course_id?: string
 }
 
 Deno.serve(async (req) => {
@@ -31,26 +32,26 @@ Deno.serve(async (req) => {
 
     const {
       user_id,
-      question_id,
-      finished_or_not,
-      is_correct,
-      difficulty,
       skills_list,
       topics_list,
       problem_number_type,
+      finished_or_not,
+      is_correct,
+      difficulty,
+      scaling_type,
       duration = 0,
       scores_fipi,
-      scaling_type,
-      attempt_id
+      attempt_id,
+      course_id = 'default'
     }: RequestBody = await req.json()
 
     // Validate required parameters
-    if (!user_id || !question_id || finished_or_not === undefined || 
-        difficulty === undefined || !skills_list || !topics_list || 
-        problem_number_type === undefined || !scaling_type) {
+    if (!user_id || !skills_list || !topics_list || 
+        finished_or_not === undefined || is_correct === undefined || 
+        !difficulty || !scaling_type) {
       return new Response(
         JSON.stringify({ 
-          error: 'Missing required parameters: user_id, question_id, finished_or_not, difficulty, skills_list, topics_list, problem_number_type, scaling_type' 
+          error: 'Missing required parameters' 
         }),
         { 
           status: 400, 
@@ -59,404 +60,427 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`Processing attempt for user ${user_id}, question ${question_id}`)
+    console.log(`Processing attempt for user ${user_id} with ${skills_list.length} skills and ${topics_list.length} topics`)
 
-    const results: any = {
-      skills_processed: [],
-      problem_type_processed: false,
-      topics_processed: [],
-      errors: []
-    }
+    const errors: string[] = []
 
     // Step 1: Update skills
     for (const skill_id of skills_list) {
       try {
-        console.log(`Processing skill ${skill_id}`)
-
         // Update alpha/beta for the skill
-        const skillUpdateResponse = await supabaseClient.functions.invoke('update-skill-for-attempt', {
+        const { error: updateSkillError } = await supabaseClient.functions.invoke('update-skill-for-attempt', {
           body: {
             user_id,
-            skills_list: [skill_id],
+            skills: [skill_id],
             finished_or_not,
             is_correct,
             difficulty,
-            scaling_type
+            scaling_type,
+            course_id
           }
         })
 
-        if (skillUpdateResponse.error) {
-          console.error(`Error updating skill ${skill_id}:`, skillUpdateResponse.error)
-          results.errors.push(`Skill ${skill_id} update failed: ${skillUpdateResponse.error.message}`)
+        if (updateSkillError) {
+          console.error(`Error updating skill ${skill_id}:`, updateSkillError)
+          errors.push(`Failed to update skill ${skill_id}: ${updateSkillError.message}`)
           continue
         }
 
         // Apply CUSUM for skill
         const x_n = (finished_or_not && is_correct) || (finished_or_not && scores_fipi !== null && scores_fipi !== undefined && scores_fipi >= 1) ? 1 : 0
         
-        // Get current cusum_s
-        const getCurrentSResponse = await supabaseClient.functions.invoke('get-cusum-s', {
+        const { data: cusumData, error: cusumError } = await supabaseClient.functions.invoke('apply-cusum', {
           body: {
             user_id,
             entity_type: 'skill',
-            entity_id: skill_id
-          }
-        })
-
-        let current_s = null
-        if (!getCurrentSResponse.error && getCurrentSResponse.data?.success) {
-          current_s = getCurrentSResponse.data.data.cusum_s
-        }
-
-        // Apply CUSUM algorithm
-        const cusumResponse = await supabaseClient.functions.invoke('apply-cusum', {
-          body: {
-            current_s,
+            entity_id: skill_id,
             x_n,
-            k: 0.5,
-            h: 3.0
+            course_id
           }
         })
 
-        if (cusumResponse.error) {
-          console.error(`Error applying CUSUM for skill ${skill_id}:`, cusumResponse.error)
-          results.errors.push(`Skill ${skill_id} CUSUM failed: ${cusumResponse.error.message}`)
-        } else {
-          const { new_s, adjustment } = cusumResponse.data?.data || { new_s: 0, adjustment: 0 }
-          
-          // Update cusum_s
-          const updateCusumResponse = await supabaseClient.functions.invoke('update-cusum-s', {
-            body: {
-              user_id,
-              entity_type: 'skill',
-              entity_id: skill_id,
-              new_s
-            }
-          })
-
-          if (updateCusumResponse.error) {
-            console.error(`Error updating cusum_s for skill ${skill_id}:`, updateCusumResponse.error)
-            results.errors.push(`Skill ${skill_id} cusum_s update failed: ${updateCusumResponse.error.message}`)
-          }
-
-          // Apply adjustment if needed
-          if (adjustment !== 0) {
-            const adjustmentResponse = await supabaseClient.functions.invoke('apply-cusum-adjustment', {
-              body: {
-                user_id,
-                entity_type: 'skill',
-                entity_id: skill_id,
-                adjustment
-              }
-            })
-
-            if (adjustmentResponse.error) {
-              console.error(`Error applying CUSUM adjustment for skill ${skill_id}:`, adjustmentResponse.error)
-              results.errors.push(`Skill ${skill_id} CUSUM adjustment failed: ${adjustmentResponse.error.message}`)
-            }
-          }
+        if (cusumError) {
+          console.error(`Error applying CUSUM for skill ${skill_id}:`, cusumError)
+          errors.push(`Failed to apply CUSUM for skill ${skill_id}: ${cusumError.message}`)
         }
 
         // Apply SPRT for skill
-        const masteryCheckResponse = await supabaseClient.functions.invoke('check-mastery-status', {
+        const { data: sprtData, error: sprtError } = await supabaseClient.functions.invoke('check-mastery-status', {
           body: {
             user_id,
             entity_type: 'skill',
             entity_id: skill_id,
             A: 0.05,
-            B: 20
+            B: 20,
+            course_id
           }
         })
 
-        if (masteryCheckResponse.error) {
-          console.error(`Error checking mastery for skill ${skill_id}:`, masteryCheckResponse.error)
-          results.errors.push(`Skill ${skill_id} mastery check failed: ${masteryCheckResponse.error.message}`)
-        } else {
-          // Update mastery status
-          const status = masteryCheckResponse.data?.data?.status || 'continue'
-          const updateStatusResponse = await supabaseClient.functions.invoke('update-mastery-status', {
+        if (sprtError) {
+          console.error(`Error checking mastery status for skill ${skill_id}:`, sprtError)
+          errors.push(`Failed to check mastery status for skill ${skill_id}: ${sprtError.message}`)
+        } else if (sprtData?.success && sprtData?.data?.status) {
+          const { error: updateStatusError } = await supabaseClient.functions.invoke('update-mastery-status', {
             body: {
               user_id,
               entity_type: 'skill',
               entity_id: skill_id,
-              status
+              status: sprtData.data.status,
+              course_id
             }
           })
 
-          if (updateStatusResponse.error) {
-            console.error(`Error updating mastery status for skill ${skill_id}:`, updateStatusResponse.error)
-            results.errors.push(`Skill ${skill_id} status update failed: ${updateStatusResponse.error.message}`)
+          if (updateStatusError) {
+            console.error(`Error updating mastery status for skill ${skill_id}:`, updateStatusError)
+            errors.push(`Failed to update mastery status for skill ${skill_id}: ${updateStatusError.message}`)
           }
         }
 
-        results.skills_processed.push(skill_id)
       } catch (error) {
-        console.error(`Error processing skill ${skill_id}:`, error)
-        results.errors.push(`Skill ${skill_id} processing failed: ${error.message}`)
+        console.error(`Unexpected error processing skill ${skill_id}:`, error)
+        errors.push(`Unexpected error processing skill ${skill_id}: ${error.message}`)
       }
     }
 
-    // Step 2: Update problem type
+    // Step 2: Update problem type based on course_id
     try {
-      console.log(`Processing problem type ${problem_number_type}`)
-
-      if (problem_number_type >= 20 && scores_fipi !== null && scores_fipi !== undefined) {
-        // Special handling for problem types 20-25 with scores_fipi
-        const difficultyWeightResponse = await supabaseClient.functions.invoke('compute-difficulty-weight', {
-          body: { scaling_type, difficulty }
+      if (course_id === '1' && problem_number_type >= 20 && scores_fipi !== null && scores_fipi !== undefined) {
+        // Special handling for course 1, problem types 20+
+        const { data: weightData, error: weightError } = await supabaseClient.functions.invoke('compute-difficulty-weight', {
+          body: {
+            scaling_type,
+            d: difficulty
+          }
         })
 
-        if (difficultyWeightResponse.error) {
-          console.error('Error computing difficulty weight:', difficultyWeightResponse.error)
-          results.errors.push(`Difficulty weight computation failed: ${difficultyWeightResponse.error.message}`)
+        if (weightError) {
+          console.error('Error computing difficulty weight:', weightError)
+          errors.push(`Failed to compute difficulty weight: ${weightError.message}`)
         } else {
-          const w = difficultyWeightResponse.data?.data?.weight || 1
+          const w = weightData?.data?.weight || 1
 
-          // Adjust for scores
-          const scoresAdjustResponse = await supabaseClient.functions.invoke('adjust-for-scores', {
-            body: { score: scores_fipi, w }
+          const { data: scoresData, error: scoresError } = await supabaseClient.functions.invoke('adjust-for-scores', {
+            body: {
+              score: scores_fipi,
+              w
+            }
           })
 
-          if (scoresAdjustResponse.error) {
-            console.error('Error adjusting for scores:', scoresAdjustResponse.error)
-            results.errors.push(`Scores adjustment failed: ${scoresAdjustResponse.error.message}`)
+          if (scoresError) {
+            console.error('Error adjusting for scores:', scoresError)
+            errors.push(`Failed to adjust for scores: ${scoresError.message}`)
           } else {
-            let { alpha_adjustment, beta_adjustment } = scoresAdjustResponse.data?.data || { alpha_adjustment: 0, beta_adjustment: 0 }
+            let alpha_adj = scoresData?.data?.alpha_adjustment || 0
+            const beta_adj = scoresData?.data?.beta_adjustment || 0
 
-            // Apply duration adjustment if alpha_adjustment is positive
-            if (alpha_adjustment > 0) {
-              const durationAdjustResponse = await supabaseClient.functions.invoke('adjust-for-duration', {
-                body: { 
-                  original_increment: alpha_adjustment, 
-                  duration,
-                  threshold: 500
-                }
-              })
-
-              if (durationAdjustResponse.error) {
-                console.error('Error adjusting for duration:', durationAdjustResponse.error)
-                results.errors.push(`Duration adjustment failed: ${durationAdjustResponse.error.message}`)
-              } else {
-                alpha_adjustment = durationAdjustResponse.data?.data?.adjusted_increment || alpha_adjustment
-              }
-            }
-
-            // Get current alpha/beta
-            const getAlphaBetaResponse = await supabaseClient.functions.invoke('get-alpha-beta', {
+            const { data: alphaBetaData, error: alphaBetaError } = await supabaseClient.functions.invoke('get-alpha-beta', {
               body: {
                 user_id,
                 entity_type: 'problem_number_type',
-                entity_id: problem_number_type
+                entity_id: problem_number_type,
+                course_id
               }
             })
 
-            let alpha = 1, beta = 25
-            if (getAlphaBetaResponse.data?.success && getAlphaBetaResponse.data?.data?.alpha !== null) {
-              alpha = getAlphaBetaResponse.data.data.alpha
-              beta = getAlphaBetaResponse.data.data.beta
+            let alpha = 1
+            let beta = 40
+
+            if (alphaBetaData?.success && alphaBetaData?.data?.alpha !== null) {
+              alpha = alphaBetaData.data.alpha
+              beta = alphaBetaData.data.beta
             }
 
-            // Apply adjustments
-            alpha += alpha_adjustment
-            beta += beta_adjustment
+            // Apply duration adjustment if alpha_adj is positive
+            if (alpha_adj > 0) {
+              const { data: durationData, error: durationError } = await supabaseClient.functions.invoke('adjust-for-duration', {
+                body: {
+                  original_increment: alpha_adj,
+                  duration: duration || 0,
+                  threshold: 60
+                }
+              })
 
-            // Set new alpha/beta
-            const setAlphaBetaResponse = await supabaseClient.functions.invoke('set-alpha-beta', {
+              if (durationError) {
+                console.error('Error adjusting for duration:', durationError)
+                errors.push(`Failed to adjust for duration: ${durationError.message}`)
+              } else {
+                alpha_adj = durationData?.data?.adjusted_increment || alpha_adj
+              }
+            }
+
+            alpha += alpha_adj
+            beta += beta_adj
+
+            const { error: setAlphaBetaError } = await supabaseClient.functions.invoke('set-alpha-beta', {
               body: {
                 user_id,
                 entity_type: 'problem_number_type',
                 entity_id: problem_number_type,
                 alpha,
-                beta
+                beta,
+                course_id
               }
             })
 
-            if (setAlphaBetaResponse.error) {
-              console.error('Error setting alpha/beta:', setAlphaBetaResponse.error)
-              results.errors.push(`Alpha/beta setting failed: ${setAlphaBetaResponse.error.message}`)
+            if (setAlphaBetaError) {
+              console.error('Error setting alpha/beta:', setAlphaBetaError)
+              errors.push(`Failed to set alpha/beta: ${setAlphaBetaError.message}`)
             }
           }
         }
-      } else {
-        // Regular problem type update
-        const problemTypeUpdateResponse = await supabaseClient.functions.invoke('update-problem-number-type-for-attempt', {
+      } else if (course_id === '1') {
+        // Standard update for course 1, problem types < 20
+        const { error: updateProblemError } = await supabaseClient.functions.invoke('update-problem-number-type-for-attempt', {
           body: {
             user_id,
             problem_number_type,
             finished_or_not,
             is_correct,
             difficulty,
-            scaling_type
+            scaling_type,
+            course_id
           }
         })
 
-        if (problemTypeUpdateResponse.error) {
-          console.error('Error updating problem type:', problemTypeUpdateResponse.error)
-          results.errors.push(`Problem type update failed: ${problemTypeUpdateResponse.error.message}`)
+        if (updateProblemError) {
+          console.error('Error updating problem number type:', updateProblemError)
+          errors.push(`Failed to update problem number type: ${updateProblemError.message}`)
+        }
+      }
+
+      if (course_id === '2') {
+        // Standard update for course 2
+        const { error: updateProblemError } = await supabaseClient.functions.invoke('update-problem-number-type-for-attempt', {
+          body: {
+            user_id,
+            problem_number_type,
+            finished_or_not,
+            is_correct,
+            difficulty,
+            scaling_type,
+            course_id
+          }
+        })
+
+        if (updateProblemError) {
+          console.error('Error updating problem number type for course 2:', updateProblemError)
+          errors.push(`Failed to update problem number type for course 2: ${updateProblemError.message}`)
+        }
+      }
+
+      if (course_id === '3' && problem_number_type >= 13 && scores_fipi !== null && scores_fipi !== undefined) {
+        // Special handling for course 3, problem types 13+
+        const { data: weightData, error: weightError } = await supabaseClient.functions.invoke('compute-difficulty-weight', {
+          body: {
+            scaling_type,
+            d: difficulty
+          }
+        })
+
+        if (weightError) {
+          console.error('Error computing difficulty weight for course 3:', weightError)
+          errors.push(`Failed to compute difficulty weight for course 3: ${weightError.message}`)
+        } else {
+          const w = weightData?.data?.weight || 1
+
+          const { data: scoresData, error: scoresError } = await supabaseClient.functions.invoke('adjust-for-scores', {
+            body: {
+              score: scores_fipi,
+              w
+            }
+          })
+
+          if (scoresError) {
+            console.error('Error adjusting for scores for course 3:', scoresError)
+            errors.push(`Failed to adjust for scores for course 3: ${scoresError.message}`)
+          } else {
+            let alpha_adj = scoresData?.data?.alpha_adjustment || 0
+            const beta_adj = scoresData?.data?.beta_adjustment || 0
+
+            const { data: alphaBetaData, error: alphaBetaError } = await supabaseClient.functions.invoke('get-alpha-beta', {
+              body: {
+                user_id,
+                entity_type: 'problem_number_type',
+                entity_id: problem_number_type,
+                course_id
+              }
+            })
+
+            let alpha = 1
+            let beta = 40
+
+            if (alphaBetaData?.success && alphaBetaData?.data?.alpha !== null) {
+              alpha = alphaBetaData.data.alpha
+              beta = alphaBetaData.data.beta
+            }
+
+            // Apply duration adjustment if alpha_adj is positive
+            if (alpha_adj > 0) {
+              const { data: durationData, error: durationError } = await supabaseClient.functions.invoke('adjust-for-duration', {
+                body: {
+                  original_increment: alpha_adj,
+                  duration: duration || 0,
+                  threshold: 60
+                }
+              })
+
+              if (durationError) {
+                console.error('Error adjusting for duration for course 3:', durationError)
+                errors.push(`Failed to adjust for duration for course 3: ${durationError.message}`)
+              } else {
+                alpha_adj = durationData?.data?.adjusted_increment || alpha_adj
+              }
+            }
+
+            alpha += alpha_adj
+            beta += beta_adj
+
+            const { error: setAlphaBetaError } = await supabaseClient.functions.invoke('set-alpha-beta', {
+              body: {
+                user_id,
+                entity_type: 'problem_number_type',
+                entity_id: problem_number_type,
+                alpha,
+                beta,
+                course_id
+              }
+            })
+
+            if (setAlphaBetaError) {
+              console.error('Error setting alpha/beta for course 3:', setAlphaBetaError)
+              errors.push(`Failed to set alpha/beta for course 3: ${setAlphaBetaError.message}`)
+            }
+          }
+        }
+      } else if (course_id === '3') {
+        // Standard update for course 3, problem types < 13
+        const { error: updateProblemError } = await supabaseClient.functions.invoke('update-problem-number-type-for-attempt', {
+          body: {
+            user_id,
+            problem_number_type,
+            finished_or_not,
+            is_correct,
+            difficulty,
+            scaling_type,
+            course_id
+          }
+        })
+
+        if (updateProblemError) {
+          console.error('Error updating problem number type for course 3:', updateProblemError)
+          errors.push(`Failed to update problem number type for course 3: ${updateProblemError.message}`)
         }
       }
 
       // Apply CUSUM for problem type
       const x_n = (finished_or_not && is_correct) || (finished_or_not && scores_fipi !== null && scores_fipi !== undefined && scores_fipi >= 1) ? 1 : 0
       
-      // Get current cusum_s for problem type
-      const getCurrentSProblemResponse = await supabaseClient.functions.invoke('get-cusum-s', {
+      const { data: cusumData, error: cusumError } = await supabaseClient.functions.invoke('apply-cusum', {
         body: {
           user_id,
           entity_type: 'problem_number_type',
-          entity_id: problem_number_type
-        }
-      })
-
-      let current_s_problem = null
-      if (!getCurrentSProblemResponse.error && getCurrentSProblemResponse.data?.success) {
-        current_s_problem = getCurrentSProblemResponse.data.data.cusum_s
-      }
-
-      // Apply CUSUM algorithm for problem type
-      const cusumProblemResponse = await supabaseClient.functions.invoke('apply-cusum', {
-        body: {
-          current_s: current_s_problem,
+          entity_id: problem_number_type,
           x_n,
-          k: 0.5,
-          h: 3.0
+          course_id
         }
       })
 
-      if (cusumProblemResponse.error) {
-        console.error('Error applying CUSUM for problem type:', cusumProblemResponse.error)
-        results.errors.push(`Problem type CUSUM failed: ${cusumProblemResponse.error.message}`)
-      } else {
-        const { new_s, adjustment } = cusumProblemResponse.data?.data || { new_s: 0, adjustment: 0 }
-        
-        // Update cusum_s for problem type
-        const updateCusumProblemResponse = await supabaseClient.functions.invoke('update-cusum-s', {
-          body: {
-            user_id,
-            entity_type: 'problem_number_type',
-            entity_id: problem_number_type,
-            new_s
-          }
-        })
-
-        if (updateCusumProblemResponse.error) {
-          console.error(`Error updating cusum_s for problem type ${problem_number_type}:`, updateCusumProblemResponse.error)
-          results.errors.push(`Problem type cusum_s update failed: ${updateCusumProblemResponse.error.message}`)
-        }
-
-        // Apply adjustment if needed for problem type
-        if (adjustment !== 0) {
-          const adjustmentProblemResponse = await supabaseClient.functions.invoke('apply-cusum-adjustment', {
-            body: {
-              user_id,
-              entity_type: 'problem_number_type',
-              entity_id: problem_number_type,
-              adjustment
-            }
-          })
-
-          if (adjustmentProblemResponse.error) {
-            console.error(`Error applying CUSUM adjustment for problem type ${problem_number_type}:`, adjustmentProblemResponse.error)
-            results.errors.push(`Problem type CUSUM adjustment failed: ${adjustmentProblemResponse.error.message}`)
-          }
-        }
+      if (cusumError) {
+        console.error('Error applying CUSUM for problem type:', cusumError)
+        errors.push(`Failed to apply CUSUM for problem type: ${cusumError.message}`)
       }
 
       // Apply SPRT for problem type
-      const masteryCheckProblemResponse = await supabaseClient.functions.invoke('check-mastery-status', {
+      const { data: sprtData, error: sprtError } = await supabaseClient.functions.invoke('check-mastery-status', {
         body: {
           user_id,
           entity_type: 'problem_number_type',
           entity_id: problem_number_type,
           A: 0.05,
-          B: 20
+          B: 20,
+          course_id
         }
       })
 
-      if (masteryCheckProblemResponse.error) {
-        console.error('Error checking mastery for problem type:', masteryCheckProblemResponse.error)
-        results.errors.push(`Problem type mastery check failed: ${masteryCheckProblemResponse.error.message}`)
-      } else {
-        // Update mastery status
-        const status = masteryCheckProblemResponse.data?.data?.status || 'continue'
-        const updateStatusProblemResponse = await supabaseClient.functions.invoke('update-mastery-status', {
+      if (sprtError) {
+        console.error('Error checking mastery status for problem type:', sprtError)
+        errors.push(`Failed to check mastery status for problem type: ${sprtError.message}`)
+      } else if (sprtData?.success && sprtData?.data?.status) {
+        const { error: updateStatusError } = await supabaseClient.functions.invoke('update-mastery-status', {
           body: {
             user_id,
             entity_type: 'problem_number_type',
             entity_id: problem_number_type,
-            status
+            status: sprtData.data.status,
+            course_id
           }
         })
 
-        if (updateStatusProblemResponse.error) {
-          console.error('Error updating mastery status for problem type:', updateStatusProblemResponse.error)
-          results.errors.push(`Problem type status update failed: ${updateStatusProblemResponse.error.message}`)
+        if (updateStatusError) {
+          console.error('Error updating mastery status for problem type:', updateStatusError)
+          errors.push(`Failed to update mastery status for problem type: ${updateStatusError.message}`)
         }
       }
 
-      results.problem_type_processed = true
     } catch (error) {
-      console.error('Error processing problem type:', error)
-      results.errors.push(`Problem type processing failed: ${error.message}`)
+      console.error('Unexpected error processing problem type:', error)
+      errors.push(`Unexpected error processing problem type: ${error.message}`)
     }
 
     // Step 3: Update topic mastery
     for (const topic_code of topics_list) {
       try {
-        console.log(`Processing topic ${topic_code}`)
-
-        // Check topic mastery status
-        const topicMasteryCheckResponse = await supabaseClient.functions.invoke('check-topic-mastery-status', {
+        const { data: topicStatusData, error: topicStatusError } = await supabaseClient.functions.invoke('check-topic-mastery-status', {
           body: {
             user_id,
-            topic_code: topic_code.toString(),
+            topic_code,
             A: 0.05,
-            B: 20
+            B: 20,
+            course_id
           }
         })
 
-        if (topicMasteryCheckResponse.error) {
-          console.error(`Error checking topic mastery for ${topic_code}:`, topicMasteryCheckResponse.error)
-          results.errors.push(`Topic ${topic_code} mastery check failed: ${topicMasteryCheckResponse.error.message}`)
-        } else {
-          // Update topic mastery status
-          const status = topicMasteryCheckResponse.data?.data?.status || 'continue'
-          const updateTopicStatusResponse = await supabaseClient.functions.invoke('update-topic-mastery-status', {
+        if (topicStatusError) {
+          console.error(`Error checking topic mastery status for topic ${topic_code}:`, topicStatusError)
+          errors.push(`Failed to check topic mastery status for topic ${topic_code}: ${topicStatusError.message}`)
+        } else if (topicStatusData?.success && topicStatusData?.data?.status) {
+          const { error: updateTopicStatusError } = await supabaseClient.functions.invoke('update-topic-mastery-status', {
             body: {
               user_id,
-              topic_code: topic_code.toString(),
-              status
+              topic_code,
+              status: topicStatusData.data.status,
+              course_id
             }
           })
 
-          if (updateTopicStatusResponse.error) {
-            console.error(`Error updating topic mastery status for ${topic_code}:`, updateTopicStatusResponse.error)
-            results.errors.push(`Topic ${topic_code} status update failed: ${updateTopicStatusResponse.error.message}`)
+          if (updateTopicStatusError) {
+            console.error(`Error updating topic mastery status for topic ${topic_code}:`, updateTopicStatusError)
+            errors.push(`Failed to update topic mastery status for topic ${topic_code}: ${updateTopicStatusError.message}`)
           }
         }
 
-        results.topics_processed.push(topic_code)
       } catch (error) {
-        console.error(`Error processing topic ${topic_code}:`, error)
-        results.errors.push(`Topic ${topic_code} processing failed: ${error.message}`)
+        console.error(`Unexpected error processing topic ${topic_code}:`, error)
+        errors.push(`Unexpected error processing topic ${topic_code}: ${error.message}`)
       }
     }
 
-    console.log(`Attempt processing complete. Skills: ${results.skills_processed.length}, Problem type: ${results.problem_type_processed}, Topics: ${results.topics_processed.length}, Errors: ${results.errors.length}`)
+    const processedSkills = skills_list.length
+    const processedTopics = topics_list.length
+
+    console.log(`Successfully processed attempt for user ${user_id}. Skills: ${processedSkills}, Topics: ${processedTopics}, Errors: ${errors.length}`)
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         data: {
-          ...results,
-          summary: {
-            total_skills: skills_list.length,
-            skills_processed: results.skills_processed.length,
-            problem_type_processed: results.problem_type_processed,
-            total_topics: topics_list.length,
-            topics_processed: results.topics_processed.length,
-            total_errors: results.errors.length
-          }
+          user_id,
+          processed_skills: processedSkills,
+          processed_topics: processedTopics,
+          problem_number_type,
+          course_id,
+          errors_count: errors.length,
+          errors: errors.length > 0 ? errors : undefined
         }
       }),
       { 
