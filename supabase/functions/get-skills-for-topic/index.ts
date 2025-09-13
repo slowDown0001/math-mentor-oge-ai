@@ -16,7 +16,7 @@ async function getTopicSkillMapping(courseId: string = '1', origin?: string): Pr
     }
 
     // 1) Try Supabase Storage (preferred and stable for production)
-    const storageUrl = `https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/${fileName}`;
+    const storageUrl = `https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/jsons_for_topic_skills/${fileName}`;
     const response = await fetch(storageUrl);
     if (response.ok) {
       const mapping = await response.json();
