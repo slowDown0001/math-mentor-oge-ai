@@ -7,6 +7,7 @@ interface RequestBody {
   is_correct: boolean
   difficulty: number
   scaling_type: 'linear' | 'exponential'
+  course_id?: string
 }
 
 Deno.serve(async (req) => {
@@ -16,7 +17,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { user_id, skills, finished_or_not, is_correct, difficulty, scaling_type }: RequestBody = await req.json()
+    const { user_id, skills, finished_or_not, is_correct, difficulty, scaling_type, course_id }: RequestBody = await req.json()
 
     // Validate required parameters
     if (!user_id || !skills || finished_or_not === undefined || is_correct === undefined || !difficulty || !scaling_type) {
@@ -90,7 +91,8 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             user_id,
             entity_type: 'skill',
-            entity_id: skill
+            entity_id: skill,
+            course_id: course_id || 'default'
           })
         })
 
@@ -194,7 +196,8 @@ Deno.serve(async (req) => {
             entity_type: 'skill',
             entity_id: skill,
             alpha,
-            beta
+            beta,
+            course_id: course_id || 'default'
           })
         })
 

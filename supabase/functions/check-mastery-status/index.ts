@@ -8,6 +8,7 @@ interface RequestBody {
   A?: number
   B?: number
   lambda_decay?: number
+  course_id?: string
 }
 
 Deno.serve(async (req) => {
@@ -23,7 +24,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { user_id, entity_type, entity_id, A = 0.05, B = 20, lambda_decay = 0.01 }: RequestBody = await req.json()
+    const { user_id, entity_type, entity_id, A = 0.05, B = 20, lambda_decay = 0.01, course_id }: RequestBody = await req.json()
 
     // Validate required parameters
     if (!user_id || !entity_type || entity_id === undefined) {
@@ -104,7 +105,8 @@ Deno.serve(async (req) => {
           entity_id, 
           t_current: currentTime, 
           t_attempt: latestAttemptTime, 
-          lambda_decay 
+          lambda_decay,
+          course_id: course_id || 'default'
         }
       })
 
