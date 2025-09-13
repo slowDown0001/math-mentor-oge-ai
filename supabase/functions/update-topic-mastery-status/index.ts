@@ -3,8 +3,9 @@ import { corsHeaders } from '../_shared/cors.ts'
 
 interface RequestBody {
   user_id: string
-  topic_code: string
+  topic_code: number
   status: string
+  course_id?: string
 }
 
 Deno.serve(async (req) => {
@@ -20,10 +21,10 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { user_id, topic_code, status }: RequestBody = await req.json()
+    const { user_id, topic_code, status, course_id }: RequestBody = await req.json()
 
     // Validate required parameters
-    if (!user_id || !topic_code || !status) {
+    if (!user_id || topic_code === undefined || !status) {
       return new Response(
         JSON.stringify({ 
           error: 'Missing required parameters: user_id, topic_code, status' 
@@ -35,12 +36,11 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Validate status values
-    const validStatuses = ['mastered', 'not_mastered', 'continue']
-    if (!validStatuses.includes(status)) {
+    // Validate status
+    if (!['mastered', 'not_mastered', 'continue'].includes(status)) {
       return new Response(
         JSON.stringify({ 
-          error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` 
+          error: 'status must be either "mastered", "not_mastered", or "continue"' 
         }),
         { 
           status: 400, 
@@ -49,27 +49,28 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`Updating topic mastery status for user ${user_id}, topic ${topic_code}, status: ${status}`)
+    console.log(`Updating topic mastery status for user ${user_id}, topic ${topic_code} to ${status}`)
 
-    // Insert or update the mastery status in student_mastery_status table
-    const { error: upsertError } = await supabaseClient
+    // Store/update the mastery status for the topic in student_mastery_status table
+    const { data, error } = await supabaseClient
       .from('student_mastery_status')
       .upsert({
         user_id,
         entity_type: 'topic',
-        entity_id: topic_code,
+        entity_id: topic_code.toString(),
         status,
+        course_id: course_id || 'default',
         last_updated: new Date().toISOString()
       }, {
-        onConflict: 'user_id,entity_type,entity_id'
+        onConflict: 'user_id,entity_type,entity_id,course_id'
       })
 
-    if (upsertError) {
-      console.error('Database error during upsert:', upsertError)
+    if (error) {
+      console.error('Database error:', error)
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to update mastery status', 
-          details: upsertError.message 
+          error: 'Failed to update topic mastery status', 
+          details: error.message 
         }),
         { 
           status: 500, 
@@ -78,7 +79,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`Successfully updated topic mastery status for user ${user_id}, topic ${topic_code}`)
+    console.log(`Successfully updated topic mastery status for topic ${topic_code} to ${status}`)
 
     return new Response(
       JSON.stringify({ 
@@ -88,7 +89,8 @@ Deno.serve(async (req) => {
           entity_type: 'topic',
           entity_id: topic_code,
           status,
-          message: 'Topic mastery status updated successfully'
+          course_id: course_id || 'default',
+          last_updated: new Date().toISOString()
         }
       }),
       { 

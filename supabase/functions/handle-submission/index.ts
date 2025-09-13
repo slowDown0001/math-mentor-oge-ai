@@ -5,11 +5,14 @@ interface SubmissionData {
   user_id: string
   question_id: string
   finished_or_not: boolean
-  is_correct?: boolean
-  scores_fipi?: number
+  is_correct: boolean
   duration?: number
-  scaling_type?: string
+  scores_fipi?: number
+}
+
+interface RequestBody {
   course_id?: string
+  submission_data: SubmissionData
 }
 
 Deno.serve(async (req) => {
@@ -25,13 +28,14 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const submissionData: SubmissionData = await req.json()
+    const { course_id, submission_data }: RequestBody = await req.json()
 
     // Validate required parameters
-    if (!submissionData.user_id || !submissionData.question_id || submissionData.finished_or_not === undefined) {
+    if (!submission_data || !submission_data.user_id || !submission_data.question_id || 
+        submission_data.finished_or_not === undefined || submission_data.is_correct === undefined) {
       return new Response(
         JSON.stringify({ 
-          error: 'Missing required parameters: user_id, question_id, finished_or_not' 
+          error: 'Missing required parameters in submission_data: user_id, question_id, finished_or_not, is_correct' 
         }),
         { 
           status: 400, 
@@ -40,26 +44,21 @@ Deno.serve(async (req) => {
       )
     }
 
-console.log(`Handling submission for user ${submissionData.user_id}, question ${submissionData.question_id}`)
+    console.log(`Handling submission for user ${submission_data.user_id}, question ${submission_data.question_id}`)
 
-    // Capture client origin to pass along for asset fallback
-    const clientOrigin = req.headers.get('origin') || req.headers.get('referer') || ''
-
-    // Step 1: Fetch question details
-    const { data: questionDetails, error: questionDetailsError } = await supabaseClient.functions.invoke('get-question-details', {
+    // Step 1: Fetch question details using the existing function
+    const { data: questionDetailsResult, error: questionDetailsError } = await supabaseClient.functions.invoke('get-question-details', {
       body: {
-        question_id: submissionData.question_id,
-        origin: clientOrigin,
-        course_id: submissionData.course_id
+        question_id: submission_data.question_id
       }
     })
 
-    if (questionDetailsError || !questionDetails) {
-      console.error('Failed to get question details:', questionDetailsError)
+    if (questionDetailsError) {
+      console.error('Error getting question details:', questionDetailsError)
       return new Response(
         JSON.stringify({ 
           error: 'Failed to get question details', 
-          details: questionDetailsError?.message || 'Question not found' 
+          details: questionDetailsError.message 
         }),
         { 
           status: 500, 
@@ -68,96 +67,56 @@ console.log(`Handling submission for user ${submissionData.user_id}, question ${
       )
     }
 
-    // Step 2: Get the is_correct value from student_activity table
-    const { data: activityData, error: activityError } = await supabaseClient
-      .from('student_activity')
-      .select('is_correct, attempt_id')
-      .eq('user_id', submissionData.user_id)
-      .eq('question_id', submissionData.question_id)
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .single()
-
-    if (activityError) {
-      console.error('Failed to get activity data:', activityError)
+    const questionDetails = questionDetailsResult?.data
+    if (!questionDetails) {
+      console.error('No question details found for question:', submission_data.question_id)
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to get activity data', 
-          details: activityError.message 
+          error: 'Question details not found', 
+          question_id: submission_data.question_id 
         }),
         { 
-          status: 500, 
+          status: 404, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       )
     }
-    
-    // Step 2.5: Update skills/topics on latest student_activity row if available
-    const attemptId = activityData?.attempt_id
-    const skillsArr = Array.isArray(questionDetails.data?.skills) ? questionDetails.data.skills : []
-    const topicsArr = Array.isArray(questionDetails.data?.topics) ? questionDetails.data.topics : []
-    if (attemptId && (skillsArr.length > 0 || topicsArr.length > 0)) {
-      const updatePayload: Record<string, any> = {}
-      if (skillsArr.length > 0) updatePayload.skills = skillsArr
-      if (topicsArr.length > 0) updatePayload.topics = topicsArr
-      const { error: updateActivityError } = await supabaseClient
-        .from('student_activity')
-        .update(updatePayload)
-        .eq('attempt_id', attemptId)
-      if (updateActivityError) {
-        console.warn('Failed to update skills/topics for activity:', updateActivityError)
-      } else {
-        console.log('Updated skills/topics for attempt_id', attemptId)
-      }
-    }
-    
-    // Step 3: Construct attempt data for process-attempt
-    let problemNumberType = questionDetails.data?.problem_number_type;
-    // If problem_number_type is null/undefined, try to extract from question_id
-    if (problemNumberType === null || problemNumberType === undefined) {
-      const questionIdParts = submissionData.question_id.split('_');
-      if (questionIdParts.length >= 3) {
-        const extractedType = parseInt(questionIdParts[2]);
-        if (!isNaN(extractedType)) {
-          problemNumberType = extractedType;
-        }
-      }
-    }
-    
-    // Fallback to 0 if still no valid problem_number_type
-    if (problemNumberType === null || problemNumberType === undefined) {
-      problemNumberType = 0;
-    }
 
+    console.log(`Question details retrieved: difficulty=${questionDetails.difficulty}, skills=${questionDetails.skills_list?.length || 0}`)
+
+    // Step 2: Generate attempt_id (could be timestamp-based or random)
+    const attempt_id = Date.now()
+
+    // Step 3: Construct attempt_data matching the Python structure
     const attemptData = {
-      user_id: submissionData.user_id,
-      question_id: submissionData.question_id,
-      finished_or_not: submissionData.finished_or_not,
-      is_correct: activityData?.is_correct || false,
-      difficulty: questionDetails.data?.difficulty || 1,
-      skills_list: Array.isArray(questionDetails.data?.skills) ? questionDetails.data.skills : [],
-      topics_list: Array.isArray(questionDetails.data?.topics) ? questionDetails.data.topics : [],
-      problem_number_type: problemNumberType,
-      duration: submissionData.duration || 0,
-      scores_fipi: submissionData.scores_fipi,
-      scaling_type: submissionData.scaling_type || 'linear',
-      attempt_id: submissionData.attempt_id || null,
-      course_id: submissionData.course_id || '1'
+      user_id: submission_data.user_id,
+      question_id: submission_data.question_id,
+      finished_or_not: submission_data.finished_or_not,
+      is_correct: submission_data.is_correct,
+      difficulty: questionDetails.difficulty,
+      skills_list: questionDetails.skills_list || [],
+      topics_list: questionDetails.topics_list || [],
+      problem_number_type: questionDetails.problem_number_type,
+      duration: submission_data.duration || 0,
+      scores_fipi: submission_data.scores_fipi,
+      scaling_type: 'linear', // Default scaling type
+      attempt_id: attempt_id,
+      course_id: course_id || 'default'
     }
 
-    console.log('Attempting to process with data:', JSON.stringify(attemptData, null, 2))
+    console.log(`Constructed attempt data with ${attemptData.skills_list.length} skills and ${attemptData.topics_list.length} topics`)
 
-    // Step 3: Process attempt (update mastery estimates)
-    const { data: processAttemptResponse, error: processAttemptError } = await supabaseClient.functions.invoke('process-attempt', {
+    // Step 4: Process the attempt using the existing function
+    const { data: processResult, error: processError } = await supabaseClient.functions.invoke('process-attempt', {
       body: attemptData
     })
 
-    if (processAttemptError) {
-      console.error('Failed to process attempt:', processAttemptError)
+    if (processError) {
+      console.error('Error processing attempt:', processError)
       return new Response(
         JSON.stringify({ 
           error: 'Failed to process attempt', 
-          details: processAttemptError?.message 
+          details: processError.message 
         }),
         { 
           status: 500, 
@@ -166,13 +125,21 @@ console.log(`Handling submission for user ${submissionData.user_id}, question ${
       )
     }
 
-    console.log(`Successfully handled submission for user ${submissionData.user_id}`)
+    console.log(`Successfully processed submission for user ${submission_data.user_id}`)
 
     return new Response(
       JSON.stringify({ 
-        success: true,
-        question_details: questionDetails,
-        processing_result: processAttemptResponse
+        success: true, 
+        data: {
+          user_id: submission_data.user_id,
+          question_id: submission_data.question_id,
+          attempt_id: attempt_id,
+          course_id: course_id || 'default',
+          question_details: questionDetails,
+          process_result: processResult,
+          processed_skills: attemptData.skills_list.length,
+          processed_topics: attemptData.topics_list.length
+        }
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
