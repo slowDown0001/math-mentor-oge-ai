@@ -1,3 +1,4 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 interface RequestBody {
@@ -7,6 +8,7 @@ interface RequestBody {
   is_correct: boolean
   difficulty: number
   scaling_type: string
+  course_id?: string
 }
 
 Deno.serve(async (req) => {
@@ -16,18 +18,16 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { 
-      user_id, 
-      problem_number_type, 
-      finished_or_not, 
-      is_correct, 
-      difficulty, 
-      scaling_type 
-    }: RequestBody = await req.json()
+    // Create Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    const { user_id, problem_number_type, finished_or_not, is_correct, difficulty, scaling_type, course_id }: RequestBody = await req.json()
 
     // Validate required parameters
-    if (!user_id || problem_number_type === undefined || finished_or_not === undefined || 
-        is_correct === undefined || difficulty === undefined || !scaling_type) {
+    if (!user_id || problem_number_type === undefined || finished_or_not === undefined || is_correct === undefined || difficulty === undefined || !scaling_type) {
       return new Response(
         JSON.stringify({ 
           error: 'Missing required parameters: user_id, problem_number_type, finished_or_not, is_correct, difficulty, scaling_type' 
@@ -39,124 +39,180 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`Updating problem_number_type ${problem_number_type} for user ${user_id}`)
-
-    // Get current alpha/beta values
-    const getAlphaBetaResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/get-alpha-beta`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-      },
-      body: JSON.stringify({
-        user_id,
-        entity_type: 'problem_number_type',
-        entity_id: problem_number_type
-      })
-    })
-
-    const alphaBetaData = await getAlphaBetaResponse.json()
-    let alpha = alphaBetaData.data?.alpha
-    let beta = alphaBetaData.data?.beta
-
-    // Initialize if not found
-    if (alpha === null || beta === null) {
-      alpha = 1
-      beta = 40
-      console.log(`Initializing alpha=${alpha}, beta=${beta} for problem_number_type ${problem_number_type}`)
+    // Validate scaling_type
+    if (!['linear', 'exponential'].includes(scaling_type)) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'scaling_type must be either "linear" or "exponential"' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
 
-    // Compute mastery probability
-    const masteryResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/compute-mastery-probability`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-      },
-      body: JSON.stringify({ alpha, beta })
+    console.log(`Updating problem number type ${problem_number_type} for user ${user_id}`)
+
+    // Get alpha and beta using the existing get-alpha-beta function
+    const { data: alphaBetaResult, error: alphaBetaError } = await supabaseClient.functions.invoke('get-alpha-beta', {
+      body: {
+        user_id,
+        entity_type: 'problem_number_type',
+        entity_id: problem_number_type,
+        course_id: course_id || 'default'
+      }
     })
 
-    const masteryData = await masteryResponse.json()
-    const p = masteryData.data?.mastery_probability
+    if (alphaBetaError) {
+      console.error('Error getting alpha/beta:', alphaBetaError)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to retrieve alpha/beta values', 
+          details: alphaBetaError.message 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
 
-    // Compute difficulty weight
-    const weightResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/compute-difficulty-weight`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-      },
-      body: JSON.stringify({ scaling_type, d: difficulty })
+    // Initialize if not found (non-weak prior based on difficulty)
+    let alpha = alphaBetaResult?.data?.alpha ?? 1
+    let beta = alphaBetaResult?.data?.beta ?? 40
+
+    console.log(`Current alpha: ${alpha}, beta: ${beta}`)
+
+    // Compute mastery probability using the existing function
+    const { data: masteryResult, error: masteryError } = await supabaseClient.functions.invoke('compute-mastery-probability', {
+      body: {
+        alpha,
+        beta
+      }
     })
 
-    const weightData = await weightResponse.json()
-    const w = weightData.data?.weight
+    if (masteryError) {
+      console.error('Error computing mastery probability:', masteryError)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to compute mastery probability', 
+          details: masteryError.message 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
 
-    console.log(`Current state: alpha=${alpha}, beta=${beta}, p=${p}, w=${w}`)
+    const p = masteryResult.data.mastery_probability
 
-    // Apply update logic
+    // Compute difficulty weight using the existing function
+    const { data: weightResult, error: weightError } = await supabaseClient.functions.invoke('compute-difficulty-weight', {
+      body: {
+        scaling_type,
+        d: difficulty
+      }
+    })
+
+    if (weightError) {
+      console.error('Error computing difficulty weight:', weightError)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to compute difficulty weight', 
+          details: weightError.message 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    const w = weightResult.data.weight
+
+    // Update alpha/beta based on attempt outcome
     if (finished_or_not && is_correct) {
-      // Compute velocity factor
-      const velocityResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/compute-velocity-factor`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-        },
-        body: JSON.stringify({ p })
+      // Compute velocity factor for correct answers
+      const { data: velocityResult, error: velocityError } = await supabaseClient.functions.invoke('compute-velocity-factor', {
+        body: {
+          p
+        }
       })
 
-      const velocityData = await velocityResponse.json()
-      const f = velocityData.data?.velocity_factor
+      if (velocityError) {
+        console.error('Error computing velocity factor:', velocityError)
+        return new Response(
+          JSON.stringify({ 
+            error: 'Failed to compute velocity factor', 
+            details: velocityError.message 
+          }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
 
+      const f = velocityResult.data.velocity_factor
       alpha += f * w
-      console.log(`Correct answer: alpha increased by ${f * w}, new alpha=${alpha}`)
+      console.log(`Finished and correct: alpha += ${f} * ${w} = ${f * w}`)
     } else if (finished_or_not && !is_correct) {
       beta += w
-      console.log(`Incorrect answer: beta increased by ${w}, new beta=${beta}`)
+      console.log(`Finished and incorrect: beta += ${w}`)
     } else if (!finished_or_not) {
-      // Handle skips based on difficulty
+      // Not finished (skipped)
       if (difficulty >= 3) {
         beta += w
-        console.log(`Skip (difficulty ${difficulty}): beta increased by ${w}, new beta=${beta}`)
+        console.log(`Skipped (difficulty ${difficulty} >= 3): beta += ${w}`)
       } else {
         beta += 0.5 * w
-        console.log(`Skip (difficulty ${difficulty}): beta increased by ${0.5 * w}, new beta=${beta}`)
+        console.log(`Skipped (difficulty ${difficulty} < 3): beta += ${0.5 * w}`)
       }
     }
 
-    // Set new alpha/beta values
-    const setResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/set-alpha-beta`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-      },
-      body: JSON.stringify({
+    // Set new alpha/beta values using the existing function
+    const { data: setResult, error: setError } = await supabaseClient.functions.invoke('set-alpha-beta', {
+      body: {
         user_id,
         entity_type: 'problem_number_type',
         entity_id: problem_number_type,
         alpha,
-        beta
-      })
+        beta,
+        course_id: course_id || 'default'
+      }
     })
 
-    const setData = await setResponse.json()
-    if (!setData.success) {
-      throw new Error('Failed to set alpha/beta values')
+    if (setError) {
+      console.error('Error setting alpha/beta:', setError)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to update alpha/beta values', 
+          details: setError.message 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
 
-    console.log(`Successfully updated problem_number_type ${problem_number_type}: final alpha=${alpha}, beta=${beta}`)
+    console.log(`Successfully updated problem number type ${problem_number_type}: alpha=${alpha}, beta=${beta}`)
 
     return new Response(
       JSON.stringify({ 
-        success: true,
+        success: true, 
         data: {
           user_id,
           problem_number_type,
-          alpha,
-          beta,
-          mastery_probability: p
+          old_alpha: alphaBetaResult?.data?.alpha || 1,
+          old_beta: alphaBetaResult?.data?.beta || 40,
+          new_alpha: alpha,
+          new_beta: beta,
+          mastery_probability: p,
+          difficulty_weight: w,
+          course_id: course_id || 'default'
         }
       }),
       { 
