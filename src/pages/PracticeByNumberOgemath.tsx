@@ -257,6 +257,9 @@ const PracticeByNumberOgemath = () => {
       // Update student_activity directly instead of using failing edge function
       await updateStudentActivity(isCorrect, 0);
 
+      // Call handle-submission to update mastery data
+      await submitToHandleSubmission();
+
       // Award streak points immediately (regardless of correctness)
       const reward = calculateStreakReward(currentQuestion.difficulty);
       const currentStreakInfo = await getCurrentStreakData(user.id);
@@ -280,6 +283,52 @@ const PracticeByNumberOgemath = () => {
     } catch (error) {
       console.error('Error in checkAnswer:', error);
       toast.error('Ошибка при проверке ответа');
+    }
+  };
+
+  // Get latest student_activity data and submit to handle_submission
+  const submitToHandleSubmission = async () => {
+    if (!user) return;
+
+    try {
+      // Get latest student_activity row for current user
+      const { data: activityData, error: activityError } = await supabase
+        .from('student_activity')
+        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (activityError || !activityData) {
+        console.error('Error getting latest activity:', activityError);
+        return;
+      }
+
+      // Create submission_data dictionary
+      const submissionData = {
+        user_id: user.id,
+        question_id: activityData.question_id,
+        attempt_id: activityData.attempt_id,
+        finished_or_not: activityData.finished_or_not,
+        duration: activityData.duration_answer,
+        scores_fipi: activityData.scores_fipi
+      };
+
+      // Call handle_submission function
+      const { data, error } = await supabase.functions.invoke('handle-submission', {
+        body: submissionData
+      });
+
+      if (error) {
+        console.error('Error in handle-submission:', error);
+        toast.error('Ошибка при обработке ответа');
+        return;
+      }
+
+      console.log('Handle submission completed:', data);
+    } catch (error) {
+      console.error('Error in submitToHandleSubmission:', error);
     }
   };
 
@@ -364,6 +413,9 @@ const PracticeByNumberOgemath = () => {
 
           // Mark as skipped - not correct, not answered
           await updateStudentActivity(false, 0, true);
+
+          // Call handle-submission to update mastery data for skip
+          await submitToHandleSubmission();
         }
       } catch (error) {
         console.error('Error skipping question:', error);
