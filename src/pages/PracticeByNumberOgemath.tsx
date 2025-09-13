@@ -122,8 +122,8 @@ const PracticeByNumberOgemath = () => {
         if (detailsErr) {
           console.warn('get-question-details error (will fallback):', detailsErr);
         } else if (detailsResp?.data) {
-          skillsArray = Array.isArray(detailsResp.data.skills) ? detailsResp.data.skills : [];
-          topicsArray = Array.isArray(detailsResp.data.topics) ? detailsResp.data.topics : [];
+          skillsArray = Array.isArray(detailsResp.data.skills_list) ? detailsResp.data.skills_list : [];
+          topicsArray = Array.isArray(detailsResp.data.topics_list) ? detailsResp.data.topics_list : [];
           if (detailsResp.data.problem_number_type) {
             problemNumberType = parseInt(detailsResp.data.problem_number_type.toString(), 10);
           }
