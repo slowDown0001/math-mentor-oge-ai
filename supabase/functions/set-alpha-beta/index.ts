@@ -7,6 +7,7 @@ interface RequestBody {
   entity_id: number
   alpha: number
   beta: number
+  course_id: string
 }
 
 Deno.serve(async (req) => {
@@ -22,13 +23,13 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { user_id, entity_type, entity_id, alpha, beta }: RequestBody = await req.json()
+    const { user_id, entity_type, entity_id, alpha, beta, course_id }: RequestBody = await req.json()
 
     // Validate required parameters
-    if (!user_id || !entity_type || entity_id === undefined || alpha === undefined || beta === undefined) {
+    if (!user_id || !entity_type || entity_id === undefined || alpha === undefined || beta === undefined || !course_id) {
       return new Response(
         JSON.stringify({ 
-          error: 'Missing required parameters: user_id, entity_type, entity_id, alpha, beta' 
+          error: 'Missing required parameters: user_id, entity_type, entity_id, alpha, beta, course_id' 
         }),
         { 
           status: 400, 
@@ -50,7 +51,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`Setting alpha/beta for user ${user_id}, ${entity_type} ${entity_id}: alpha=${alpha}, beta=${beta}`)
+    console.log(`Setting alpha/beta for user ${user_id}, ${entity_type} ${entity_id}, course ${course_id}: alpha=${alpha}, beta=${beta}`)
 
     // Perform upsert operation
     const { error } = await supabaseClient
@@ -61,9 +62,10 @@ Deno.serve(async (req) => {
         entity_id,
         alpha,
         beta,
+        course_id,
         updated_at: new Date().toISOString()
       }, {
-        onConflict: 'user_id,entity_type,entity_id'
+        onConflict: 'user_id,entity_type,entity_id,course_id'
       })
 
     if (error) {
@@ -91,7 +93,8 @@ Deno.serve(async (req) => {
           entity_type,
           entity_id,
           alpha,
-          beta
+          beta,
+          course_id
         }
       }),
       { 

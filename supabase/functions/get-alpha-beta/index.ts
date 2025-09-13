@@ -5,6 +5,7 @@ interface RequestBody {
   user_id: string
   entity_type: 'skill' | 'problem_number_type'
   entity_id: number
+  course_id: string
 }
 
 Deno.serve(async (req) => {
@@ -20,13 +21,13 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { user_id, entity_type, entity_id }: RequestBody = await req.json()
+    const { user_id, entity_type, entity_id, course_id }: RequestBody = await req.json()
 
     // Validate required parameters
-    if (!user_id || !entity_type || entity_id === undefined) {
+    if (!user_id || !entity_type || entity_id === undefined || !course_id) {
       return new Response(
         JSON.stringify({ 
-          error: 'Missing required parameters: user_id, entity_type, entity_id' 
+          error: 'Missing required parameters: user_id, entity_type, entity_id, course_id' 
         }),
         { 
           status: 400, 
@@ -48,7 +49,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`Getting alpha/beta for user ${user_id}, ${entity_type} ${entity_id}`)
+    console.log(`Getting alpha/beta for user ${user_id}, ${entity_type} ${entity_id}, course ${course_id}`)
 
     // Query the student_mastery table
     const { data, error } = await supabaseClient
@@ -57,6 +58,7 @@ Deno.serve(async (req) => {
       .eq('user_id', user_id)
       .eq('entity_type', entity_type)
       .eq('entity_id', entity_id)
+      .eq('course_id', course_id)
       .maybeSingle()
 
     if (error) {
@@ -76,7 +78,7 @@ Deno.serve(async (req) => {
     // Return the data or null if not found (replicating Python's (None, None) behavior)
     const result = data ? { alpha: data.alpha, beta: data.beta } : { alpha: null, beta: null }
     
-    console.log(`Retrieved alpha/beta for user ${user_id}, ${entity_type} ${entity_id}:`, result)
+    console.log(`Retrieved alpha/beta for user ${user_id}, ${entity_type} ${entity_id}, course ${course_id}:`, result)
 
     return new Response(
       JSON.stringify({ 

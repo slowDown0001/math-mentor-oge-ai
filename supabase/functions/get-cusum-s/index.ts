@@ -5,6 +5,7 @@ interface RequestBody {
   user_id: string
   entity_type: 'skill' | 'problem_number_type'
   entity_id: number
+  course_id: string
 }
 
 Deno.serve(async (req) => {
@@ -20,13 +21,13 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { user_id, entity_type, entity_id }: RequestBody = await req.json()
+    const { user_id, entity_type, entity_id, course_id }: RequestBody = await req.json()
 
     // Validate required parameters
-    if (!user_id || !entity_type || entity_id === undefined) {
+    if (!user_id || !entity_type || entity_id === undefined || !course_id) {
       return new Response(
         JSON.stringify({ 
-          error: 'Missing required parameters: user_id, entity_type, entity_id' 
+          error: 'Missing required parameters: user_id, entity_type, entity_id, course_id' 
         }),
         { 
           status: 400, 
@@ -48,7 +49,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`Getting cusum_s for user ${user_id}, ${entity_type} ${entity_id}`)
+    console.log(`Getting cusum_s for user ${user_id}, ${entity_type} ${entity_id}, course ${course_id}`)
 
     // Query the student_mastery table for cusum_s value
     const { data, error } = await supabaseClient
@@ -57,6 +58,7 @@ Deno.serve(async (req) => {
       .eq('user_id', user_id)
       .eq('entity_type', entity_type)
       .eq('entity_id', entity_id)
+      .eq('course_id', course_id)
       .single()
 
     if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
@@ -75,7 +77,7 @@ Deno.serve(async (req) => {
 
     const cusumS = data?.cusum_s || null
 
-    console.log(`Retrieved cusum_s: ${cusumS} for user ${user_id}, ${entity_type} ${entity_id}`)
+    console.log(`Retrieved cusum_s: ${cusumS} for user ${user_id}, ${entity_type} ${entity_id}, course ${course_id}`)
 
     return new Response(
       JSON.stringify({ 
@@ -84,6 +86,7 @@ Deno.serve(async (req) => {
           user_id,
           entity_type,
           entity_id,
+          course_id,
           cusum_s: cusumS
         }
       }),
