@@ -317,7 +317,7 @@ const PracticeByNumberOgemath = () => {
 
       // Call handle_submission function
       const { data, error } = await supabase.functions.invoke('handle-submission', {
-        body: submissionData
+        body: { ...submissionData, course_id: '1' }
       });
 
       if (error) {
@@ -408,7 +408,8 @@ const PracticeByNumberOgemath = () => {
             attempt_id: activityData.attempt_id,
             finished_or_not: activityData.finished_or_not,
             duration: durationInSeconds,
-            scores_fipi: activityData.scores_fipi
+            scores_fipi: activityData.scores_fipi,
+            course_id: '1'
           };
 
           // Mark as skipped - not correct, not answered
