@@ -214,8 +214,8 @@ if (originOverride && typeof originOverride === 'string') {
     }
 
     const questionDetails = {
-      skills: skillsArray,
-      topics: topicsArray,
+      skills_list: skillsArray,
+      topics_list: topicsArray,
       problem_number_type: questionData.problem_number_type ? parseInt(questionData.problem_number_type.toString()) : null,
       difficulty: questionData.difficulty ? parseInt(questionData.difficulty.toString()) : 1
     }
