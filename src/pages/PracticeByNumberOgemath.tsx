@@ -258,7 +258,7 @@ const PracticeByNumberOgemath = () => {
       await updateStudentActivity(isCorrect, 0);
 
       // Call handle-submission to update mastery data
-      await submitToHandleSubmission();
+      await submitToHandleSubmission(isCorrect);
 
       // Award streak points immediately (regardless of correctness)
       const reward = calculateStreakReward(currentQuestion.difficulty);
@@ -287,7 +287,7 @@ const PracticeByNumberOgemath = () => {
   };
 
   // Get latest student_activity data and submit to handle_submission
-  const submitToHandleSubmission = async () => {
+  const submitToHandleSubmission = async (isCorrect: boolean) => {
     if (!user) return;
 
     try {
@@ -311,13 +311,17 @@ const PracticeByNumberOgemath = () => {
         question_id: activityData.question_id,
         attempt_id: activityData.attempt_id,
         finished_or_not: activityData.finished_or_not,
+        is_correct: isCorrect,
         duration: activityData.duration_answer,
         scores_fipi: activityData.scores_fipi
       };
 
       // Call handle_submission function
       const { data, error } = await supabase.functions.invoke('handle-submission', {
-        body: { ...submissionData, course_id: '1' }
+        body: { 
+          course_id: '1',
+          submission_data: submissionData
+        }
       });
 
       if (error) {
@@ -416,7 +420,7 @@ const PracticeByNumberOgemath = () => {
           await updateStudentActivity(false, 0, true);
 
           // Call handle-submission to update mastery data for skip
-          await submitToHandleSubmission();
+          await submitToHandleSubmission(false);
         }
       } catch (error) {
         console.error('Error skipping question:', error);
