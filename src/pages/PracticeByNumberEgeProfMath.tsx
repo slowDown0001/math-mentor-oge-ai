@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, XCircle, BookOpen, ArrowRight, Home, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CheckCircle, XCircle, BookOpen, ArrowRight, Home, ArrowLeft, Camera, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import MathRenderer from "@/components/MathRenderer";
 import { useStreakTracking } from "@/hooks/useStreakTracking";
@@ -21,6 +22,7 @@ interface Question {
   answer: string;
   solution_text: string;
   difficulty?: string | number;
+  problem_number_type?: number;
 }
 
 const PracticeByNumberEgeProfMath = () => {
@@ -48,6 +50,14 @@ const PracticeByNumberEgeProfMath = () => {
   
   // Auth required message state
   const [showAuthRequiredMessage, setShowAuthRequiredMessage] = useState(false);
+  
+  // Photo attachment states
+  const [showPhotoDialog, setShowPhotoDialog] = useState(false);
+  const [showTelegramNotConnected, setShowTelegramNotConnected] = useState(false);
+  const [showUploadPrompt, setShowUploadPrompt] = useState(false);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+  const [photoFeedback, setPhotoFeedback] = useState<string>("");
+  const [photoScores, setPhotoScores] = useState<number | null>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -55,14 +65,14 @@ const PracticeByNumberEgeProfMath = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('egemathprof' as any)
-        .select('question_id, problem_text, answer, solution_text')
+        .from('egemathprof')
+        .select('question_id, problem_text, answer, solution_text, problem_number_type')
         .eq('problem_number_type', parseInt(questionNumber))
         .order('question_id');
 
       if (error) throw error;
 
-      const filteredQuestions = (data || []) as unknown as Question[];
+      const filteredQuestions = data || [];
 
       setQuestions(filteredQuestions);
       setCurrentQuestionIndex(0);
@@ -100,16 +110,29 @@ const PracticeByNumberEgeProfMath = () => {
     if (!user) return;
     
     try {
-      // Get question details first to populate skills and topics
-      const { data: questionDetails, error: detailsError } = await supabase.functions.invoke('get-question-details', {
-        body: { question_id: questionId }
-      });
+      // Fetch question details to populate skills and topics
+      let skillsArray: number[] = [];
+      let topicsArray: string[] = [];
+      let problemNumberType = parseInt(selectedNumber || '1');
 
-      if (detailsError) {
-        console.error('Error getting question details:', detailsError);
+      try {
+        const { data: detailsResp, error: detailsErr } = await supabase.functions.invoke('get-question-details', {
+          body: { question_id: questionId, course_id: '3' }
+        });
+        if (detailsErr) {
+          console.warn('get-question-details error (will fallback):', detailsErr);
+        } else if (detailsResp?.data) {
+          skillsArray = Array.isArray(detailsResp.data.skills_list) ? detailsResp.data.skills_list : [];
+          topicsArray = Array.isArray(detailsResp.data.topics_list) ? detailsResp.data.topics_list : [];
+          if (detailsResp.data.problem_number_type) {
+            problemNumberType = parseInt(detailsResp.data.problem_number_type.toString(), 10);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to fetch question details, proceeding without skills/topics:', e);
       }
 
-      // Insert new activity record directly
+      // Insert into student_activity table with skills and topics
       const { data, error } = await supabase
         .from('student_activity')
         .insert({
@@ -117,9 +140,12 @@ const PracticeByNumberEgeProfMath = () => {
           question_id: questionId,
           answer_time_start: new Date().toISOString(),
           finished_or_not: false,
-          problem_number_type: parseInt(selectedNumber) || 0,
-          skills: questionDetails?.data?.skills || [],
-          topics: questionDetails?.data?.topics || []
+          problem_number_type: problemNumberType,
+          is_correct: null,
+          duration_answer: null,
+          scores_fipi: null,
+          skills: skillsArray.length ? skillsArray : null,
+          topics: topicsArray.length ? topicsArray : null
         })
         .select('attempt_id')
         .single();
@@ -129,12 +155,27 @@ const PracticeByNumberEgeProfMath = () => {
         return;
       }
 
-      setCurrentAttemptId(data?.attempt_id);
-      setAttemptStartTime(new Date());
-      console.log('Started attempt:', data?.attempt_id);
+      if (data) {
+        setCurrentAttemptId(data.attempt_id);
+        setAttemptStartTime(new Date());
+        console.log('Started attempt:', data.attempt_id);
+      }
     } catch (error) {
       console.error('Error starting attempt:', error);
     }
+  };
+
+  // Helper function to check if a string is purely numeric
+  const isNumeric = (str: string): boolean => {
+    // Remove spaces and check if the string contains only digits, dots, commas, and negative signs
+    const cleaned = str.trim();
+    // Check if it's purely numeric (digits, decimal separators, negative sign)
+    return /^-?\d+([.,]\d+)?$/.test(cleaned);
+  };
+
+  // Helper function to sanitize numeric input
+  const sanitizeNumericAnswer = (answer: string): string => {
+    return answer.trim().replace(/\s/g, '').replace(',', '.');
   };
 
   const checkAnswer = async () => {
@@ -149,50 +190,75 @@ const PracticeByNumberEgeProfMath = () => {
     }
 
     try {
-      // Determine if the answer is correct
-      const normalizedUserAnswer = userAnswer.trim().toLowerCase().replace(/\s+/g, '');
-      const normalizedCorrectAnswer = currentQuestion.answer.trim().toLowerCase().replace(/\s+/g, '');
-      const isCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
+      const correctAnswer = currentQuestion.answer;
+      let isCorrect = false;
+
+      // Check if the correct answer is numeric
+      if (isNumeric(correctAnswer)) {
+        // Simple numeric comparison with sanitization
+        const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
+        const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
+        isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
+        
+        console.log('Numeric answer check:', {
+          user: sanitizedUserAnswer,
+          correct: sanitizedCorrectAnswer,
+          isCorrect
+        });
+      } else {
+        // Use OpenRouter API for non-numeric answers
+        console.log('Non-numeric answer detected, using OpenRouter API');
+        
+        const { data, error } = await supabase.functions.invoke('check-non-numeric-answer', {
+          body: {
+            student_answer: userAnswer.trim(),
+            correct_answer: correctAnswer,
+            problem_text: currentQuestion.problem_text
+          }
+        });
+
+        if (error) {
+          console.error('Error checking non-numeric answer:', error);
+          
+          // Check if there's a retry message from the API
+          if (data?.retry_message) {
+            toast.error(data.retry_message);
+          } else {
+            toast.error('Ошибка при проверке ответа. Пожалуйста, попробуйте ещё раз.');
+          }
+          return;
+        }
+
+        if (data?.retry_message) {
+          toast.error(data.retry_message);
+          return;
+        }
+
+        isCorrect = data?.is_correct || false;
+        console.log('OpenRouter API result:', { isCorrect });
+      }
+
+      // Call check-text-answer function for logging purposes
+      const { data: logData, error: logError } = await supabase.functions.invoke('check-text-answer', {
+        body: {
+          user_id: user.id,
+          question_id: currentQuestion.question_id,
+          submitted_answer: userAnswer.trim()
+        }
+      });
+
+      if (logError) {
+        console.error('Error logging answer check:', logError);
+      }
 
       setIsCorrect(isCorrect);
       setIsAnswered(true);
 
-      // Update the current attempt with answer correctness and duration
-      if (currentAttemptId && attemptStartTime) {
-        const duration = (new Date().getTime() - attemptStartTime.getTime()) / 1000;
-        
-        const { error: updateError } = await supabase
-          .from('student_activity')
-          .update({
-            is_correct: isCorrect,
-            duration_answer: duration
-          })
-          .eq('attempt_id', currentAttemptId);
+      // Update student_activity directly instead of using failing edge function
+      await updateStudentActivity(isCorrect, 0);
 
-        if (updateError) {
-          console.error('Error updating attempt:', updateError);
-        }
-
-        // Call handle-submission with course_id=3
-        const submissionData = {
-          user_id: user.id,
-          question_id: currentQuestion.question_id,
-          attempt_id: currentAttemptId,
-          finished_or_not: true,
-          duration: duration,
-          course_id: '3' // EGE Prof Math course
-        };
-
-        const { data: submissionResult, error: submissionError } = await supabase.functions.invoke('handle-submission', {
-          body: submissionData
-        });
-
-        if (submissionError) {
-          console.error('Error in handle-submission:', submissionError);
-        } else {
-          console.log('Handle submission completed:', submissionResult);
-        }
-      }
+      // Call handle-submission to update mastery data
+      await submitToHandleSubmission(isCorrect);
 
       // Award streak points immediately (regardless of correctness)
       const reward = calculateStreakReward(currentQuestion.difficulty);
@@ -220,48 +286,141 @@ const PracticeByNumberEgeProfMath = () => {
     }
   };
 
+  // Get latest student_activity data and submit to handle_submission
+  const submitToHandleSubmission = async (isCorrect: boolean) => {
+    if (!user) return;
+
+    try {
+      // Get latest student_activity row for current user
+      const { data: activityData, error: activityError } = await supabase
+        .from('student_activity')
+        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (activityError || !activityData) {
+        console.error('Error getting latest activity:', activityError);
+        return;
+      }
+
+      // Create submission_data dictionary
+      const submissionData = {
+        user_id: user.id,
+        question_id: activityData.question_id,
+        attempt_id: activityData.attempt_id,
+        finished_or_not: activityData.finished_or_not,
+        is_correct: isCorrect,
+        duration: activityData.duration_answer,
+        scores_fipi: activityData.scores_fipi
+      };
+
+      // Call handle_submission function with course_id=3
+      const { data, error } = await supabase.functions.invoke('handle-submission', {
+        body: { 
+          course_id: '3',
+          submission_data: submissionData
+        }
+      });
+
+      if (error) {
+        console.error('Error in handle-submission:', error);
+        toast.error('Ошибка при обработке ответа');
+        return;
+      }
+
+      console.log('Handle submission completed:', data);
+    } catch (error) {
+      console.error('Error in submitToHandleSubmission:', error);
+    }
+  };
+
+  // Update student_activity directly with answer results
+  const updateStudentActivity = async (isCorrect: boolean, scores: number, isSkipped: boolean = false) => {
+    if (!user || !currentAttemptId) return;
+
+    try {
+      // Calculate duration from attempt start time
+      const now = new Date();
+      const startTime = attemptStartTime || new Date();
+      const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
+
+      // Update the student_activity row
+      const { error: updateError } = await supabase
+        .from('student_activity')
+        .update({ 
+          duration_answer: durationInSeconds,
+          is_correct: isCorrect,
+          scores_fipi: scores,
+          finished_or_not: true
+        })
+        .eq('user_id', user.id)
+        .eq('attempt_id', currentAttemptId);
+
+      if (updateError) {
+        console.error('Error updating student_activity:', updateError);
+        return;
+      }
+
+      console.log(`Updated student_activity: correct=${isCorrect}, scores=${scores}, duration=${durationInSeconds}s`);
+    } catch (error) {
+      console.error('Error in updateStudentActivity:', error);
+    }
+  };
+
 
   // Handle skipping a question
   const skipQuestion = async () => {
     if (!currentQuestion) return;
 
-    // If user is authenticated, update current attempt and submit
-    if (user && currentAttemptId && attemptStartTime) {
+    // If user is authenticated, get latest activity data and calculate duration
+    if (user) {
       try {
-        // Calculate duration
-        const duration = (new Date().getTime() - attemptStartTime.getTime()) / 1000;
-
-        // Update the current attempt
-        const { error: updateError } = await supabase
+        // Get latest student_activity row for current user
+        const { data: activityData, error: activityError } = await supabase
           .from('student_activity')
-          .update({ 
-            duration_answer: duration,
-            is_correct: false // skipped questions are marked as incorrect
-          })
-          .eq('attempt_id', currentAttemptId);
+          .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi, answer_time_start')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .single();
 
-        if (updateError) {
-          console.error('Error updating attempt for skip:', updateError);
+        if (activityError || !activityData) {
+          console.error('Error getting latest activity for skip:', activityError);
         } else {
-          // Call handle-submission with course_id=3
+          // Calculate duration between now and answer_time_start
+          const now = new Date();
+          const startTime = new Date(activityData.answer_time_start);
+          const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
+
+          // Update the duration_answer column for this row
+          const { error: updateError } = await supabase
+            .from('student_activity')
+            .update({ duration_answer: durationInSeconds })
+            .eq('user_id', user.id)
+            .eq('attempt_id', activityData.attempt_id);
+
+          if (updateError) {
+            console.error('Error updating duration for skip:', updateError);
+          }
+
+          // Create submission_data dictionary for skip
           const submissionData = {
             user_id: user.id,
-            question_id: currentQuestion.question_id,
-            attempt_id: currentAttemptId,
-            finished_or_not: true,
-            duration: duration,
-            course_id: '3' // EGE Prof Math course
+            question_id: activityData.question_id,
+            attempt_id: activityData.attempt_id,
+            finished_or_not: activityData.finished_or_not,
+            duration: durationInSeconds,
+            scores_fipi: activityData.scores_fipi,
+            course_id: '3'
           };
 
-          const { data, error } = await supabase.functions.invoke('handle-submission', {
-            body: submissionData
-          });
+          // Mark as skipped - not correct, not answered
+          await updateStudentActivity(false, 0, true);
 
-          if (error) {
-            console.error('Error in handle-submission for skip:', error);
-          } else {
-            console.log('Question skipped successfully:', data);
-          }
+          // Call handle-submission to update mastery data for skip
+          await submitToHandleSubmission(false);
         }
       } catch (error) {
         console.error('Error skipping question:', error);
@@ -302,6 +461,109 @@ const PracticeByNumberEgeProfMath = () => {
     } else {
       toast.success("Все вопросы завершены!");
     }
+  };
+
+  // Photo attachment functionality
+  const handlePhotoAttachment = async () => {
+    if (!user) {
+      setShowAuthRequiredMessage(true);
+      setTimeout(() => setShowAuthRequiredMessage(false), 5000);
+      return;
+    }
+
+    try {
+      // Check if user has telegram_user_id
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('telegram_user_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking telegram connection:', error);
+        toast.error('Ошибка при проверке подключения Telegram');
+        return;
+      }
+
+      if (!profile?.telegram_user_id) {
+        setShowTelegramNotConnected(true);
+      } else {
+        setShowUploadPrompt(true);
+      }
+    } catch (error) {
+      console.error('Error in handlePhotoAttachment:', error);
+      toast.error('Ошибка при обработке запроса');
+    }
+  };
+
+  const handlePhotoCheck = async () => {
+    if (!user || !currentQuestion) return;
+
+    setIsProcessingPhoto(true);
+    setShowUploadPrompt(false);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('check-photo-solution', {
+        body: {
+          user_id: user.id,
+          problem_text: currentQuestion.problem_text,
+          solution_text: currentQuestion.solution_text
+        }
+      });
+
+      if (error) {
+        console.error('Error checking photo solution:', error);
+        toast.error('Ошибка при проверке фото');
+        return;
+      }
+
+      // Extract feedback and scores from response
+      const feedback = data?.data?.feedback || 'Нет обратной связи';
+      const scores = data?.data?.scores || 0;
+
+      setPhotoFeedback(feedback);
+      setPhotoScores(scores);
+      setShowPhotoDialog(true);
+
+      // Update student activity with photo results
+      await updateStudentActivity(scores > 0, scores);
+
+      // Call handle-submission to update mastery data
+      await submitToHandleSubmission(scores > 0);
+
+      // Award streak points
+      const reward = calculateStreakReward(currentQuestion.difficulty);
+      const currentStreakInfo = await getCurrentStreakData(user.id);
+      
+      if (currentStreakInfo) {
+        setStreakData({
+          currentMinutes: currentStreakInfo.todayMinutes,
+          targetMinutes: currentStreakInfo.goalMinutes,
+          addedMinutes: reward.minutes
+        });
+        setShowStreakAnimation(true);
+      }
+      
+      await awardStreakPoints(user.id, reward);
+
+      if (scores > 0) {
+        toast.success(`Фото проверено! Баллы: ${scores}. +${reward.minutes} мин к дневной цели.`);
+      } else {
+        toast.error(`Решение не засчитано. +${reward.minutes} мин к дневной цели за попытку.`);
+      }
+
+    } catch (error) {
+      console.error('Error in handlePhotoCheck:', error);
+      toast.error('Ошибка при проверке фото');
+    } finally {
+      setIsProcessingPhoto(false);
+    }
+  };
+
+  const closePhotoDialog = () => {
+    setShowPhotoDialog(false);
+    setPhotoFeedback("");
+    setPhotoScores(null);
   };
 
   const questionNumbers = Array.from({ length: 19 }, (_, i) => (i + 1).toString());
@@ -395,23 +657,12 @@ const PracticeByNumberEgeProfMath = () => {
                       </div>
                       <Button
                         variant="outline"
-                        onClick={() => {
-                          const input = document.createElement('input');
-                          input.type = 'file';
-                          input.accept = 'image/*';
-                          input.onchange = async (e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0];
-                            if (file && user && currentQuestion) {
-                              // TODO: Implement photo processing
-                              toast.info('Обработка фото пока не реализована');
-                            }
-                          };
-                          input.click();
-                        }}
+                        onClick={handlePhotoAttachment}
                         className="w-full"
                         disabled={isAnswered}
                       >
-                        📷 Прикрепить Фото
+                        <Camera className="w-4 h-4 mr-2" />
+                        Прикрепить Фото
                       </Button>
                     </div>
                   ) : (
@@ -542,6 +793,86 @@ const PracticeByNumberEgeProfMath = () => {
           addedMinutes={streakData.addedMinutes}
         />
       )}
+
+      {/* Photo Feedback Dialog */}
+      <Dialog open={showPhotoDialog} onOpenChange={closePhotoDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Camera className="w-5 h-5" />
+              Результат проверки фото
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="font-medium text-sm text-gray-700 mb-2">Обратная связь:</p>
+              <p className="text-sm">{photoFeedback}</p>
+            </div>
+            {photoScores !== null && (
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <p className="font-medium text-sm text-blue-700 mb-1">Полученные баллы:</p>
+                <p className="text-lg font-bold text-blue-800">{photoScores}</p>
+              </div>
+            )}
+            <Button onClick={closePhotoDialog} className="w-full">
+              Понятно
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Telegram Not Connected Dialog */}
+      <Dialog open={showTelegramNotConnected} onOpenChange={setShowTelegramNotConnected}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Telegram не подключен</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Для использования функции прикрепления фото необходимо подключить Telegram аккаунт в настройках профиля.
+            </p>
+            <Button 
+              onClick={() => setShowTelegramNotConnected(false)} 
+              className="w-full"
+            >
+              Понятно
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Prompt Dialog */}
+      <Dialog open={showUploadPrompt} onOpenChange={setShowUploadPrompt}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Camera className="w-5 h-5" />
+              Прикрепление фото
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Отправьте фото вашего решения в Telegram боте для автоматической проверки.
+            </p>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handlePhotoCheck}
+                disabled={isProcessingPhoto}
+                className="flex-1"
+              >
+                {isProcessingPhoto ? 'Обработка...' : 'Проверить фото'}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowUploadPrompt(false)}
+                className="flex-1"
+              >
+                Отмена
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
