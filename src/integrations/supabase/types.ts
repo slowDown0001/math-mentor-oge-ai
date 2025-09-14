@@ -660,6 +660,7 @@ export type Database = {
           corrected: string | null
           difficulty: string | null
           fipi_id: string | null
+          number_id: string | null
           problem_image: string | null
           problem_link: string | null
           problem_number_type: number | null
@@ -684,6 +685,7 @@ export type Database = {
           corrected?: string | null
           difficulty?: string | null
           fipi_id?: string | null
+          number_id?: string | null
           problem_image?: string | null
           problem_link?: string | null
           problem_number_type?: number | null
@@ -708,6 +710,7 @@ export type Database = {
           corrected?: string | null
           difficulty?: string | null
           fipi_id?: string | null
+          number_id?: string | null
           problem_image?: string | null
           problem_link?: string | null
           problem_number_type?: number | null
@@ -1955,7 +1958,7 @@ export type Database = {
         Row: {
           alpha: number
           beta: number
-          course_id: string | null
+          course_id: string
           created_at: string | null
           cusum_s: number | null
           entity_id: number
@@ -1967,7 +1970,7 @@ export type Database = {
         Insert: {
           alpha: number
           beta: number
-          course_id?: string | null
+          course_id: string
           created_at?: string | null
           cusum_s?: number | null
           entity_id: number
@@ -1979,13 +1982,46 @@ export type Database = {
         Update: {
           alpha?: number
           beta?: number
-          course_id?: string | null
+          course_id?: string
           created_at?: string | null
           cusum_s?: number | null
           entity_id?: number
           entity_type?: string
           status?: string | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      student_mastery_status: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          entity_id: number
+          entity_type: string
+          id: string
+          last_updated: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          entity_id: number
+          entity_type: string
+          id?: string
+          last_updated?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          entity_id?: number
+          entity_type?: string
+          id?: string
+          last_updated?: string
+          status?: string | null
           user_id?: string
         }
         Relationships: []
