@@ -4,6 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 interface RequestBody {
   user_id: string
   problem_number_types: number[]
+  course_id?: string
 }
 
 Deno.serve(async (req) => {
@@ -19,7 +20,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { user_id, problem_number_types }: RequestBody = await req.json()
+    const { user_id, problem_number_types, course_id }: RequestBody = await req.json()
 
     // Validate required parameters
     if (!user_id || !problem_number_types || !Array.isArray(problem_number_types)) {
@@ -69,7 +70,8 @@ Deno.serve(async (req) => {
             entity_id: pt_id,
             t_current,
             t_attempt,
-            lambda_decay: 0.01
+            lambda_decay: 0.01,
+            course_id: course_id || 'default'
           }
         })
 

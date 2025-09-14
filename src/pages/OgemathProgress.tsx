@@ -46,7 +46,8 @@ const OgemathProgress: React.FC = () => {
       const problemTypesResponse = await supabase.functions.invoke('compute-problem-number-type-progress-bars', {
         body: {
           user_id: user.id,
-          problem_number_types: problemNumberTypes
+          problem_number_types: problemNumberTypes,
+          course_id: '1'
         }
       });
 
