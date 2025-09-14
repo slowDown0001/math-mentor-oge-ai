@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
         {
           body: { 
             topic_code,
-            course_type: 'ogemath',
+            course_id,
             origin: clientOrigin
           }
         }
