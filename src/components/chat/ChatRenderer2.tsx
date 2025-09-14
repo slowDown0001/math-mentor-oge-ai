@@ -9,6 +9,12 @@ import remarkMath from 'remark-math';
 const normalizeMathDelimiters = (input: string): string => {
   let normalized = input;
 
+  // Replace \[...\] with $$...$$ for display math (LaTeX standard)
+  normalized = normalized.replace(/\\\[([\s\S]*?)\\\]/g, '$$$$1$$');
+
+  // Replace \(...\) with $...$ for inline math (LaTeX standard)
+  normalized = normalized.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
+
   // Replace [math]...[/math] with $$...$$
   normalized = normalized.replace(/\[math\]([\s\S]*?)\[\/math\]/g, '$$$$1$$');
 
