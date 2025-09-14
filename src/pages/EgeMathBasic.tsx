@@ -6,8 +6,9 @@ import CourseChatMessages from "@/components/chat/CourseChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMathJaxInitializer } from "@/hooks/useMathJaxInitializer";
+import { saveChatLog, loadChatHistory } from "@/services/chatLogsService";
 
 const EgeMathBasic = () => {
   const navigate = useNavigate();
@@ -15,12 +16,70 @@ const EgeMathBasic = () => {
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
   
+  // Chat history state
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyOffset, setHistoryOffset] = useState(0);
+  const [hasMoreHistory, setHasMoreHistory] = useState(true);
+  const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
+  
   // Initialize MathJax
   useMathJaxInitializer();
 
-  // Initialize welcome messages if chat is empty
+  // Initialize chat history or welcome messages
   useEffect(() => {
-    if (messages.length === 0) {
+    if (!isHistoryLoaded && user) {
+      loadInitialHistory();
+    }
+  }, [user, isHistoryLoaded]);
+
+  const loadInitialHistory = async () => {
+    if (!user) return;
+
+    try {
+      setIsLoadingHistory(true);
+      const history = await loadChatHistory('2', 3, 0);
+      
+      if (history.length > 0) {
+        // Convert chat logs to messages format
+        const historyMessages = [];
+        for (const log of history.reverse()) {
+          historyMessages.push({
+            id: historyMessages.length + 1,
+            text: log.user_message,
+            isUser: true,
+            timestamp: new Date(log.time_of_user_message)
+          });
+          historyMessages.push({
+            id: historyMessages.length + 1,
+            text: log.response,
+            isUser: false,
+            timestamp: new Date(log.time_of_response)
+          });
+        }
+        setMessages(historyMessages);
+        setHistoryOffset(3);
+        setHasMoreHistory(history.length === 3);
+      } else {
+        // Show welcome messages if no history
+        setMessages([
+          {
+            id: 1,
+            text: `Привет, ${userName}! Я твой ИИ-репетитор по ЕГЭ базовой математике. Помогу тебе освоить все необходимые темы!`,
+            isUser: false,
+            timestamp: new Date()
+          },
+          {
+            id: 2,
+            text: "Хочешь потренироваться решать задачи или изучить теорию?",
+            isUser: false,
+            timestamp: new Date()
+          }
+        ]);
+        setHasMoreHistory(false);
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+      // Fallback to welcome messages on error
       setMessages([
         {
           id: 1,
@@ -35,8 +94,50 @@ const EgeMathBasic = () => {
           timestamp: new Date()
         }
       ]);
+      setHasMoreHistory(false);
+    } finally {
+      setIsLoadingHistory(false);
+      setIsHistoryLoaded(true);
     }
-  }, [messages.length, userName, setMessages]);
+  };
+
+  const loadMoreHistory = async () => {
+    if (!user || isLoadingHistory || !hasMoreHistory) return;
+
+    try {
+      setIsLoadingHistory(true);
+      const history = await loadChatHistory('2', 3, historyOffset);
+      
+      if (history.length > 0) {
+        // Convert chat logs to messages format and prepend to existing messages
+        const historyMessages = [];
+        for (const log of history.reverse()) {
+          historyMessages.push({
+            id: Date.now() + historyMessages.length,
+            text: log.user_message,
+            isUser: true,
+            timestamp: new Date(log.time_of_user_message)
+          });
+          historyMessages.push({
+            id: Date.now() + historyMessages.length + 1,
+            text: log.response,
+            isUser: false,
+            timestamp: new Date(log.time_of_response)
+          });
+        }
+        setMessages([...historyMessages, ...messages]);
+        setHistoryOffset(prev => prev + 3);
+        setHasMoreHistory(history.length === 3);
+      } else {
+        setHasMoreHistory(false);
+      }
+    } catch (error) {
+      console.error('Error loading more chat history:', error);
+      setHasMoreHistory(false);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
 
   const handleSendMessage = async (userInput: string) => {
     // Add user message
@@ -54,6 +155,15 @@ const EgeMathBasic = () => {
       // Send message to AI and get response
       const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
+
+      // Save interaction to chat logs with course_id='2'
+      if (user) {
+        try {
+          await saveChatLog(userInput, aiResponse.text, '2');
+        } catch (error) {
+          console.error('Error saving chat log:', error);
+        }
+      }
     } finally {
       setIsTyping(false);
     }
@@ -159,7 +269,13 @@ const EgeMathBasic = () => {
       {/* Chat window */}
       <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-6 bottom-32">
         <div id="chat-window" className="relative h-full bg-white/40 backdrop-blur-[12px] rounded-2xl shadow-2xl overflow-hidden">
-          <CourseChatMessages messages={messages} isTyping={isTyping} />
+          <CourseChatMessages 
+            messages={messages} 
+            isTyping={isTyping}
+            onLoadMoreHistory={loadMoreHistory}
+            isLoadingHistory={isLoadingHistory}
+            hasMoreHistory={hasMoreHistory}
+          />
         </div>
       </div>
 
