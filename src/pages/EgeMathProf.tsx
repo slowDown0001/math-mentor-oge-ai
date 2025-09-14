@@ -172,8 +172,7 @@ const EgeMathProf = () => {
   };
 
   const handleProgressClick = () => {
-    // TODO: Add progress functionality
-    console.log("Progress clicked");
+    navigate("/egemathprof-progress");
   };
 
   return (

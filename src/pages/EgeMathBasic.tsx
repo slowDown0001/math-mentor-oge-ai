@@ -182,8 +182,7 @@ const EgeMathBasic = () => {
   };
 
   const handleProgressClick = () => {
-    // TODO: Add progress functionality
-    console.log("Progress clicked");
+    navigate("/egemathbasic-progress");
   };
 
   return (
