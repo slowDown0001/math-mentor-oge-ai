@@ -111,10 +111,10 @@ const OgemathProgress: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Загрузка прогресса...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-muted-foreground">Загрузка прогресса...</p>
         </div>
       </div>
     );
@@ -122,13 +122,13 @@ const OgemathProgress: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="p-6 text-center">
-            <p className="text-red-600 mb-4">{error}</p>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center space-y-4">
+            <p className="text-destructive">{error}</p>
             <button
               onClick={fetchProgressData}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
             >
               Попробовать снова
             </button>
@@ -139,91 +139,68 @@ const OgemathProgress: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+      <div className="bg-card border-b">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
             <button
               onClick={() => navigate('/db2')}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4" />
               <span>Назад</span>
             </button>
-            <h1 className="text-xl font-semibold text-gray-900">Прогресс обучения</h1>
+            <h1 className="text-lg font-semibold">Прогресс обучения</h1>
             <div className="w-16"></div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Общий прогресс типов задач</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{calculateOverallProgress(problemTypesProgress)}%</div>
-              <Progress value={calculateOverallProgress(problemTypesProgress)} className="mt-2" />
-              <p className="text-xs text-muted-foreground mt-2">
-                {problemTypesProgress.length} типов задач отслеживается
-              </p>
-            </CardContent>
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="p-4">
+            <div className="text-center space-y-2">
+              <div className="text-2xl font-bold text-primary">{calculateOverallProgress(problemTypesProgress)}%</div>
+              <div className="text-sm text-muted-foreground">Типы задач</div>
+              <Progress value={calculateOverallProgress(problemTypesProgress)} className="h-2" />
+            </div>
           </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Общий прогресс тем</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{calculateOverallProgress(topicMastery)}%</div>
-              <Progress value={calculateOverallProgress(topicMastery)} className="mt-2" />
-              <p className="text-xs text-muted-foreground mt-2">
-                {topicMastery.length} тем отслеживается
-              </p>
-            </CardContent>
+          <Card className="p-4">
+            <div className="text-center space-y-2">
+              <div className="text-2xl font-bold text-primary">{calculateOverallProgress(topicMastery)}%</div>
+              <div className="text-sm text-muted-foreground">Темы</div>
+              <Progress value={calculateOverallProgress(topicMastery)} className="h-2" />
+            </div>
           </Card>
         </div>
 
         {/* Problem Types Progress */}
-        <Card className="mb-6">
+        <Card>
           <Collapsible open={problemTypesOpen} onOpenChange={setProblemTypesOpen}>
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Прогресс по типам задач</CardTitle>
-                  {problemTypesOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  <CardTitle className="text-base">Прогресс по типам задач</CardTitle>
+                  {problemTypesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </div>
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <CardContent className="space-y-4">
+              <CardContent className="pt-0 space-y-3">
                 {problemTypesProgress.map((item, index) => {
                   const key = Object.keys(item)[0];
                   const value = item[key];
                   const percentage = Math.round(value * 100);
                   
                   return (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Задача номер {key}</span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-600">{percentage}%</span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            value >= 0.8 ? 'bg-green-100 text-green-800' :
-                            value >= 0.6 ? 'bg-yellow-100 text-yellow-800' :
-                            value >= 0.4 ? 'bg-orange-100 text-orange-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {getProgressStatus(value)}
-                          </span>
-                        </div>
+                    <div key={index} className="flex items-center justify-between py-2">
+                      <span className="text-sm">№{key}</span>
+                      <div className="flex items-center gap-3 flex-1 ml-4">
+                        <Progress value={percentage} className="h-2 flex-1" />
+                        <span className="text-sm font-medium min-w-[3rem] text-right">{percentage}%</span>
                       </div>
-                      <Progress value={percentage} className="h-2" />
                     </div>
                   );
                 })}
@@ -233,40 +210,30 @@ const OgemathProgress: React.FC = () => {
         </Card>
 
         {/* Topic Mastery Progress */}
-        <Card className="mb-6">
+        <Card>
           <Collapsible open={topicMasteryOpen} onOpenChange={setTopicMasteryOpen}>
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Прогресс по темам</CardTitle>
-                  {topicMasteryOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  <CardTitle className="text-base">Прогресс по темам</CardTitle>
+                  {topicMasteryOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </div>
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <CardContent className="space-y-4">
+              <CardContent className="pt-0 space-y-3">
                 {topicMastery.map((item, index) => {
                   const key = Object.keys(item)[0];
                   const value = item[key];
                   const percentage = Math.round(value * 100);
                   
                   return (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Тема {key}</span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-600">{percentage}%</span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            value >= 0.8 ? 'bg-green-100 text-green-800' :
-                            value >= 0.6 ? 'bg-yellow-100 text-yellow-800' :
-                            value >= 0.4 ? 'bg-orange-100 text-orange-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {getProgressStatus(value)}
-                          </span>
-                        </div>
+                    <div key={index} className="flex items-center justify-between py-2">
+                      <span className="text-sm">{key}</span>
+                      <div className="flex items-center gap-3 flex-1 ml-4">
+                        <Progress value={percentage} className="h-2 flex-1" />
+                        <span className="text-sm font-medium min-w-[3rem] text-right">{percentage}%</span>
                       </div>
-                      <Progress value={percentage} className="h-2" />
                     </div>
                   );
                 })}
