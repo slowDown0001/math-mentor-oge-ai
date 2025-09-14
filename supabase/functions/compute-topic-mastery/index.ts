@@ -102,7 +102,8 @@ Deno.serve(async (req) => {
             body: {
               user_id,
               entity_type: 'skill',
-              entity_id: skillId
+              entity_id: skillId,
+              course_id
             }
           }
         )
