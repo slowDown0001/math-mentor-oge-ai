@@ -65,6 +65,39 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_logs: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          response: string
+          time_of_response: string
+          time_of_user_message: string
+          user_id: string
+          user_message: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          response: string
+          time_of_response?: string
+          time_of_user_message?: string
+          user_id: string
+          user_message: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          response?: string
+          time_of_response?: string
+          time_of_user_message?: string
+          user_id?: string
+          user_message?: string
+        }
+        Relationships: []
+      }
       copy: {
         Row: {
           answer: string | null

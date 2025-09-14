@@ -6,8 +6,9 @@ import CourseChatMessages from "@/components/chat/CourseChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useKaTeXInitializer } from "@/hooks/useMathJaxInitializer";
+import { loadChatHistory, saveChatLog, type ChatLog } from "@/services/chatLogsService";
 
 const OgeMath = () => {
   const navigate = useNavigate();
@@ -15,28 +16,123 @@ const OgeMath = () => {
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
   
+  // State for chat history pagination
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyOffset, setHistoryOffset] = useState(0);
+  const [hasMoreHistory, setHasMoreHistory] = useState(true);
+  const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
+  
   // Initialize KaTeX
   useKaTeXInitializer();
 
-  // Initialize welcome messages if chat is empty
+  // Load initial chat history and welcome messages
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([
-        {
-          id: 1,
-          text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
-          isUser: false,
-          timestamp: new Date()
-        },
-        {
-          id: 2,
-          text: "Хочешь пройти тренировочные задания или разобрать конкретную тему?",
-          isUser: false,
-          timestamp: new Date()
+    const loadInitialHistory = async () => {
+      if (user && !isHistoryLoaded) {
+        try {
+          const history = await loadChatHistory('1', 3, 0);
+          if (history.length > 0) {
+            // Convert chat logs to messages format and reverse to show chronologically
+            const historyMessages = history.reverse().flatMap((log, index) => [
+              {
+                id: index * 2 + 1,
+                text: log.user_message,
+                isUser: true,
+                timestamp: new Date(log.time_of_user_message)
+              },
+              {
+                id: index * 2 + 2,
+                text: log.response,
+                isUser: false,
+                timestamp: new Date(log.time_of_response)
+              }
+            ]);
+            
+            setMessages(historyMessages);
+            setHistoryOffset(3);
+            setHasMoreHistory(history.length === 3);
+          } else {
+            // Set welcome messages if no history
+            setMessages([
+              {
+                id: 1,
+                text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
+                isUser: false,
+                timestamp: new Date()
+              },
+              {
+                id: 2,
+                text: "Хочешь пройти тренировочные задания или разобрать конкретную тему?",
+                isUser: false,
+                timestamp: new Date()
+              }
+            ]);
+            setHasMoreHistory(false);
+          }
+          setIsHistoryLoaded(true);
+        } catch (error) {
+          console.error('Error loading chat history:', error);
+          // Fallback to welcome messages
+          setMessages([
+            {
+              id: 1,
+              text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
+              isUser: false,
+              timestamp: new Date()
+            },
+            {
+              id: 2,
+              text: "Хочешь пройти тренировочные задания или разобрать конкретную тему?",
+              isUser: false,
+              timestamp: new Date()
+            }
+          ]);
+          setIsHistoryLoaded(true);
+          setHasMoreHistory(false);
         }
-      ]);
+      }
+    };
+
+    loadInitialHistory();
+  }, [user, userName, setMessages, isHistoryLoaded]);
+
+  const loadMoreHistory = async () => {
+    if (!hasMoreHistory || isLoadingHistory) return;
+    
+    setIsLoadingHistory(true);
+    try {
+      const history = await loadChatHistory('1', 3, historyOffset);
+      if (history.length > 0) {
+        // Convert chat logs to messages format and reverse to show chronologically
+        const historyMessages = history.reverse().flatMap((log, index) => [
+          {
+            id: (historyOffset + index) * 2 + 1,
+            text: log.user_message,
+            isUser: true,
+            timestamp: new Date(log.time_of_user_message)
+          },
+          {
+            id: (historyOffset + index) * 2 + 2,
+            text: log.response,
+            isUser: false,
+            timestamp: new Date(log.time_of_response)
+          }
+        ]);
+        
+        // Prepend history messages to current messages
+        setMessages([...historyMessages, ...messages]);
+        setHistoryOffset(prev => prev + 3);
+        setHasMoreHistory(history.length === 3);
+      } else {
+        setHasMoreHistory(false);
+      }
+    } catch (error) {
+      console.error('Error loading more history:', error);
+      setHasMoreHistory(false);
+    } finally {
+      setIsLoadingHistory(false);
     }
-  }, [messages.length, userName, setMessages]);
+  };
 
   const handleSendMessage = async (userInput: string) => {
     // Add user message
@@ -54,6 +150,11 @@ const OgeMath = () => {
       // Send message to AI and get response
       const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
+      
+      // Save chat interaction to database
+      await saveChatLog(userInput, aiResponse.text, '1');
+    } catch (error) {
+      console.error('Error saving chat log:', error);
     } finally {
       setIsTyping(false);
     }
@@ -157,7 +258,13 @@ const OgeMath = () => {
       {/* Chat window */}
       <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-6 bottom-32">
         <div id="chat-window" className="relative h-full bg-white/40 backdrop-blur-[12px] rounded-2xl shadow-2xl overflow-hidden">
-          <CourseChatMessages messages={messages} isTyping={isTyping} />
+          <CourseChatMessages 
+            messages={messages} 
+            isTyping={isTyping} 
+            onLoadMoreHistory={loadMoreHistory}
+            isLoadingHistory={isLoadingHistory}
+            hasMoreHistory={hasMoreHistory}
+          />
         </div>
       </div>
 
