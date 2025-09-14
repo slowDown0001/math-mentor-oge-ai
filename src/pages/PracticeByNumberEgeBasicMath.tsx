@@ -21,6 +21,7 @@ interface Question {
   answer: string;
   solution_text: string;
   difficulty?: string | number;
+  problem_number_type?: number;
 }
 
 const PracticeByNumberEgeBasicMath = () => {
@@ -55,14 +56,17 @@ const PracticeByNumberEgeBasicMath = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('egemathbase' as any)
-        .select('question_id, problem_text, answer, solution_text')
-        .eq('problem_number_type', parseInt(questionNumber))
+        .from('egemathbase')
+        .select('question_id, problem_text, answer, solution_text, problem_number_type')
+        .eq('problem_number_type', questionNumber)
         .order('question_id');
 
       if (error) throw error;
 
-      const filteredQuestions = (data || []) as unknown as Question[];
+      const filteredQuestions = (data || []).map(q => ({
+        ...q,
+        problem_number_type: parseInt(q.problem_number_type || '0')
+      }));
 
       setQuestions(filteredQuestions);
       setCurrentQuestionIndex(0);
@@ -100,12 +104,29 @@ const PracticeByNumberEgeBasicMath = () => {
     if (!user) return;
     
     try {
-      // Get question details first
-      const questionDetails = await supabase.functions.invoke('get-question-details', {
-        body: { question_id: questionId }
-      });
+      // Fetch question details to populate skills and topics
+      let skillsArray: number[] = [];
+      let topicsArray: string[] = [];
+      let problemNumberType = parseInt(selectedNumber || '1');
 
-      // Insert into student_activity table directly
+      try {
+        const { data: detailsResp, error: detailsErr } = await supabase.functions.invoke('get-question-details', {
+          body: { question_id: questionId, course_id: '2' }
+        });
+        if (detailsErr) {
+          console.warn('get-question-details error (will fallback):', detailsErr);
+        } else if (detailsResp?.data) {
+          skillsArray = Array.isArray(detailsResp.data.skills_list) ? detailsResp.data.skills_list : [];
+          topicsArray = Array.isArray(detailsResp.data.topics_list) ? detailsResp.data.topics_list : [];
+          if (detailsResp.data.problem_number_type) {
+            problemNumberType = parseInt(detailsResp.data.problem_number_type.toString(), 10);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to fetch question details, proceeding without skills/topics:', e);
+      }
+
+      // Insert into student_activity table with skills and topics
       const { data, error } = await supabase
         .from('student_activity')
         .insert({
@@ -113,9 +134,12 @@ const PracticeByNumberEgeBasicMath = () => {
           question_id: questionId,
           answer_time_start: new Date().toISOString(),
           finished_or_not: false,
-          problem_number_type: parseInt(selectedNumber) || 0,
-          skills: questionDetails?.data?.skills || [],
-          topics: questionDetails?.data?.topics || []
+          problem_number_type: problemNumberType,
+          is_correct: null,
+          duration_answer: null,
+          scores_fipi: null,
+          skills: skillsArray.length ? skillsArray : null,
+          topics: topicsArray.length ? topicsArray : null
         })
         .select('attempt_id')
         .single();
@@ -125,12 +149,27 @@ const PracticeByNumberEgeBasicMath = () => {
         return;
       }
 
-      setCurrentAttemptId(data?.attempt_id);
-      setAttemptStartTime(new Date());
-      console.log('Started attempt:', data?.attempt_id);
+      if (data) {
+        setCurrentAttemptId(data.attempt_id);
+        setAttemptStartTime(new Date());
+        console.log('Started attempt:', data.attempt_id);
+      }
     } catch (error) {
       console.error('Error starting attempt:', error);
     }
+  };
+
+  // Helper function to check if a string is purely numeric
+  const isNumeric = (str: string): boolean => {
+    // Remove spaces and check if the string contains only digits, dots, commas, and negative signs
+    const cleaned = str.trim();
+    // Check if it's purely numeric (digits, decimal separators, negative sign)
+    return /^-?\d+([.,]\d+)?$/.test(cleaned);
+  };
+
+  // Helper function to sanitize numeric input
+  const sanitizeNumericAnswer = (answer: string): string => {
+    return answer.trim().replace(/\s/g, '').replace(',', '.');
   };
 
   const checkAnswer = async () => {
@@ -145,13 +184,56 @@ const PracticeByNumberEgeBasicMath = () => {
     }
 
     try {
-      // Calculate duration
-      const endTime = new Date();
-      const startTime = attemptStartTime || endTime;
-      const durationInSeconds = (endTime.getTime() - startTime.getTime()) / 1000;
+      const correctAnswer = currentQuestion.answer;
+      let isCorrect = false;
 
-      // Call check-text-answer function
-      const { data, error } = await supabase.functions.invoke('check-text-answer', {
+      // Check if the correct answer is numeric
+      if (isNumeric(correctAnswer)) {
+        // Simple numeric comparison with sanitization
+        const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
+        const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
+        isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
+        
+        console.log('Numeric answer check:', {
+          user: sanitizedUserAnswer,
+          correct: sanitizedCorrectAnswer,
+          isCorrect
+        });
+      } else {
+        // Use OpenRouter API for non-numeric answers
+        console.log('Non-numeric answer detected, using OpenRouter API');
+        
+        const { data, error } = await supabase.functions.invoke('check-non-numeric-answer', {
+          body: {
+            student_answer: userAnswer.trim(),
+            correct_answer: correctAnswer,
+            problem_text: currentQuestion.problem_text
+          }
+        });
+
+        if (error) {
+          console.error('Error checking non-numeric answer:', error);
+          
+          // Check if there's a retry message from the API
+          if (data?.retry_message) {
+            toast.error(data.retry_message);
+          } else {
+            toast.error('Ошибка при проверке ответа. Пожалуйста, попробуйте ещё раз.');
+          }
+          return;
+        }
+
+        if (data?.retry_message) {
+          toast.error(data.retry_message);
+          return;
+        }
+
+        isCorrect = data?.is_correct || false;
+        console.log('OpenRouter API result:', { isCorrect });
+      }
+
+      // Call check-text-answer function for logging purposes
+      const { data: logData, error: logError } = await supabase.functions.invoke('check-text-answer', {
         body: {
           user_id: user.id,
           question_id: currentQuestion.question_id,
@@ -159,42 +241,18 @@ const PracticeByNumberEgeBasicMath = () => {
         }
       });
 
-      if (error) {
-        console.error('Error checking answer:', error);
-        toast.error('Ошибка при проверке ответа');
-        return;
+      if (logError) {
+        console.error('Error logging answer check:', logError);
       }
 
-      const isCorrect = data?.is_correct || false;
       setIsCorrect(isCorrect);
       setIsAnswered(true);
 
-      // Update student_activity with completion data
-      if (currentAttemptId) {
-        await supabase
-          .from('student_activity')
-          .update({
-            finished_or_not: true,
-            is_correct: isCorrect,
-            duration_answer: durationInSeconds
-          })
-          .eq('attempt_id', currentAttemptId);
-      }
+      // Update student_activity directly instead of using failing edge function
+      await updateStudentActivity(isCorrect, 0);
 
-      // Call handle-submission with course_id=2
-      const submissionData = {
-        user_id: user.id,
-        question_id: currentQuestion.question_id,
-        attempt_id: currentAttemptId,
-        finished_or_not: true,
-        duration: durationInSeconds,
-        scores_fipi: null,
-        course_id: 2
-      };
-
-      await supabase.functions.invoke('handle-submission', {
-        body: submissionData
-      });
+      // Call handle-submission to update mastery data
+      await submitToHandleSubmission(isCorrect);
 
       // Award streak points immediately (regardless of correctness)
       const reward = calculateStreakReward(currentQuestion.difficulty);
@@ -222,48 +280,141 @@ const PracticeByNumberEgeBasicMath = () => {
     }
   };
 
+  // Get latest student_activity data and submit to handle_submission
+  const submitToHandleSubmission = async (isCorrect: boolean) => {
+    if (!user) return;
+
+    try {
+      // Get latest student_activity row for current user
+      const { data: activityData, error: activityError } = await supabase
+        .from('student_activity')
+        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (activityError || !activityData) {
+        console.error('Error getting latest activity:', activityError);
+        return;
+      }
+
+      // Create submission_data dictionary
+      const submissionData = {
+        user_id: user.id,
+        question_id: activityData.question_id,
+        attempt_id: activityData.attempt_id,
+        finished_or_not: activityData.finished_or_not,
+        is_correct: isCorrect,
+        duration: activityData.duration_answer,
+        scores_fipi: activityData.scores_fipi
+      };
+
+      // Call handle_submission function with course_id=2
+      const { data, error } = await supabase.functions.invoke('handle-submission', {
+        body: { 
+          course_id: '2',
+          submission_data: submissionData
+        }
+      });
+
+      if (error) {
+        console.error('Error in handle-submission:', error);
+        toast.error('Ошибка при обработке ответа');
+        return;
+      }
+
+      console.log('Handle submission completed:', data);
+    } catch (error) {
+      console.error('Error in submitToHandleSubmission:', error);
+    }
+  };
+
+  // Update student_activity directly with answer results
+  const updateStudentActivity = async (isCorrect: boolean, scores: number, isSkipped: boolean = false) => {
+    if (!user || !currentAttemptId) return;
+
+    try {
+      // Calculate duration from attempt start time
+      const now = new Date();
+      const startTime = attemptStartTime || new Date();
+      const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
+
+      // Update the student_activity row
+      const { error: updateError } = await supabase
+        .from('student_activity')
+        .update({ 
+          duration_answer: durationInSeconds,
+          is_correct: isCorrect,
+          scores_fipi: scores,
+          finished_or_not: true
+        })
+        .eq('user_id', user.id)
+        .eq('attempt_id', currentAttemptId);
+
+      if (updateError) {
+        console.error('Error updating student_activity:', updateError);
+        return;
+      }
+
+      console.log(`Updated student_activity: correct=${isCorrect}, scores=${scores}, duration=${durationInSeconds}s`);
+    } catch (error) {
+      console.error('Error in updateStudentActivity:', error);
+    }
+  };
+
 
   // Handle skipping a question
   const skipQuestion = async () => {
     if (!currentQuestion) return;
 
-    // If user is authenticated, update current attempt and handle submission
-    if (user && currentAttemptId) {
+    // If user is authenticated, get latest activity data and calculate duration
+    if (user) {
       try {
-        // Calculate duration between now and attempt start
-        const endTime = new Date();
-        const startTime = attemptStartTime || endTime;
-        const durationInSeconds = (endTime.getTime() - startTime.getTime()) / 1000;
-
-        // Update student_activity with skip data
-        await supabase
+        // Get latest student_activity row for current user
+        const { data: activityData, error: activityError } = await supabase
           .from('student_activity')
-          .update({
-            finished_or_not: true,
-            is_correct: false,
-            duration_answer: durationInSeconds
-          })
-          .eq('attempt_id', currentAttemptId);
+          .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi, answer_time_start')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .single();
 
-        // Call handle-submission with course_id=2
-        const submissionData = {
-          user_id: user.id,
-          question_id: currentQuestion.question_id,
-          attempt_id: currentAttemptId,
-          finished_or_not: true,
-          duration: durationInSeconds,
-          scores_fipi: null,
-          course_id: 2
-        };
-
-        const { data, error } = await supabase.functions.invoke('handle-submission', {
-          body: submissionData
-        });
-
-        if (error) {
-          console.error('Error skipping question:', error);
+        if (activityError || !activityData) {
+          console.error('Error getting latest activity for skip:', activityError);
         } else {
-          console.log('Question skipped successfully:', data);
+          // Calculate duration between now and answer_time_start
+          const now = new Date();
+          const startTime = new Date(activityData.answer_time_start);
+          const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
+
+          // Update the duration_answer column for this row
+          const { error: updateError } = await supabase
+            .from('student_activity')
+            .update({ duration_answer: durationInSeconds })
+            .eq('user_id', user.id)
+            .eq('attempt_id', activityData.attempt_id);
+
+          if (updateError) {
+            console.error('Error updating duration for skip:', updateError);
+          }
+
+          // Create submission_data dictionary for skip
+          const submissionData = {
+            user_id: user.id,
+            question_id: activityData.question_id,
+            attempt_id: activityData.attempt_id,
+            finished_or_not: activityData.finished_or_not,
+            duration: durationInSeconds,
+            scores_fipi: activityData.scores_fipi,
+            course_id: '2'
+          };
+
+          // Mark as skipped - not correct, not answered
+          await updateStudentActivity(false, 0, true);
+
+          // Call handle-submission to update mastery data for skip
+          await submitToHandleSubmission(false);
         }
       } catch (error) {
         console.error('Error skipping question:', error);
