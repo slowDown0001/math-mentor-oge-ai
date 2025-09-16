@@ -7,6 +7,7 @@ import { CourseTreeCard } from '@/components/mydb3/CourseTreeCard';
 import { CourseSelectionModal } from '@/components/mydb3/CourseSelectionModal';
 import { useDashboardLogic } from '@/hooks/useDashboardLogic';
 import { COURSES, CourseId } from '@/lib/courses.registry';
+import { supabase } from '@/integrations/supabase/client';
 
 const MyDb3 = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,22 +37,27 @@ const MyDb3 = () => {
   };
 
   const handleDeleteCourses = async (courseIds: CourseId[]) => {
-    // Call the delete function from useDashboardLogic
-    const {
-      handleDeleteMode,
-      handleCourseSelection
-    } = useDashboardLogic();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    // Select the courses for deletion
-    for (const courseId of courseIds) {
-      handleCourseSelection(courseId, true);
+      // Call the database function for each course
+      for (const courseId of courseIds) {
+        const { error } = await supabase.rpc('delete_course_data', {
+          p_user_id: user.id,
+          p_course_id: courseId
+        });
+        
+        if (error) {
+          console.error('Error deleting course data:', error);
+        }
+      }
+      
+      // Refresh the page data
+      window.location.reload();
+    } catch (error) {
+      console.error('Error in handleDeleteCourses:', error);
     }
-
-    // Trigger deletion
-    await handleDeleteMode();
-    
-    // Refresh the page data
-    window.location.reload();
   };
 
   return (
