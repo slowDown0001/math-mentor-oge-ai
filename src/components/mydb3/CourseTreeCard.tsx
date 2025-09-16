@@ -5,8 +5,50 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Play, AlertCircle, RefreshCw, Calculator, Square, Triangle, Circle, Hexagon, Star, Zap, Target, BookOpen, Brain, Layers } from 'lucide-react';
+import { Play, AlertCircle, RefreshCw, Calculator, Square, Triangle, Circle, Hexagon, Star, Zap, Target, BookOpen, Brain, Layers, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Course, Topic } from '@/lib/courses.registry';
+
+// OGE Math Topics - 32 topics total
+const OGE_MATH_TOPICS = [
+  { topic_number: "1.1", topic_name: "Натуральные и целые числа" },
+  { topic_number: "1.2", topic_name: "Дроби и проценты" },
+  { topic_number: "1.3", topic_name: "Рациональные числа и арифметические действия" },
+  { topic_number: "1.4", topic_name: "Действительные числа" },
+  { topic_number: "1.5", topic_name: "Приближённые вычисления" },
+  { topic_number: "2.1", topic_name: "Буквенные выражения" },
+  { topic_number: "2.2", topic_name: "Степени" },
+  { topic_number: "2.3", topic_name: "Многочлены" },
+  { topic_number: "2.4", topic_name: "Алгебраические дроби" },
+  { topic_number: "2.5", topic_name: "Арифметические корни" },
+  { topic_number: "3.1", topic_name: "Уравнения и системы" },
+  { topic_number: "3.2", topic_name: "Неравенства и системы" },
+  { topic_number: "3.3", topic_name: "Текстовые задачи" },
+  { topic_number: "4.1", topic_name: "Последовательности" },
+  { topic_number: "4.2", topic_name: "Арифметическая и геометрическая прогрессии. Формула сложных процентов" },
+  { topic_number: "5.1", topic_name: "Свойства и графики функций" },
+  { topic_number: "6.1", topic_name: "Координатная прямая" },
+  { topic_number: "6.2", topic_name: "Декартовы координаты" },
+  { topic_number: "7.1", topic_name: "Геометрические фигуры" },
+  { topic_number: "7.2", topic_name: "Треугольники" },
+  { topic_number: "7.3", topic_name: "Многоугольники" },
+  { topic_number: "7.4", topic_name: "Окружность и круг" },
+  { topic_number: "7.5", topic_name: "Измерения" },
+  { topic_number: "7.6", topic_name: "Векторы" },
+  { topic_number: "7.7", topic_name: "Дополнительные темы по геометрии" },
+  { topic_number: "8.1", topic_name: "Описательная статистика" },
+  { topic_number: "8.2", topic_name: "Вероятность" },
+  { topic_number: "8.3", topic_name: "Комбинаторика" },
+  { topic_number: "8.4", topic_name: "Множества" },
+  { topic_number: "8.5", topic_name: "Графы" },
+  { topic_number: "9.1", topic_name: "Работа с данными и графиками" },
+  { topic_number: "9.2", topic_name: "Прикладная геометрия / Чтение и анализ графических схем" }
+];
 
 interface CourseTreeCardProps {
   course: Course;
@@ -48,13 +90,39 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
   const [topicsError, setTopicsError] = useState<string | null>(null);
+  const [currentTopicIndex, setCurrentTopicIndex] = useState(10); // Current topic position
 
   // Mock progress - should be calculated from real data
   const progress = Math.floor(Math.random() * 80) + 10; // 10-90%
 
+  // Use OGE topics if this is OGE course, otherwise fetch from API
+  const useStaticTopics = course.id === 'oge-math';
+  
+  // Get 5 topics around current (2 before, current, 2 after)
+  const getVisibleTopics = (allTopics: Topic[], currentIndex: number) => {
+    const start = Math.max(0, currentIndex - 2);
+    const end = Math.min(allTopics.length, currentIndex + 3);
+    return allTopics.slice(start, end).map((topic, index) => ({
+      ...topic,
+      originalIndex: start + index,
+      isCurrent: start + index === currentIndex
+    }));
+  };
+
   useEffect(() => {
-    fetchTopics();
-  }, [course.topicsUrl]);
+    if (useStaticTopics) {
+      // Use static OGE topics
+      const topicsArray = OGE_MATH_TOPICS.map(item => ({
+        name: item.topic_name,
+        number: item.topic_number,
+        importance: 1
+      }));
+      setTopics(topicsArray);
+      setIsLoadingTopics(false);
+    } else {
+      fetchTopics();
+    }
+  }, [course.topicsUrl, useStaticTopics]);
 
   const fetchTopics = async () => {
     setIsLoadingTopics(true);
@@ -90,8 +158,7 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
         }
       }
       
-      // Take only first 8 topics for display
-      setTopics(topicsArray.slice(0, 8));
+      setTopics(topicsArray);
     } catch (error) {
       console.error('Error fetching topics:', error);
       setTopicsError('Не удалось загрузить темы');
@@ -162,50 +229,98 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
                 </Button>
               </div>
             ) : topics.length > 0 ? (
-              <div className="space-y-3 relative">
-                {/* Vertical line connecting topics */}
-                <div className="absolute left-6 top-6 bottom-6 w-0.5 bg-gray-200"></div>
-                
-                {topics.map((topic, index) => {
-                  const IconComponent = getTopicIcon(index, topic.name);
-                  const colorClass = getTopicColor(index);
-                  const isCurrentTopic = index === 2; // Make 3rd topic the "current" one
+              <div className="space-y-4">
+                {/* Visible Topics (5 around current) */}
+                <div className="space-y-3 relative">
+                  {/* Vertical line connecting topics */}
+                  <div className="absolute left-6 top-6 bottom-6 w-0.5 bg-gray-200"></div>
                   
-                  return (
-                    <div key={`${topic.number}-${index}`} className="flex items-center gap-4 relative z-10">
-                      {/* Topic Icon */}
-                      <div className={`w-12 h-12 rounded-full ${colorClass} flex items-center justify-center flex-shrink-0 ${
-                        isCurrentTopic ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-                      }`}>
-                        <IconComponent className="w-6 h-6 text-white" />
-                      </div>
-                      
-                      {/* Topic Content */}
-                      <div className="flex-1 min-w-0">
-                        <h4 className={`text-sm font-medium leading-tight ${
-                          isCurrentTopic 
-                            ? 'text-blue-700 font-semibold' 
-                            : 'text-blue-600 hover:underline cursor-pointer'
+                  {getVisibleTopics(topics, currentTopicIndex).map((topic: any, index) => {
+                    const IconComponent = getTopicIcon(topic.originalIndex, topic.name);
+                    const colorClass = getTopicColor(topic.originalIndex);
+                    
+                    return (
+                      <div key={`${topic.number}-${topic.originalIndex}`} className="flex items-center gap-4 relative z-10">
+                        {/* Topic Icon */}
+                        <div className={`w-12 h-12 rounded-full ${colorClass} flex items-center justify-center flex-shrink-0 ${
+                          topic.isCurrent ? 'ring-2 ring-blue-500 ring-offset-2' : ''
                         }`}>
-                          {topic.name}
-                        </h4>
-                        {/* Hidden topic number for data purposes */}
-                        <span className="sr-only">{topic.number}</span>
+                          <IconComponent className="w-6 h-6 text-white" />
+                        </div>
+                        
+                        {/* Topic Content */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className={`text-sm font-medium leading-tight ${
+                            topic.isCurrent 
+                              ? 'text-blue-700 font-semibold' 
+                              : 'text-blue-600 hover:underline cursor-pointer'
+                          }`}>
+                            {topic.name}
+                          </h4>
+                          {/* Hidden topic number for data purposes */}
+                          <span className="sr-only">{topic.number}</span>
+                        </div>
+                        
+                        {/* Resume button for current topic */}
+                        {topic.isCurrent && (
+                          <Button 
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 text-xs font-medium"
+                            onClick={() => onStart(course.id)}
+                          >
+                            Resume
+                          </Button>
+                        )}
                       </div>
-                      
-                      {/* Resume button for current topic */}
-                      {isCurrentTopic && (
-                        <Button 
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 text-xs font-medium"
-                          onClick={() => onStart(course.id)}
-                        >
-                          Resume
-                        </Button>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+
+                {/* See All Topics Dropdown */}
+                <div className="flex justify-center pt-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-xs">
+                        See all {topics.length} topics
+                        <ChevronDown className="w-3 h-3 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-80 max-h-96 overflow-y-auto">
+                      {topics.map((topic, index) => {
+                        const IconComponent = getTopicIcon(index, topic.name);
+                        const colorClass = getTopicColor(index);
+                        const isCurrent = index === currentTopicIndex;
+                        
+                        return (
+                          <DropdownMenuItem
+                            key={`${topic.number}-dropdown-${index}`}
+                            className="flex items-center gap-3 p-3 cursor-pointer"
+                            onClick={() => setCurrentTopicIndex(index)}
+                          >
+                            <div className={`w-8 h-8 rounded-full ${colorClass} flex items-center justify-center flex-shrink-0 ${
+                              isCurrent ? 'ring-2 ring-blue-400 ring-offset-1' : ''
+                            }`}>
+                              <IconComponent className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className={`text-sm font-medium ${
+                                isCurrent ? 'text-blue-700' : 'text-gray-900'
+                              }`}>
+                                {topic.name}
+                              </div>
+                              <div className="text-xs text-gray-500">{topic.number}</div>
+                            </div>
+                            {isCurrent && (
+                              <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                                Current
+                              </Badge>
+                            )}
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             ) : (
               <div className="text-center py-8">
