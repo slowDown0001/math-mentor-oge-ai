@@ -72,8 +72,8 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
       let topicsArray: Topic[] = [];
       if (Array.isArray(data)) {
         topicsArray = data.map(item => ({
-          name: item.name || item.title || String(item),
-          number: item.number,
+          name: item.topic_name || item.name || item.title || String(item),
+          number: item.topic_number || item.number,
           importance: item.importance
         }));
       } else if (data && typeof data === 'object') {
@@ -81,8 +81,8 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
         for (const key of possibleKeys) {
           if (data[key] && Array.isArray(data[key])) {
             topicsArray = data[key].map((item: any) => ({
-              name: item.name || item.title || String(item),
-              number: item.number,
+              name: item.topic_name || item.name || item.title || String(item),
+              number: item.topic_number || item.number,
               importance: item.importance
             }));
             break;
@@ -169,26 +169,35 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
                 {topics.map((topic, index) => {
                   const IconComponent = getTopicIcon(index, topic.name);
                   const colorClass = getTopicColor(index);
+                  const isCurrentTopic = index === 2; // Make 3rd topic the "current" one
                   
                   return (
-                    <div key={`${topic.name}-${index}`} className="flex items-center gap-4 relative z-10">
+                    <div key={`${topic.number}-${index}`} className="flex items-center gap-4 relative z-10">
                       {/* Topic Icon */}
-                      <div className={`w-12 h-12 rounded-full ${colorClass} flex items-center justify-center flex-shrink-0`}>
+                      <div className={`w-12 h-12 rounded-full ${colorClass} flex items-center justify-center flex-shrink-0 ${
+                        isCurrentTopic ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+                      }`}>
                         <IconComponent className="w-6 h-6 text-white" />
                       </div>
                       
                       {/* Topic Content */}
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-blue-600 hover:underline cursor-pointer leading-tight">
+                        <h4 className={`text-sm font-medium leading-tight ${
+                          isCurrentTopic 
+                            ? 'text-blue-700 font-semibold' 
+                            : 'text-blue-600 hover:underline cursor-pointer'
+                        }`}>
                           {topic.name}
                         </h4>
+                        {/* Hidden topic number for data purposes */}
+                        <span className="sr-only">{topic.number}</span>
                       </div>
                       
-                      {/* Resume button for first topic */}
-                      {index === 2 && (
+                      {/* Resume button for current topic */}
+                      {isCurrentTopic && (
                         <Button 
                           size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 text-xs"
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 text-xs font-medium"
                           onClick={() => onStart(course.id)}
                         >
                           Resume
