@@ -6,7 +6,7 @@ import { UserInfoStripe } from '@/components/mydb3/UserInfoStripe';
 import { CourseTreeCard } from '@/components/mydb3/CourseTreeCard';
 import { CourseSelectionModal } from '@/components/mydb3/CourseSelectionModal';
 import { useDashboardLogic } from '@/hooks/useDashboardLogic';
-import { COURSES, CourseId } from '@/lib/courses.registry';
+import { COURSES, CourseId, courseIdToNumber } from '@/lib/courses.registry';
 import { supabase } from '@/integrations/supabase/client';
 
 const MyDb3 = () => {
@@ -41,11 +41,12 @@ const MyDb3 = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Call the database function for each course
+      // Call the database function for each course using numeric course IDs
       for (const courseId of courseIds) {
+        const numericCourseId = courseIdToNumber[courseId].toString();
         const { error } = await supabase.rpc('delete_course_data', {
           p_user_id: user.id,
-          p_course_id: courseId
+          p_course_id: numericCourseId
         });
         
         if (error) {
