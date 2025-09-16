@@ -56,6 +56,7 @@ const EgemathprofPractice = lazy(() => import("./pages/EgemathprofPractice"));
 const EgemathbasicPractice = lazy(() => import("./pages/EgemathbasicPractice"));
 const NewPracticeSkills = lazy(() => import("./pages/NewPracticeSkills"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const MyDb3 = lazy(() => import("./pages/MyDb3"));
 
 const queryClient = new QueryClient();
 
@@ -110,6 +111,7 @@ const App = () => (
                 <Route element={<PrivateRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/mydashboard" element={<MyDashboard />} />
+                  <Route path="/mydb3" element={<MyDb3 />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/diagnostic" element={<DiagnosticTest />} />
           <Route path="/statistics" element={<Statistics />} />
