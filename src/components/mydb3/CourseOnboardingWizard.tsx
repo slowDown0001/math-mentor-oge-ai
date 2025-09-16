@@ -40,6 +40,11 @@ export function CourseOnboardingWizard({ courseId, onDone, onError }: CourseOnbo
   const courseNumber = courseIdToNumber[courseId];
 
   useEffect(() => {
+    // Reset wizard state when courseId changes
+    setCurrentStep(1);
+    setData({});
+    setError(null);
+    setIsSubmitting(false);
     loadExistingData();
   }, [courseId, user]);
 
