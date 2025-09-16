@@ -22,7 +22,15 @@ const MyDb3 = () => {
   const enrolledCourses = myCourses.map(course => COURSES[course.id as CourseId]).filter(Boolean);
   const enrolledCourseIds = enrolledCourses.map(course => course.id);
 
-  const handleOpenModal = () => {
+  const [modalMode, setModalMode] = useState<'add' | 'delete'>('add');
+
+  const handleOpenAddModal = () => {
+    setModalMode('add');
+    setIsModalOpen(true);
+  };
+
+  const handleOpenDeleteModal = () => {
+    setModalMode('delete');
     setIsModalOpen(true);
   };
 
@@ -32,8 +40,43 @@ const MyDb3 = () => {
 
   const handleAddCourses = async (courseIds: CourseId[]) => {
     for (const courseId of courseIds) {
-      await handleAddCourse({ id: courseId, name: COURSES[courseId].title });
+      const course = { id: courseId, name: COURSES[courseId].title };
+      const courseNumber = courseIdToNumber[courseId];
+      
+      // Get current courses from profiles
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('courses')
+        .eq('user_id', user.id)
+        .single();
+
+      const currentCourseNumbers = profile?.courses || [];
+      const newCourseNumbers = [...currentCourseNumbers, courseNumber];
+      
+      // Update database
+      await supabase
+        .from('profiles')
+        .update({ courses: newCourseNumbers })
+        .eq('user_id', user.id);
+
+      // Initialize priors for the course
+      try {
+        await supabase.functions.invoke('initialize-priors', {
+          body: { 
+            user_id: user.id,
+            course_id: courseNumber.toString()
+          }
+        });
+      } catch (error) {
+        console.error('Error initializing priors:', error);
+      }
     }
+    
+    // Refresh the page to show updated courses
+    window.location.reload();
   };
 
   const handleDeleteCourses = async (courseIds: CourseId[]) => {
@@ -77,7 +120,7 @@ const MyDb3 = () => {
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold">Мои курсы</h1>
               <Button 
-                onClick={() => setIsModalOpen(true)}
+                onClick={handleOpenDeleteModal}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 Редактировать курсы
@@ -88,14 +131,14 @@ const MyDb3 = () => {
               /* No courses - show empty state with large plus button */
               <div className="text-center py-16">
                 <div className="mb-8">
-                  <Button
-                    onClick={handleOpenModal}
-                    variant="outline"
-                    size="lg"
-                    className="w-32 h-32 rounded-full border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
-                  >
-                    <Plus className="w-12 h-12 text-muted-foreground" />
-                  </Button>
+                    <Button
+                      onClick={handleOpenAddModal}
+                      variant="outline"
+                      size="lg"
+                      className="w-32 h-32 rounded-full border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
+                    >
+                      <Plus className="w-12 h-12 text-muted-foreground" />
+                    </Button>
                 </div>
                 <p className="text-muted-foreground text-lg">Добавить другой курс</p>
               </div>
@@ -113,17 +156,17 @@ const MyDb3 = () => {
                   
                   {/* Add course card */}
                   <div className="flex items-center justify-center min-h-[300px] border-2 border-dashed border-muted-foreground/20 rounded-lg">
-                    <div className="text-center">
-                      <Button
-                        onClick={handleOpenModal}
-                        variant="outline"
-                        size="lg"
-                        className="w-20 h-20 rounded-full border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 mb-4"
-                      >
-                        <Plus className="w-8 h-8 text-muted-foreground" />
-                      </Button>
-                      <p className="text-muted-foreground">Добавить другой курс</p>
-                    </div>
+                  <div className="text-center">
+                    <Button
+                      onClick={handleOpenAddModal}
+                      variant="outline"
+                      size="lg"
+                      className="w-20 h-20 rounded-full border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 mb-4"
+                    >
+                      <Plus className="w-8 h-8 text-muted-foreground" />
+                    </Button>
+                    <p className="text-muted-foreground">Добавить другой курс</p>
+                  </div>
                   </div>
                 </div>
               </div>
@@ -139,7 +182,7 @@ const MyDb3 = () => {
         onAddCourses={handleAddCourses}
         onDeleteCourses={handleDeleteCourses}
         enrolledCourseIds={enrolledCourseIds}
-        mode="delete"
+        mode={modalMode}
       />
     </div>
   );
