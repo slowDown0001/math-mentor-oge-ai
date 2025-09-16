@@ -25,7 +25,7 @@ interface CourseFormData {
   basicLevel?: number;
   tookMock?: boolean;
   mockScore?: number;
-  goalText?: string;
+  goalScore?: number;
 }
 
 export function CourseOnboardingWizard({ courseId, onDone, onError }: CourseOnboardingWizardProps) {
@@ -64,7 +64,7 @@ export function CourseOnboardingWizard({ courseId, onDone, onError }: CourseOnbo
           basicLevel: profile[`selfestimation${courseNumber}`] || undefined,
           mockScore: profile[`testmark${courseNumber}`] || undefined,
           tookMock: profile[`testmark${courseNumber}`] !== null ? true : undefined,
-          goalText: profile[`course_${courseNumber}_goal`] || undefined,
+          goalScore: profile[`course_${courseNumber}_goal`] ? parseInt(profile[`course_${courseNumber}_goal`]) : undefined,
         });
       }
     } catch (error) {
@@ -82,6 +82,28 @@ export function CourseOnboardingWizard({ courseId, onDone, onError }: CourseOnbo
     return emojis[level - 1] || '🙂';
   };
 
+  const getSmartComment = (): string => {
+    if (!data.goalScore) return '';
+
+    const baselineFromSelfAssessment = (data.basicLevel || 1) * 15;
+    const mockScore = data.tookMock ? data.mockScore : null;
+    const ambitionGap = data.goalScore - (mockScore ?? baselineFromSelfAssessment);
+
+    if (data.goalScore >= 90) {
+      return "Вау! Очень амбициозно! 🚀";
+    }
+    if (ambitionGap >= 25) {
+      return `Отлично! Любим вызовы. Настроим умный план 💪`;
+    }
+    if (data.goalScore < 50) {
+      return "Ну а если поставить цель повыше? Думаю, ты можешь лучше 😉";
+    }
+    if (data.tookMock && mockScore && mockScore <= 40 && data.goalScore >= 70) {
+      return "План жёсткий, но реальный. Поехали шаг за шагом!";
+    }
+    return "Хороший ориентир. Давай начнём!";
+  };
+
   const canProceed = (): boolean => {
     switch (currentStep) {
       case 1:
@@ -91,7 +113,7 @@ export function CourseOnboardingWizard({ courseId, onDone, onError }: CourseOnbo
       case 3:
         return data.tookMock !== undefined && (!data.tookMock || (data.mockScore !== undefined && data.mockScore >= 0 && data.mockScore <= 100));
       case 4:
-        return true; // Goal is optional
+        return data.goalScore !== undefined && data.goalScore >= 0 && data.goalScore <= 100;
       default:
         return false;
     }
@@ -120,7 +142,7 @@ export function CourseOnboardingWizard({ courseId, onDone, onError }: CourseOnbo
         [`schoolmark${courseNumber}`]: data.schoolGrade || null,
         [`selfestimation${courseNumber}`]: data.basicLevel || null,
         [`testmark${courseNumber}`]: data.tookMock ? (data.mockScore || null) : null,
-        [`course_${courseNumber}_goal`]: data.goalText || null,
+        [`course_${courseNumber}_goal`]: data.goalScore ? data.goalScore.toString() : null,
       };
 
       const { error } = await supabase
@@ -258,18 +280,48 @@ export function CourseOnboardingWizard({ courseId, onDone, onError }: CourseOnbo
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <Sparkles className="mx-auto h-12 w-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Желаемый результат</h3>
-              <p className="text-muted-foreground">Опишите свою цель (необязательно)</p>
+              <Target className="mx-auto h-12 w-12 text-primary mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Какой результат хочешь получить на {course.title}?</h3>
             </div>
             
             <div className="space-y-4">
-              <Input
-                value={data.goalText || ''}
-                onChange={(e) => updateData({ goalText: e.target.value })}
-                placeholder="Например: сдать на 4, поступить в вуз, улучшить знания..."
-                className="h-12"
-              />
+              <div className="relative">
+                <div 
+                  className="h-3 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 mb-2"
+                  style={{
+                    background: `linear-gradient(to right, 
+                      #ef4444 0%, 
+                      #f97316 25%, 
+                      #eab308 50%, 
+                      #84cc16 75%, 
+                      #22c55e 100%)`
+                  }}
+                />
+                <Slider
+                  value={[data.goalScore || 50]}
+                  onValueChange={([value]) => updateData({ goalScore: value })}
+                  min={0}
+                  max={100}
+                  step={1}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-sm text-muted-foreground mt-1">
+                  <span>0%</span>
+                  <span className="font-semibold text-lg text-foreground">{data.goalScore || 50}%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+              {data.goalScore && (
+                <motion.div
+                  key={getSmartComment()}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center text-sm bg-muted/50 rounded-lg p-3"
+                >
+                  {getSmartComment()}
+                </motion.div>
+              )}
             </div>
 
             {error && (
