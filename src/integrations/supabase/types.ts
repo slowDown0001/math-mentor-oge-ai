@@ -1873,9 +1873,18 @@ export type Database = {
           full_name: string | null
           id: string
           image_proccessing_command: string | null
+          schoolmark1: number | null
+          schoolmark2: number | null
+          schoolmark3: number | null
+          selfestimation1: number | null
+          selfestimation2: number | null
+          selfestimation3: number | null
           telegram_code: number | null
           telegram_input: string | null
           telegram_user_id: number | null
+          testmark1: number | null
+          testmark2: number | null
+          testmark3: number | null
           updated_at: string
           user_id: string
         }
@@ -1890,9 +1899,18 @@ export type Database = {
           full_name?: string | null
           id?: string
           image_proccessing_command?: string | null
+          schoolmark1?: number | null
+          schoolmark2?: number | null
+          schoolmark3?: number | null
+          selfestimation1?: number | null
+          selfestimation2?: number | null
+          selfestimation3?: number | null
           telegram_code?: number | null
           telegram_input?: string | null
           telegram_user_id?: number | null
+          testmark1?: number | null
+          testmark2?: number | null
+          testmark3?: number | null
           updated_at?: string
           user_id: string
         }
@@ -1907,9 +1925,18 @@ export type Database = {
           full_name?: string | null
           id?: string
           image_proccessing_command?: string | null
+          schoolmark1?: number | null
+          schoolmark2?: number | null
+          schoolmark3?: number | null
+          selfestimation1?: number | null
+          selfestimation2?: number | null
+          selfestimation3?: number | null
           telegram_code?: number | null
           telegram_input?: string | null
           telegram_user_id?: number | null
+          testmark1?: number | null
+          testmark2?: number | null
+          testmark3?: number | null
           updated_at?: string
           user_id?: string
         }
