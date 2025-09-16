@@ -5,12 +5,16 @@ import { Sidebar } from '@/components/mydb3/Sidebar';
 import { UserInfoStripe } from '@/components/mydb3/UserInfoStripe';
 import { CourseTreeCard } from '@/components/mydb3/CourseTreeCard';
 import { CourseSelectionModal } from '@/components/mydb3/CourseSelectionModal';
+import { CourseOnboardingWizard } from '@/components/mydb3/CourseOnboardingWizard';
 import { useDashboardLogic } from '@/hooks/useDashboardLogic';
 import { COURSES, CourseId, courseIdToNumber } from '@/lib/courses.registry';
 import { supabase } from '@/integrations/supabase/client';
 
 const MyDb3 = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'add' | 'delete'>('add');
+  const [wizardQueue, setWizardQueue] = useState<CourseId[]>([]);
+  const [currentWizardCourse, setCurrentWizardCourse] = useState<CourseId | null>(null);
   
   const {
     myCourses,
@@ -21,8 +25,6 @@ const MyDb3 = () => {
   // Convert user courses to our registry format
   const enrolledCourses = myCourses.map(course => COURSES[course.id as CourseId]).filter(Boolean);
   const enrolledCourseIds = enrolledCourses.map(course => course.id);
-
-  const [modalMode, setModalMode] = useState<'add' | 'delete'>('add');
 
   const handleOpenAddModal = () => {
     setModalMode('add');
@@ -39,8 +41,8 @@ const MyDb3 = () => {
   };
 
   const handleAddCourses = async (courseIds: CourseId[]) => {
+    // First, enroll courses in database
     for (const courseId of courseIds) {
-      const course = { id: courseId, name: COURSES[courseId].title };
       const courseNumber = courseIdToNumber[courseId];
       
       // Get current courses from profiles
@@ -75,8 +77,35 @@ const MyDb3 = () => {
       }
     }
     
-    // Refresh the page to show updated courses
-    window.location.reload();
+    // Close modal and start wizard flow
+    setIsModalOpen(false);
+    setWizardQueue(courseIds);
+    startNextWizard(courseIds);
+  };
+
+  const startNextWizard = (queue: CourseId[]) => {
+    if (queue.length > 0) {
+      const [nextCourse, ...remainingCourses] = queue;
+      setCurrentWizardCourse(nextCourse);
+      setWizardQueue(remainingCourses);
+    }
+  };
+
+  const handleWizardDone = () => {
+    setCurrentWizardCourse(null);
+    
+    if (wizardQueue.length > 0) {
+      // Start next wizard
+      startNextWizard(wizardQueue);
+    } else {
+      // All wizards complete, refresh page
+      window.location.reload();
+    }
+  };
+
+  const handleWizardError = () => {
+    // For now, continue to next wizard even on error
+    handleWizardDone();
   };
 
   const handleDeleteCourses = async (courseIds: CourseId[]) => {
@@ -184,6 +213,15 @@ const MyDb3 = () => {
         enrolledCourseIds={enrolledCourseIds}
         mode={modalMode}
       />
+
+      {/* Course Onboarding Wizard */}
+      {currentWizardCourse && (
+        <CourseOnboardingWizard
+          courseId={currentWizardCourse}
+          onDone={handleWizardDone}
+          onError={handleWizardError}
+        />
+      )}
     </div>
   );
 };
