@@ -95,28 +95,6 @@ export const UserProfileCard = ({ userName, userEmail, joinedDate, userData }: U
       </div>
       
       <div className="space-y-5">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Прогресс подготовки к ОГЭ</h2>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm text-gray-700">Общий прогресс</span>
-                <span className="text-sm font-medium text-primary">{userData.progress.overall}%</span>
-              </div>
-              <Progress value={userData.progress.overall} className="h-2 bg-primary/20" />
-            </div>
-            
-            {userData.topicProgress?.slice(0, 7).map((topic) => (
-              <div key={topic.topic}>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-gray-700">{topic.name}</span>
-                  <span className="text-sm font-medium text-primary">{topic.averageScore}%</span>
-                </div>
-                <Progress value={topic.averageScore} className="h-2 bg-primary/20" />
-              </div>
-            )) || []}
-          </div>
-        </div>
         
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-gray-50 p-4 rounded-lg text-center">

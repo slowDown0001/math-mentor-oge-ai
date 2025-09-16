@@ -285,19 +285,6 @@ const Profile = () => {
                   </Dialog>
                 </div>
               </Card>
-              
-              {/* Chat with AI Tutor */}
-              <Card className="mt-6 bg-white shadow-md rounded-xl overflow-hidden border-0 h-[400px] flex flex-col">
-                <div className="bg-gradient-to-r from-primary to-secondary p-3">
-                  <h3 className="text-white font-medium flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-accent animate-pulse"></span>
-                    Персональный репетитор
-                  </h3>
-                </div>
-                
-                <ChatMessages messages={messages} isTyping={isTyping} />
-                <ChatInput onSendMessage={handleSendMessage} isTyping={isTyping} />
-              </Card>
             </div>
             
             {/* Right Column - Tabs */}
