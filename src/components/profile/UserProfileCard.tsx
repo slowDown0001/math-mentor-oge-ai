@@ -93,37 +93,6 @@ export const UserProfileCard = ({ userName, userEmail, joinedDate, userData }: U
           Редактировать
         </Button>
       </div>
-      
-      <div className="space-y-5">
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gray-50 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-primary">{userData.completedLessons}</div>
-            <div className="text-sm text-gray-600">Пройдено уроков</div>
-          </div>
-          <div className="bg-gray-50 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-primary">{userData.practiceProblems}</div>
-            <div className="text-sm text-gray-600">Решено задач</div>
-          </div>
-          <div className="bg-gray-50 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-primary">{userData.quizzesCompleted}</div>
-            <div className="text-sm text-gray-600">Пройдено тестов</div>
-          </div>
-          <div className="bg-gray-50 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-primary">{userData.averageScore}%</div>
-            <div className="text-sm text-gray-600">Средний балл</div>
-          </div>
-        </div>
-        
-        <div className="pt-4 flex justify-center">
-          <Button className="flex items-center gap-2" asChild>
-            <Link to="/dashboard">
-              <BarChart3 className="h-4 w-4" />
-              Перейти к учебе
-            </Link>
-          </Button>
-        </div>
-      </div>
     </Card>
   );
 };
