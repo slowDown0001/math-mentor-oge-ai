@@ -5,6 +5,8 @@ import { UserProfileCard } from "@/components/profile/UserProfileCard";
 import { ProfileTabs } from "@/components/profile/ProfileTabs";
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
@@ -12,6 +14,9 @@ import { useChatContext } from "@/contexts/ChatContext";
 import { useStudentSkills } from "@/hooks/useStudentSkills";
 import { useUserStatistics } from "@/hooks/useUserStatistics";
 import { useProfile } from "@/hooks/useProfile";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { MessageSquare } from "lucide-react";
 
 export interface Message {
   id: number;
@@ -27,12 +32,89 @@ const Profile = () => {
   const { topicProgress, generalPreparedness, isLoading: skillsLoading } = useStudentSkills();
   const { completedLessons, practiceProblems, quizzesCompleted, averageScore, isLoading: statsLoading } = useUserStatistics();
   const { getDisplayName } = useProfile();
+  const { toast } = useToast();
+  const [telegramCode, setTelegramCode] = useState<number | null>(null);
+  const [telegramUserId, setTelegramUserId] = useState<number | null>(null);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   
   // Extract user information from Supabase user data and profile
   const userName = getDisplayName();
   const userEmail = user?.email || '';
   const joinedDate = new Date(user?.created_at || Date.now()).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
   
+  // Load telegram data
+  useEffect(() => {
+    if (user) {
+      loadTelegramCode();
+    }
+  }, [user]);
+
+  const loadTelegramCode = async () => {
+    if (!user) return;
+
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('telegram_code, telegram_user_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading telegram data:', error);
+        return;
+      }
+
+      if (profile?.telegram_code) {
+        setTelegramCode(profile.telegram_code);
+      }
+      if (profile?.telegram_user_id) {
+        setTelegramUserId(profile.telegram_user_id);
+      }
+    } catch (error) {
+      console.error('Error loading telegram data:', error);
+    }
+  };
+
+  const generateTelegramCode = async () => {
+    if (!user) return;
+
+    setIsGeneratingCode(true);
+    // Generate random 6-digit number
+    const randomCode = Math.floor(100000 + Math.random() * 900000);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ telegram_code: randomCode })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error saving telegram code:', error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось создать Telegram код",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setTelegramCode(randomCode);
+      toast({
+        title: "Telegram код создан",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Error creating telegram code:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось создать Telegram код",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingCode(false);
+    }
+  };
+
   // Initialize welcome message if chat is empty
   useEffect(() => {
     if (messages.length === 0) {
@@ -127,6 +209,82 @@ const Profile = () => {
                 joinedDate={joinedDate}
                 userData={userData}
               />
+              
+              {/* Telegram Bot Integration - Fancy Card */}
+              <Card className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-lg rounded-xl overflow-hidden">
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                      <MessageSquare className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">Telegram Бот</h3>
+                      <p className="text-sm text-gray-600">Загружай фото решений</p>
+                    </div>
+                  </div>
+                  
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button 
+                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg transition-all duration-200 transform hover:scale-105"
+                        size="lg"
+                      >
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        {telegramUserId ? 'Управление Telegram ботом' : 'Подключить Telegram бот'}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <MessageSquare className="w-5 h-5 text-blue-600" />
+                          Telegram бот
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm text-blue-700 font-medium">
+                            Через бот в Telegram ты сможешь загружать фото решения и задач на платформу
+                          </p>
+                        </div>
+                        {telegramCode ? (
+                          <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm text-gray-600 mb-2">Ваш Telegram код:</p>
+                                <p className="text-blue-800 font-mono text-xl font-bold">
+                                  {telegramCode}
+                                </p>
+                              </div>
+                              {telegramUserId ? (
+                                <div className="flex items-center text-green-600 text-sm font-medium bg-green-100 px-3 py-1 rounded-full">
+                                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                  Telegram код подтвержден
+                                </div>
+                              ) : null}
+                            </div>
+                            {!telegramUserId && (
+                              <div className="mt-3 p-3 bg-blue-100 rounded-lg">
+                                <p className="text-sm text-blue-700 font-medium">
+                                  📱 Введите этот код в телеграм-боте @egechat_bot
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <Button
+                            onClick={generateTelegramCode}
+                            disabled={isGeneratingCode}
+                            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
+                            size="lg"
+                          >
+                            {isGeneratingCode ? 'Создаю код...' : 'Создать Telegram код'}
+                          </Button>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </Card>
               
               {/* Chat with AI Tutor */}
               <Card className="mt-6 bg-white shadow-md rounded-xl overflow-hidden border-0 h-[400px] flex flex-col">
