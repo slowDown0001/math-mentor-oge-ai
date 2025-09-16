@@ -9,21 +9,25 @@ import { COURSES, CourseId } from '@/lib/courses.registry';
 interface CourseSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddCourses: (courseIds: CourseId[]) => void;
+  onAddCourses?: (courseIds: CourseId[]) => void;
+  onDeleteCourses?: (courseIds: CourseId[]) => void;
   enrolledCourseIds: CourseId[];
+  mode?: 'add' | 'delete';
 }
 
 export const CourseSelectionModal: React.FC<CourseSelectionModalProps> = ({
   isOpen,
   onClose,
   onAddCourses,
-  enrolledCourseIds
+  onDeleteCourses,
+  enrolledCourseIds,
+  mode = 'add'
 }) => {
   const [selectedCourses, setSelectedCourses] = useState<CourseId[]>([]);
 
-  const availableCourses = Object.values(COURSES).filter(
-    course => !enrolledCourseIds.includes(course.id)
-  );
+  const availableCourses = mode === 'delete' 
+    ? Object.values(COURSES).filter(course => enrolledCourseIds.includes(course.id))
+    : Object.values(COURSES).filter(course => !enrolledCourseIds.includes(course.id));
 
   const handleCourseToggle = (courseId: CourseId, checked: boolean) => {
     if (checked) {
@@ -35,7 +39,11 @@ export const CourseSelectionModal: React.FC<CourseSelectionModalProps> = ({
 
   const handleContinue = () => {
     if (selectedCourses.length > 0) {
-      onAddCourses(selectedCourses);
+      if (mode === 'delete' && onDeleteCourses) {
+        onDeleteCourses(selectedCourses);
+      } else if (mode === 'add' && onAddCourses) {
+        onAddCourses(selectedCourses);
+      }
       setSelectedCourses([]);
       onClose();
     }
@@ -54,10 +62,13 @@ export const CourseSelectionModal: React.FC<CourseSelectionModalProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-xl font-semibold text-white">
-                Какие курсы мы можем помочь вам изучить?
+                {mode === 'delete' ? 'Удалить курсы' : 'Какие курсы мы можем помочь вам изучить?'}
               </DialogTitle>
               <p className="text-blue-100 mt-1">
-                Выберите курсы и мы подберем правильные уроки для вас.
+                {mode === 'delete' 
+                  ? 'Выберите курсы для удаления. Все данные о прогрессе будут потеряны.'
+                  : 'Выберите курсы и мы подберем правильные уроки для вас.'
+                }
               </p>
             </div>
             <Button
@@ -125,8 +136,12 @@ export const CourseSelectionModal: React.FC<CourseSelectionModalProps> = ({
               onClick={handleContinue}
               disabled={selectedCourses.length === 0}
               className="min-w-[200px]"
+              variant={mode === 'delete' ? 'destructive' : 'default'}
             >
-              Продолжить с {selectedCourses.length} курс{selectedCourses.length === 1 ? 'ом' : 'ами'}
+              {mode === 'delete' 
+                ? `Удалить ${selectedCourses.length} курс${selectedCourses.length === 1 ? '' : 'а'}`
+                : `Продолжить с ${selectedCourses.length} курс${selectedCourses.length === 1 ? 'ом' : 'ами'}`
+              }
             </Button>
           </div>
         </div>

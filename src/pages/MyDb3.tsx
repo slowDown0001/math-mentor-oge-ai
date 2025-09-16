@@ -35,6 +35,25 @@ const MyDb3 = () => {
     }
   };
 
+  const handleDeleteCourses = async (courseIds: CourseId[]) => {
+    // Call the delete function from useDashboardLogic
+    const {
+      handleDeleteMode,
+      handleCourseSelection
+    } = useDashboardLogic();
+
+    // Select the courses for deletion
+    for (const courseId of courseIds) {
+      handleCourseSelection(courseId, true);
+    }
+
+    // Trigger deletion
+    await handleDeleteMode();
+    
+    // Refresh the page data
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="flex">
@@ -51,7 +70,7 @@ const MyDb3 = () => {
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold">Мои курсы</h1>
               <Button 
-                onClick={handleOpenModal}
+                onClick={() => setIsModalOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 Редактировать курсы
@@ -111,7 +130,9 @@ const MyDb3 = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onAddCourses={handleAddCourses}
+        onDeleteCourses={handleDeleteCourses}
         enrolledCourseIds={enrolledCourseIds}
+        mode="delete"
       />
     </div>
   );
