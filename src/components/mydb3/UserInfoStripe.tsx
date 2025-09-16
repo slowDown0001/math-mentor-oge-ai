@@ -14,6 +14,7 @@ export const UserInfoStripe = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [telegramCode, setTelegramCode] = useState<number | null>(null);
+  const [telegramUserId, setTelegramUserId] = useState<number | null>(null);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
 
   // Mock data - replace with real data later
@@ -33,7 +34,7 @@ export const UserInfoStripe = () => {
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('telegram_code')
+        .select('telegram_code, telegram_user_id')
         .eq('user_id', user.id)
         .single();
 
@@ -44,6 +45,9 @@ export const UserInfoStripe = () => {
 
       if (profile?.telegram_code) {
         setTelegramCode(profile.telegram_code);
+      }
+      if (profile?.telegram_user_id) {
+        setTelegramUserId(profile.telegram_user_id);
       }
     } catch (error) {
       console.error('Error loading telegram data:', error);
@@ -118,13 +122,24 @@ export const UserInfoStripe = () => {
                     </p>
                     {telegramCode ? (
                       <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-2">Ваш Telegram код:</p>
-                        <p className="text-blue-800 font-mono text-lg font-bold">
-                          {telegramCode}
-                        </p>
-                        <p className="text-sm text-blue-600 mt-2">
-                          Введите этот код в телеграм-боте egechat_bot
-                        </p>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-2">Ваш Telegram код:</p>
+                            <p className="text-blue-800 font-mono text-lg font-bold">
+                              {telegramCode}
+                            </p>
+                          </div>
+                          {telegramUserId ? (
+                            <div className="text-green-600 text-sm font-medium">
+                              ✓ Telegram код подтвержден
+                            </div>
+                          ) : null}
+                        </div>
+                        {!telegramUserId && (
+                          <p className="text-sm text-blue-600 mt-2">
+                            Введите этот код в телеграм-боте egechat_bot
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <Button
