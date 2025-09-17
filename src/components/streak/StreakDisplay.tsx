@@ -114,7 +114,7 @@ export const StreakDisplay = () => {
   }, []);
 
   return (
-    <div className="relative flex items-center gap-3 group" ref={dropdownRef}>
+    <div className="relative flex items-center gap-3 group -ml-2" ref={dropdownRef}>
       {/* Progress Ring - Made Bigger */}
       <div className="relative w-14 h-14">
         <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 56 56">
