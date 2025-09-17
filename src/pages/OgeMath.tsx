@@ -173,7 +173,7 @@ const OgeMath = () => {
   };
 
   const handleProgressClick = () => {
-    navigate("/db2");
+    navigate("/ogemath-progress");
   };
 
   return (
@@ -218,7 +218,7 @@ const OgeMath = () => {
             variant="ghost"
             className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
-            Личный кабинет
+            Прогресс
           </Button>
         </div>
       </div>

@@ -227,7 +227,7 @@ const EgeMathBasic = () => {
             variant="ghost"
             className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
-            Личный кабинет
+            Прогресс
           </Button>
         </div>
       </div>
