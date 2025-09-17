@@ -535,25 +535,19 @@ export default function OgemathProgress2() {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-end">
             <button
-              onClick={() => navigate('/ogemath-progress')}
+              onClick={() => navigate('/ogemath')}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Назад</span>
             </button>
-            <h1 className="text-lg font-semibold text-gray-900">ОГЭ — Прогресс (v2)</h1>
-            <div className="w-16"></div>
           </div>
         </div>
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <header className="pt-8 pb-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">ОГЭ — Прогресс</h1>
-          <p className="mt-2 text-sm text-gray-600">Минималистичный обзор прогресса по модулям и по номерам заданий.</p>
-        </header>
 
         <TabBar mode={mode} setMode={setMode} />
 
