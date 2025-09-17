@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, LogOut } from 'lucide-react';
 import { Sidebar } from '@/components/mydb3/Sidebar';
 import { UserInfoStripe } from '@/components/mydb3/UserInfoStripe';
 import { CourseTreeCard } from '@/components/mydb3/CourseTreeCard';
@@ -9,6 +9,7 @@ import { CourseOnboardingWizard } from '@/components/mydb3/CourseOnboardingWizar
 import { useDashboardLogic } from '@/hooks/useDashboardLogic';
 import { COURSES, CourseId, courseIdToNumber } from '@/lib/courses.registry';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MyDb3 = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,6 +22,8 @@ const MyDb3 = () => {
     handleAddCourse,
     handleStartCourse,
   } = useDashboardLogic();
+
+  const { signOut } = useAuth();
 
   // Convert user courses to our registry format
   const enrolledCourses = myCourses.map(course => COURSES[course.id as CourseId]).filter(Boolean);
@@ -148,12 +151,22 @@ const MyDb3 = () => {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold">Мои курсы</h1>
-              <Button 
-                onClick={handleOpenDeleteModal}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Редактировать курсы
-              </Button>
+              <div className="flex gap-3">
+                <Button 
+                  onClick={handleOpenDeleteModal}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Редактировать курсы
+                </Button>
+                <Button 
+                  onClick={signOut}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Выйти
+                </Button>
+              </div>
             </div>
 
             {enrolledCourses.length === 0 ? (
