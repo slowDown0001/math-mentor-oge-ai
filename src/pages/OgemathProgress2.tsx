@@ -12,6 +12,42 @@ import { useAuth } from '@/contexts/AuthContext';
 export type ModuleItem = { id: number; title: string; progress: number; mastered: number; total: number };
 export type ProblemItem = { key: string; label: string; progress: number };
 
+// Topic names mapping
+const TOPIC_NAMES: { [key: string]: string } = {
+  '1.1': 'Натуральные и целые числа',
+  '1.2': 'Дроби и проценты', 
+  '1.3': 'Рациональные числа и арифметические действия',
+  '1.4': 'Действительные числа',
+  '1.5': 'Приближённые вычисления',
+  '2.1': 'Буквенные выражения',
+  '2.2': 'Степени',
+  '2.3': 'Многочлены',
+  '2.4': 'Алгебраические дроби',
+  '2.5': 'Арифметические корни',
+  '3.1': 'Уравнения и системы',
+  '3.2': 'Неравенства и системы',
+  '3.3': 'Текстовые задачи',
+  '4.1': 'Последовательности',
+  '4.2': 'Арифметическая и геометрическая прогрессии. Формула сложных процентов',
+  '5.1': 'Свойства и графики функций',
+  '6.1': 'Координатная прямая',
+  '6.2': 'Декартовы координаты',
+  '7.1': 'Геометрические фигуры',
+  '7.2': 'Треугольники',
+  '7.3': 'Многоугольники',
+  '7.4': 'Окружность и круг',
+  '7.5': 'Измерения',
+  '7.6': 'Векторы',
+  '7.7': 'Дополнительные темы по геометрии',
+  '8.1': 'Описательная статистика',
+  '8.2': 'Вероятность',
+  '8.3': 'Комбинаторика',
+  '8.4': 'Множества',
+  '8.5': 'Графы',
+  '9.1': 'Работа с данными и графиками',
+  '9.2': 'Прикладная геометрия / Чтение и анализ графических схем'
+};
+
 interface ProgressData {
   [key: string]: number;
 }
@@ -88,15 +124,15 @@ function ModuleCardSkeleton({ title }: { title: string }) {
 }
 function ProblemCardSkeleton({ label }: { label: string }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white/90 p-3">
-      <div className="flex items-center justify-between">
-        <span className="text-[13px] font-medium text-gray-400">№ {label}</span>
+    <div className="rounded-xl border border-gray-200 bg-white/90 p-2.5">
+      <div className="flex items-center justify-center mb-2">
+        <span className="text-[12px] font-medium text-gray-400">№ {label}</span>
       </div>
-      <div className="mt-3 grid place-items-center">
-        <div className="h-14 w-14 animate-pulse rounded-full bg-gray-200" />
+      <div className="grid place-items-center mb-2">
+        <div className="h-12 w-12 animate-pulse rounded-full bg-gray-200" />
       </div>
-      <div className="mt-3"><SkeletonBar /></div>
-      <div className="mt-2 h-3 w-20 animate-pulse rounded bg-gray-200 mx-auto" />
+      <div className="mb-1"><SkeletonBar /></div>
+      <div className="h-2 w-16 animate-pulse rounded bg-gray-200 mx-auto" />
     </div>
   );
 }
@@ -136,7 +172,7 @@ function TopicProgressModal({
             
             return (
               <div key={topicCode} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <span className="text-sm font-medium text-gray-700">Тема {topicCode}</span>
+                <span className="text-sm font-medium text-gray-700">{TOPIC_NAMES[topicCode] || `Тема ${topicCode}`}</span>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-16 bg-gray-200 rounded-full overflow-hidden">
                     <div 
@@ -269,20 +305,20 @@ function ProblemView({ problems }: { problems: ProblemItem[] }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-4">
         {hasRealData
           ? filtered.map((it) => (
-              <div key={it.key} className="rounded-2xl border border-gray-200 bg-white/90 p-3 hover:border-gray-300 transition-colors">
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] font-medium text-gray-800">№ {it.label}</span>
+              <div key={it.key} className="rounded-xl border border-gray-200 bg-white/90 p-2.5 hover:border-gray-300 transition-colors">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="text-[12px] font-medium text-gray-800">№ {it.label}</span>
                 </div>
-                <div className="mt-3 grid place-items-center">
-                  <Radial value={it.progress} />
+                <div className="grid place-items-center mb-2">
+                  <Radial value={it.progress} size={48} />
                 </div>
-                <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+                <div className="h-1 w-full overflow-hidden rounded-full bg-gray-200 mb-1">
                   <div className="h-full rounded-full" style={{ width: `${it.progress}%`, backgroundColor: `hsl(${hueForProgress(it.progress)} 72% 44%)` }} />
                 </div>
-                <div className="mt-2 text-center text-[11px] text-gray-500">{statusText(it.progress)}</div>
+                <div className="text-center text-[10px] text-gray-500">{statusText(it.progress)}</div>
               </div>
             ))
           : PLACEHOLDER_PROBLEMS.map((it) => <ProblemCardSkeleton key={it.key} label={it.label} />)}
@@ -459,10 +495,20 @@ export default function OgemathProgress2() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-muted-foreground">Загрузка прогресса...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="relative">
+            <div className="h-16 w-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
+            <div className="absolute inset-0 h-16 w-16 border-4 border-transparent border-r-purple-500 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-gray-900 animate-pulse">Загружаем ваш прогресс</p>
+            <div className="flex items-center justify-center space-x-1">
+              <div className="h-2 w-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="h-2 w-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="h-2 w-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+          </div>
         </div>
       </div>
     );
