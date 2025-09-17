@@ -173,7 +173,7 @@ const OgeMath = () => {
   };
 
   const handleProgressClick = () => {
-    navigate("/ogemath-progress");
+    navigate("/ogemath-progress2");
   };
 
   return (
