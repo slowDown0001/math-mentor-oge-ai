@@ -109,7 +109,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
       // Navigate after a delay
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/mydb3');
         onComplete();
       }, 2000);
       

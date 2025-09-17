@@ -9,7 +9,7 @@ const DiagnosticTestPage: React.FC = () => {
   const handleTestComplete = (results: { totalQuestions: number; correctAnswers: number; testedSkills: number[] }) => {
     console.log('Diagnostic test completed with results:', results);
     // Navigate to dashboard
-    navigate('/dashboard');
+    navigate('/mydb3');
   };
 
   return (

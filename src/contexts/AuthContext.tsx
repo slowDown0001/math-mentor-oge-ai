@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // And only if the user is on the home page
         if (event === 'SIGNED_IN' && hasInitialized && location.pathname === '/') {
           toast.success('Вы успешно вошли в систему!');
-          navigate('/mydashboard');
+          navigate('/mydb3');
         }
         
         if (event === 'SIGNED_OUT') {

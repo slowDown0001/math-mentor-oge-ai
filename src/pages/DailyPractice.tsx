@@ -168,7 +168,7 @@ const DailyPractice = () => {
   };
 
   const handleFinishSession = () => {
-    navigate('/dashboard');
+    navigate('/mydb3');
   };
 
   const getOptionContent = (optionIndex: number) => {

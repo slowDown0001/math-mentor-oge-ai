@@ -201,7 +201,7 @@ const About = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
-                <Link to="/dashboard">
+                <Link to="/mydb3">
                   Начать бесплатно
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>

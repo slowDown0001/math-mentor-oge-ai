@@ -39,9 +39,9 @@ const Header = () => {
           <nav className="hidden md:flex items-center space-x-6">
             {user && (
               <Link 
-                to="/dashboard" 
+                to="/mydb3" 
                 className={`text-sm font-medium transition-colors ${
-                  isActive('/dashboard') ? 'text-primary' : 'text-gray-600 hover:text-primary'
+                  isActive('/mydb3') ? 'text-primary' : 'text-gray-600 hover:text-primary'
                 }`}
               >
                 Главная
@@ -167,9 +167,9 @@ const Header = () => {
             <nav className="flex flex-col space-y-2">
               {user && (
                 <Link 
-                  to="/dashboard" 
+                  to="/mydb3" 
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    isActive('/dashboard') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
+                    isActive('/mydb3') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >

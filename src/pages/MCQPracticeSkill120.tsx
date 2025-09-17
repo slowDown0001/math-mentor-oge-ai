@@ -165,7 +165,7 @@ const MCQPracticeSkill120 = () => {
         title: "Квиз завершен!",
         description: `Вы правильно ответили на ${correctAnswers} из ${questions.length} вопросов`,
       });
-      navigate('/dashboard');
+      navigate('/mydb3');
     }
   };
 
@@ -193,7 +193,7 @@ const MCQPracticeSkill120 = () => {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <Button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/mydb3')}
                 variant="outline"
                 className="mb-6"
               >
@@ -233,7 +233,7 @@ const MCQPracticeSkill120 = () => {
           {/* Compact Header */}
           <div className="flex items-center justify-between mb-4">
             <Button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/mydb3')}
               variant="ghost"
               size="sm"
             >

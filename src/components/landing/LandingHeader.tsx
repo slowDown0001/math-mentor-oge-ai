@@ -120,7 +120,7 @@ export default function LandingHeader() {
 
   const handleLoginClick = () => {
     if (user) {
-      navigate("/dashboard");
+      navigate("/mydb3");
     } else {
       setIsAuthModalOpen(true);
     }

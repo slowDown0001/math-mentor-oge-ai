@@ -21,7 +21,7 @@ const NewPracticeSkills: React.FC = () => {
                 Главная
               </Button>
             </Link>
-            <Link to="/mydashboard">
+            <Link to="/mydb3">
               <Button className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
                 Профиль
               </Button>
