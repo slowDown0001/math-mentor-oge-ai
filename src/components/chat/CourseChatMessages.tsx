@@ -17,39 +17,74 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const lastMessageCountRef = useRef(messages.length);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToBottom = (smooth = true) => {
+    messagesEndRef.current?.scrollIntoView({ 
+      behavior: smooth ? "smooth" : "auto" 
+    });
+  };
+
+  const handleScrollToBottomClick = () => {
+    scrollToBottom();
+  };
+
+  const isNearBottom = () => {
+    if (!containerRef.current) return false;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    return scrollTop + clientHeight >= scrollHeight - 80; // 80px threshold as requested
   };
 
   const handleScroll = () => {
     if (containerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-      const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
-      setShowScrollButton(!isNearBottom && messages.length > 0);
+      const nearBottom = isNearBottom();
+      setShowScrollButton(!nearBottom && messages.length > 0);
+      
+      // Update auto-scroll behavior based on user's scroll position
+      if (nearBottom) {
+        setShouldAutoScroll(true);
+        setIsUserScrolledUp(false);
+      } else {
+        // Only mark as scrolled up if user manually scrolled (not during initial load)
+        if (messages.length > 0) {
+          setIsUserScrolledUp(true);
+          setShouldAutoScroll(false);
+        }
+      }
     }
   };
 
+  // Auto-scroll when new messages arrive or typing indicator changes
   useEffect(() => {
-    // Auto-scroll to bottom when new messages arrive, unless user has scrolled up
-    if (containerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-      const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
+    const hasNewMessage = messages.length > lastMessageCountRef.current;
+    lastMessageCountRef.current = messages.length;
+
+    if (containerRef.current && shouldAutoScroll) {
+      // Process KaTeX for visible messages first, then scroll
+      const visibleMessages = containerRef.current.querySelectorAll('[data-message]');
+      visibleMessages.forEach(msg => {
+        kaTeXManager.renderMath(msg as HTMLElement);
+      });
       
-      if (isNearBottom) {
-        // Process KaTeX for visible messages first, then scroll
-        const visibleMessages = containerRef.current.querySelectorAll('[data-message]');
-        visibleMessages.forEach(msg => {
-          kaTeXManager.renderMath(msg as HTMLElement);
-        });
-        
-        // Scroll immediately since KaTeX renders synchronously
+      // Scroll to bottom for new messages or typing indicator
+      if (hasNewMessage || isTyping) {
         setTimeout(() => {
           scrollToBottom();
         }, 50);
       }
     }
-  }, [messages, isTyping]);
+  }, [messages, isTyping, shouldAutoScroll]);
+
+  // Initial scroll to bottom when component mounts
+  useEffect(() => {
+    if (messages.length > 0 && !isUserScrolledUp) {
+      setTimeout(() => {
+        scrollToBottom(false); // Instant scroll on initial load
+      }, 100);
+    }
+  }, []);
 
   return (
     <div className="relative h-full">
@@ -107,7 +142,7 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
       {/* Floating scroll-to-bottom button */}
       {showScrollButton && (
         <button
-          onClick={scrollToBottom}
+          onClick={handleScrollToBottomClick}
           className="absolute bottom-4 right-4 w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 
                      hover:from-blue-400 hover:to-purple-500 text-white rounded-full shadow-lg 
                      transform transition-all duration-300 ease-in-out hover:scale-105 
