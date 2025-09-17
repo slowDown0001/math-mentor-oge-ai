@@ -48,7 +48,7 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
 
   if (message.isUser) {
     return (
-      <div ref={messageRef} data-message data-user="true" className="flex justify-end items-start gap-3 animate-fade-in slide-in-right mb-4">
+      <div ref={messageRef} data-message className="flex justify-end items-start gap-3 animate-fade-in slide-in-right mb-4">
         <div className="flex flex-col items-end max-w-[70%]">
           <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 text-white font-medium text-[15px] px-4 py-3 rounded-2xl rounded-tr-md shadow-lg [&_.math-display]:text-center [&_.math-display]:my-3 [&_.math-inline]:text-white [&_.math-display]:text-white">
             <ChatRenderer2 text={message.text} isUserMessage={true} />
@@ -72,7 +72,7 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
   }
 
   return (
-    <div ref={messageRef} data-message data-user="false" className="flex justify-start items-start gap-3 animate-fade-in animate-scale-in mb-4">
+    <div ref={messageRef} data-message className="flex justify-start items-start gap-3 animate-fade-in animate-scale-in mb-4">
       <div className="flex-shrink-0">
         <img 
           src={aiAvatar}
