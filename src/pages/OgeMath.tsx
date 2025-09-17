@@ -181,12 +181,17 @@ const OgeMath = () => {
       {/* Left Sidebar - Fixed */}
       <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0">
         {/* Logo area */}
-        <div className="p-4 border-b border-border">
+        <div className="p-4">
           <button 
             onClick={() => navigate("/mydb3")}
-            className="text-lg font-bold text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors"
+            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
           >
-            🏰 Hedgehog
+            <img 
+              src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png" 
+              alt="EGEChat Logo" 
+              className="w-8 h-8"
+            />
+            <span className="font-bold text-lg text-sidebar-foreground">EGEChat</span>
           </button>
         </div>
         
