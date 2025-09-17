@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User } from "lucide-react";
 import { useChatContext } from "@/contexts/ChatContext";
 import CourseChatMessages from "@/components/chat/CourseChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
@@ -9,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { useKaTeXInitializer } from "@/hooks/useMathJaxInitializer";
 import { loadChatHistory, saveChatLog, type ChatLog } from "@/services/chatLogsService";
+import { StreakDisplay } from "@/components/streak/StreakDisplay";
 
 const OgeMath = () => {
   const navigate = useNavigate();
@@ -180,9 +180,14 @@ const OgeMath = () => {
     <div className="flex h-screen w-full bg-background">
       {/* Left Sidebar - Fixed */}
       <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0">
-        {/* Header area */}
+        {/* Logo area */}
         <div className="p-4 border-b border-border">
-          <h2 className="text-lg font-semibold text-sidebar-foreground">ОГЭ Математика</h2>
+          <button 
+            onClick={() => navigate("/mydb3")}
+            className="text-lg font-bold text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors"
+          >
+            🏰 Hedgehog
+          </button>
         </div>
         
         {/* Menu items */}
@@ -218,15 +223,7 @@ const OgeMath = () => {
         {/* Header */}
         <div className="h-14 border-b border-border bg-background flex items-center justify-between px-4">
           <h1 className="text-xl font-semibold">ОГЭ Математика</h1>
-          <Button
-            onClick={handleNavigateToProfile}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <User className="w-4 h-4" />
-            Дашборд
-          </Button>
+          {user && <StreakDisplay />}
         </div>
 
         {/* Chat Messages Area - Scrollable */}
