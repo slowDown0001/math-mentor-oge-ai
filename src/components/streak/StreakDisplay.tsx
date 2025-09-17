@@ -182,7 +182,7 @@ export const StreakDisplay = () => {
 
       {/* Dropdown Menu */}
       {showDropdown && (
-        <div className="absolute top-full left-0 mt-2 w-64 bg-background border border-border rounded-lg shadow-lg z-50 animate-fade-in">
+        <div className="absolute top-full right-0 mt-2 w-64 bg-background border border-border rounded-lg shadow-lg z-50 animate-fade-in">
           <div className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Текущая серия</span>
