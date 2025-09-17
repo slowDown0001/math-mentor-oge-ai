@@ -20,10 +20,12 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
   const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const lastMessageCountRef = useRef(messages.length);
+  const lastAssistantMessageRef = useRef<HTMLElement | null>(null);
 
   const scrollToBottom = (smooth = true) => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     messagesEndRef.current?.scrollIntoView({ 
-      behavior: smooth ? "smooth" : "auto" 
+      behavior: prefersReducedMotion ? "auto" : (smooth ? "smooth" : "auto")
     });
   };
 
@@ -31,10 +33,30 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
     scrollToBottom();
   };
 
+  const scrollToAssistantMessage = (messageElement: HTMLElement, smooth = true) => {
+    if (!containerRef.current) return;
+    
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const container = containerRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const messageRect = messageElement.getBoundingClientRect();
+    
+    // Calculate the desired scroll position
+    // We want the message to be at the top with a small offset (16px)
+    const headerOffset = 16;
+    const targetScrollTop = container.scrollTop + (messageRect.top - containerRect.top) - headerOffset;
+    
+    // Scroll to position
+    container.scrollTo({
+      top: targetScrollTop,
+      behavior: prefersReducedMotion ? "auto" : (smooth ? "smooth" : "auto")
+    });
+  };
+
   const isNearBottom = () => {
     if (!containerRef.current) return false;
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    return scrollTop + clientHeight >= scrollHeight - 80; // 80px threshold as requested
+    return scrollTop + clientHeight >= scrollHeight - 120; // 120px threshold as requested
   };
 
   const handleScroll = () => {
@@ -59,23 +81,55 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
   // Auto-scroll when new messages arrive or typing indicator changes
   useEffect(() => {
     const hasNewMessage = messages.length > lastMessageCountRef.current;
+    const lastMessage = messages[messages.length - 1];
+    const isNewAssistantMessage = hasNewMessage && lastMessage && !lastMessage.isUser;
+    
     lastMessageCountRef.current = messages.length;
 
     if (containerRef.current && shouldAutoScroll) {
-      // Process KaTeX for visible messages first, then scroll
+      // Process KaTeX for visible messages first
       const visibleMessages = containerRef.current.querySelectorAll('[data-message]');
       visibleMessages.forEach(msg => {
         kaTeXManager.renderMath(msg as HTMLElement);
       });
       
-      // Scroll to bottom for new messages or typing indicator
-      if (hasNewMessage || isTyping) {
+      if (isNewAssistantMessage) {
+        // For new assistant messages, scroll to position them at the top
+        setTimeout(() => {
+          const assistantMessageElements = containerRef.current?.querySelectorAll('[data-message][data-user="false"]');
+          if (assistantMessageElements && assistantMessageElements.length > 0) {
+            const lastAssistantElement = assistantMessageElements[assistantMessageElements.length - 1] as HTMLElement;
+            scrollToAssistantMessage(lastAssistantElement);
+            lastAssistantMessageRef.current = lastAssistantElement;
+          }
+        }, 100);
+      } else if (isTyping) {
+        // For typing indicator, scroll to bottom
         setTimeout(() => {
           scrollToBottom();
         }, 50);
       }
     }
   }, [messages, isTyping, shouldAutoScroll]);
+
+  // Track streaming content growth for assistant messages
+  useEffect(() => {
+    if (shouldAutoScroll && lastAssistantMessageRef.current) {
+      const observer = new MutationObserver(() => {
+        if (shouldAutoScroll && lastAssistantMessageRef.current) {
+          scrollToAssistantMessage(lastAssistantMessageRef.current, false);
+        }
+      });
+
+      observer.observe(lastAssistantMessageRef.current, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+
+      return () => observer.disconnect();
+    }
+  }, [shouldAutoScroll, messages]);
 
   // Initial scroll to bottom when component mounts
   useEffect(() => {
