@@ -1,14 +1,80 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from "react";
+import { LayoutGrid, ListOrdered, ArrowLeft } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
+// ---------- Types ----------
+export type ModuleItem = { id: number; title: string; progress: number; mastered: number; total: number };
+export type ProblemItem = { key: string; label: string; progress: number };
 
 interface ProgressData {
   [key: string]: number;
+}
+
+// ---------- Utils ----------
+const clamp01 = (n: number) => Math.min(100, Math.max(0, n));
+const hueForProgress = (p: number) => Math.round((clamp01(p) / 100) * 120); // 0=red→120=green
+const statusText = (p: number) => (p >= 100 ? "Готово!" : p >= 80 ? "Почти мастер" : p >= 40 ? "В процессе" : "Начни здесь");
+
+function Radial({ value, size = 60 }: { value: number; size?: number }) {
+  const angle = clamp01(value) * 3.6;
+  const hue = hueForProgress(value);
+  const ringColor = `hsl(${hue} 72% 44%)`;
+  return (
+    <div
+      className="relative rounded-full"
+      style={{ width: size, height: size, background: `conic-gradient(${ringColor} ${angle}deg, #eceef1 0deg)` }}
+      aria-label={`Прогресс ${Math.round(value)}%`}
+    >
+      <div className="absolute inset-[12%] rounded-full bg-white/90 grid place-items-center text-[11px] font-semibold text-gray-800">
+        {Math.round(value)}%
+      </div>
+    </div>
+  );
+}
+
+function LegendItem({ label, mid }: { label: string; mid: number }) {
+  const hue = hueForProgress(mid);
+  return (
+    <span className="inline-flex items-center gap-2 text-[11px] text-gray-600">
+      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: `hsl(${hue} 72% 44%)` }} />
+      {label}
+    </span>
+  );
+}
+
+// ---------- Skeletons ----------
+function SkeletonBar() {
+  return <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200"><div className="h-full w-1/3 animate-pulse rounded-full bg-gray-300" /></div>;
+}
+function ModuleCardSkeleton({ title }: { title: string }) {
+  return (
+    <div className="relative rounded-2xl border border-gray-200 bg-white/90 p-4">
+      <div className="flex items-start gap-4">
+        <div className="h-14 w-14 animate-pulse rounded-full bg-gray-200" />
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-[15px] font-semibold text-gray-400">{title}</h3>
+          <div className="mt-2"><SkeletonBar /></div>
+          <div className="mt-2 h-4 w-40 animate-pulse rounded bg-gray-200" />
+        </div>
+      </div>
+    </div>
+  );
+}
+function ProblemCardSkeleton({ label }: { label: string }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white/90 p-2.5">
+      <div className="flex items-center justify-center mb-2">
+        <span className="text-[12px] font-medium text-gray-400">№ {label}</span>
+      </div>
+      <div className="grid place-items-center mb-2">
+        <div className="h-12 w-12 animate-pulse rounded-full bg-gray-200" />
+      </div>
+      <div className="mb-1"><SkeletonBar /></div>
+      <div className="h-2 w-16 animate-pulse rounded bg-gray-200 mx-auto" />
+    </div>
+  );
 }
 
 const EgemathprofProgress: React.FC = () => {
@@ -18,9 +84,9 @@ const EgemathprofProgress: React.FC = () => {
   const [topicMastery, setTopicMastery] = useState<ProgressData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [problemTypesOpen, setProblemTypesOpen] = useState(true);
-  const [topicMasteryOpen, setTopicMasteryOpen] = useState(false);
-  const [moduleProgressOpen, setModuleProgressOpen] = useState(false);
+  const [modules, setModules] = useState<ModuleItem[]>([]);
+  const [problems, setProblems] = useState<ProblemItem[]>([]);
+  const [mode, setMode] = useState<"module" | "problem">("problem");
 
   const skillIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 190, 191, 192, 195, 196, 197, 198, 199, 200];
   
@@ -28,7 +94,7 @@ const EgemathprofProgress: React.FC = () => {
   
   const topicCodes = ['1.1', '1.2','1.3', '1.4','1.5','1.6','1.7','1.8','1.9','2.1','2.2','2.3','2.4','2.5','2.6','2.7','2.8','2.9','2.10','2.11','2.12','3.1','3.2','3.3','3.4','3.5','3.6','3.7','3.8','4.1','4.2','4.3','5.1','5.2','6.1','6.2','6.3','7.1','7.2','7.3','7.4','8.1','8.2'];
 
-  const modules = [
+  const moduleDefinitions = [
     { id: 1, name: 'Числа и вычисления', topicCodes: ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9'] },
     { id: 2, name: 'Уравнения и неравенства', topicCodes: ['2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7', '2.8', '2.9', '2.10', '2.11', '2.12'] },
     { id: 3, name: 'Функции и графики', topicCodes: ['3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '3.7', '3.8'] },
@@ -88,8 +154,53 @@ const EgemathprofProgress: React.FC = () => {
 
       const topicMasteryResults = await Promise.all(topicMasteryPromises);
 
+      // Convert to new format for modules
+      const moduleItems: ModuleItem[] = moduleDefinitions.map(module => {
+        const moduleTopicMastery = topicMasteryResults.filter(item => {
+          const topicCode = Object.keys(item)[0];
+          return module.topicCodes.includes(topicCode);
+        });
+        
+        let average = 0;
+        if (moduleTopicMastery.length > 0) {
+          const total = moduleTopicMastery.reduce((sum, item) => {
+            const value = Object.values(item)[0];
+            return sum + value;
+          }, 0);
+          average = total / moduleTopicMastery.length;
+        }
+        
+        const progress = Math.round(average * 100);
+        const mastered = moduleTopicMastery.filter(item => Object.values(item)[0] >= 0.8).length;
+        
+        return {
+          id: module.id,
+          title: module.name,
+          progress,
+          mastered,
+          total: module.topicCodes.length
+        };
+      });
+
+      // Convert to new format for problems
+      const problemItems: ProblemItem[] = problemNumberTypes.map(num => {
+        const problemData = problemTypesResponse.data?.data?.progress_bars?.find((item: any) => {
+          const key = Object.keys(item)[0];
+          return key === num.toString();
+        });
+        const progress = problemData ? Math.round((Object.values(problemData)[0] as number) * 100) : 0;
+        
+        return {
+          key: num.toString(),
+          label: num.toString(),
+          progress
+        };
+      });
+
       setProblemTypesProgress(problemTypesResponse.data?.data?.progress_bars || []);
       setTopicMastery(topicMasteryResults);
+      setModules(moduleItems);
+      setProblems(problemItems);
     } catch (err) {
       console.error('Error fetching progress data:', err);
       setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке данных');
@@ -108,7 +219,7 @@ const EgemathprofProgress: React.FC = () => {
   };
 
   const calculateModuleProgress = (): ProgressData[] => {
-    return modules.map(module => {
+    return moduleDefinitions.map(module => {
       const moduleTopicMastery = topicMastery.filter(item => {
         const topicCode = Object.keys(item)[0];
         return module.topicCodes.includes(topicCode);
@@ -127,16 +238,24 @@ const EgemathprofProgress: React.FC = () => {
   };
 
   const getModuleName = (moduleId: string): string => {
-    const module = modules.find(m => m.id.toString() === moduleId);
+    const module = moduleDefinitions.find(m => m.id.toString() === moduleId);
     return module ? module.name : `Модуль ${moduleId}`;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-muted-foreground">Загрузка прогресса...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="h-16 w-16 rounded-full border-4 border-gray-200"></div>
+            <div className="absolute inset-0 h-16 w-16 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="h-2 w-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="h-2 w-2 bg-blue-500 rounded-full animate-bounce"></div>
+          </div>
+          <p className="text-gray-600 font-medium">Загружаем ваш прогресс...</p>
         </div>
       </div>
     );
@@ -144,167 +263,171 @@ const EgemathprofProgress: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center space-y-4">
-            <p className="text-destructive">{error}</p>
-            <button
-              onClick={fetchProgressData}
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
-            >
-              Попробовать снова
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-6 shadow-lg text-center space-y-4 max-w-md w-full">
+          <p className="text-red-600">{error}</p>
+          <button
+            onClick={fetchProgressData}
+            className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors"
+          >
+            Попробовать снова
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- Components ----------
+  function ModuleCard({ m }: { m: ModuleItem }) {
+    const ring = `hsl(${hueForProgress(m.progress)} 72% 44%)`;
+    return (
+      <div className="group relative rounded-2xl border border-gray-200 bg-white/90 p-4 hover:border-gray-300 transition-colors">
+        <div className="flex items-start gap-4">
+          <Radial value={m.progress} size={56} />
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-[15px] font-semibold text-gray-900">{m.title}</h3>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+              <div className="h-full rounded-full" style={{ width: `${m.progress}%`, backgroundColor: ring }} />
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-[12px] text-gray-600">
+              <span>Освоено: <b>{m.mastered}</b>/<b>{m.total}</b></span>
+              <span className="opacity-70">{statusText(m.progress)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function ModuleView({ modules }: { modules: ModuleItem[] }) {
+    const hasRealData = modules.some(m => m.progress > 0 || m.total > 0 || m.mastered > 0);
+    const [sortByLow, setSortByLow] = useState(false);
+    const [onlyNeedsWork, setOnlyNeedsWork] = useState(false);
+
+    const list = useMemo(() => {
+      let arr = [...modules];
+      if (onlyNeedsWork) arr = arr.filter(m => m.progress < 80);
+      arr.sort((a, b) => sortByLow ? a.progress - b.progress : a.id - b.id);
+      return arr;
+    }, [modules, sortByLow, onlyNeedsWork]);
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <button onClick={() => setOnlyNeedsWork(v => !v)} className="rounded-xl border px-3 py-1.5 text-[13px] hover:bg-gray-50">
+              {onlyNeedsWork ? "Показать все" : "Только < 80%"}
             </button>
-          </CardContent>
-        </Card>
+            <button onClick={() => setSortByLow(v => !v)} className="rounded-xl border px-3 py-1.5 text-[13px] hover:bg-gray-50">
+              {sortByLow ? "Сортировать: снизу вверх" : "Сортировать: сверху вниз"}
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-4 text-gray-600">
+            <LegendItem label="< 40%" mid={20} />
+            <LegendItem label="40–79%" mid={60} />
+            <LegendItem label="80–99%" mid={90} />
+            <LegendItem label="100%" mid={100} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {hasRealData
+            ? list.map((m) => <ModuleCard key={m.id} m={m} />)
+            : modules.map((m) => <ModuleCardSkeleton key={m.id} title={m.title} />)}
+        </div>
+      </div>
+    );
+  }
+
+  function ProblemView({ problems }: { problems: ProblemItem[] }) {
+    const hasRealData = problems.some(p => p.progress > 0);
+    const [showOnlyNeedsWork, setShowOnlyNeedsWork] = useState(false);
+    const filtered = useMemo(() => (showOnlyNeedsWork ? problems.filter(i => i.progress < 80) : problems), [problems, showOnlyNeedsWork]);
+
+    useEffect(() => {
+      const onKey = (e: KeyboardEvent) => { if (e.key.toLowerCase() === "f") setShowOnlyNeedsWork(v => !v); };
+      window.addEventListener("keydown", onKey);
+      return () => window.removeEventListener("keydown", onKey);
+    }, []);
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <button onClick={() => setShowOnlyNeedsWork(v => !v)} className="rounded-xl border px-3 py-1.5 text-[13px] hover:bg-gray-50" title="Клавиша F — переключить фильтр">
+            {showOnlyNeedsWork ? "Показать все" : "Только < 80%"}
+          </button>
+          <div className="flex flex-wrap gap-4 text-gray-600">
+            <LegendItem label="< 40%" mid={20} />
+            <LegendItem label="40–79%" mid={60} />
+            <LegendItem label="80–99%" mid={90} />
+            <LegendItem label="100%" mid={100} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-3">
+          {hasRealData
+            ? filtered.map((it) => (
+                <div key={it.key} className="rounded-xl border border-gray-200 bg-white/90 p-2 hover:border-gray-300 transition-colors">
+                  <div className="flex items-center justify-center mb-2">
+                    <span className="text-[12px] font-medium text-gray-800">№ {it.label}</span>
+                  </div>
+                  <div className="grid place-items-center mb-2">
+                    <Radial value={it.progress} size={40} />
+                  </div>
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-gray-200 mb-1">
+                    <div className="h-full rounded-full" style={{ width: `${it.progress}%`, backgroundColor: `hsl(${hueForProgress(it.progress)} 72% 44%)` }} />
+                  </div>
+                  <div className="text-center text-[10px] text-gray-500">{statusText(it.progress)}</div>
+                </div>
+              ))
+            : problemNumberTypes.map((num) => <ProblemCardSkeleton key={num} label={num.toString()} />)}
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- Sticky Tab Bar ----------
+  function TabBar({ mode, setMode }: { mode: "module" | "problem"; setMode: (m: "module" | "problem") => void }) {
+    return (
+      <div className="sticky top-0 z-30 -mx-4 sm:mx-0 backdrop-blur supports-[backdrop-filter]:bg-white/70 bg-white/95 border-b">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="flex items-center justify-between py-3">
+            <nav className="relative inline-flex rounded-xl border bg-white shadow-sm">
+              <button
+                onClick={() => setMode("module")}
+                className={`flex items-center gap-2 px-4 py-2 text-[13px] ${mode === "module" ? "bg-gray-900 text-white" : "text-gray-700 hover:bg-gray-50"}`}
+                aria-pressed={mode === "module"}
+              >
+                <LayoutGrid className="h-4 w-4" /> Модули
+              </button>
+              <button
+                onClick={() => setMode("problem")}
+                className={`flex items-center gap-2 px-4 py-2 text-[13px] ${mode === "problem" ? "bg-gray-900 text-white" : "text-gray-700 hover:bg-gray-50"}`}
+                aria-pressed={mode === "problem"}
+              >
+                <ListOrdered className="h-4 w-4" /> Задания
+              </button>
+            </nav>
+            <button
+              onClick={() => navigate('/egemathprof')}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Назад</span>
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => navigate('/egemathprof')}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Назад</span>
-            </button>
-            <h1 className="text-lg font-semibold">Прогресс обучения ЕГЭ Профиль</h1>
-            <div className="w-16"></div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <Card className="p-4">
-            <div className="text-center space-y-2">
-              <div className="text-2xl font-bold text-primary">{calculateOverallProgress(problemTypesProgress)}%</div>
-              <div className="text-sm text-muted-foreground">Типы задач</div>
-              <Progress value={calculateOverallProgress(problemTypesProgress)} className="h-2" />
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-center space-y-2">
-              <div className="text-2xl font-bold text-primary">{calculateOverallProgress(topicMastery)}%</div>
-              <div className="text-sm text-muted-foreground">Темы</div>
-              <Progress value={calculateOverallProgress(topicMastery)} className="h-2" />
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-center space-y-2">
-              <div className="text-2xl font-bold text-primary">{calculateOverallProgress(calculateModuleProgress())}%</div>
-              <div className="text-sm text-muted-foreground">Модули</div>
-              <Progress value={calculateOverallProgress(calculateModuleProgress())} className="h-2" />
-            </div>
-          </Card>
-        </div>
-
-        {/* Problem Types Progress */}
-        <Card>
-          <Collapsible open={problemTypesOpen} onOpenChange={setProblemTypesOpen}>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Прогресс по типам задач</CardTitle>
-                  {problemTypesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="pt-0 space-y-3">
-                {problemTypesProgress.map((item, index) => {
-                  const key = Object.keys(item)[0];
-                  const value = item[key];
-                  const percentage = Math.round(value * 100);
-                  
-                  return (
-                    <div key={index} className="flex items-center justify-between py-2">
-                      <span className="text-sm">№{key}</span>
-                      <div className="flex items-center gap-3 flex-1 ml-4">
-                        <Progress value={percentage} className="h-2 flex-1" />
-                        <span className="text-sm font-medium min-w-[3rem] text-right">{percentage}%</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </Card>
-
-        {/* Module Progress */}
-        <Card>
-          <Collapsible open={moduleProgressOpen} onOpenChange={setModuleProgressOpen}>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Прогресс по модулям</CardTitle>
-                  {moduleProgressOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="pt-0 space-y-3">
-                {calculateModuleProgress().map((item, index) => {
-                  const key = Object.keys(item)[0];
-                  const value = item[key];
-                  const percentage = Math.round(value * 100);
-                  const moduleName = getModuleName(key);
-                  
-                  return (
-                    <div key={index} className="flex items-center justify-between py-2">
-                      <span className="text-sm">{key}. {moduleName}</span>
-                      <div className="flex items-center gap-3 flex-1 ml-4">
-                        <Progress value={percentage} className="h-2 flex-1" />
-                        <span className="text-sm font-medium min-w-[3rem] text-right">{percentage}%</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </Card>
-
-        {/* Topic Mastery Progress */}
-        <Card>
-          <Collapsible open={topicMasteryOpen} onOpenChange={setTopicMasteryOpen}>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Прогресс по темам</CardTitle>
-                  {topicMasteryOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="pt-0 space-y-3">
-                {topicMastery.map((item, index) => {
-                  const key = Object.keys(item)[0];
-                  const value = item[key];
-                  const percentage = Math.round(value * 100);
-                  
-                  return (
-                    <div key={index} className="flex items-center justify-between py-2">
-                      <span className="text-sm">{key}</span>
-                      <div className="flex items-center gap-3 flex-1 ml-4">
-                        <Progress value={percentage} className="h-2 flex-1" />
-                        <span className="text-sm font-medium min-w-[3rem] text-right">{percentage}%</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </Card>
-
+    <div className="min-h-screen bg-gray-50">
+      <TabBar mode={mode} setMode={setMode} />
+      
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
+        {mode === "module" && <ModuleView modules={modules} />}
+        {mode === "problem" && <ProblemView problems={problems} />}
       </div>
     </div>
   );
