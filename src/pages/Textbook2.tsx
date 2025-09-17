@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle, ArrowLeft, Highlighter, MessageCircle, X, Trophy, PartyPopper, Menu } from "lucide-react";
+import { useState, useEffect, useMemo, useTransition } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle, ArrowLeft, Highlighter, MessageCircle, X, Trophy, PartyPopper, Menu, Copy } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -71,6 +71,9 @@ interface Unit {
 interface CourseStructure {
   [key: number]: Unit;
 }
+
+// Type for view modes in URL params
+type ViewMode = "overview" | "subunit" | "articles" | "videos" | "exercises";
 
 // Math skills data from documentation/math_skills_full.json
 const mathSkills = [
@@ -326,6 +329,8 @@ const skillNames = createSkillNameMapping();
 
 const Textbook2 = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<{skillId: number, skillName: string} | null>(null);
   const [articleContent, setArticleContent] = useState<string>("");
@@ -348,12 +353,144 @@ const Textbook2 = () => {
   const { getUserMastery, calculateUnitProgress, getMasteryLevel } = useMasterySystem();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
 
+  // URL state management
+  const urlState = useMemo(() => {
+    const unitParam = searchParams.get("unit");
+    const topicParam = searchParams.get("topic");
+    const viewParam = searchParams.get("view") as ViewMode | null;
+
+    const unit = unitParam ? Number(unitParam) : null;
+    const topic = topicParam ?? "";
+    const view: ViewMode = viewParam ?? "overview";
+
+    return { unit, topic, view };
+  }, [searchParams]);
+
+  // Helper to safely update URL params
+  const setUrlState = (next: Partial<{ unit: number | null; topic: string; view: ViewMode }>) => {
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    
+    if (next.unit !== undefined) {
+      if (next.unit === null) {
+        params.delete("unit");
+      } else {
+        params.set("unit", String(next.unit));
+      }
+    }
+    if (next.topic !== undefined) {
+      if (next.topic === "") {
+        params.delete("topic");
+      } else {
+        params.set("topic", next.topic);
+      }
+    }
+    if (next.view !== undefined) {
+      if (next.view === "overview") {
+        params.delete("view");
+      } else {
+        params.set("view", next.view);
+      }
+    }
+
+    startTransition(() => {
+      setSearchParams(params, { replace: true });
+    });
+  };
+
+  // Sync URL state to component state
+  useEffect(() => {
+    try {
+      // Handle unit selection
+      if (urlState.unit !== null && urlState.unit !== selectedUnit) {
+        const unitExists = courseStructure[urlState.unit];
+        if (unitExists) {
+          setSelectedUnit(urlState.unit);
+        }
+      } else if (urlState.unit === null && selectedUnit !== null) {
+        setSelectedUnit(null);
+      }
+
+      // Handle topic/subunit selection
+      if (urlState.topic && urlState.unit !== null) {
+        const unit = courseStructure[urlState.unit];
+        if (unit) {
+          const foundSubunit = unit.subunits.find(s => s.id === urlState.topic);
+          if (foundSubunit && currentSubunit?.id !== foundSubunit.id) {
+            setCurrentSubunit(foundSubunit);
+            
+            // Handle specific views
+            switch (urlState.view) {
+              case "articles":
+                if (foundSubunit.skills.length > 0) {
+                  const firstSkillId = foundSubunit.skills[0];
+                  const skillName = skillNames[firstSkillId] || `Навык ${firstSkillId}`;
+                  if (!selectedArticle || selectedArticle.skillId !== firstSkillId) {
+                    handleArticleClick(firstSkillId, skillName, foundSubunit);
+                  }
+                }
+                break;
+              case "videos":
+                if (foundSubunit.skills.length > 0) {
+                  const firstSkillId = foundSubunit.skills[0];
+                  const skillName = skillNames[firstSkillId] || `Навык ${firstSkillId}`;
+                  if (selectedVideo !== skillName) {
+                    handleVideoClick(skillName, foundSubunit);
+                  }
+                }
+                break;
+              case "exercises":
+                if (foundSubunit.skills.length > 0 && selectedExercise === null) {
+                  handleExerciseClick(foundSubunit.skills, foundSubunit);
+                }
+                break;
+            }
+          }
+        }
+      } else if (!urlState.topic && currentSubunit !== null) {
+        setCurrentSubunit(null);
+        setSelectedArticle(null);
+        setSelectedVideo(null);
+        setSelectedExercise(null);
+      }
+    } catch (error) {
+      console.error("Error syncing URL state:", error);
+    }
+  }, [urlState.unit, urlState.topic, urlState.view]);
+
+  // Copy link functionality
+  const copyCurrentLink = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      // Simple success feedback without adding a toast library
+      console.log('Link copied to clipboard');
+    }).catch(err => {
+      console.error('Failed to copy link:', err);
+    });
+  };
+
+  // Handler to close video and update URL
+  const handleCloseVideo = () => {
+    setSelectedVideo(null);
+    if (selectedUnit && currentSubunit) {
+      setUrlState({ view: "subunit" });
+    }
+  };
+
+  // Handler to close exercise and update URL
+  const handleCloseExercise = () => {
+    setSelectedExercise(null);
+    if (selectedUnit && currentSubunit) {
+      setUrlState({ view: "subunit" });
+    }
+  };
+
   const handleUnitSelect = (unitNumber: number) => {
     setSelectedUnit(unitNumber);
+    setUrlState({ unit: unitNumber, topic: "", view: "overview" });
   };
 
   const handleBackToUnits = () => {
     setSelectedUnit(null);
+    setUrlState({ unit: null, topic: "", view: "overview" });
   };
 
   // Function to fetch article content
@@ -417,6 +554,13 @@ const Textbook2 = () => {
     const correctSubunit = findSubtopicBySkillId(skillId);
     if (correctSubunit) {
       setCurrentSubunit(correctSubunit);
+      // Find unit for this subunit
+      const unitNumber = Object.keys(courseStructure).find(key => 
+        courseStructure[Number(key)].subunits.some(s => s.id === correctSubunit.id)
+      );
+      if (unitNumber) {
+        setUrlState({ unit: Number(unitNumber), topic: correctSubunit.id, view: "articles" });
+      }
     } else if (subunit) {
       setCurrentSubunit(subunit);
     }
@@ -430,6 +574,10 @@ const Textbook2 = () => {
     setSelectedText("");
     setIsChatOpen(false);
     setIsSelecterActive(false);
+    // Keep current unit and topic, just change view
+    if (selectedUnit && currentSubunit) {
+      setUrlState({ view: "subunit" });
+    }
   };
 
   // Handle video click
@@ -439,6 +587,13 @@ const Textbook2 = () => {
     const correctSubunit = findSubtopicBySkillName(skillName);
     if (correctSubunit) {
       setCurrentSubunit(correctSubunit);
+      // Find unit for this subunit
+      const unitNumber = Object.keys(courseStructure).find(key => 
+        courseStructure[Number(key)].subunits.some(s => s.id === correctSubunit.id)
+      );
+      if (unitNumber) {
+        setUrlState({ unit: Number(unitNumber), topic: correctSubunit.id, view: "videos" });
+      }
     } else if (subunit) {
       setCurrentSubunit(subunit);
     }
@@ -464,6 +619,13 @@ const Textbook2 = () => {
     const correctSubunit = findSubtopicBySkillId(skillIds[0]);
     if (correctSubunit) {
       setCurrentSubunit(correctSubunit);
+      // Find unit for this subunit
+      const unitNumber = Object.keys(courseStructure).find(key => 
+        courseStructure[Number(key)].subunits.some(s => s.id === correctSubunit.id)
+      );
+      if (unitNumber) {
+        setUrlState({ unit: Number(unitNumber), topic: correctSubunit.id, view: "exercises" });
+      }
     } else if (subunit) {
       setCurrentSubunit(subunit);
     }
@@ -987,14 +1149,26 @@ const Textbook2 = () => {
               />
               <main className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-4 py-8 max-w-4xl">
-            <Button 
-              variant="ghost" 
-              onClick={() => setSelectedExercise(null)}
-              className="mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Назад к учебнику
-            </Button>
+            <div className="flex items-center gap-4 mb-4">
+              <Button 
+                variant="ghost" 
+                onClick={handleCloseExercise}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Назад к учебнику
+              </Button>
+              
+              <Button
+                onClick={copyCurrentLink}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+                title="Скопировать ссылку на текущую тему"
+              >
+                <Copy className="w-4 h-4" />
+                Скопировать ссылку
+              </Button>
+            </div>
 
             {/* Success Animation */}
             {showAnimation && (
@@ -1203,13 +1377,25 @@ const Textbook2 = () => {
               />
               <main className="flex-1 overflow-y-auto">
                 <div className="container mx-auto px-4 py-8">
-                  <Button 
-                    onClick={() => setSelectedVideo(null)} 
-                    variant="outline" 
-                    className="mb-6"
-                  >
-                    ← Назад к учебнику
-                  </Button>
+                  <div className="flex items-center gap-4 mb-6">
+                    <Button 
+                      onClick={handleCloseVideo} 
+                      variant="outline"
+                    >
+                      ← Назад к учебнику
+                    </Button>
+                    
+                    <Button
+                      onClick={copyCurrentLink}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                      title="Скопировать ссылку на текущую тему"
+                    >
+                      <Copy className="w-4 h-4" />
+                      Скопировать ссылку
+                    </Button>
+                  </div>
                   
                   <Card className="max-w-4xl mx-auto">
                     <CardHeader>
@@ -1372,6 +1558,17 @@ const Textbook2 = () => {
                       variant="outline"
                     >
                       ← Назад к учебнику
+                    </Button>
+                    
+                    <Button
+                      onClick={copyCurrentLink}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                      title="Скопировать ссылку на текущую тему"
+                    >
+                      <Copy className="w-4 h-4" />
+                      Скопировать ссылку
                     </Button>
                     
                     <Button
