@@ -2,11 +2,13 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Flame, Star, Trophy, Target } from 'lucide-react';
+import { Flame, Star, Trophy, Target, LogOut } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const UserInfoStripe = () => {
   const { getDisplayName } = useProfile();
+  const { signOut } = useAuth();
 
   // Mock data - replace with real data later
   const weeklyStreak = 3;
@@ -69,12 +71,23 @@ export const UserInfoStripe = () => {
         </div>
 
         {/* CTA */}
-        <div className="text-center">
-          <div className="text-sm text-muted-foreground mb-2">
-            Начинай прокачку и собирай серию!
+        <div className="flex items-center gap-3">
+          <div className="text-center">
+            <div className="text-sm text-muted-foreground mb-2">
+              Начинай прокачку и собирай серию!
+            </div>
+            <Button size="sm">
+              Начать
+            </Button>
           </div>
-          <Button size="sm">
-            Начать
+          <Button 
+            onClick={signOut}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            Выйти
           </Button>
         </div>
       </div>
