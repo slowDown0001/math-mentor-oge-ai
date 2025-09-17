@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/useProfile';
 import { User, ChevronDown } from 'lucide-react';
@@ -16,6 +17,7 @@ interface StreakData {
 
 export const StreakDisplay = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { getAvatarUrl, getDisplayName } = useProfile();
   const [streakData, setStreakData] = useState<StreakData>({
     dailyGoalMinutes: 30,
@@ -142,8 +144,11 @@ export const StreakDisplay = () => {
           />
         </svg>
         
-        {/* User Profile Picture */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        {/* User Profile Picture - Clickable */}
+        <button 
+          onClick={() => navigate("/profile")}
+          className="absolute inset-0 flex items-center justify-center hover:scale-105 transition-transform duration-200"
+        >
           {getAvatarUrl() ? (
             <img 
               src={getAvatarUrl()!} 
@@ -155,7 +160,7 @@ export const StreakDisplay = () => {
               <User className="w-4 h-4 text-muted-foreground" />
             </div>
           )}
-        </div>
+        </button>
 
         {/* Energy Points Animation */}
         <EnergyPointsHeaderAnimation
