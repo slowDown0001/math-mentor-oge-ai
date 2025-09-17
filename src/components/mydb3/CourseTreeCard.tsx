@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Play, AlertCircle, RefreshCw, Calculator, Square, Triangle, Circle, Hexagon, Star, Zap, Target, BookOpen, Brain, Layers, ChevronDown } from 'lucide-react';
+import { Play, AlertCircle, RefreshCw, Calculator, Square, Triangle, Circle, Hexagon, Star, Zap, Target, BookOpen, Brain, Layers, ChevronDown, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Course, Topic } from '@/lib/courses.registry';
+import { useAuth } from '@/contexts/AuthContext';
 
 // OGE Math Topics - 32 topics total
 const OGE_MATH_TOPICS = [
@@ -87,6 +88,7 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
   course, 
   onStart 
 }) => {
+  const { signOut } = useAuth();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
   const [topicsError, setTopicsError] = useState<string | null>(null);
@@ -323,15 +325,26 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
           </ScrollArea>
         </div>
         
-        {/* Action Button */}
-        <Button 
-          onClick={() => onStart(course.id)}
-          className="w-full bg-blue-600 hover:bg-blue-700"
-          size="sm"
-        >
-          <Play className="w-4 h-4 mr-2" />
-          Начать изучение
-        </Button>
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <Button 
+            onClick={() => onStart(course.id)}
+            className="flex-1 bg-blue-600 hover:bg-blue-700"
+            size="sm"
+          >
+            <Play className="w-4 h-4 mr-2" />
+            Начать
+          </Button>
+          <Button 
+            onClick={signOut}
+            variant="outline"
+            className="flex items-center gap-2"
+            size="sm"
+          >
+            <LogOut className="w-4 h-4" />
+            Выйти
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

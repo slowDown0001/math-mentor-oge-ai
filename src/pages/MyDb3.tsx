@@ -151,22 +151,12 @@ const MyDb3 = () => {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold">Мои курсы</h1>
-              <div className="flex gap-3">
-                <Button 
-                  onClick={handleOpenDeleteModal}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Редактировать курсы
-                </Button>
-                <Button 
-                  onClick={signOut}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Выйти
-                </Button>
-              </div>
+              <Button 
+                onClick={handleOpenDeleteModal}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Редактировать курсы
+              </Button>
             </div>
 
             {enrolledCourses.length === 0 ? (
