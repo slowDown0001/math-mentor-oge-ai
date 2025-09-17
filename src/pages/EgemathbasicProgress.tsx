@@ -11,21 +11,40 @@ interface ProgressData {
   [key: string]: number;
 }
 
+interface ModuleMapping {
+  id: number;
+  name: string;
+  topicCodes: string[];
+}
+
 const EgemathbasicProgress: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [problemTypesProgress, setProblemTypesProgress] = useState<ProgressData[]>([]);
   const [topicMastery, setTopicMastery] = useState<ProgressData[]>([]);
+  const [moduleProgress, setModuleProgress] = useState<ProgressData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [problemTypesOpen, setProblemTypesOpen] = useState(true);
   const [topicMasteryOpen, setTopicMasteryOpen] = useState(false);
+  const [moduleProgressOpen, setModuleProgressOpen] = useState(false);
 
   const skillIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 190, 191, 192, 195, 196, 197, 198, 199, 200];
   
   const problemNumberTypes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
   
   const topicCodes = ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7', '2.9', '3.1', '3.2', '3.3', '3.4', '3.5', '3.7', '3.8', '4.1', '4.2', '4.3', '5.1', '5.2', '6.1', '6.2', '7.1', '7.2', '7.3', '8.1', '8.2'];
+
+  const modules: ModuleMapping[] = [
+    { id: 1, name: 'Числа и вычисления', topicCodes: ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8'] },
+    { id: 2, name: 'Уравнения и неравенства', topicCodes: ['2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7', '2.9'] },
+    { id: 3, name: 'Функции и графики', topicCodes: ['3.1', '3.2', '3.3', '3.4', '3.5', '3.7', '3.8'] },
+    { id: 4, name: 'Начала математического анализа', topicCodes: ['4.1', '4.2', '4.3'] },
+    { id: 5, name: 'Множества и логика', topicCodes: ['5.1', '5.2'] },
+    { id: 6, name: 'Вероятность и статистика', topicCodes: ['6.1', '6.2'] },
+    { id: 7, name: 'Геометрия', topicCodes: ['7.1', '7.2', '7.3'] },
+    { id: 8, name: 'Применение математики к прикладным задачам', topicCodes: ['8.1', '8.2'] }
+  ];
 
   useEffect(() => {
     if (!user) {
@@ -76,8 +95,27 @@ const EgemathbasicProgress: React.FC = () => {
 
       const topicMasteryResults = await Promise.all(topicMasteryPromises);
 
+      // Calculate module progress
+      const moduleProgressResults = modules.map(module => {
+        const relevantTopics = topicMasteryResults.filter(topicResult => {
+          const topicCode = Object.keys(topicResult)[0];
+          return module.topicCodes.includes(topicCode);
+        });
+        
+        if (relevantTopics.length === 0) {
+          return { [`${module.id}. ${module.name}`]: 0 };
+        }
+        
+        const average = relevantTopics.reduce((sum, topic) => {
+          return sum + Object.values(topic)[0];
+        }, 0) / relevantTopics.length;
+        
+        return { [`${module.id}. ${module.name}`]: average };
+      });
+
       setProblemTypesProgress(problemTypesResponse.data?.data?.progress_bars || []);
       setTopicMastery(topicMasteryResults);
+      setModuleProgress(moduleProgressResults);
     } catch (err) {
       console.error('Error fetching progress data:', err);
       setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке данных');
@@ -145,12 +183,19 @@ const EgemathbasicProgress: React.FC = () => {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <Card className="p-4">
             <div className="text-center space-y-2">
               <div className="text-2xl font-bold text-primary">{calculateOverallProgress(problemTypesProgress)}%</div>
               <div className="text-sm text-muted-foreground">Типы задач</div>
               <Progress value={calculateOverallProgress(problemTypesProgress)} className="h-2" />
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-center space-y-2">
+              <div className="text-2xl font-bold text-primary">{calculateOverallProgress(moduleProgress)}%</div>
+              <div className="text-sm text-muted-foreground">Модули</div>
+              <Progress value={calculateOverallProgress(moduleProgress)} className="h-2" />
             </div>
           </Card>
           <Card className="p-4">
@@ -183,6 +228,39 @@ const EgemathbasicProgress: React.FC = () => {
                   return (
                     <div key={index} className="flex items-center justify-between py-2">
                       <span className="text-sm">№{key}</span>
+                      <div className="flex items-center gap-3 flex-1 ml-4">
+                        <Progress value={percentage} className="h-2 flex-1" />
+                        <span className="text-sm font-medium min-w-[3rem] text-right">{percentage}%</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+
+        {/* Module Progress */}
+        <Card>
+          <Collapsible open={moduleProgressOpen} onOpenChange={setModuleProgressOpen}>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">Прогресс по модулям</CardTitle>
+                  {moduleProgressOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0 space-y-3">
+                {moduleProgress.map((item, index) => {
+                  const key = Object.keys(item)[0];
+                  const value = item[key];
+                  const percentage = Math.round(value * 100);
+                  
+                  return (
+                    <div key={index} className="flex items-center justify-between py-2">
+                      <span className="text-sm">{key}</span>
                       <div className="flex items-center gap-3 flex-1 ml-4">
                         <Progress value={percentage} className="h-2 flex-1" />
                         <span className="text-sm font-medium min-w-[3rem] text-right">{percentage}%</span>
