@@ -101,11 +101,68 @@ function ProblemCardSkeleton({ label }: { label: string }) {
   );
 }
 
+// ---------- Topic Progress Modal ----------
+function TopicProgressModal({ 
+  isOpen, 
+  onClose, 
+  module, 
+  topicProgress,
+  moduleDefinitions 
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  module: ModuleItem | null;
+  topicProgress: {[key: string]: number};
+  moduleDefinitions: Array<{id: number; name: string; topicCodes: string[]}>;
+}) {
+  if (!isOpen || !module) return null;
+
+  const moduleDefinition = moduleDefinitions.find(m => m.id === module.id);
+  const topics = moduleDefinition?.topicCodes || [];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">{module.title}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        
+        <div className="space-y-3">
+          {topics.map(topicCode => {
+            const progress = topicProgress[topicCode] || 0;
+            const hue = hueForProgress(progress);
+            const ringColor = `hsl(${hue} 72% 44%)`;
+            
+            return (
+              <div key={topicCode} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <span className="text-sm font-medium text-gray-700">Тема {topicCode}</span>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-16 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%`, backgroundColor: ringColor }}
+                    />
+                  </div>
+                  <span className="text-sm font-semibold text-gray-900 w-10 text-right">{progress}%</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------- Components ----------
-function ModuleCard({ m }: { m: ModuleItem }) {
+function ModuleCard({ m, onClick }: { m: ModuleItem; onClick?: () => void }) {
   const ring = `hsl(${hueForProgress(m.progress)} 72% 44%)`;
   return (
-    <div className="group relative rounded-2xl border border-gray-200 bg-white/90 p-4 hover:border-gray-300 transition-colors">
+    <div 
+      className="group relative rounded-2xl border border-gray-200 bg-white/90 p-4 hover:border-gray-300 transition-colors cursor-pointer"
+      onClick={onClick}
+    >
       <div className="flex items-start gap-4">
         <Radial value={m.progress} size={56} />
         <div className="min-w-0 flex-1">
@@ -123,17 +180,33 @@ function ModuleCard({ m }: { m: ModuleItem }) {
   );
 }
 
-function ModuleView({ modules }: { modules: ModuleItem[] }) {
+function ModuleView({ 
+  modules, 
+  topicProgress, 
+  moduleDefinitions 
+}: { 
+  modules: ModuleItem[]; 
+  topicProgress: {[key: string]: number};
+  moduleDefinitions: Array<{id: number; name: string; topicCodes: string[]}>;
+}) {
   const hasRealData = modules.some(m => m.progress > 0 || m.total > 0 || m.mastered > 0);
-  const [sortByLow, setSortByLow] = useState(true);
+  const [sortByLow, setSortByLow] = useState(false); // Changed to false to show in order
   const [onlyNeedsWork, setOnlyNeedsWork] = useState(false);
+  const [selectedModule, setSelectedModule] = useState<ModuleItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const list = useMemo(() => {
     let arr = [...modules];
     if (onlyNeedsWork) arr = arr.filter(m => m.progress < 80);
-    arr.sort((a, b) => (sortByLow ? a.progress - b.progress : b.progress - a.progress));
+    // Sort by ID to maintain order, then by progress if sorting is enabled
+    arr.sort((a, b) => sortByLow ? a.progress - b.progress : a.id - b.id);
     return arr;
   }, [modules, sortByLow, onlyNeedsWork]);
+
+  const handleModuleClick = (module: ModuleItem) => {
+    setSelectedModule(module);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -156,9 +229,17 @@ function ModuleView({ modules }: { modules: ModuleItem[] }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {hasRealData
-          ? list.map((m) => <ModuleCard key={m.id} m={m} />)
+          ? list.map((m) => <ModuleCard key={m.id} m={m} onClick={() => handleModuleClick(m)} />)
           : PLACEHOLDER_MODULES.map((m) => <ModuleCardSkeleton key={m.id} title={m.title} />)}
       </div>
+
+      <TopicProgressModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        module={selectedModule}
+        topicProgress={topicProgress}
+        moduleDefinitions={moduleDefinitions}
+      />
     </div>
   );
 }
@@ -245,6 +326,7 @@ function useOgemathProgressData() {
   const [error, setError] = useState<string | null>(null);
   const [modules, setModules] = useState<ModuleItem[]>([]);
   const [problems, setProblems] = useState<ProblemItem[]>([]);
+  const [topicProgress, setTopicProgress] = useState<{[key: string]: number}>({});
 
   const moduleDefinitions = [
     { id: 1, name: 'Числа и вычисления', topicCodes: ['1.1', '1.2', '1.3', '1.4', '1.5'] },
@@ -302,6 +384,15 @@ function useOgemathProgressData() {
 
       const topicMasteryResults = await Promise.all(topicMasteryPromises);
       
+      // Store topic progress for popup
+      const topicProgressMap: {[key: string]: number} = {};
+      topicMasteryResults.forEach(item => {
+        const topicCode = Object.keys(item)[0];
+        const mastery = Object.values(item)[0];
+        topicProgressMap[topicCode] = Math.round(mastery * 100);
+      });
+      setTopicProgress(topicProgressMap);
+      
       // Transform problem types data
       const problemsData: ProblemItem[] = (problemTypesResponse.data?.data?.progress_bars || []).map((item: ProgressData) => {
         const key = Object.keys(item)[0];
@@ -357,14 +448,14 @@ function useOgemathProgressData() {
     }
   }, [user]);
 
-  return { modules, problems, loading, error, refetch: fetchProgressData };
+  return { modules, problems, loading, error, refetch: fetchProgressData, topicProgress, moduleDefinitions };
 }
 
 // ---------- Page Shell ----------
 export default function OgemathProgress2() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"module" | "problem">("module");
-  const { modules, problems, loading, error } = useOgemathProgressData();
+  const { modules, problems, loading, error, topicProgress, moduleDefinitions } = useOgemathProgressData();
 
   if (loading) {
     return (
@@ -422,7 +513,11 @@ export default function OgemathProgress2() {
 
         <main className="py-8 space-y-10">
           {mode === "module" ? (
-            <ModuleView modules={modules} />
+            <ModuleView 
+              modules={modules} 
+              topicProgress={topicProgress}
+              moduleDefinitions={moduleDefinitions}
+            />
           ) : (
             <ProblemView problems={problems} />
           )}
