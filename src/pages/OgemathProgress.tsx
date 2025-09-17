@@ -180,17 +180,22 @@ const OgemathProgress: React.FC = () => {
       {/* Header */}
       <div className="bg-card border-b">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => navigate('/db2')}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Назад</span>
-            </button>
-            <h1 className="text-lg font-semibold">Прогресс обучения</h1>
-            <div className="w-16"></div>
-          </div>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => navigate('/db2')}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Назад</span>
+              </button>
+              <h1 className="text-lg font-semibold">Прогресс обучения</h1>
+              <button
+                onClick={() => navigate('/ogemath-progress2')}
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                Новый дизайн
+              </button>
+            </div>
         </div>
       </div>
 
