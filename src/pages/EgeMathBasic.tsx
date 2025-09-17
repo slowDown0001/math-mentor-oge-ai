@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User } from "lucide-react";
 import { useChatContext } from "@/contexts/ChatContext";
 import CourseChatMessages from "@/components/chat/CourseChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
@@ -9,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { useMathJaxInitializer } from "@/hooks/useMathJaxInitializer";
 import { saveChatLog, loadChatHistory } from "@/services/chatLogsService";
+import { StreakDisplay } from "@/components/streak/StreakDisplay";
 
 const EgeMathBasic = () => {
   const navigate = useNavigate();
@@ -186,88 +186,62 @@ const EgeMathBasic = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/80 to-muted/20 relative overflow-hidden">
-      {/* Background glassmorphism panel */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-primary/5 backdrop-blur-sm" />
-      
-      {/* Top-right profile button */}
-      <div className="absolute top-6 right-6 z-10">
-        <Button
-          onClick={handleNavigateToProfile}
-          className="group relative px-6 py-3 bg-gradient-to-r from-yellow-200 to-yellow-300 
-                     hover:from-yellow-300 hover:to-yellow-400 
-                     text-black font-medium rounded-2xl shadow-lg 
-                     transform transition-all duration-300 ease-in-out
-                     hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/30
-                     active:scale-95 active:transition-all active:duration-150"
-        >
-          <User className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:rotate-12" />
-          Профиль
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400/20 to-yellow-600/20 
-                          opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </Button>
-      </div>
-
-      {/* Left side menu */}
-      <div className="absolute left-8 top-1/2 transform -translate-y-1/2 z-10">
-        <div className="flex flex-col space-y-6">
+    <div className="flex h-screen w-full bg-background">
+      {/* Left Sidebar - Fixed */}
+      <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0">
+        {/* Logo area */}
+        <div className="p-4">
+          <button 
+            onClick={() => navigate("/mydb3")}
+            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+          >
+            <img 
+              src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png" 
+              alt="EGEChat Logo" 
+              className="w-8 h-8"
+            />
+            <span className="font-bold text-lg text-sidebar-foreground">EGEChat</span>
+          </button>
+        </div>
+        
+        {/* Menu items */}
+        <div className="p-4 space-y-2">
           <Button
             onClick={handlePracticeClick}
-            className="group relative px-8 py-4 bg-gradient-to-r from-blue-400 via-purple-500 to-purple-600 
-                       hover:from-blue-300 hover:via-purple-400 hover:to-purple-500
-                       text-white font-medium rounded-2xl shadow-lg min-w-[160px]
-                       transform transition-all duration-300 ease-in-out
-                       hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30
-                       active:scale-95 active:transition-all active:duration-150"
+            variant="ghost"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
             Практика
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/10 to-white/5 
-                            opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </Button>
-
+          
           <Button
             onClick={handleTextbookClick}
-            className="group relative px-8 py-4 bg-gradient-to-r from-blue-400 via-purple-500 to-purple-600 
-                       hover:from-blue-300 hover:via-purple-400 hover:to-purple-500
-                       text-white font-medium rounded-2xl shadow-lg min-w-[160px]
-                       transform transition-all duration-300 ease-in-out
-                       hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30
-                       active:scale-95 active:transition-all active:duration-150"
+            variant="ghost"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
             Учебник
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/10 to-white/5 
-                            opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </Button>
-
+          
           <Button
             onClick={handleProgressClick}
-            className="group relative px-8 py-4 bg-gradient-to-r from-blue-400 via-purple-500 to-purple-600 
-                       hover:from-blue-300 hover:via-purple-400 hover:to-purple-500
-                       text-white font-medium rounded-2xl shadow-lg min-w-[160px]
-                       transform transition-all duration-300 ease-in-out
-                       hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30
-                       active:scale-95 active:transition-all active:duration-150"
+            variant="ghost"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
-            <div className="flex flex-col items-center">
-              <div>Личный кабинет</div>
-              <div className="text-sm">ЕГЭ Базовая Математика</div>
-            </div>
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/10 to-white/5 
-                            opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            Личный кабинет
           </Button>
         </div>
       </div>
 
-      {/* Top-left title */}
-      <div className="absolute top-6 left-6 z-10">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          ЕГЭ Базовая Математика
-        </h1>
-      </div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-full">
+        {/* Header */}
+        <div className="h-14 border-b border-border bg-background flex items-center justify-between px-4">
+          <h1 className="text-xl font-semibold">ЕГЭ Базовая Математика</h1>
+          {user && <StreakDisplay />}
+        </div>
 
-      {/* Chat window */}
-      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-6 bottom-32">
-        <div id="chat-window" className="relative h-full bg-white/40 backdrop-blur-[12px] rounded-2xl shadow-2xl overflow-hidden">
+        {/* Chat Messages Area - Scrollable */}
+        <div className="flex-1 overflow-hidden">
           <CourseChatMessages 
             messages={messages} 
             isTyping={isTyping}
@@ -276,15 +250,10 @@ const EgeMathBasic = () => {
             hasMoreHistory={hasMoreHistory}
           />
         </div>
-      </div>
 
-      {/* Bottom center prompt bar */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-6">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 
-                          rounded-2xl blur-sm transform scale-105" />
-          <div className="relative bg-background/80 backdrop-blur-md border border-primary/20 rounded-2xl 
-                           shadow-2xl">
+        {/* Chat Input Area - Fixed at bottom */}
+        <div className="border-t border-border bg-background p-4">
+          <div className="max-w-4xl mx-auto">
             <ChatInput onSendMessage={handleSendMessage} isTyping={isTyping} />
           </div>
         </div>
