@@ -374,67 +374,49 @@ const PracticeByNumberOgemath = () => {
   const skipQuestion = async () => {
     if (!currentQuestion) return;
 
-    // If user is authenticated, get latest activity data and calculate duration
-    if (user) {
+    // Optimized skip: minimal database operations
+    if (user && currentAttemptId && attemptStartTime) {
       try {
-        // Get latest student_activity row for current user
-        const { data: activityData, error: activityError } = await supabase
+        // Calculate duration
+        const now = new Date();
+        const durationInSeconds = (now.getTime() - attemptStartTime.getTime()) / 1000;
+
+        // Single UPDATE operation to mark as skipped
+        const { error: updateError } = await supabase
           .from('student_activity')
-          .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi, answer_time_start')
+          .update({ 
+            duration_answer: durationInSeconds,
+            is_correct: false,
+            scores_fipi: 0,
+            finished_or_not: true
+          })
           .eq('user_id', user.id)
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .single();
+          .eq('attempt_id', currentAttemptId);
 
-        if (activityError || !activityData) {
-          console.error('Error getting latest activity for skip:', activityError);
-        } else {
-          // Calculate duration between now and answer_time_start
-          const now = new Date();
-          const startTime = new Date(activityData.answer_time_start);
-          const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
-
-          // Update the duration_answer column for this row
-          const { error: updateError } = await supabase
-            .from('student_activity')
-            .update({ duration_answer: durationInSeconds })
-            .eq('user_id', user.id)
-            .eq('attempt_id', activityData.attempt_id);
-
-          if (updateError) {
-            console.error('Error updating duration for skip:', updateError);
-          }
-
-          // Create submission_data dictionary for skip
-          const submissionData = {
-            user_id: user.id,
-            question_id: activityData.question_id,
-            attempt_id: activityData.attempt_id,
-            finished_or_not: activityData.finished_or_not,
-            duration: durationInSeconds,
-            scores_fipi: activityData.scores_fipi,
-            course_id: '1'
-          };
-
-          // Mark as skipped - not correct, not answered
-          await updateStudentActivity(false, 0, true);
-
-          // Call handle-submission to update mastery data for skip
-          await submitToHandleSubmission(false);
+        if (updateError) {
+          console.error('Error updating activity for skip:', updateError);
         }
+
+        // Fire-and-forget mastery update (don't wait for it)
+        submitToHandleSubmission(false).catch(error => 
+          console.error('Background mastery update failed:', error)
+        );
       } catch (error) {
         console.error('Error skipping question:', error);
       }
     }
     
-    // Move to next question regardless of authentication status
+    // Immediately move to next question
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       resetQuestionState();
-      // Start attempt for next question if user is authenticated
+      
+      // Start next attempt in background (don't block UI)
       const nextQuestion = questions[currentQuestionIndex + 1];
       if (nextQuestion && user) {
-        await startAttempt(nextQuestion.question_id);
+        startAttempt(nextQuestion.question_id).catch(error => 
+          console.error('Background attempt start failed:', error)
+        );
       }
     } else {
       toast.success("Все вопросы завершены!");
