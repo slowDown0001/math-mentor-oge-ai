@@ -24,6 +24,7 @@ interface Question {
   solution_text: string;
   difficulty?: string | number;
   problem_number_type?: number;
+  problem_image?: string;
   status?: 'correct' | 'wrong' | 'unseen' | 'unfinished';
 }
 
@@ -100,7 +101,7 @@ const PracticeByNumberOgemath = () => {
       for (const questionNumber of questionNumbers) {
         const { data, error } = await supabase
           .from('oge_math_fipi_bank')
-          .select('question_id, problem_text, answer, solution_text, problem_number_type')
+          .select('question_id, problem_text, answer, solution_text, problem_number_type, problem_image')
           .eq('problem_number_type', parseInt(questionNumber))
           .order('question_id');
 
@@ -1091,6 +1092,18 @@ const PracticeByNumberOgemath = () => {
                 <div className="prose max-w-none">
                   <MathRenderer text={currentQuestion.problem_text || "Текст задачи не найден"} compiler="mathjax" />
                 </div>
+
+                {/* Problem Image */}
+                {currentQuestion.problem_image && (
+                  <div className="flex justify-center">
+                    <img 
+                      src={currentQuestion.problem_image} 
+                      alt="Изображение к задаче"
+                      className="max-w-full h-auto rounded-lg shadow-sm border"
+                      style={{ maxHeight: '400px' }}
+                    />
+                  </div>
+                )}
 
                    {/* Answer Input */}
                 <div className="space-y-4">
