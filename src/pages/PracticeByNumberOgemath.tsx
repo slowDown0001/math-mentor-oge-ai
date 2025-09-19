@@ -174,7 +174,7 @@ const PracticeByNumberOgemath = () => {
         ...priorityGroups[4]  // correct last
       ];
 
-      const selectedQuestions = sortedQuestions.slice(0, Math.min(20, sortedQuestions.length));
+      const selectedQuestions = sortedQuestions;
 
       setQuestions(selectedQuestions);
       setCurrentQuestionIndex(0);
