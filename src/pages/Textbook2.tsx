@@ -392,7 +392,7 @@ export default function Textbook2() {
   const [isTextSelection, setIsTextSelection] = useState(false);
   const [showSelectedTextPanel, setShowSelectedTextPanel] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const { getSkillMastery, isLoading } = useMasterySystem();
+  const { getUserMastery, loading } = useMasterySystem();
   const { messages, isTyping, addMessage, setIsTyping, resetChat } = useChatContext();
 
   // Initialize from URL parameters
@@ -564,7 +564,8 @@ export default function Textbook2() {
   };
 
   const getMasteryLevel = (skillId: number) => {
-    return getSkillMastery(skillId, '1') || 'not_started';
+    // Since we don't have skill-level mastery, return a default status
+    return 'not_started';
   };
 
   const getMasteryIcon = (status: string) => {
@@ -625,17 +626,18 @@ export default function Textbook2() {
     handleSendChatMessage(messageText);
   };
 
-  const handleSendChatMessage = async (message: string) => {
+  const handleSendChatMessage = async (messageText: string) => {
     setIsTyping(true);
     try {
-      const response = await sendChatMessage(message, [], false);
-      const aiMessage = {
-        id: Date.now() + 1,
-        text: response,
-        isUser: false,
+      const userMessage = {
+        id: Date.now(),
+        text: messageText,
+        isUser: true,
         timestamp: new Date(),
       };
-      addMessage(aiMessage);
+      
+      const response = await sendChatMessage(userMessage, [], false);
+      addMessage(response);
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage = {
@@ -1076,7 +1078,7 @@ export default function Textbook2() {
             <ChatMessages messages={messages} isTyping={isTyping} />
           </div>
           <div className="border-t">
-            <ChatInput onSendMessage={handleSendChatMessage} />
+            <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
           </div>
         </div>
       )}
