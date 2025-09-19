@@ -24,6 +24,7 @@ interface Question {
   solution_text: string;
   difficulty?: string | number;
   problem_number_type?: number;
+  status?: 'correct' | 'wrong' | 'unseen' | 'unfinished';
 }
 
 const PracticeByNumberOgemath = () => {
@@ -101,75 +102,79 @@ const PracticeByNumberOgemath = () => {
 
       // Get user's activity history for these questions if logged in
       let userActivity: any[] = [];
+      let questionStatusMap: { [key: string]: { status: 'correct' | 'wrong' | 'unseen' | 'unfinished', priority: number } } = {};
+      
       if (user && allQuestions.length > 0) {
         const questionIds = allQuestions.map(q => q.question_id);
         const { data: activityData } = await supabase
           .from('student_activity')
-          .select('question_id, is_correct, finished_or_not, created_at')
+          .select('question_id, is_correct, finished_or_not, updated_at')
           .eq('user_id', user.id)
           .in('question_id', questionIds)
-          .order('created_at', { ascending: false });
+          .order('updated_at', { ascending: false });
         
         userActivity = activityData || [];
+
+        // Create status map for each question based on most recent attempt
+        allQuestions.forEach(question => {
+          const questionActivity = userActivity.filter(a => a.question_id === question.question_id);
+          
+          if (questionActivity.length === 0) {
+            questionStatusMap[question.question_id] = { status: 'unseen', priority: 1 };
+          } else {
+            // Get most recent attempt based on updated_at
+            const mostRecent = questionActivity[0];
+            
+            if (!mostRecent.finished_or_not) {
+              questionStatusMap[question.question_id] = { status: 'unfinished', priority: 2 };
+            } else if (mostRecent.is_correct === false) {
+              questionStatusMap[question.question_id] = { status: 'wrong', priority: 3 };
+            } else if (mostRecent.is_correct === true) {
+              questionStatusMap[question.question_id] = { status: 'correct', priority: 4 };
+            } else {
+              questionStatusMap[question.question_id] = { status: 'unseen', priority: 1 };
+            }
+          }
+        });
+      } else {
+        // If no user, mark all as unseen
+        allQuestions.forEach(question => {
+          questionStatusMap[question.question_id] = { status: 'unseen', priority: 1 };
+        });
       }
 
-      // Calculate probabilities for each question based on user activity
-      const questionsWithProbabilities = allQuestions.map(question => {
-        const questionActivity = userActivity.filter(a => a.question_id === question.question_id);
-        let probability = 0.5; // Default probability for unseen questions
+      // Sort questions by priority (1=highest priority, 4=lowest priority) and then randomly within each priority group
+      const questionsWithStatus = allQuestions.map(question => ({
+        ...question,
+        status: questionStatusMap[question.question_id]?.status || 'unseen',
+        priority: questionStatusMap[question.question_id]?.priority || 1
+      }));
 
-        if (questionActivity.length > 0) {
-          // Get most recent attempt
-          const mostRecent = questionActivity[0];
-          
-          // Check if user ever solved correctly
-          const hasCorrectSolution = questionActivity.some(a => a.is_correct === true && a.finished_or_not === true);
-          const hasIncorrectSolution = questionActivity.some(a => a.is_correct === false && a.finished_or_not === true);
-          
-          if (hasCorrectSolution && !hasIncorrectSolution) {
-            // Solved correctly on first attempt
-            probability = 0.1;
-          } else if (mostRecent.finished_or_not === false) {
-            // Saw question but didn't finish most recent attempt
-            probability = 0.8;
-          } else if (mostRecent.is_correct === false && mostRecent.finished_or_not === true) {
-            // Most recent attempt was wrong
-            probability = 0.9;
-          } else if (hasIncorrectSolution && hasCorrectSolution) {
-            // Solved wrong once then correctly
-            probability = 0.6;
-          }
+      // Group by priority and shuffle within each group
+      const priorityGroups = {
+        1: questionsWithStatus.filter(q => q.priority === 1), // unseen
+        2: questionsWithStatus.filter(q => q.priority === 2), // unfinished
+        3: questionsWithStatus.filter(q => q.priority === 3), // wrong
+        4: questionsWithStatus.filter(q => q.priority === 4)  // correct
+      };
+
+      // Shuffle each group
+      Object.values(priorityGroups).forEach(group => {
+        for (let i = group.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [group[i], group[j]] = [group[j], group[i]];
         }
-
-        return { ...question, probability };
       });
 
-      // Weighted random selection
-      const selectedQuestions: Question[] = [];
-      const totalQuestions = Math.min(20, questionsWithProbabilities.length); // Limit to reasonable number
-      
-      for (let i = 0; i < totalQuestions; i++) {
-        if (questionsWithProbabilities.length === 0) break;
-        
-        // Calculate total weight
-        const totalWeight = questionsWithProbabilities.reduce((sum, q) => sum + q.probability, 0);
-        
-        // Random selection based on weights
-        let random = Math.random() * totalWeight;
-        let selectedIndex = 0;
-        
-        for (let j = 0; j < questionsWithProbabilities.length; j++) {
-          random -= questionsWithProbabilities[j].probability;
-          if (random <= 0) {
-            selectedIndex = j;
-            break;
-          }
-        }
-        
-        // Add selected question and remove from pool
-        const selected = questionsWithProbabilities.splice(selectedIndex, 1)[0];
-        selectedQuestions.push(selected);
-      }
+      // Combine groups in priority order
+      const sortedQuestions = [
+        ...priorityGroups[1], // unseen first
+        ...priorityGroups[2], // unfinished second
+        ...priorityGroups[3], // wrong third
+        ...priorityGroups[4]  // correct last
+      ];
+
+      const selectedQuestions = sortedQuestions.slice(0, Math.min(20, sortedQuestions.length));
 
       setQuestions(selectedQuestions);
       setCurrentQuestionIndex(0);
@@ -976,21 +981,32 @@ const PracticeByNumberOgemath = () => {
             questions.length > 0 && currentQuestion ? (
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="flex justify-between items-center">
-                  <span>Вопрос №{currentQuestion.problem_number_type} ({currentQuestionIndex + 1} из {questions.length})</span>
-                  <div className="flex items-center gap-4">
-                    <Button
-                      onClick={handleFinishTest}
-                      variant="outline"
-                      className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
-                    >
-                      Завершить тест
-                    </Button>
-                    <span className="text-sm font-normal text-gray-500">
-                      ID: {currentQuestion.question_id}
-                    </span>
-                  </div>
-                </CardTitle>
+                 <CardTitle className="flex justify-between items-center">
+                   <span>Вопрос №{currentQuestion.problem_number_type} ({currentQuestionIndex + 1} из {questions.length})</span>
+                   <div className="flex items-center gap-4">
+                     <Button
+                       onClick={handleFinishTest}
+                       variant="outline"
+                       className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
+                     >
+                       Завершить тест
+                     </Button>
+                     <div className="flex items-center gap-2">
+                       <span className="text-sm font-normal text-gray-500">
+                         ID: {currentQuestion.question_id}
+                       </span>
+                       {currentQuestion.status === 'correct' && (
+                         <CheckCircle className="w-4 h-4 text-green-600" />
+                       )}
+                       {currentQuestion.status === 'wrong' && (
+                         <XCircle className="w-4 h-4 text-red-600" />
+                       )}
+                       {currentQuestion.status === 'unfinished' && (
+                         <div className="w-4 h-4 rounded-full border-2 border-yellow-500 bg-yellow-100" title="Начато, но не завершено" />
+                       )}
+                     </div>
+                   </div>
+                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Problem Text */}
