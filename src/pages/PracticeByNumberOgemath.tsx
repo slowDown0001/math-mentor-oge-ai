@@ -913,38 +913,81 @@ const PracticeByNumberOgemath = () => {
                 <CardHeader>
                   <CardTitle>Отдельные номера</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
-                    {/* Special button for questions 1-5 */}
-                    <Button
-                      variant={selectedNumbers.includes('1') && selectedNumbers.includes('2') && 
-                              selectedNumbers.includes('3') && selectedNumbers.includes('4') && 
-                              selectedNumbers.includes('5') ? "default" : "outline"}
-                      onClick={() => {
-                        const group = ['1', '2', '3', '4', '5'];
-                        const allSelected = group.every(n => selectedNumbers.includes(n));
-                        if (allSelected) {
-                          setSelectedNumbers(prev => prev.filter(n => !group.includes(n)));
-                        } else {
-                          setSelectedNumbers(prev => [...new Set([...prev, ...group])]);
-                        }
-                      }}
-                      className="p-3 h-auto"
-                    >
-                      1-5
-                    </Button>
-                    
-                    {/* Individual number buttons 6-25 */}
-                    {Array.from({ length: 20 }, (_, i) => i + 6).map(num => (
+                <CardContent className="space-y-6">
+                  {/* Part 1 */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Часть 1 (№1-19)</h4>
+                    <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
+                      {/* Special button for questions 1-5 */}
                       <Button
-                        key={num}
-                        variant={selectedNumbers.includes(num.toString()) ? "default" : "outline"}
-                        onClick={() => toggleIndividualNumber(num.toString())}
+                        variant={selectedNumbers.includes('1') && selectedNumbers.includes('2') && 
+                                selectedNumbers.includes('3') && selectedNumbers.includes('4') && 
+                                selectedNumbers.includes('5') ? "default" : "outline"}
+                        onClick={() => {
+                          const group = ['1', '2', '3', '4', '5'];
+                          const allSelected = group.every(n => selectedNumbers.includes(n));
+                          if (allSelected) {
+                            setSelectedNumbers(prev => prev.filter(n => !group.includes(n)));
+                          } else {
+                            setSelectedNumbers(prev => [...new Set([...prev, ...group])]);
+                          }
+                        }}
                         className="p-3 h-auto"
                       >
-                        {num}
+                        1-5
                       </Button>
-                    ))}
+                      
+                      {/* Individual number buttons 6-19 */}
+                      {Array.from({ length: 14 }, (_, i) => i + 6).map(num => (
+                        <Button
+                          key={num}
+                          variant={selectedNumbers.includes(num.toString()) ? "default" : "outline"}
+                          onClick={() => toggleIndividualNumber(num.toString())}
+                          className="p-3 h-auto"
+                        >
+                          {num}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Part 2 */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Часть 2</h4>
+                    
+                    {/* Part 2 Algebra */}
+                    <div className="mb-4">
+                      <h5 className="text-xs font-medium text-gray-600 mb-2">Алгебра (№20-22)</h5>
+                      <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
+                        {Array.from({ length: 3 }, (_, i) => i + 20).map(num => (
+                          <Button
+                            key={num}
+                            variant={selectedNumbers.includes(num.toString()) ? "default" : "outline"}
+                            onClick={() => toggleIndividualNumber(num.toString())}
+                            className="p-3 h-auto"
+                          >
+                            {num}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Part 2 Geometry */}
+                    <div>
+                      <h5 className="text-xs font-medium text-gray-600 mb-2">Геометрия (№23-25)</h5>
+                      <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
+                        {Array.from({ length: 3 }, (_, i) => i + 23).map(num => (
+                          <Button
+                            key={num}
+                            variant={selectedNumbers.includes(num.toString()) ? "default" : "outline"}
+                            onClick={() => toggleIndividualNumber(num.toString())}
+                            className="p-3 h-auto"
+                          >
+                            {num}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
