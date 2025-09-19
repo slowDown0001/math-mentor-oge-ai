@@ -681,9 +681,57 @@ const PracticeByNumberOgemath = () => {
     }
   };
 
-  const handleShowSolution = () => {
+  const handleShowSolution = async () => {
     if (!isAnswered) {
       setSolutionViewedBeforeAnswer(true);
+      
+      // Mark question as wrong in database when solution is viewed before answering
+      if (user && currentAttemptId && attemptStartTime) {
+        try {
+          const now = new Date();
+          const durationInSeconds = (now.getTime() - attemptStartTime.getTime()) / 1000;
+
+          await supabase
+            .from('student_activity')
+            .update({
+              is_correct: false,
+              duration_answer: durationInSeconds,
+              finished_or_not: true,
+              scores_fipi: 0
+            })
+            .eq('user_id', user.id)
+            .eq('attempt_id', currentAttemptId);
+
+          // Update session results
+          setSessionResults(prev => {
+            const newResults = [...prev];
+            const existingIndex = newResults.findIndex(r => r.questionIndex === currentQuestionIndex);
+            const result = {
+              questionIndex: currentQuestionIndex,
+              questionId: currentQuestion.question_id,
+              isCorrect: false,
+              userAnswer: userAnswer.trim(),
+              correctAnswer: currentQuestion.answer,
+              problemText: currentQuestion.problem_text,
+              solutionText: currentQuestion.solution_text,
+              isAnswered: true
+            };
+            
+            if (existingIndex >= 0) {
+              newResults[existingIndex] = result;
+            } else {
+              newResults.push(result);
+            }
+            return newResults;
+          });
+
+          // Mark as answered and incorrect
+          setIsAnswered(true);
+          setIsCorrect(false);
+        } catch (error) {
+          console.error('Error marking question as wrong when showing solution:', error);
+        }
+      }
     }
     setShowSolution(true);
   };
@@ -1124,13 +1172,13 @@ const PracticeByNumberOgemath = () => {
                       value={userAnswer}
                       onChange={(e) => setUserAnswer(e.target.value)}
                       placeholder="Введите ваш ответ"
-                      disabled={isAnswered}
-                      onKeyPress={(e) => e.key === 'Enter' && !isAnswered && checkAnswer()}
+                      disabled={isAnswered || solutionViewedBeforeAnswer}
+                      onKeyPress={(e) => e.key === 'Enter' && !isAnswered && !solutionViewedBeforeAnswer && checkAnswer()}
                       className="flex-1"
                     />
                     <Button
                       onClick={checkAnswer}
-                      disabled={isAnswered || !userAnswer.trim()}
+                      disabled={isAnswered || solutionViewedBeforeAnswer || !userAnswer.trim()}
                       className="min-w-32"
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
