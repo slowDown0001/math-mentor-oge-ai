@@ -128,11 +128,11 @@ const PracticeByNumberOgemath = () => {
             if (!mostRecent.finished_or_not) {
               questionStatusMap[question.question_id] = { status: 'unfinished', priority: 2 };
             } else if (mostRecent.is_correct === false) {
-              questionStatusMap[question.question_id] = { status: 'wrong', priority: 3 };
+              questionStatusMap[question.question_id] = { status: 'wrong', priority: 1 };
             } else if (mostRecent.is_correct === true) {
               questionStatusMap[question.question_id] = { status: 'correct', priority: 4 };
             } else {
-              questionStatusMap[question.question_id] = { status: 'unseen', priority: 1 };
+              questionStatusMap[question.question_id] = { status: 'unseen', priority: 3 };
             }
           }
         });
