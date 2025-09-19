@@ -22,20 +22,20 @@ const FormulaBookletDialog = ({ open, onOpenChange }: FormulaBookletDialogProps)
           
           <TabsContent value="algebra" className="mt-4">
             <div className="flex justify-center">
-              <iframe 
-                src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/Formulas/OGE_formula_booklet.pdf#page=1" 
-                className="w-full h-[70vh] rounded-lg shadow-sm"
-                title="Формулы алгебры ОГЭ"
+              <img 
+                src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/Formulas/oge_f1.png" 
+                alt="Формулы алгебры ОГЭ"
+                className="max-w-full h-auto rounded-lg shadow-sm"
               />
             </div>
           </TabsContent>
           
           <TabsContent value="geometry" className="mt-4">
             <div className="flex justify-center">
-              <iframe 
-                src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/Formulas/OGE_formula_booklet.pdf#page=2" 
-                className="w-full h-[70vh] rounded-lg shadow-sm"
-                title="Формулы геометрии ОГЭ"
+              <img 
+                src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/Formulas/oge_f2.png" 
+                alt="Формулы геометрии ОГЭ"
+                className="max-w-full h-auto rounded-lg shadow-sm"
               />
             </div>
           </TabsContent>
