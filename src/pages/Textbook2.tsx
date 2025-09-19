@@ -18,26 +18,24 @@ import { sendChatMessage } from "@/services/chatService";
 import { SubtopicSidebar } from "@/components/SubtopicSidebar";
 import UnitProgressSummary from "@/components/UnitProgressSummary";
 
-// Topic mapping data embedded directly
+// Updated topic mapping data to match new JSON structure
 const topicMapping = [
   { "topic": "1.1", "name": "Натуральные и целые числа", "skills": [1,2,3,4,5] },
-  { "topic": "1.2", "name": "Дроби и проценты", "skills": [6,7,8,9,10] },
+  { "topic": "1.2", "name": "Дроби и проценты", "skills": [6,195,7,8,9,10] },
   { "topic": "1.3", "name": "Рациональные числа и арифметические действия", "skills": [11,12,13,14,15,16,17,180] },
-  { "topic": "1.4", "name": "Действительные числа", "skills": [18,19,20] },
+  { "topic": "1.4", "name": "Действительные числа", "skills": [18,19,20,197] },
   { "topic": "1.5", "name": "Приближённые вычисления", "skills": [21,22,23] },
-  { "topic": "1.6", "name": "Работа с данными и графиками", "skills": [24,25,26,27,28,29,30,31] },
-  { "topic": "1.7", "name": "Прикладная геометрия: площади и расстояния в жизни", "skills": [32,33,34] },
   { "topic": "2.1", "name": "Буквенные выражения", "skills": [35,36,37,38] },
   { "topic": "2.2", "name": "Степени", "skills": [39,40,41,42,43,44] },
   { "topic": "2.3", "name": "Многочлены", "skills": [45,46,47,48,49,179] },
   { "topic": "2.4", "name": "Алгебраические дроби", "skills": [50,51,52,53] },
   { "topic": "2.5", "name": "Арифметические корни", "skills": [54,55,56,57] },
-  { "topic": "3.1", "name": "Уравнения и системы", "skills": [58,59,60,61,62] },
+  { "topic": "3.1", "name": "Уравнения и системы", "skills": [58,59,60,61,62,188,190,191] },
   { "topic": "3.2", "name": "Неравенства и системы", "skills": [63,64,65,66,67,68] },
-  { "topic": "3.3", "name": "Текстовые задачи", "skills": [69,70,71,72,73,74,75] },
+  { "topic": "3.3", "name": "Текстовые задачи", "skills": [69,70,71,72,73,74,184,185,75] },
   { "topic": "4.1", "name": "Последовательности", "skills": [76,77,78,79] },
   { "topic": "4.2", "name": "Арифметическая и геометрическая прогрессии. Формула сложных процентов", "skills": [80,81,82,83,84,85,86,87,88] },
-  { "topic": "5.1", "name": "Свойства и графики функций", "skills": [89,90,91,92,93,94,95,96,97,98,99,100,101,102] },
+  { "topic": "5.1", "name": "Свойства и графики функций", "skills": [89,90,91,92,93,94,95,96,97,98,99,186,187,100,101,102] },
   { "topic": "6.1", "name": "Координатная прямая", "skills": [103,104,105,106,107,108,109] },
   { "topic": "6.2", "name": "Декартовы координаты", "skills": [110,111] },
   { "topic": "7.1", "name": "Геометрические фигуры", "skills": [112,113,114,115,116] },
@@ -45,13 +43,15 @@ const topicMapping = [
   { "topic": "7.3", "name": "Многоугольники", "skills": [125,126,127,128,129,130,131,132,133,134] },
   { "topic": "7.4", "name": "Окружность и круг", "skills": [135,136,137,138] },
   { "topic": "7.5", "name": "Измерения", "skills": [139,140,141,142,143,144,145,146,147,148,149,150,151,152,153] },
-  { "topic": "7.6", "name": "Векторы", "skills": [154,155,156,157] },
+  { "topic": "7.6", "name": "Векторы", "skills": [154,155,156,157,196] },
   { "topic": "7.7", "name": "Дополнительные темы по геометрии", "skills": [158,159,160,161] },
   { "topic": "8.1", "name": "Описательная статистика", "skills": [162,163,164,165] },
   { "topic": "8.2", "name": "Вероятность", "skills": [166,167,168] },
   { "topic": "8.3", "name": "Комбинаторика", "skills": [169,170,171,172] },
   { "topic": "8.4", "name": "Множества", "skills": [173,174] },
-  { "topic": "8.5", "name": "Графы", "skills": [175,176,177,178] }
+  { "topic": "8.5", "name": "Графы", "skills": [175,176,177,178] },
+  { "topic": "9.1", "name": "Работа с данными и графиками", "skills": [24,25,198,199,181,182,183,192,200] },
+  { "topic": "9.2", "name": "Прикладная геометрия / Чтение и анализ графических схем", "skills": [26,27,28,29,30,31,32,33,34] },
 ];
 
 // TypeScript interfaces
@@ -75,7 +75,7 @@ interface CourseStructure {
 // Type for view modes in URL params
 type ViewMode = "overview" | "subunit" | "articles" | "videos" | "exercises";
 
-// Math skills data from documentation/math_skills_full.json
+// Math skills data updated to match new JSON structure
 const mathSkills = [
   { "skill": "Натуральные и целые числа", "id": 1 },
   { "skill": "Научная форма числа", "id": 2 },
@@ -96,21 +96,21 @@ const mathSkills = [
   { "skill": "Раскрытие скобок, распределительное свойство", "id": 17 },
   { "skill": "Классификация действительныех чисел", "id": 18 },
   { "skill": "Приближённое значение корня числа", "id": 19 },
-  { "skill": "Арифметические действия с рациональными числами", "id": 20 },
+  { "skill": "Арифметические операции с действительными числами", "id": 20 },
   { "skill": "Понятие точности и погрешности", "id": 21 },
   { "skill": "Округление чисел", "id": 22 },
   { "skill": "Приближённые вычисления", "id": 23 },
   { "skill": "Чтение и анализ графических схем: Графики", "id": 24 },
-  { "skill": "Чтение и анализ графических схем: Диаграммы ", "id": 25 },
-  { "skill": "Чтение и анализ графических схем: План помещения", "id": 26 },
-  { "skill": "Чтение и анализ графических схем: Схема маршрута / карта", "id": 27 },
-  { "skill": "Чтение и анализ графических схем: Таблицы и расписания", "id": 28 },
-  { "skill": "Чтение и анализ графических схем: Тарифные планы", "id": 29 },
-  { "skill": "Чтение и анализ графических схем: Линейка, шкала, измерения", "id": 30 },
-  { "skill": "Чтение и анализ графических схем: Графики движения", "id": 31 },
-  { "skill": "Прикладная геометрия: Путешествия", "id": 32 },
-  { "skill": "Прикладная геометрия: Квартиры и садовые участки ", "id": 33 },
-  { "skill": "Прикладная геометрия: Шины, теплицы, бумага, печки ", "id": 34 },
+  { "skill": "Чтение и анализ диаграмм: круговые, линейные, столбчатые", "id": 25 },
+  { "skill": "Квартиры", "id": 26 },
+  { "skill": " Схема маршрута / карта", "id": 27 },
+  { "skill": "Страхование ОСАГО", "id": 28 },
+  { "skill": "Тарифные планы", "id": 29 },
+  { "skill": "Лист бумаги", "id": 30 },
+  { "skill": "Печи", "id": 31 },
+  { "skill": "Шины", "id": 32 },
+  { "skill": "Участки", "id": 33 },
+  { "skill": "Теплицы", "id": 34 },
   { "skill": "Выражения с переменными", "id": 35 },
   { "skill": "Подстановка значений", "id": 36 },
   { "skill": "Упрощение выражений", "id": 37 },
@@ -141,7 +141,7 @@ const mathSkills = [
   { "skill": "Рациональные уравнения", "id": 62 },
   { "skill": "Решение линейных неравенств", "id": 63 },
   { "skill": "Графическое представление решений", "id": 64 },
-  { "skill": "Решение систем неравенств", "id": 65 },
+  { "skill": "Решение систем линейных неравенств", "id": 65 },
   { "skill": "Квадратные неравенства ", "id": 66 },
   { "skill": "Рациональные неравенства", "id": 67 },
   { "skill": "Метод интервалов", "id": 68 },
@@ -165,7 +165,7 @@ const mathSkills = [
   { "skill": "Определение разности и первого члена  ГП", "id": 86 },
   { "skill": "Текстовые задачи на ГП", "id": 87 },
   { "skill": "Сложные проценты", "id": 88 },
-  { "skill": "Определение функции", "id": 89 },
+  { "skill": "Понятие функции и способы её задания", "id": 89 },
   { "skill": "Область определения и множество значений", "id": 90 },
   { "skill": "Нули функции", "id": 91 },
   { "skill": "Построение графиков функции", "id": 92 },
@@ -256,1407 +256,830 @@ const mathSkills = [
   { "skill": "Поиск путей", "id": 177 },
   { "skill": "Решение прикладных задач с графами", "id": 178 },
   { "skill": "Разложение многочленов на множители (факторизация) квадратичный случай", "id": 179 },
-  { "skill": "Порядок выполнения действий", "id": 180 }
+  { "skill": "порядок математических операций", "id": 180 },
+  { "skill": "Чтение условия и извлечение данных из текста", "id": 181 },
+  { "skill": "Стратегии решения задачи с краткой записью", "id": 182 },
+  { "skill": "Анализ ошибочных решений", "id": 183 },
+  { "skill": "Составление и опровержение утверждений", "id": 184 },
+  { "skill": "Работа с необходимыми и достаточными условиями", "id": 185 },
+  { "skill": "Симметрия графика функции", "id": 186 },
+  { "skill": "Параметрические преобразования графиков", "id": 187 },
+  { "skill": "Методы подстановки / перебора / отбора значений", "id": 188 },
+  { "skill": "Применение формул с параметрами", "id": 190 },
+  { "skill": "Уравнения с модулями", "id": 191 },
+  { "skill": "Единицы измерения: Перевод между величинами", "id": 192 },
+  { "skill": "смешанные числа", "id": 195 },
+  { "skill": "Скалярное произведение векторов", "id": 196 },
+  { "skill": "Сравнение и упорядочивание действительныех чисел", "id": 197 },
+  { "skill": "Чтение и анализ графических схем: таблицы", "id": 198 },
+  { "skill": "Перевод расписания/таблицы времени в расчёт продолжительности", "id": 199 },
+  { "skill": "Построение простейших графиков на координатной плоскости по табличным данным", "id": 200 }
 ];
 
-// Create skill ID to skill name mapping
-const createSkillNameMapping = (): { [skillId: number]: string } => {
-  const skillNames: { [skillId: number]: string } = {};
-  mathSkills.forEach(skill => {
-    skillNames[skill.id] = skill.skill;
-  });
-  return skillNames;
+// Updated course structure to match new JSON format
+const courseStructure: CourseStructure = {
+  1: {
+    title: "Числа и вычисления",
+    description: "Основы числовых систем и вычислительных операций",
+    color: "bg-gradient-to-r from-blue-500 to-blue-600",
+    subunits: [
+      { id: "1.1", title: "Натуральные и целые числа", skills: [1,2,3,4,5] },
+      { id: "1.2", title: "Дроби и проценты", skills: [6,195,7,8,9,10] },
+      { id: "1.3", title: "Рациональные числа и арифметические действия", skills: [11,12,13,14,15,16,17,180] },
+      { id: "1.4", title: "Действительные числа", skills: [18,19,20,197] },
+      { id: "1.5", title: "Приближённые вычисления", skills: [21,22,23] }
+    ]
+  },
+  2: {
+    title: "Алгебраические выражения",
+    description: "Работа с буквенными выражениями и их преобразованиями",
+    color: "bg-gradient-to-r from-green-500 to-green-600",
+    subunits: [
+      { id: "2.1", title: "Буквенные выражения", skills: [35,36,37,38] },
+      { id: "2.2", title: "Степени", skills: [39,40,41,42,43,44] },
+      { id: "2.3", title: "Многочлены", skills: [45,46,47,48,49,179] },
+      { id: "2.4", title: "Алгебраические дроби", skills: [50,51,52,53] },
+      { id: "2.5", title: "Арифметические корни", skills: [54,55,56,57] }
+    ]
+  },
+  3: {
+    title: "Уравнения и неравенства",
+    description: "Методы решения уравнений, неравенств и текстовых задач",
+    color: "bg-gradient-to-r from-purple-500 to-purple-600",
+    subunits: [
+      { id: "3.1", title: "Уравнения и системы", skills: [58,59,60,61,62,188,190,191] },
+      { id: "3.2", title: "Неравенства и системы", skills: [63,64,65,66,67,68] },
+      { id: "3.3", title: "Текстовые задачи", skills: [69,70,71,72,73,74,184,185,75] }
+    ]
+  },
+  4: {
+    title: "Числовые последовательности",
+    description: "Изучение закономерностей в числовых последовательностях",
+    color: "bg-gradient-to-r from-orange-500 to-orange-600",
+    subunits: [
+      { id: "4.1", title: "Последовательности", skills: [76,77,78,79] },
+      { id: "4.2", title: "Арифметическая и геометрическая прогрессии. Формула сложных процентов", skills: [80,81,82,83,84,85,86,87,88] }
+    ]
+  },
+  5: {
+    title: "Функции",
+    description: "Изучение функций и их свойств",
+    color: "bg-gradient-to-r from-red-500 to-red-600",
+    subunits: [
+      { id: "5.1", title: "Свойства и графики функций", skills: [89,90,91,92,93,94,95,96,97,98,99,186,187,100,101,102] }
+    ]
+  },
+  6: {
+    title: "Координаты на прямой и плоскости",
+    description: "Работа с координатными системами",
+    color: "bg-gradient-to-r from-indigo-500 to-indigo-600",
+    subunits: [
+      { id: "6.1", title: "Координатная прямая", skills: [103,104,105,106,107,108,109] },
+      { id: "6.2", title: "Декартовы координаты", skills: [110,111] }
+    ]
+  },
+  7: {
+    title: "Геометрия",
+    description: "Изучение геометрических фигур и их свойств",
+    color: "bg-gradient-to-r from-teal-500 to-teal-600",
+    subunits: [
+      { id: "7.1", title: "Геометрические фигуры", skills: [112,113,114,115,116] },
+      { id: "7.2", title: "Треугольники", skills: [117,118,119,120,121,122,123,124] },
+      { id: "7.3", title: "Многоугольники", skills: [125,126,127,128,129,130,131,132,133,134] },
+      { id: "7.4", title: "Окружность и круг", skills: [135,136,137,138] },
+      { id: "7.5", title: "Измерения", skills: [139,140,141,142,143,144,145,146,147,148,149,150,151,152,153] },
+      { id: "7.6", title: "Векторы", skills: [154,155,156,157,196] },
+      { id: "7.7", title: "Дополнительные темы по геометрии", skills: [158,159,160,161] }
+    ]
+  },
+  8: {
+    title: "Вероятность и статистика",
+    description: "Основы теории вероятностей и статистического анализа",
+    color: "bg-gradient-to-r from-pink-500 to-pink-600",
+    subunits: [
+      { id: "8.1", title: "Описательная статистика", skills: [162,163,164,165] },
+      { id: "8.2", title: "Вероятность", skills: [166,167,168] },
+      { id: "8.3", title: "Комбинаторика", skills: [169,170,171,172] },
+      { id: "8.4", title: "Множества", skills: [173,174] },
+      { id: "8.5", title: "Графы", skills: [175,176,177,178] }
+    ]
+  },
+  9: {
+    title: "Применение математики к прикладным задачам",
+    description: "Применение математических знаний в реальных ситуациях",
+    color: "bg-gradient-to-r from-amber-500 to-amber-600",
+    subunits: [
+      { id: "9.1", title: "Работа с данными и графиками", skills: [24,25,198,199,181,182,183,192,200] },
+      { id: "9.2", title: "Прикладная геометрия / Чтение и анализ графических схем", skills: [26,27,28,29,30,31,32,33,34] }
+    ]
+  }
 };
 
-// Create course structure from topic mapping
-const createCourseStructure = (): CourseStructure => {
-  const structure: CourseStructure = {};
-  const unitColors = [
-    "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500",
-    "bg-red-500", "bg-teal-500", "bg-indigo-500", "bg-pink-500"
-  ];
-  
-  const unitTitles = {
-    1: "Числа и вычисления",
-    2: "Алгебраические выражения", 
-    3: "Уравнения и неравенства",
-    4: "Числовые последовательности",
-    5: "Функции",
-    6: "Координаты на прямой и плоскости",
-    7: "Геометрия",
-    8: "Элементы комбинаторики, статистики и теории вероятностей"
-  };
-  
-  const unitDescriptions = {
-    1: "Натуральные и целые числа, дроби, рациональные и действительные числа",
-    2: "Буквенные выражения, степени, многочлены, алгебраические дроби, корни",
-    3: "Решение уравнений, неравенств и их систем, текстовые задачи",
-    4: "Арифметические и геометрические прогрессии, формула сложных процентов",
-    5: "Свойства и графики функций",
-    6: "Координатная прямая и декартовы координаты",
-    7: "Геометрические фигуры, треугольники, многоугольники, окружности, измерения",
-    8: "Статистика, вероятность, комбинаторика, множества, графы"
-  };
-
-  // Process topic mapping
-  topicMapping.forEach(topic => {
-    if (topic.topic === "Special") return; // Skip special topics
-    
-    const [unitNum, subunitNum] = topic.topic.split('.');
-    const unitId = parseInt(unitNum);
-    
-    if (!structure[unitId]) {
-      structure[unitId] = {
-        title: unitTitles[unitId as keyof typeof unitTitles] || `Раздел ${unitId}`,
-        description: unitDescriptions[unitId as keyof typeof unitDescriptions] || `Описание раздела ${unitId}`,
-        color: unitColors[unitId - 1] || "bg-gray-500",
-        subunits: []
-      };
-    }
-    
-    structure[unitId].subunits.push({
-      id: topic.topic,
-      title: topic.name,
-      skills: topic.skills
-    });
-  });
-  
-  return structure;
-};
-
-const courseStructure = createCourseStructure();
-const skillNames = createSkillNameMapping();
-
-const Textbook2 = () => {
+export default function Textbook2() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
-  const [selectedArticle, setSelectedArticle] = useState<{skillId: number, skillName: string} | null>(null);
-  const [articleContent, setArticleContent] = useState<string>("");
-  const [loadingArticle, setLoadingArticle] = useState(false);
-  const [isSelecterActive, setIsSelecterActive] = useState(false);
-  const [selectedText, setSelectedText] = useState("");
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string>("");
-  const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
-  const [currentSubunit, setCurrentSubunit] = useState<Subunit | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState<any>(null);
-  const [questions, setQuestions] = useState<any[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [showResult, setShowResult] = useState(false);
-  const [showSolution, setShowSolution] = useState(false);
-  const [score, setScore] = useState({ correct: 0, total: 0 });
-  const [showAnimation, setShowAnimation] = useState(false);
-  const { getUserMastery, calculateUnitProgress, getMasteryLevel } = useMasterySystem();
-  const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
+  const [selectedSubunit, setSelectedSubunit] = useState<string | null>(null);
+  const [selectedSkill, setSelectedSkill] = useState<number | null>(null);
+  const [currentView, setCurrentView] = useState<ViewMode>("overview");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const [currentArticle, setCurrentArticle] = useState<any>(null);
+  const [isLoadingArticle, setIsLoadingArticle] = useState(false);
+  const [readSkills, setReadSkills] = useState<Set<number>>(new Set());
+  const [selectedText, setSelectedText] = useState('');
+  const [isTextSelection, setIsTextSelection] = useState(false);
+  const [showSelectedTextPanel, setShowSelectedTextPanel] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const { getSkillMastery, isLoading } = useMasterySystem();
+  const { messages, isTyping, addMessage, setIsTyping, resetChat } = useChatContext();
 
-  // URL state management
-  const urlState = useMemo(() => {
-    const unitParam = searchParams.get("unit");
-    const topicParam = searchParams.get("topic");
-    const viewParam = searchParams.get("view") as ViewMode | null;
+  // Initialize from URL parameters
+  useEffect(() => {
+    const unit = searchParams.get('unit');
+    const subunit = searchParams.get('subunit');
+    const skill = searchParams.get('skill');
+    const view = searchParams.get('view') as ViewMode;
 
-    const unit = unitParam ? Number(unitParam) : null;
-    const topic = topicParam ?? "";
-    const view: ViewMode = viewParam ?? "overview";
-
-    return { unit, topic, view };
+    if (unit) setSelectedUnit(parseInt(unit));
+    if (subunit) setSelectedSubunit(subunit);
+    if (skill) setSelectedSkill(parseInt(skill));
+    if (view) setCurrentView(view);
   }, [searchParams]);
 
-  // Helper to safely update URL params
-  const setUrlState = (next: Partial<{ unit: number | null; topic: string; view: ViewMode }>) => {
-    const params = new URLSearchParams(Array.from(searchParams.entries()));
-    
-    if (next.unit !== undefined) {
-      if (next.unit === null) {
-        params.delete("unit");
-      } else {
-        params.set("unit", String(next.unit));
-      }
-    }
-    if (next.topic !== undefined) {
-      if (next.topic === "") {
-        params.delete("topic");
-      } else {
-        params.set("topic", next.topic);
-      }
-    }
-    if (next.view !== undefined) {
-      if (next.view === "overview") {
-        params.delete("view");
-      } else {
-        params.set("view", next.view);
-      }
-    }
-
-    startTransition(() => {
-      setSearchParams(params, { replace: true });
-    });
-  };
-
-  // Sync URL state to component state
+  // Fetch read skills from Supabase
   useEffect(() => {
+    const fetchReadSkills = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from('read_articles')
+          .select('skill_id')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        const readSkillIds = new Set(data.map(item => item.skill_id));
+        setReadSkills(readSkillIds);
+      } catch (error) {
+        console.error('Error fetching read skills:', error);
+      }
+    };
+
+    fetchReadSkills();
+  }, []);
+
+  // Fetch article when skill is selected
+  useEffect(() => {
+    const fetchArticle = async () => {
+      if (!selectedSkill) {
+        setCurrentArticle(null);
+        return;
+      }
+
+      setIsLoadingArticle(true);
+      try {
+        // Fetch from new_articles table 
+        const { data, error } = await supabase
+          .from('new_articles')
+          .select('*')
+          .eq('ID', selectedSkill)
+          .single();
+
+        if (error) {
+          console.error('Error fetching article:', error);
+          setCurrentArticle(null);
+        } else {
+          setCurrentArticle(data);
+        }
+      } catch (error) {
+        console.error('Error fetching article:', error);
+        setCurrentArticle(null);
+      } finally {
+        setIsLoadingArticle(false);
+      }
+    };
+
+    fetchArticle();
+  }, [selectedSkill]);
+
+  // Mark article as read when user reads it
+  const markSkillAsRead = async (skillId: number) => {
     try {
-      // Handle unit selection
-      if (urlState.unit !== null && urlState.unit !== selectedUnit) {
-        const unitExists = courseStructure[urlState.unit];
-        if (unitExists) {
-          setSelectedUnit(urlState.unit);
-        }
-      } else if (urlState.unit === null && selectedUnit !== null) {
-        setSelectedUnit(null);
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-      // Handle topic/subunit selection
-      if (urlState.topic && urlState.unit !== null) {
-        const unit = courseStructure[urlState.unit];
-        if (unit) {
-          const foundSubunit = unit.subunits.find(s => s.id === urlState.topic);
-          if (foundSubunit && currentSubunit?.id !== foundSubunit.id) {
-            setCurrentSubunit(foundSubunit);
-            
-            // Handle specific views
-            switch (urlState.view) {
-              case "articles":
-                if (foundSubunit.skills.length > 0) {
-                  const firstSkillId = foundSubunit.skills[0];
-                  const skillName = skillNames[firstSkillId] || `Навык ${firstSkillId}`;
-                  if (!selectedArticle || selectedArticle.skillId !== firstSkillId) {
-                    handleArticleClick(firstSkillId, skillName, foundSubunit);
-                  }
-                }
-                break;
-              case "videos":
-                if (foundSubunit.skills.length > 0) {
-                  const firstSkillId = foundSubunit.skills[0];
-                  const skillName = skillNames[firstSkillId] || `Навык ${firstSkillId}`;
-                  if (selectedVideo !== skillName) {
-                    handleVideoClick(skillName, foundSubunit);
-                  }
-                }
-                break;
-              case "exercises":
-                if (foundSubunit.skills.length > 0 && selectedExercise === null) {
-                  handleExerciseClick(foundSubunit.skills, foundSubunit);
-                }
-                break;
-            }
-          }
-        }
-      } else if (!urlState.topic && currentSubunit !== null) {
-        setCurrentSubunit(null);
-        setSelectedArticle(null);
-        setSelectedVideo(null);
-        setSelectedExercise(null);
-      }
+      const { error } = await supabase
+        .from('read_articles')
+        .upsert({ 
+          user_id: user.id, 
+          skill_id: skillId 
+        }, { 
+          onConflict: 'user_id,skill_id' 
+        });
+
+      if (error) throw error;
+
+      setReadSkills(prev => new Set([...prev, skillId]));
     } catch (error) {
-      console.error("Error syncing URL state:", error);
+      console.error('Error marking skill as read:', error);
     }
-  }, [urlState.unit, urlState.topic, urlState.view]);
+  };
 
-  // Copy link functionality
-  const copyCurrentLink = () => {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      // Simple success feedback without adding a toast library
-      console.log('Link copied to clipboard');
-    }).catch(err => {
-      console.error('Failed to copy link:', err);
+  // Navigation functions
+  const handleUnitClick = (unitId: number) => {
+    startTransition(() => {
+      setSelectedUnit(unitId);
+      setSelectedSubunit(null);
+      setSelectedSkill(null);
+      setCurrentView("subunit");
+      setSearchParams({ unit: unitId.toString(), view: "subunit" });
     });
   };
 
-  // Handler to close video and update URL
-  const handleCloseVideo = () => {
-    setSelectedVideo(null);
-    if (selectedUnit && currentSubunit) {
-      setUrlState({ view: "subunit" });
+  const handleSubunitClick = (subunitId: string) => {
+    startTransition(() => {
+      setSelectedSubunit(subunitId);
+      setSelectedSkill(null);
+      setCurrentView("articles");
+      setSearchParams({ 
+        unit: selectedUnit?.toString() || "", 
+        subunit: subunitId, 
+        view: "articles" 
+      });
+    });
+  };
+
+  const handleSkillClick = (skillId: number) => {
+    startTransition(() => {
+      setSelectedSkill(skillId);
+      setCurrentView("articles");
+      setSearchParams({ 
+        unit: selectedUnit?.toString() || "", 
+        subunit: selectedSubunit || "", 
+        skill: skillId.toString(), 
+        view: "articles" 
+      });
+    });
+  };
+
+  const handleBackToOverview = () => {
+    startTransition(() => {
+      setSelectedUnit(null);
+      setSelectedSubunit(null);
+      setSelectedSkill(null);
+      setCurrentView("overview");
+      setSearchParams({});
+    });
+  };
+
+  const handleBackToUnit = () => {
+    startTransition(() => {
+      setSelectedSubunit(null);
+      setSelectedSkill(null);
+      setCurrentView("subunit");
+      setSearchParams({ unit: selectedUnit?.toString() || "", view: "subunit" });
+    });
+  };
+
+  const handleBackToSubunit = () => {
+    startTransition(() => {
+      setSelectedSkill(null);
+      setCurrentView("articles");
+      setSearchParams({ 
+        unit: selectedUnit?.toString() || "", 
+        subunit: selectedSubunit || "", 
+        view: "articles" 
+      });
+    });
+  };
+
+  // Utility functions
+  const getSkillName = (skillId: number) => {
+    const skill = mathSkills.find(s => s.id === skillId);
+    return skill?.skill || `Навык ${skillId}`;
+  };
+
+  const getMasteryLevel = (skillId: number) => {
+    return getSkillMastery(skillId, '1') || 'not_started';
+  };
+
+  const getMasteryIcon = (status: string) => {
+    switch (status) {
+      case 'mastered': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'in_progress': return <Play className="h-4 w-4 text-yellow-500" />;
+      default: return <Lock className="h-4 w-4 text-gray-400" />;
     }
   };
 
-  // Handler to close exercise and update URL
-  const handleCloseExercise = () => {
-    setSelectedExercise(null);
-    if (selectedUnit && currentSubunit) {
-      setUrlState({ view: "subunit" });
-    }
+  // Calculate progress for units and subunits
+  const getUnitProgress = (unit: Unit) => {
+    const allSkills = unit.subunits.flatMap(s => s.skills);
+    const masteredSkills = allSkills.filter(skillId => getMasteryLevel(skillId) === 'mastered');
+    return allSkills.length > 0 ? (masteredSkills.length / allSkills.length) * 100 : 0;
   };
 
-  const handleUnitSelect = (unitNumber: number) => {
-    setSelectedUnit(unitNumber);
-    setUrlState({ unit: unitNumber, topic: "", view: "overview" });
+  const getSubunitProgress = (subunit: Subunit) => {
+    const masteredSkills = subunit.skills.filter(skillId => getMasteryLevel(skillId) === 'mastered');
+    return subunit.skills.length > 0 ? (masteredSkills.length / subunit.skills.length) * 100 : 0;
   };
 
-  const handleBackToUnits = () => {
-    setSelectedUnit(null);
-    setUrlState({ unit: null, topic: "", view: "overview" });
-  };
-
-  // Function to fetch article content
-  const fetchArticleContent = async (skillId: number) => {
-    setLoadingArticle(true);
-    try {
-      const { data, error } = await supabase
-        .from('articles2')
-        .select('art, img1, img2, img3')
-        .eq('skill', skillId)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching article:', error);
-        setArticleContent("");
-      } else {
-        // Combine images and article content using type assertion
-        const articleData = data as any;
-        let content = "";
-        if (articleData?.img1) content += `<img src="${articleData.img1}" alt="Иллюстрация к навыку" style="max-width: 100%; margin-bottom: 16px; border-radius: 8px;" />\n\n`;
-        if (articleData?.img2) content += `<img src="${articleData.img2}" alt="Иллюстрация к навыку" style="max-width: 100%; margin-bottom: 16px; border-radius: 8px;" />\n\n`;
-        if (articleData?.img3) content += `<img src="${articleData.img3}" alt="Иллюстрация к навыку" style="max-width: 100%; margin-bottom: 16px; border-radius: 8px;" />\n\n`;
-        content += articleData?.art || "";
-        setArticleContent(content);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setArticleContent("");
-    } finally {
-      setLoadingArticle(false);
-    }
-  };
-
-  // Helper function to find subtopic by skill ID
-  const findSubtopicBySkillId = (skillId: number): Subunit | null => {
-    for (const unitKey in courseStructure) {
-      const unitNumber = parseInt(unitKey);
-      const unit = courseStructure[unitNumber];
-      for (const subunit of unit.subunits) {
-        if (subunit.skills.includes(skillId)) {
-          return subunit;
-        }
-      }
-    }
-    return null;
-  };
-
-  // Helper function to find subtopic by skill name
-  const findSubtopicBySkillName = (skillName: string): Subunit | null => {
-    const skillEntry = mathSkills.find(skill => skill.skill === skillName);
-    if (skillEntry) {
-      return findSubtopicBySkillId(skillEntry.id);
-    }
-    return null;
-  };
-
-  // Handle article click
-  const handleArticleClick = (skillId: number, skillName: string, subunit?: Subunit) => {
-    setSelectedArticle({ skillId, skillName });
-    // Always determine the correct subtopic based on the skill ID
-    const correctSubunit = findSubtopicBySkillId(skillId);
-    if (correctSubunit) {
-      setCurrentSubunit(correctSubunit);
-      // Find unit for this subunit
-      const unitNumber = Object.keys(courseStructure).find(key => 
-        courseStructure[Number(key)].subunits.some(s => s.id === correctSubunit.id)
-      );
-      if (unitNumber) {
-        setUrlState({ unit: Number(unitNumber), topic: correctSubunit.id, view: "articles" });
-      }
-    } else if (subunit) {
-      setCurrentSubunit(subunit);
-    }
-    fetchArticleContent(skillId);
-  };
-
-  // Handle back to textbook
-  const handleBackToTextbook = () => {
-    setSelectedArticle(null);
-    setArticleContent("");
-    setSelectedText("");
-    setIsChatOpen(false);
-    setIsSelecterActive(false);
-    // Keep current unit and topic, just change view
-    if (selectedUnit && currentSubunit) {
-      setUrlState({ view: "subunit" });
-    }
-  };
-
-  // Handle video click
-  const handleVideoClick = (skillName: string, subunit?: Subunit) => {
-    setSelectedVideo(skillName);
-    // Always determine the correct subtopic based on the skill name
-    const correctSubunit = findSubtopicBySkillName(skillName);
-    if (correctSubunit) {
-      setCurrentSubunit(correctSubunit);
-      // Find unit for this subunit
-      const unitNumber = Object.keys(courseStructure).find(key => 
-        courseStructure[Number(key)].subunits.some(s => s.id === correctSubunit.id)
-      );
-      if (unitNumber) {
-        setUrlState({ unit: Number(unitNumber), topic: correctSubunit.id, view: "videos" });
-      }
-    } else if (subunit) {
-      setCurrentSubunit(subunit);
-    }
-    
-    // Set the video URL based on the skill
-    if (skillName === "Натуральные и целые числа" || skillName === "Подстановка значений") {
-      setVideoUrl("https://www.youtube.com/embed/xFsJeBJsB6c");
-    } else {
-      setVideoUrl(""); // No video URL for "coming soon" videos
-    }
-  };
-
-  // Handle exercise click
-  const handleExerciseClick = async (skillIds: number[], subunit?: Subunit) => {
-    const skillName = skillIds.map(id => skillNames[id]).join(", ");
-    
-    // Clear any other modals first
-    setSelectedVideo(null);
-    setSelectedArticle(null);
-    
-    setSelectedExercise(skillName);
-    // Always determine the correct subtopic based on the first skill ID
-    const correctSubunit = findSubtopicBySkillId(skillIds[0]);
-    if (correctSubunit) {
-      setCurrentSubunit(correctSubunit);
-      // Find unit for this subunit
-      const unitNumber = Object.keys(courseStructure).find(key => 
-        courseStructure[Number(key)].subunits.some(s => s.id === correctSubunit.id)
-      );
-      if (unitNumber) {
-        setUrlState({ unit: Number(unitNumber), topic: correctSubunit.id, view: "exercises" });
-      }
-    } else if (subunit) {
-      setCurrentSubunit(subunit);
-    }
-    
-    // Fetch questions from mcq_with_options table for these skills
-    try {
-      const { data, error } = await supabase
-        .from('mcq_with_options')
-        .select('*')
-        .in('skills', skillIds)
-        .limit(10);
-      
-      if (error) {
-        console.error('Error fetching questions:', error);
-        return;
-      }
-      
-      if (data && data.length > 0) {
-        setQuestions(data);
-        setCurrentQuestionIndex(0);
-        setCurrentQuestion(data[0]);
-        setSelectedAnswer(null);
-        setShowResult(false);
-        setShowSolution(false);
-        setScore({ correct: 0, total: 0 });
-      } else {
-        // No questions found
-        setQuestions([]);
-        setCurrentQuestion(null);
-      }
-    } catch (error) {
-      console.error('Error fetching questions:', error);
-    }
-  };
-
-  // Handle quiz click (12 random questions from subunit)
-  const handleQuizClick = async (unitNumber: number, subunit: any) => {
-    console.log("Quiz clicked:", unitNumber, subunit);
-    const skillName = `Викторина: ${subunit.name}`;
-    
-    // Clear any other modals first
-    setSelectedVideo(null);
-    setSelectedArticle(null);
-    
-    setSelectedExercise(skillName);
-    setCurrentSubunit(subunit);
-    
-    // Get all skill IDs from the subunit
-    const subunitSkills = subunit.skills || [];
-    
-    // Fetch random questions from mcq_with_options table for these skills
-    try {
-      const { data, error } = await supabase
-        .from('mcq_with_options')
-        .select('*')
-        .in('skills', subunitSkills)
-        .limit(50); // Get more to randomize from
-      
-      if (error) {
-        console.error('Error fetching quiz questions:', error);
-        return;
-      }
-      
-      if (data && data.length > 0) {
-        // Randomly select 12 questions
-        const shuffled = data.sort(() => 0.5 - Math.random());
-        const selectedQuestions = shuffled.slice(0, Math.min(12, data.length));
-        
-        setQuestions(selectedQuestions);
-        setCurrentQuestionIndex(0);
-        setCurrentQuestion(selectedQuestions[0]);
-        setSelectedAnswer(null);
-        setShowResult(false);
-        setShowSolution(false);
-        setScore({ correct: 0, total: 0 });
-      } else {
-        // No questions found
-        setQuestions([]);
-        setCurrentQuestion(null);
-      }
-    } catch (error) {
-      console.error('Error fetching quiz questions:', error);
-    }
-  };
-
-  // Handle unit test click (16 random questions from entire unit)
-  const handleUnitTestClick = async (unitNumber: number, unit: any) => {
-    console.log("Unit test clicked:", unitNumber, unit);
-    const skillName = `Тест по юниту ${unitNumber}`;
-    
-    // Clear any other modals first
-    setSelectedVideo(null);
-    setSelectedArticle(null);
-    
-    setSelectedExercise(skillName);
-    // Set the first subunit as current for context
-    if (unit.subunits && unit.subunits.length > 0) {
-      setCurrentSubunit(unit.subunits[0]);
-    }
-    
-    // Get all skill IDs from all subunits in the unit
-    const unitSkills = unit.subunits.flatMap((subunit: any) => subunit.skills || []);
-    
-    // Fetch random questions from mcq_with_options table for these skills
-    try {
-      const { data, error } = await supabase
-        .from('mcq_with_options')
-        .select('*')
-        .in('skills', unitSkills)
-        .limit(80); // Get more to randomize from
-      
-      if (error) {
-        console.error('Error fetching unit test questions:', error);
-        return;
-      }
-      
-      if (data && data.length > 0) {
-        // Randomly select 16 questions
-        const shuffled = data.sort(() => 0.5 - Math.random());
-        const selectedQuestions = shuffled.slice(0, Math.min(16, data.length));
-        
-        setQuestions(selectedQuestions);
-        setCurrentQuestionIndex(0);
-        setCurrentQuestion(selectedQuestions[0]);
-        setSelectedAnswer(null);
-        setShowResult(false);
-        setShowSolution(false);
-        setScore({ correct: 0, total: 0 });
-      } else {
-        // No questions found
-        setQuestions([]);
-        setCurrentQuestion(null);
-      }
-    } catch (error) {
-      console.error('Error fetching unit test questions:', error);
-    }
-  };
-
-  // Handle answer selection
-  const handleAnswerSelect = (answer: string) => {
-    if (showResult) return;
-    setSelectedAnswer(answer);
-  };
-
-  // Submit answer
-  const handleSubmitAnswer = () => {
-    if (!selectedAnswer || !currentQuestion) return;
-    
-    const isCorrect = selectedAnswer === currentQuestion.answer;
-    setShowResult(true);
-    
-    if (isCorrect) {
-      setScore(prev => ({ correct: prev.correct + 1, total: prev.total + 1 }));
-      setShowAnimation(true);
-      setTimeout(() => setShowAnimation(false), 2000);
-    } else {
-      setScore(prev => ({ correct: prev.correct, total: prev.total + 1 }));
-    }
-  };
-
-  // Next question
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      const nextIndex = currentQuestionIndex + 1;
-      setCurrentQuestionIndex(nextIndex);
-      setCurrentQuestion(questions[nextIndex]);
-      setSelectedAnswer(null);
-      setShowResult(false);
-      setShowSolution(false);
-    }
-  };
-
-  // Show solution
-  const handleShowSolution = () => {
-    setShowSolution(true);
-  };
-
-  // Selector tool functions
-  const toggleSelecter = () => {
-    setIsSelecterActive(!isSelecterActive);
-  };
-
+  // Text selection functionality
   const handleTextSelection = () => {
     const selection = window.getSelection();
     if (selection && selection.toString().trim()) {
-      const text = selection.toString().trim();
-      setSelectedText(text);
-      
-      if (isSelecterActive) {
-        const range = selection.getRangeAt(0);
-        const span = document.createElement('span');
-        span.style.backgroundColor = 'yellow';
-        span.style.padding = '1px 2px';
-        
-        try {
-          range.surroundContents(span);
-          selection.removeAllRanges();
-        } catch (error) {
-          const contents = range.extractContents();
-          span.appendChild(contents);
-          range.insertNode(span);
-          selection.removeAllRanges();
-        }
+      const selectedText = selection.toString().trim();
+      if (selectedText.length > 10) {
+        setSelectedText(selectedText);
+        setShowSelectedTextPanel(true);
       }
     }
   };
 
-  const handleAskEzhik = async () => {
+  useEffect(() => {
+    if (isTextSelection) {
+      document.addEventListener('mouseup', handleTextSelection);
+      return () => document.removeEventListener('mouseup', handleTextSelection);
+    }
+  }, [isTextSelection]);
+
+  const handleAskEzhik = () => {
     if (!selectedText) return;
     
-    setIsChatOpen(true);
+    resetChat();
+    setShowChat(true);
+    setShowSelectedTextPanel(false);
     
-    // Add user message with selected text
-    const newUserMessage = {
+    const messageText = `Объясни мне этот отрывок из учебника: "${selectedText}"`;
+    const message = {
       id: Date.now(),
-      text: `Объясни мне это: "${selectedText}"`,
+      text: messageText,
       isUser: true,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
     
-    addMessage(newUserMessage);
-    setIsTyping(true);
-
-    try {
-      // Send message to AI and get response
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
-      addMessage(aiResponse);
-    } finally {
-      setIsTyping(false);
-    }
-    
-    // Clear selected text
-    setSelectedText("");
+    addMessage(message);
+    handleSendChatMessage(messageText);
   };
 
-  const handleSendChatMessage = async (userInput: string) => {
-    const newUserMessage = {
-      id: Date.now(),
-      text: userInput,
-      isUser: true,
-      timestamp: new Date()
-    };
-    
-    addMessage(newUserMessage);
+  const handleSendChatMessage = async (message: string) => {
     setIsTyping(true);
-
     try {
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
-      addMessage(aiResponse);
-    } finally {
-      setIsTyping(false);
-    }
-  };
-
-  // Add event listener for text selection when selecter is active
-  useEffect(() => {
-    if (isSelecterActive) {
-      document.addEventListener('mouseup', handleTextSelection);
-      return () => {
-        document.removeEventListener('mouseup', handleTextSelection);
+      const response = await sendChatMessage(message, [], false);
+      const aiMessage = {
+        id: Date.now() + 1,
+        text: response,
+        isUser: false,
+        timestamp: new Date(),
       };
+      addMessage(aiMessage);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage = {
+        id: Date.now() + 1,
+        text: 'Извините, произошла ошибка. Попробуйте еще раз.',
+        isUser: false,
+        timestamp: new Date(),
+      };
+      addMessage(errorMessage);
+    } finally {
+      setIsTyping(false);
     }
-  }, [isSelecterActive]);
+  };
 
-  const renderUnitOverview = () => (
-            <UnitProgressSummary 
-              courseStructure={courseStructure} 
-              onUnitSelect={handleUnitSelect}
-              onExerciseClick={handleExerciseClick}
-              onQuizClick={handleQuizClick}
-              onUnitTestClick={handleUnitTestClick}
-              mathSkills={mathSkills}
-            />
-  );
+  const copyUrlToClipboard = () => {
+    navigator.clipboard.writeText(window.location.href);
+  };
 
-  const renderUnitContent = (unit: any) => (
-    <div className="space-y-12">
-      <div className="mb-8">
-        <Button variant="outline" onClick={handleBackToUnits} className="mb-4">
-          ← Все модули
-        </Button>
-        <h1 className="text-4xl font-bold text-gray-900 mb-3">
-          Модуль {selectedUnit}: {unit.title}
+  // Filter functions for search
+  const filteredUnits = useMemo(() => {
+    if (!searchQuery.trim()) return Object.entries(courseStructure);
+    
+    return Object.entries(courseStructure).filter(([_, unit]) => {
+      const unitMatch = unit.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const subunitMatch = unit.subunits.some(subunit => 
+        subunit.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      const skillMatch = unit.subunits.some(subunit =>
+        subunit.skills.some(skillId =>
+          getSkillName(skillId).toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
+      return unitMatch || subunitMatch || skillMatch;
+    });
+  }, [searchQuery]);
+
+  // Render functions
+  const renderOverview = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          Учебник по математике ОГЭ
         </h1>
-        <p className="text-xl text-gray-600">{unit.description}</p>
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          Полная программа подготовки к ОГЭ по математике. 9 модулей, 32 темы, 200 навыков.
+        </p>
+      </div>
+      
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Поиск по темам и навыкам..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
       </div>
 
-      {unit.subunits.map((subunit: any, index: number) => (
-        <div key={subunit.id}>
-          {/* Subunit Block */}
-          <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              {subunit.id} {subunit.title}
-            </h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Side: Videos and Articles */}
-              <div className="space-y-6">
-                {/* Videos */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-red-600">
-                      <Play className="w-5 h-5" />
-                      Видео
-                    </CardTitle>
-                  </CardHeader>
-                    <CardContent className="space-y-3">
-                      {subunit.skills.map((skillId: number) => (
-                        <div 
-                          key={skillId} 
-                          className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
-                          onClick={() => handleVideoClick(skillNames[skillId] || `Видео ${skillId}`, subunit)}
-                        >
-                          <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
-                            <Play className="w-3 h-3 text-red-600" />
-                          </div>
-                          <span className="text-sm">{skillNames[skillId] || `Видео ${skillId}`}</span>
-                          <Badge variant="outline" className="ml-auto">
-                            {skillNames[skillId] === "Натуральные и целые числа" ? "5 мин" : "Скоро"}
-                          </Badge>
-                        </div>
-                      ))}
-                    </CardContent>
-                </Card>
-
-                {/* Articles */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-blue-600">
-                      <FileText className="w-5 h-5" />
-                      Статьи
-                    </CardTitle>
-                  </CardHeader>
-                    <CardContent className="space-y-3">
-                      {subunit.skills.map((skillId: number) => (
-                        <div 
-                          key={skillId} 
-                          className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
-                          onClick={() => handleArticleClick(skillId, skillNames[skillId] || `Теория ${skillId}`, subunit)}
-                        >
-                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                            <FileText className="w-3 h-3 text-blue-600" />
-                          </div>
-                          <span className="text-sm">{skillNames[skillId] || `Теория ${skillId}`}</span>
-                          <Badge variant="outline" className="ml-auto">
-                            10 мин
-                          </Badge>
-                        </div>
-                      ))}
-                   </CardContent>
-                </Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {filteredUnits.map(([unitId, unit]) => (
+          <Card key={unitId} className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
+            <CardHeader className={`${unit.color} text-white rounded-t-lg`}>
+              <CardTitle className="flex items-center justify-between">
+                <span>Модуль {unitId}</span>
+                <Badge variant="secondary" className="bg-white/20 text-white">
+                  {unit.subunits.length} тем
+                </Badge>
+              </CardTitle>
+              <CardDescription className="text-white/90 font-medium">
+                {unit.title}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6" onClick={() => handleUnitClick(parseInt(unitId))}>
+              <p className="text-gray-600 mb-4">{unit.description}</p>
+              <div className="mb-4">
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Прогресс</span>
+                  <span>{Math.round(getUnitProgress(unit))}%</span>
+                </div>
+                <Progress value={getUnitProgress(unit)} className="h-2" />
               </div>
-
-              {/* Right Side: Practice Exercises */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-600">
-                    <PenTool className="w-5 h-5" />
-                    Упражнения
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {subunit.skills.map((skillId: number) => (
-                    <div 
-                      key={skillId}
-                      className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => handleExerciseClick([skillId], subunit)}
-                    >
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                        <PenTool className="w-3 h-3 text-green-600" />
-                      </div>
-                      <span className="text-sm">{skillNames[skillId] || `Упражнение ${skillId}`}</span>
-                      <Badge variant="outline" className="ml-auto">
-                        Тест
-                      </Badge>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Quiz Block after each subunit */}
-          <div className="mb-8">
-            <Card className="border-2 border-yellow-200 bg-yellow-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5 text-yellow-600" />
-                  Викторина {index + 1}
-                </CardTitle>
-                <CardDescription>
-                  Проверь себя по теме "{subunit.title}"
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button className="w-full bg-yellow-600 hover:bg-yellow-700">
-                  Начать викторину {index + 1}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      ))}
-
-      {/* Final Unit Test */}
-      <Card className="border-2 border-red-200 bg-red-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-red-600" />
-            Итоговый тест модуля
-          </CardTitle>
-          <CardDescription>
-            12-15 вопросов для проверки знаний всего модуля
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button className="w-full bg-red-600 hover:bg-red-700">
-            Начать итоговый тест
-          </Button>
-        </CardContent>
-      </Card>
+              <div className="space-y-2">
+                {unit.subunits.slice(0, 3).map((subunit) => (
+                  <div key={subunit.id} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700">{subunit.title}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {subunit.skills.length} навыков
+                    </Badge>
+                  </div>
+                ))}
+                {unit.subunits.length > 3 && (
+                  <div className="text-xs text-gray-500 text-center pt-2">
+                    +{unit.subunits.length - 3} ещё
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 
+  const renderUnitView = () => {
+    if (!selectedUnit) return null;
+    const unit = courseStructure[selectedUnit];
+    if (!unit) return null;
 
-  const ModuleSidebar = () => (
-    <Sidebar className="w-72 border-r bg-background/95 backdrop-blur-sm fixed left-0 top-20 h-[calc(100vh-5rem)] z-10">
-      <SidebarContent className="p-6">
-        <div className="mb-6">
-          <Button 
-            onClick={() => navigate('/textbook')}
-            variant="outline"
-            className="w-full mb-6 hover:bg-primary/10 hover:text-primary border-primary/30"
-          >
-            📖 Читать как учебник
-          </Button>
-          <h2 className="text-xl font-bold text-foreground mb-3">Модули курса</h2>
-          <p className="text-base text-muted-foreground">Все 8 модулей всегда доступны</p>
-        </div>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-6">
-              {Object.entries(courseStructure).map(([unitNum, unit]) => {
-                const unitNumber = parseInt(unitNum);
-                let progress = calculateUnitProgress(unitNumber);
-                // For demo purposes, show sample progress values
-                if (progress === 0) {
-                  const sampleProgress = [80, 76, 72, 80, 90, 83, 73, 70];
-                  progress = sampleProgress[unitNumber - 1] || 0;
-                }
-                console.log(`Main content - Unit ${unitNumber} progress:`, progress);
-                const masteryLevel = getMasteryLevel(progress);
-                
-                return (
-                  <SidebarMenuItem key={unitNum}>
-                    <SidebarMenuButton 
-                      onClick={() => handleUnitSelect(unitNumber)}
-                      className={`w-full p-3 rounded-xl transition-all duration-300 border min-h-[80px] ${
-                        selectedUnit === unitNumber 
-                          ? 'bg-primary/10 text-primary border-primary/30 shadow-md' 
-                          : 'hover:bg-muted/60 border-border/50 hover:shadow-sm hover:border-primary/20'
-                      }`}
-                    >
-                      <div className="flex items-start gap-2 w-full">
-                        <div className={`w-8 h-8 ${unit.color} rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                          <BookOpen className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0 text-left space-y-1">
-                          <div>
-                            <div className="font-semibold text-sm">Модуль {unitNum}</div>
-                            <div className="text-xs text-muted-foreground leading-tight line-clamp-2">{unit.title}</div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1">
-                              <Progress value={progress} className="h-1 flex-1" />
-                              <span className="text-xs font-medium min-w-fit">{Math.round(progress)}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
-  );
-
-  const currentUnit = selectedUnit ? courseStructure[selectedUnit as keyof typeof courseStructure] : null;
-
-  // Exercise view
-  if (selectedExercise) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="pt-20">
-          <SidebarProvider>
-            <div className="flex min-h-screen w-full">
-              <div className="fixed top-24 left-4 z-50 bg-white/90 backdrop-blur-sm border border-border rounded-lg p-2 shadow-lg">
-                <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-colors" />
-              </div>
-              <SubtopicSidebar
-                currentSubunit={currentSubunit}
-                onVideoClick={(skillName) => {
-                  setSelectedExercise(null);
-                  handleVideoClick(skillName, currentSubunit);
-                }}
-                onArticleClick={(skillId, skillName) => {
-                  setSelectedExercise(null);
-                  handleArticleClick(skillId, skillName, currentSubunit);
-                }}
-                onExerciseClick={(skillIds) => {
-                  // Already on exercise view, but allow switching to different exercises
-                  handleExerciseClick(skillIds, currentSubunit);
-                }}
-                currentView="exercise"
-                currentContent={selectedExercise}
-              />
-              <main className="flex-1 overflow-y-auto">
-          <div className="container mx-auto px-4 py-8 max-w-4xl">
-            <div className="flex items-center gap-4 mb-4">
-              <Button 
-                variant="ghost" 
-                onClick={handleCloseExercise}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Назад к учебнику
-              </Button>
-              
-              <Button
-                onClick={copyCurrentLink}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-                title="Скопировать ссылку на текущую тему"
-              >
-                <Copy className="w-4 h-4" />
-                Скопировать ссылку
-              </Button>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button variant="ghost" onClick={handleBackToOverview} className="text-blue-600 hover:text-blue-800">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Назад к модулям
+          </Button>
+          <Button variant="outline" onClick={copyUrlToClipboard} size="sm">
+            <Copy className="h-4 w-4 mr-2" />
+            Скопировать ссылку
+          </Button>
+        </div>
+
+        <div className={`${unit.color} text-white p-8 rounded-lg mb-8`}>
+          <h1 className="text-3xl font-bold mb-2">Модуль {selectedUnit}: {unit.title}</h1>
+          <p className="text-white/90 text-lg mb-4">{unit.description}</p>
+          <div className="flex items-center gap-6">
+            <div>
+              <div className="text-2xl font-bold">{Math.round(getUnitProgress(unit))}%</div>
+              <div className="text-sm text-white/80">Завершено</div>
             </div>
-
-            {/* Success Animation */}
-            {showAnimation && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="text-center animate-pulse">
-                  <PartyPopper className="h-24 w-24 text-yellow-500 mx-auto mb-4 animate-bounce" />
-                  <div className="text-4xl font-bold text-white animate-fade-in">Правильно!</div>
-                  <Trophy className="h-12 w-12 text-yellow-500 mx-auto mt-4 animate-bounce" />
-                </div>
+            <div>
+              <div className="text-2xl font-bold">{unit.subunits.length}</div>
+              <div className="text-sm text-white/80">Тем</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold">
+                {unit.subunits.reduce((sum, s) => sum + s.skills.length, 0)}
               </div>
-            )}
-            
-            <Card>
+              <div className="text-sm text-white/80">Навыков</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {unit.subunits.map((subunit) => (
+            <Card key={subunit.id} className="cursor-pointer hover:shadow-lg transition-shadow">
               <CardHeader>
-                <CardTitle className="text-2xl">{selectedExercise}</CardTitle>
-                {questions.length > 0 && (
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm text-muted-foreground">
-                      Вопрос {currentQuestionIndex + 1} из {questions.length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Правильно: {score.correct} из {score.total}
-                    </div>
-                  </div>
-                )}
+                <CardTitle className="flex items-center justify-between">
+                  <span>{subunit.title}</span>
+                  <Badge variant="outline">
+                    {subunit.skills.length} навыков
+                  </Badge>
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                {questions.length === 0 ? (
-                  <div className="text-center py-12">
-                    <PenTool className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">Упражнения скоро появятся</h3>
-                    <p className="text-muted-foreground">
-                      Мы работаем над созданием упражнений по этой теме
-                    </p>
+              <CardContent onClick={() => handleSubunitClick(subunit.id)}>
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Прогресс</span>
+                    <span>{Math.round(getSubunitProgress(subunit))}%</span>
                   </div>
-                ) : currentQuestion ? (
-                  <div className="space-y-6">
-                    {/* Question */}
-                    <div className="prose max-w-none">
-                      <MathRenderer text={currentQuestion.problem_text || ""} />
+                  <Progress value={getSubunitProgress(subunit)} className="h-2" />
+                </div>
+                <div className="space-y-2">
+                  {subunit.skills.slice(0, 4).map((skillId) => (
+                    <div key={skillId} className="flex items-center gap-2">
+                      {getMasteryIcon(getMasteryLevel(skillId))}
+                      <span className="text-sm text-gray-600 truncate">
+                        {getSkillName(skillId)}
+                      </span>
                     </div>
-
-                    {/* Image if available */}
-                    {currentQuestion.problem_image && (
-                      <div className="text-center">
-                        <img 
-                          src={currentQuestion.problem_image} 
-                          alt="Условие задачи" 
-                          className="max-w-full h-auto mx-auto rounded-lg"
-                        />
-                      </div>
-                    )}
-
-                    {/* Answer Options */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {[
-                        { key: 'А', value: currentQuestion.option1 },
-                        { key: 'Б', value: currentQuestion.option2 },
-                        { key: 'В', value: currentQuestion.option3 },
-                        { key: 'Г', value: currentQuestion.option4 }
-                      ].filter(option => option.value).map((option) => (
-                        <Card 
-                          key={option.key}
-                          className={`cursor-pointer transition-all hover:shadow-md ${
-                            selectedAnswer === option.key 
-                              ? showResult 
-                                ? option.key === currentQuestion.answer
-                                  ? 'bg-green-100 border-green-500' 
-                                  : 'bg-red-100 border-red-500'
-                                : 'bg-blue-100 border-blue-500'
-                              : 'hover:bg-gray-50'
-                          } ${showResult && option.key === currentQuestion.answer ? 'bg-green-100 border-green-500' : ''}`}
-                          onClick={() => handleAnswerSelect(option.key)}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                                selectedAnswer === option.key 
-                                  ? showResult 
-                                    ? option.key === currentQuestion.answer
-                                      ? 'bg-green-500 text-white' 
-                                      : 'bg-red-500 text-white'
-                                    : 'bg-blue-500 text-white'
-                                  : 'bg-gray-200 text-gray-700'
-                              } ${showResult && option.key === currentQuestion.answer ? 'bg-green-500 text-white' : ''}`}>
-                                {option.key}
-                              </div>
-                              <div className="flex-1">
-                                <MathRenderer text={option.value || ""} />
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                  ))}
+                  {subunit.skills.length > 4 && (
+                    <div className="text-xs text-gray-500 text-center pt-2">
+                      +{subunit.skills.length - 4} ещё
                     </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-4 justify-center">
-                      {!showResult ? (
-                        <Button 
-                          onClick={handleSubmitAnswer}
-                          disabled={!selectedAnswer}
-                          className="px-8"
-                        >
-                          Ответить
-                        </Button>
-                      ) : (
-                        <div className="flex gap-4">
-                          <Button 
-                            variant="outline"
-                            onClick={handleShowSolution}
-                          >
-                            Посмотреть решение
-                          </Button>
-                          {currentQuestionIndex < questions.length - 1 && (
-                            <Button onClick={handleNextQuestion}>
-                              Следующий вопрос
-                            </Button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Result */}
-                    {showResult && (
-                      <div className={`text-center p-4 rounded-lg ${
-                        selectedAnswer === currentQuestion.answer 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        <div className="text-lg font-semibold">
-                          {selectedAnswer === currentQuestion.answer ? '✅ Правильно!' : '❌ Неправильно'}
-                        </div>
-                        <div className="text-sm mt-1">
-                          Правильный ответ: {currentQuestion.answer}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Solution */}
-                    {showSolution && currentQuestion.solution_text && (
-                      <Card className="bg-blue-50 border-blue-200">
-                        <CardHeader>
-                          <CardTitle className="text-lg">Решение</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="prose max-w-none">
-                            <MathRenderer text={currentQuestion.solution_text} />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Final Results */}
-                    {currentQuestionIndex === questions.length - 1 && showResult && (
-                      <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                        <CardContent className="p-6 text-center">
-                          <Trophy className="h-12 w-12 mx-auto mb-4" />
-                          <h3 className="text-2xl font-bold mb-2">Упражнение завершено!</h3>
-                          <p className="text-lg">
-                            Ваш результат: {score.correct} из {score.total} ({Math.round((score.correct / score.total) * 100)}%)
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                ) : null}
+                  )}
+                </div>
               </CardContent>
             </Card>
-                </div>
-              </main>
-            </div>
-          </SidebarProvider>
+          ))}
         </div>
       </div>
     );
-  }
+  };
 
-  // Video view
-  if (selectedVideo) {
+  const renderSubunitView = () => {
+    if (!selectedUnit || !selectedSubunit) return null;
+    const unit = courseStructure[selectedUnit];
+    const subunit = unit?.subunits.find(s => s.id === selectedSubunit);
+    if (!unit || !subunit) return null;
+
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="pt-20">
-          <SidebarProvider>
-            <div className="flex min-h-screen w-full">
-              <div className="fixed top-24 left-4 z-50 bg-white/90 backdrop-blur-sm border border-border rounded-lg p-2 shadow-lg">
-                <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-colors" />
-              </div>
-              <SubtopicSidebar
-                currentSubunit={currentSubunit}
-                onVideoClick={(skillName) => {
-                  // Allow switching to different videos
-                  handleVideoClick(skillName, currentSubunit);
-                }}
-                onArticleClick={(skillId, skillName) => {
-                  setSelectedVideo(null);
-                  handleArticleClick(skillId, skillName, currentSubunit);
-                }}
-                onExerciseClick={(skillIds) => {
-                  setSelectedVideo(null);
-                  handleExerciseClick(skillIds, currentSubunit);
-                }}
-                currentView="video"
-                currentContent={selectedVideo}
-              />
-              <main className="flex-1 overflow-y-auto">
-                <div className="container mx-auto px-4 py-8">
-                  <div className="flex items-center gap-4 mb-6">
-                    <Button 
-                      onClick={handleCloseVideo} 
-                      variant="outline"
-                    >
-                      ← Назад к учебнику
-                    </Button>
-                    
-                    <Button
-                      onClick={copyCurrentLink}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                      title="Скопировать ссылку на текущую тему"
-                    >
-                      <Copy className="w-4 h-4" />
-                      Скопировать ссылку
-                    </Button>
-                  </div>
-                  
-                  <Card className="max-w-4xl mx-auto">
-                    <CardHeader>
-                      <CardTitle className="text-2xl">{selectedVideo}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {videoUrl ? (
-                        <div className="aspect-video w-full">
-                          <iframe
-                            src={videoUrl}
-                            title={selectedVideo}
-                            className="w-full h-full rounded-lg"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </div>
-                      ) : (
-                        <div className="text-center py-12">
-                          <Play className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                          <h3 className="text-xl font-semibold mb-2">Видео скоро появится</h3>
-                          <p className="text-muted-foreground">
-                            Мы работаем над созданием видеоматериала по этой теме
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </main>
-            </div>
-          </SidebarProvider>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button variant="ghost" onClick={handleBackToUnit} className="text-blue-600 hover:text-blue-800">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Назад к модулю
+          </Button>
+          <Button variant="outline" onClick={copyUrlToClipboard} size="sm">
+            <Copy className="h-4 w-4 mr-2" />
+            Скопировать ссылку
+          </Button>
+          <Button
+            variant={isTextSelection ? "default" : "outline"}
+            onClick={() => setIsTextSelection(!isTextSelection)}
+            size="sm"
+          >
+            <Highlighter className="h-4 w-4 mr-2" />
+            {isTextSelection ? "Выключить выделение" : "Выделить текст"}
+          </Button>
         </div>
-      </div>
-    );
-  }
 
-  // Article view
-  if (selectedArticle) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="pt-20">
-          <SidebarProvider>
-            <div className="flex min-h-screen w-full">
-              <div className="fixed top-24 left-4 z-50 bg-white/90 backdrop-blur-sm border border-border rounded-lg p-2 shadow-lg">
-                <SidebarTrigger className="hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-colors" />
-              </div>
-              <SubtopicSidebar
-                currentSubunit={currentSubunit}
-                onVideoClick={(skillName) => {
-                  setSelectedArticle(null);
-                  handleVideoClick(skillName, currentSubunit);
-                }}
-                onArticleClick={(skillId, skillName) => {
-                  // Allow switching to different articles
-                  handleArticleClick(skillId, skillName, currentSubunit);
-                }}
-                onExerciseClick={(skillIds) => {
-                  setSelectedArticle(null);
-                  handleExerciseClick(skillIds, currentSubunit);
-                }}
-                currentView="article"
-                currentContent={selectedArticle?.skillName}
-              />
-              <main className="flex-1 overflow-y-auto">
-                {/* Selected Text and Ask Ёжик Button */}
-                {selectedText && (
-                  <div className="fixed top-24 right-4 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-md">
-                    <div className="flex items-start gap-2 mb-3">
-                      <MessageCircle className="w-4 h-4 text-blue-600 mt-1 flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900 mb-1">Выделенный текст:</p>
-                        <p className="text-sm text-gray-600 line-clamp-3">"{selectedText}"</p>
+        <div className={`${unit.color} text-white p-8 rounded-lg mb-8`}>
+          <div className="mb-4">
+            <div className="text-sm text-white/80 mb-2">
+              Модуль {selectedUnit}: {unit.title}
+            </div>
+            <h1 className="text-3xl font-bold">{subunit.title}</h1>
+          </div>
+          <div className="flex items-center gap-6">
+            <div>
+              <div className="text-2xl font-bold">{Math.round(getSubunitProgress(subunit))}%</div>
+              <div className="text-sm text-white/80">Завершено</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold">{subunit.skills.length}</div>
+              <div className="text-sm text-white/80">Навыков</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          {subunit.skills.map((skillId) => {
+            const masteryLevel = getMasteryLevel(skillId);
+            const isRead = readSkills.has(skillId);
+            
+            return (
+              <Card key={skillId} className="cursor-pointer hover:shadow-lg transition-shadow">
+                <CardContent className="p-6" onClick={() => handleSkillClick(skillId)}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {getMasteryIcon(masteryLevel)}
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          Навык {skillId}: {getSkillName(skillId)}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant={isRead ? "default" : "secondary"} className="text-xs">
+                            {isRead ? "Прочитано" : "Не прочитано"}
+                          </Badge>
+                          <Badge 
+                            variant={masteryLevel === 'mastered' ? 'default' : 'outline'} 
+                            className="text-xs"
+                          >
+                            {masteryLevel === 'mastered' ? 'Освоено' : 
+                             masteryLevel === 'in_progress' ? 'В процессе' : 'Не начато'}
+                          </Badge>
+                        </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedText("")}
-                        className="p-1 h-auto"
-                      >
-                        <X className="w-3 h-3" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm">
+                        <BookOpen className="h-4 w-4 mr-1" />
+                        Теория
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/mcq-practice-skill-${skillId}`);
+                      }}>
+                        <PenTool className="h-4 w-4 mr-1" />
+                        Практика
                       </Button>
                     </div>
-                    <Button 
-                      onClick={handleAskEzhik}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                      size="sm"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Спросить Ёжика
-                    </Button>
                   </div>
-                )}
-
-                {/* Chat Window */}
-                {isChatOpen && (
-                  <div className="fixed left-4 top-24 bottom-4 w-80 z-40 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col">
-                    <div className="flex items-center justify-between p-4 border-b">
-                      <div className="flex items-center gap-2">
-                        <MessageCircle className="w-5 h-5 text-blue-600" />
-                        <h3 className="font-medium text-gray-900">Чат с Ёжиком</h3>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsChatOpen(false)}
-                        className="p-1 h-auto"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="flex-1 flex flex-col min-h-0">
-                      <ScrollArea className="flex-1 p-4">
-                        <div className="space-y-4">
-                          {messages.map(message => (
-                            <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
-                              <div 
-                                className={`max-w-[85%] p-3 rounded-lg text-sm ${
-                                  message.isUser 
-                                    ? "bg-blue-600 text-white rounded-tr-none" 
-                                    : "bg-gray-100 text-gray-900 rounded-tl-none"
-                                }`}
-                              >
-                                <MathRenderer text={message.text} />
-                                <div className={`text-xs mt-1 ${message.isUser ? "text-blue-100" : "text-gray-500"}`}>
-                                  {message.timestamp.toLocaleTimeString([], {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                          {isTyping && (
-                            <div className="flex justify-start">
-                              <div className="bg-gray-100 text-gray-900 rounded-lg rounded-tl-none p-3 text-sm">
-                                <div className="flex items-center gap-1">
-                                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </ScrollArea>
-                      
-                      <div className="border-t p-4">
-                        <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="container mx-auto px-4 py-8">
-                  <div className="flex items-center gap-4 mb-6">
-                    <Button 
-                      onClick={handleBackToTextbook}
-                      variant="outline"
-                    >
-                      ← Назад к учебнику
-                    </Button>
-                    
-                    <Button
-                      onClick={copyCurrentLink}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                      title="Скопировать ссылку на текущую тему"
-                    >
-                      <Copy className="w-4 h-4" />
-                      Скопировать ссылку
-                    </Button>
-                    
-                    <Button
-                      onClick={toggleSelecter}
-                      variant={isSelecterActive ? "default" : "outline"}
-                      className="flex items-center gap-2"
-                    >
-                      <Highlighter className="w-4 h-4" />
-                      {isSelecterActive ? "Отключить селектор" : "Включить селектор"}
-                    </Button>
-                  </div>
-                  
-                  <Card className="max-w-4xl mx-auto">
-                    <CardHeader>
-                      <CardTitle className="text-2xl">
-                        {selectedArticle.skillName}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {loadingArticle ? (
-                        <div className="text-center py-8">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                          <p className="mt-2 text-muted-foreground">Загружаем статью...</p>
-                        </div>
-                      ) : articleContent ? (
-                        <div className={isSelecterActive ? "cursor-text" : ""}>
-                          <MathRenderer 
-                            text={articleContent} 
-                            className="prose prose-lg max-w-none"
-                          />
-                        </div>
-                      ) : (
-                        <div className="text-center py-12">
-                          <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                          <h3 className="text-xl font-semibold mb-2">Статья скоро появится</h3>
-                          <p className="text-muted-foreground">
-                            Мы работаем над созданием материала по этой теме
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </main>
-            </div>
-          </SidebarProvider>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     );
-  }
+  };
+
+  const renderArticleView = () => {
+    if (!selectedSkill) return null;
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button variant="ghost" onClick={handleBackToSubunit} className="text-blue-600 hover:text-blue-800">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Назад к теме
+          </Button>
+          <Button variant="outline" onClick={copyUrlToClipboard} size="sm">
+            <Copy className="h-4 w-4 mr-2" />
+            Скопировать ссылку
+          </Button>
+          <Button
+            variant={isTextSelection ? "default" : "outline"}
+            onClick={() => setIsTextSelection(!isTextSelection)}
+            size="sm"
+          >
+            <Highlighter className="h-4 w-4 mr-2" />
+            {isTextSelection ? "Выключить выделение" : "Выделить текст"}
+          </Button>
+        </div>
+
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-8 rounded-lg mb-8">
+          <h1 className="text-3xl font-bold mb-2">
+            Навык {selectedSkill}: {getSkillName(selectedSkill)}
+          </h1>
+          <div className="flex items-center gap-4">
+            <Badge variant="secondary" className="bg-white/20 text-white">
+              {readSkills.has(selectedSkill) ? "Прочитано" : "Не прочитано"}
+            </Badge>
+            <Badge variant="secondary" className="bg-white/20 text-white">
+              {getMasteryLevel(selectedSkill) === 'mastered' ? 'Освоено' : 
+               getMasteryLevel(selectedSkill) === 'in_progress' ? 'В процессе' : 'Не начато'}
+            </Badge>
+          </div>
+        </div>
+
+        {isLoadingArticle ? (
+          <div className="bg-white rounded-lg p-8">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+            </div>
+          </div>
+        ) : currentArticle ? (
+          <div className="bg-white rounded-lg p-8 shadow-sm" style={{ userSelect: isTextSelection ? 'text' : 'none' }}>
+            <div className="prose max-w-none">
+              <MathRenderer text={currentArticle.article_text || 'Материал находится в разработке.'} />
+              
+              {/* Display images if available */}
+              {[1,2,3,4,5,6,7].map(num => {
+                const imgKey = `img${num}`;
+                const imgUrl = currentArticle[imgKey];
+                return imgUrl ? (
+                  <div key={imgKey} className="my-4">
+                    <img 
+                      src={imgUrl} 
+                      alt={`Иллюстрация ${num}`}
+                      className="max-w-full h-auto rounded-lg shadow-sm"
+                    />
+                  </div>
+                ) : null;
+              })}
+            </div>
+            
+            <div className="flex gap-4 mt-8 pt-6 border-t">
+              <Button 
+                onClick={() => {
+                  markSkillAsRead(selectedSkill);
+                }}
+                disabled={readSkills.has(selectedSkill)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                {readSkills.has(selectedSkill) ? "Прочитано" : "Отметить как прочитанное"}
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => navigate(`/mcq-practice-skill-${selectedSkill}`)}
+              >
+                <PenTool className="h-4 w-4 mr-2" />
+                Перейти к упражнениям
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg p-8 text-center">
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Материал в разработке</h3>
+            <p className="text-gray-600 mb-6">
+              Теоретический материал для этого навыка пока находится в разработке.
+            </p>
+            <Button 
+              variant="outline"
+              onClick={() => navigate(`/mcq-practice-skill-${selectedSkill}`)}
+            >
+              <PenTool className="h-4 w-4 mr-2" />
+              Перейти к упражнениям
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="pt-20">
-        <SidebarProvider>
-          <div className="flex min-h-screen w-full">
-            <ModuleSidebar />
-        <main className="flex-1 overflow-y-auto pl-12 pr-12 py-8">
-          <ScrollArea className="h-full">
-            {!selectedUnit ? (
-              renderUnitOverview()
-            ) : (
-              renderUnitContent(courseStructure[selectedUnit])
-            )}
-          </ScrollArea>
-        </main>
-          </div>
-        </SidebarProvider>
+      
+      <div className="container mx-auto px-4 py-8">
+        {currentView === "overview" && renderOverview()}
+        {currentView === "subunit" && renderUnitView()}
+        {currentView === "articles" && !selectedSkill && renderSubunitView()}
+        {currentView === "articles" && selectedSkill && renderArticleView()}
       </div>
+
+      {/* Selected text panel */}
+      {showSelectedTextPanel && selectedText && (
+        <div className="fixed bottom-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm z-40">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-semibold text-sm">Выделенный текст</h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSelectedTextPanel(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-sm text-gray-600 mb-3 line-clamp-3">
+            {selectedText}
+          </p>
+          <Button onClick={handleAskEzhik} size="sm" className="w-full">
+            <MessageCircle className="h-4 w-4 mr-2" />
+            Спросить у Ёжика
+          </Button>
+        </div>
+      )}
+
+      {/* Chat window */}
+      {showChat && (
+        <div className="fixed bottom-4 right-4 w-96 h-96 bg-white border border-gray-200 rounded-lg shadow-lg flex flex-col z-50">
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-blue-600" />
+              <h3 className="font-semibold">Ёжик-помощник</h3>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setShowChat(false)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <ChatMessages messages={messages} isTyping={isTyping} />
+          </div>
+          <div className="border-t">
+            <ChatInput onSendMessage={handleSendChatMessage} />
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-// Helper component for activity items
-const ActivityItem = ({ icon: Icon, label, count, color }: {
-  icon: any;
-  label: string;
-  count: number;
-  color: string;
-}) => (
-  <div className="flex items-center gap-2 text-sm">
-    <Icon className={`w-4 h-4 ${color}`} />
-    <span>{label}</span>
-    <Badge variant="outline" className="ml-auto text-xs">
-      {count}
-    </Badge>
-  </div>
-);
-
-export default Textbook2;
+}
