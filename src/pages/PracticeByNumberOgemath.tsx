@@ -15,6 +15,7 @@ import { StreakDisplay } from "@/components/streak/StreakDisplay";
 import { StreakRingAnimation } from "@/components/streak/StreakRingAnimation";
 import { awardStreakPoints, calculateStreakReward, getCurrentStreakData } from "@/services/streakPointsService";
 import { toast } from "sonner";
+import TestStatisticsWindow from "@/components/TestStatisticsWindow";
 
 interface Question {
   question_id: string;
@@ -53,6 +54,10 @@ const PracticeByNumberOgemath = () => {
     solutionText: string;
     isAnswered: boolean;
   }>>([]);
+  
+  // Review mode states
+  const [isReviewMode, setIsReviewMode] = useState(false);
+  const [reviewQuestionIndex, setReviewQuestionIndex] = useState<number | null>(null);
   
   // Streak animation state
   const [showStreakAnimation, setShowStreakAnimation] = useState(false);
@@ -201,18 +206,25 @@ const PracticeByNumberOgemath = () => {
 
   const handleFinishTest = () => {
     setShowStatistics(true);
+    setIsReviewMode(false);
   };
 
   const handleNewTest = () => {
     setShowStatistics(false);
     setSessionResults([]);
+    setIsReviewMode(false);
+    setReviewQuestionIndex(null);
     handleBackToSelection();
   };
 
   const handleGoToQuestion = (questionIndex: number) => {
-    setShowStatistics(false);
-    setCurrentQuestionIndex(questionIndex);
-    resetQuestionState();
+    setIsReviewMode(true);
+    setReviewQuestionIndex(questionIndex);
+  };
+  
+  const handleBackToSummary = () => {
+    setIsReviewMode(false);
+    setReviewQuestionIndex(null);
   };
 
   // Start attempt logging when question is presented
@@ -874,6 +886,22 @@ const PracticeByNumberOgemath = () => {
                 </Card>
               )}
             </div>
+          ) : showStatistics ? (
+            /* Statistics Window */
+            <TestStatisticsWindow
+              sessionResults={sessionResults}
+              onGoToQuestion={handleGoToQuestion}
+              onStartNewTest={handleNewTest}
+              isReviewMode={isReviewMode}
+              currentQuestionData={
+                isReviewMode && reviewQuestionIndex !== null
+                  ? {
+                      question: sessionResults[reviewQuestionIndex],
+                      onBackToSummary: handleBackToSummary,
+                    }
+                  : undefined
+              }
+            />
           ) : (
             /* Practice Interface */
             questions.length > 0 && currentQuestion ? (
@@ -881,9 +909,18 @@ const PracticeByNumberOgemath = () => {
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                   <span>Вопрос №{currentQuestion.problem_number_type} ({currentQuestionIndex + 1} из {questions.length})</span>
-                  <span className="text-sm font-normal text-gray-500">
-                    ID: {currentQuestion.question_id}
-                  </span>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      onClick={handleFinishTest}
+                      variant="outline"
+                      className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
+                    >
+                      Завершить тест
+                    </Button>
+                    <span className="text-sm font-normal text-gray-500">
+                      ID: {currentQuestion.question_id}
+                    </span>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -961,12 +998,8 @@ const PracticeByNumberOgemath = () => {
                   )}
                 </div>
 
-                {/* Action Buttons */}
+                 {/* Action Buttons */}
                 <div className="flex gap-3 flex-wrap">
-                  <Button variant="destructive" onClick={handleFinishTest} className="flex-1 min-w-32">
-                    Завершить тест
-                  </Button>
-                  
                   <Button
                     variant="outline"
                     onClick={handleShowSolution}
@@ -1017,99 +1050,6 @@ const PracticeByNumberOgemath = () => {
             ) : null
           )}
 
-          {/* Statistics Page */}
-          {showStatistics && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Статистика теста
-                  <Button variant="outline" onClick={() => setShowStatistics(false)}>
-                    <X className="w-4 h-4 mr-2" />
-                    Закрыть
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Test Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-800">
-                        {sessionResults.filter(r => r.isCorrect).length}
-                      </div>
-                      <div className="text-green-600">Правильно</div>
-                    </div>
-                  </div>
-                  <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-red-800">
-                        {sessionResults.filter(r => !r.isCorrect).length}
-                      </div>
-                      <div className="text-red-600">Неправильно</div>
-                    </div>
-                  </div>
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-800">
-                        {sessionResults.length}
-                      </div>
-                      <div className="text-blue-600">Всего</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Question Results */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold">Результаты по вопросам</h3>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {sessionResults.map((result, index) => (
-                      <div 
-                        key={result.questionId}
-                        className={`p-4 rounded-lg border cursor-pointer hover:bg-gray-50 transition-colors ${
-                          result.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
-                        }`}
-                        onClick={() => handleGoToQuestion(result.questionIndex)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            {result.isCorrect ? (
-                              <CheckCircle className="w-5 h-5 text-green-600" />
-                            ) : (
-                              <XCircle className="w-5 h-5 text-red-600" />
-                            )}
-                            <span className="font-medium">
-                              Вопрос {result.questionIndex + 1}
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              {result.isAnswered ? 'Отвечен' : 'Пропущен'}
-                            </span>
-                          </div>
-                          <Button variant="ghost" size="sm">
-                            Перейти к вопросу
-                          </Button>
-                        </div>
-                        {result.userAnswer && (
-                          <div className="mt-2 text-sm text-gray-600">
-                            Ваш ответ: <span className="font-mono">{result.userAnswer}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <Button onClick={handleNewTest} className="flex-1">
-                    Новый тест
-                  </Button>
-                  <Button variant="outline" onClick={handleBackToSelection} className="flex-1">
-                    Вернуться к выбору
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Results Summary */}
           {practiceStarted && questions.length > 0 && !showStatistics && (
