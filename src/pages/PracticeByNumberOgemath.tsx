@@ -120,7 +120,7 @@ const PracticeByNumberOgemath = () => {
           const questionActivity = userActivity.filter(a => a.question_id === question.question_id);
           
           if (questionActivity.length === 0) {
-            questionStatusMap[question.question_id] = { status: 'unseen', priority: 1 };
+            questionStatusMap[question.question_id] = { status: 'unseen', priority: 3 };
           } else {
             // Get most recent attempt based on updated_at
             const mostRecent = questionActivity[0];
@@ -139,7 +139,7 @@ const PracticeByNumberOgemath = () => {
       } else {
         // If no user, mark all as unseen
         allQuestions.forEach(question => {
-          questionStatusMap[question.question_id] = { status: 'unseen', priority: 1 };
+          questionStatusMap[question.question_id] = { status: 'unseen', priority: 3 };
         });
       }
 
@@ -147,14 +147,14 @@ const PracticeByNumberOgemath = () => {
       const questionsWithStatus = allQuestions.map(question => ({
         ...question,
         status: questionStatusMap[question.question_id]?.status || 'unseen',
-        priority: questionStatusMap[question.question_id]?.priority || 1
+        priority: questionStatusMap[question.question_id]?.priority || 3
       }));
 
       // Group by priority and shuffle within each group
       const priorityGroups = {
-        1: questionsWithStatus.filter(q => q.priority === 3), // unseen
+        1: questionsWithStatus.filter(q => q.priority === 1), // wrong
         2: questionsWithStatus.filter(q => q.priority === 2), // unfinished
-        3: questionsWithStatus.filter(q => q.priority === 1), // wrong
+        3: questionsWithStatus.filter(q => q.priority === 3), // unseen
         4: questionsWithStatus.filter(q => q.priority === 4)  // correct
       };
 
