@@ -1561,6 +1561,7 @@ export type Database = {
           testmark1: number | null
           testmark2: number | null
           testmark3: number | null
+          tutor_avatar_url: string | null
           updated_at: string
           user_id: string
         }
@@ -1587,6 +1588,7 @@ export type Database = {
           testmark1?: number | null
           testmark2?: number | null
           testmark3?: number | null
+          tutor_avatar_url?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1613,6 +1615,7 @@ export type Database = {
           testmark1?: number | null
           testmark2?: number | null
           testmark3?: number | null
+          tutor_avatar_url?: string | null
           updated_at?: string
           user_id?: string
         }
