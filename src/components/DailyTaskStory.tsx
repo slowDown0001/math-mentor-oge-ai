@@ -24,15 +24,15 @@ export const DailyTaskStory = () => {
       if (!user) return;
       
       try {
-        // Fetch avatar from profiles (using full_name as fallback since tutor_avatar_url doesn't exist)
+        // Fetch avatar from profiles
         const { data: profile } = await supabase
           .from('profiles')
-          .select('avatar_url')
+          .select('tutor_avatar_url')
           .eq('user_id', user.id)
           .single();
 
-        if (profile?.avatar_url) {
-          setAvatarUrl(profile.avatar_url);
+        if (profile?.tutor_avatar_url) {
+          setAvatarUrl(profile.tutor_avatar_url);
         } else {
           // Use a default avatar URL if none exists
           setAvatarUrl('https://api.dicebear.com/7.x/avataaars/svg?seed=tutor');
@@ -91,7 +91,7 @@ export const DailyTaskStory = () => {
       {/* Avatar Circle */}
       <div className="flex justify-center mb-4">
         <div
-          className={`w-16 h-16 rounded-full overflow-hidden cursor-pointer transition-all duration-200 hover:scale-105 ${
+          className={`w-32 h-32 rounded-full overflow-hidden cursor-pointer transition-all duration-200 hover:scale-105 ${
             seen === 0 
               ? 'p-1 bg-gradient-to-tr from-purple-500 via-pink-500 to-orange-500' 
               : 'border-2 border-muted'
