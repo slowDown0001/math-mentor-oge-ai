@@ -138,7 +138,23 @@ const PracticeByNumberOgemath = () => {
       }
     });
     
-    setSelectedNumbers(expandedNumbers);
+    // Check if all numbers in the group are currently selected
+    const allSelected = expandedNumbers.every(num => selectedNumbers.includes(num));
+    
+    // If all selected, deselect the group; otherwise, select the group
+    if (allSelected) {
+      setSelectedNumbers(prev => prev.filter(n => !expandedNumbers.includes(n)));
+    } else {
+      setSelectedNumbers(prev => {
+        const newSelected = [...prev];
+        expandedNumbers.forEach(num => {
+          if (!newSelected.includes(num)) {
+            newSelected.push(num);
+          }
+        });
+        return newSelected;
+      });
+    }
   };
 
   const toggleIndividualNumber = (number: string) => {
