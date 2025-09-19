@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import ChatRenderer2 from './chat/ChatRenderer2';
 
 interface StoryData {
   upload_id: number;
@@ -111,33 +112,35 @@ export const DailyTaskStory = () => {
       {/* Story Modal */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-          <div className="relative w-full max-w-sm h-[600px] bg-gradient-to-br from-background to-muted rounded-3xl overflow-hidden shadow-2xl">
+          <div className="relative w-full max-w-4xl h-[80vh] bg-gradient-to-br from-background to-muted rounded-3xl overflow-hidden shadow-2xl flex flex-col">
             {/* Header */}
-            <div className="flex items-center gap-3 p-4 border-b border-border/20">
-              <div className="w-10 h-10 rounded-full overflow-hidden">
+            <div className="flex items-center gap-3 p-6 border-b border-border/20 flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden">
                 <img
                   src={avatarUrl}
                   alt="AI Tutor Avatar"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className="font-semibold text-foreground">AI Tutor</span>
+              <span className="font-semibold text-foreground text-lg">AI Tutor</span>
               
               {/* Close button */}
               <button
-                className="ml-auto w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center text-white transition-colors"
+                className="ml-auto w-10 h-10 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center text-white transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Task Content */}
-            <div className="flex-1 flex items-center justify-center p-6">
-              <div className="text-center">
-                <div className="text-lg font-medium text-foreground leading-relaxed">
-                  {task || 'У вас пока нет новых заданий. Продолжайте практиковаться!'}
-                </div>
+            {/* Task Content with Scroll */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="max-w-none prose prose-lg dark:prose-invert">
+                <ChatRenderer2 
+                  text={task || 'У вас пока нет новых заданий. Продолжайте практиковаться!'} 
+                  isUserMessage={false}
+                  className="text-foreground"
+                />
               </div>
             </div>
 
