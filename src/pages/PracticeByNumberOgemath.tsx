@@ -686,48 +686,65 @@ const PracticeByNumberOgemath = () => {
       setSolutionViewedBeforeAnswer(true);
       
       // Mark question as wrong in database when solution is viewed before answering
-      if (user && currentAttemptId && attemptStartTime) {
+      if (user && currentQuestion) {
         try {
-          const now = new Date();
-          const durationInSeconds = (now.getTime() - attemptStartTime.getTime()) / 1000;
+          // If currentAttemptId is not set yet, start the attempt first
+          let attemptId = currentAttemptId;
+          let startTime = attemptStartTime;
+          
+          if (!attemptId || !startTime) {
+            console.log('Starting attempt for question before marking as wrong:', currentQuestion.question_id);
+            await startAttempt(currentQuestion.question_id);
+            // Wait a bit for state to update
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attemptId = currentAttemptId;
+            startTime = attemptStartTime;
+          }
+          
+          if (attemptId && startTime) {
+            const now = new Date();
+            const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
 
-          await supabase
-            .from('student_activity')
-            .update({
-              is_correct: false,
-              duration_answer: durationInSeconds,
-              finished_or_not: true,
-              scores_fipi: 0
-            })
-            .eq('user_id', user.id)
-            .eq('attempt_id', currentAttemptId);
+            await supabase
+              .from('student_activity')
+              .update({
+                is_correct: false,
+                duration_answer: durationInSeconds,
+                finished_or_not: true,
+                scores_fipi: 0
+              })
+              .eq('user_id', user.id)
+              .eq('attempt_id', attemptId);
 
-          // Update session results
-          setSessionResults(prev => {
-            const newResults = [...prev];
-            const existingIndex = newResults.findIndex(r => r.questionIndex === currentQuestionIndex);
-            const result = {
-              questionIndex: currentQuestionIndex,
-              questionId: currentQuestion.question_id,
-              isCorrect: false,
-              userAnswer: userAnswer.trim(),
-              correctAnswer: currentQuestion.answer,
-              problemText: currentQuestion.problem_text,
-              solutionText: currentQuestion.solution_text,
-              isAnswered: true
-            };
-            
-            if (existingIndex >= 0) {
-              newResults[existingIndex] = result;
-            } else {
-              newResults.push(result);
-            }
-            return newResults;
-          });
+            // Update session results
+            setSessionResults(prev => {
+              const newResults = [...prev];
+              const existingIndex = newResults.findIndex(r => r.questionIndex === currentQuestionIndex);
+              const result = {
+                questionIndex: currentQuestionIndex,
+                questionId: currentQuestion.question_id,
+                isCorrect: false,
+                userAnswer: userAnswer.trim(),
+                correctAnswer: currentQuestion.answer,
+                problemText: currentQuestion.problem_text,
+                solutionText: currentQuestion.solution_text,
+                isAnswered: true
+              };
+              
+              if (existingIndex >= 0) {
+                newResults[existingIndex] = result;
+              } else {
+                newResults.push(result);
+              }
+              return newResults;
+            });
 
-          // Mark as answered and incorrect
-          setIsAnswered(true);
-          setIsCorrect(false);
+            // Mark as answered and incorrect
+            setIsAnswered(true);
+            setIsCorrect(false);
+          } else {
+            console.error('Could not set up attempt for marking question as wrong');
+          }
         } catch (error) {
           console.error('Error marking question as wrong when showing solution:', error);
         }
