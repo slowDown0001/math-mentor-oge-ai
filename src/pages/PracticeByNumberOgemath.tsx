@@ -997,7 +997,7 @@ const PracticeByNumberOgemath = () => {
                       </div>
 
                       {/* Part 2 Geometry */}
-                      <div className="mt-12">
+                      <div className="mt-20">
                         <h5 className="text-xs font-medium text-gray-600 mb-2">Геометрия (№23-25)</h5>
                         <div className="grid grid-cols-3 gap-3">
                           {Array.from({ length: 3 }, (_, i) => i + 23).map(num => (
