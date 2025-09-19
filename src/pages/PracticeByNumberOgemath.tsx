@@ -152,9 +152,9 @@ const PracticeByNumberOgemath = () => {
 
       // Group by priority and shuffle within each group
       const priorityGroups = {
-        1: questionsWithStatus.filter(q => q.priority === 1), // unseen
+        1: questionsWithStatus.filter(q => q.priority === 3), // unseen
         2: questionsWithStatus.filter(q => q.priority === 2), // unfinished
-        3: questionsWithStatus.filter(q => q.priority === 3), // wrong
+        3: questionsWithStatus.filter(q => q.priority === 1), // wrong
         4: questionsWithStatus.filter(q => q.priority === 4)  // correct
       };
 
