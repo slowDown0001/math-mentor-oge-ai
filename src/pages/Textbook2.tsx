@@ -868,9 +868,9 @@ export default function Textbook2() {
                 {/* Display images if available */}
                 {[1,2,3,4,5,6,7].map(num => {
                   const imgKey = `img${num}` as keyof typeof currentArticle;
-                  const imgUrl = currentArticle[imgKey];
+                  const imgUrl = currentArticle[imgKey] as string;
                   return imgUrl ? (
-                    <div key={imgKey} className="my-4">
+                    <div key={String(imgKey)} className="my-4">
                       <img 
                         src={imgUrl} 
                         alt={`Иллюстрация ${num}`}
