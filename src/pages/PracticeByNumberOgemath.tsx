@@ -28,6 +28,17 @@ interface Question {
 }
 
 const PracticeByNumberOgemath = () => {
+  // Helper function to check if answer is non-numeric
+  const isNonNumericAnswer = (answer: string): boolean => {
+    if (!answer) return false;
+    // Check if answer contains units (like кг, м, см, etc.)
+    if (/\p{L}/u.test(answer)) return true;
+    // Check if answer contains LaTeX expressions (contains backslashes)
+    if (answer.includes('\\')) return true;
+    // Check if answer contains mathematical expressions that aren't just numbers
+    if (/[а-яё]/i.test(answer)) return true;
+    return false;
+  };
   const { user } = useAuth();
   const { trackActivity } = useStreakTracking();
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
@@ -1036,7 +1047,7 @@ const PracticeByNumberOgemath = () => {
                   </div>
 
                   {/* Note for non-numeric answers */}
-                  {currentQuestion.problem_number_type && currentQuestion.problem_number_type >= 20 && (
+                  {currentQuestion.answer && isNonNumericAnswer(currentQuestion.answer) && (
                     <div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                       <div className="font-medium text-yellow-800 mb-2">
                         Важно: форма ответа не имеет значения.
