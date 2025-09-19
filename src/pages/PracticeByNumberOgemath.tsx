@@ -28,7 +28,8 @@ interface Question {
 const PracticeByNumberOgemath = () => {
   const { user } = useAuth();
   const { trackActivity } = useStreakTracking();
-  const [selectedNumber, setSelectedNumber] = useState<string>("");
+  const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
+  const [practiceStarted, setPracticeStarted] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
@@ -61,26 +62,35 @@ const PracticeByNumberOgemath = () => {
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  const fetchQuestions = async (questionNumber: string) => {
+  const fetchQuestions = async (questionNumbers: string[]) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('oge_math_fipi_bank')
-        .select('question_id, problem_text, answer, solution_text, problem_number_type')
-        .eq('problem_number_type', parseInt(questionNumber))
-        .order('question_id');
+      let allQuestions: Question[] = [];
+      
+      for (const questionNumber of questionNumbers) {
+        const { data, error } = await supabase
+          .from('oge_math_fipi_bank')
+          .select('question_id, problem_text, answer, solution_text, problem_number_type')
+          .eq('problem_number_type', parseInt(questionNumber))
+          .order('question_id');
 
-      if (error) throw error;
+        if (error) throw error;
+        
+        if (data) {
+          allQuestions = [...allQuestions, ...data];
+        }
+      }
 
-      const filteredQuestions = data || [];
+      // Shuffle questions for variety
+      const shuffledQuestions = allQuestions.sort(() => Math.random() - 0.5);
 
-      setQuestions(filteredQuestions);
+      setQuestions(shuffledQuestions);
       setCurrentQuestionIndex(0);
       resetQuestionState();
       
       // Start attempt for the first question if user is logged in
-      if (filteredQuestions.length > 0 && user) {
-        await startAttempt(filteredQuestions[0].question_id);
+      if (shuffledQuestions.length > 0 && user) {
+        await startAttempt(shuffledQuestions[0].question_id);
       }
     } catch (error) {
       console.error('Error fetching questions:', error);
@@ -100,9 +110,62 @@ const PracticeByNumberOgemath = () => {
     setAttemptStartTime(null);
   };
 
-  const handleNumberSelect = (value: string) => {
-    setSelectedNumber(value);
-    fetchQuestions(value);
+  const toggleQuestionGroup = (groupType: string) => {
+    let groupNumbers: string[] = [];
+    
+    switch (groupType) {
+      case 'all':
+        groupNumbers = Array.from({ length: 25 }, (_, i) => (i + 1).toString());
+        break;
+      case 'part1':
+        groupNumbers = ['1-5', '6', '7', '8', '9', '10', '11', '12', '13', '14'];
+        break;
+      case 'part2_algebra':
+        groupNumbers = ['15', '16', '17', '18', '19', '20', '21'];
+        break;
+      case 'part2_geometry':
+        groupNumbers = ['22', '23', '24', '25'];
+        break;
+    }
+    
+    // Expand grouped numbers
+    const expandedNumbers: string[] = [];
+    groupNumbers.forEach(num => {
+      if (num === '1-5') {
+        expandedNumbers.push('1', '2', '3', '4', '5');
+      } else {
+        expandedNumbers.push(num);
+      }
+    });
+    
+    setSelectedNumbers(expandedNumbers);
+  };
+
+  const toggleIndividualNumber = (number: string) => {
+    setSelectedNumbers(prev => {
+      if (prev.includes(number)) {
+        return prev.filter(n => n !== number);
+      } else {
+        return [...prev, number];
+      }
+    });
+  };
+
+  const handleStartPractice = () => {
+    if (selectedNumbers.length === 0) {
+      toast.error('Выберите хотя бы один номер вопроса');
+      return;
+    }
+    
+    setPracticeStarted(true);
+    fetchQuestions(selectedNumbers);
+  };
+
+  const handleBackToSelection = () => {
+    setPracticeStarted(false);
+    setQuestions([]);
+    setCurrentQuestionIndex(0);
+    resetQuestionState();
   };
 
   // Start attempt logging when question is presented
@@ -113,7 +176,7 @@ const PracticeByNumberOgemath = () => {
       // Fetch question details to populate skills and topics
       let skillsArray: number[] = [];
       let topicsArray: string[] = [];
-      let problemNumberType = parseInt(selectedNumber || '1');
+      let problemNumberType = 1;
 
       try {
         const { data: detailsResp, error: detailsErr } = await supabase.functions.invoke('get-question-details', {
@@ -578,12 +641,22 @@ const PracticeByNumberOgemath = () => {
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-start">
-            <Link to="/ogemath-practice">
-              <Button className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+            {practiceStarted ? (
+              <Button 
+                onClick={handleBackToSelection}
+                className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Назад
+                К выбору вопросов
               </Button>
-            </Link>
+            ) : (
+              <Link to="/ogemath-practice">
+                <Button className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Назад
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -593,38 +666,128 @@ const PracticeByNumberOgemath = () => {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2">Практика по номеру вопроса</h1>
-              <p className="text-lg text-gray-600">Выберите номер вопроса (1-25) для практики всех задач этого типа</p>
+              <p className="text-lg text-gray-600">
+                {practiceStarted 
+                  ? `Практика вопросов: ${selectedNumbers.join(', ')}`
+                  : "Выберите номера вопросов для практики"
+                }
+              </p>
             </div>
             {user && <StreakDisplay />}
           </div>
 
-          {/* Question Number Selection */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Выберите номер вопроса</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select value={selectedNumber} onValueChange={handleNumberSelect}>
-                <SelectTrigger className="w-full md:w-64">
-                  <SelectValue placeholder="Выберите номер (1-25)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {questionNumbers.map(num => (
-                    <SelectItem key={num} value={num}>
-                      Вопрос {num}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
+          {!practiceStarted ? (
+            /* Question Selection Interface */
+            <div className="space-y-6">
+              {/* Question Groups */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Группы вопросов</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => toggleQuestionGroup('all')}
+                      className="p-4 h-auto text-center hover:bg-blue-50"
+                    >
+                      Все вопросы
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => toggleQuestionGroup('part1')}
+                      className="p-4 h-auto text-center hover:bg-blue-50"
+                    >
+                      Часть 1
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => toggleQuestionGroup('part2_algebra')}
+                      className="p-4 h-auto text-center hover:bg-blue-50"
+                    >
+                      Часть 2 Алгебра
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => toggleQuestionGroup('part2_geometry')}
+                      className="p-4 h-auto text-center hover:bg-blue-50"
+                    >
+                      Часть 2 Геометрия
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Question Content */}
-          {selectedNumber && questions.length > 0 && currentQuestion && (
+              {/* Individual Numbers */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Отдельные номера</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
+                    {/* Special button for questions 1-5 */}
+                    <Button
+                      variant={selectedNumbers.includes('1') && selectedNumbers.includes('2') && 
+                              selectedNumbers.includes('3') && selectedNumbers.includes('4') && 
+                              selectedNumbers.includes('5') ? "default" : "outline"}
+                      onClick={() => {
+                        const group = ['1', '2', '3', '4', '5'];
+                        const allSelected = group.every(n => selectedNumbers.includes(n));
+                        if (allSelected) {
+                          setSelectedNumbers(prev => prev.filter(n => !group.includes(n)));
+                        } else {
+                          setSelectedNumbers(prev => [...new Set([...prev, ...group])]);
+                        }
+                      }}
+                      className="p-3 h-auto"
+                    >
+                      1-5
+                    </Button>
+                    
+                    {/* Individual number buttons 6-25 */}
+                    {Array.from({ length: 20 }, (_, i) => i + 6).map(num => (
+                      <Button
+                        key={num}
+                        variant={selectedNumbers.includes(num.toString()) ? "default" : "outline"}
+                        onClick={() => toggleIndividualNumber(num.toString())}
+                        className="p-3 h-auto"
+                      >
+                        {num}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Start Button */}
+              <div className="flex justify-center">
+                <Button
+                  onClick={handleStartPractice}
+                  disabled={selectedNumbers.length === 0}
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  Начать практику
+                </Button>
+              </div>
+
+              {/* Selection Summary */}
+              {selectedNumbers.length > 0 && (
+                <Card className="bg-blue-50 border-blue-200">
+                  <CardContent className="pt-6">
+                    <p className="text-blue-800">
+                      <strong>Выбрано номеров:</strong> {selectedNumbers.join(', ')}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : (
+            /* Practice Interface */
+            questions.length > 0 && currentQuestion ? (
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
-                  <span>Вопрос {selectedNumber} ({currentQuestionIndex + 1} из {questions.length})</span>
+                  <span>Вопрос №{currentQuestion.problem_number_type} ({currentQuestionIndex + 1} из {questions.length})</span>
                   <span className="text-sm font-normal text-gray-500">
                     ID: {currentQuestion.question_id}
                   </span>
@@ -749,17 +912,18 @@ const PracticeByNumberOgemath = () => {
                 )}
               </CardContent>
             </Card>
+            ) : null
           )}
 
           {/* Results Summary */}
-          {selectedNumber && questions.length > 0 && (
+          {practiceStarted && questions.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Статистика</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Найдено {questions.length} вопросов для номера {selectedNumber}
+                  Найдено {questions.length} вопросов для выбранных номеров
                 </p>
                 {loading && <p className="text-blue-600">Загрузка...</p>}
               </CardContent>
