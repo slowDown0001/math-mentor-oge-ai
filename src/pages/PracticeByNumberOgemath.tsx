@@ -227,7 +227,7 @@ const PracticeByNumberOgemath = () => {
         groupNumbers = ['20', '21', '22'];
         break;
       case 'part2_geometry':
-        groupNumbers = ['22', '23', '24', '25'];
+        groupNumbers = ['23', '24', '25'];
         break;
     }
     
