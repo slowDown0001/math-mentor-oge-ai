@@ -33,8 +33,6 @@ const TestStatisticsWindow = ({
   isReviewMode = false,
   currentQuestionData
 }: TestStatisticsWindowProps) => {
-  const [showOverallStats, setShowOverallStats] = useState(!isReviewMode);
-
   // Calculate overall statistics
   const totalQuestions = sessionResults.length;
   const answeredQuestions = sessionResults.filter(r => r.isAnswered).length;
@@ -146,112 +144,101 @@ const TestStatisticsWindow = ({
           </Button>
         </div>
 
-        {/* Toggle buttons */}
-        <div className="flex gap-2 mb-6">
-          <Button
-            variant={showOverallStats ? "default" : "outline"}
-            onClick={() => setShowOverallStats(true)}
-          >
-            Общая статистика
-          </Button>
-          <Button
-            variant={!showOverallStats ? "default" : "outline"}
-            onClick={() => setShowOverallStats(false)}
-          >
-            По вопросам
-          </Button>
+        {/* Overall Statistics */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-gray-600">Всего вопросов</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-600">{totalQuestions}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-gray-600">Отвечено</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600">{answeredQuestions}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-gray-600">Правильно</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-emerald-600">{correctAnswers}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-gray-600">Точность</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-600">{accuracy}%</div>
+            </CardContent>
+          </Card>
         </div>
 
-        {showOverallStats ? (
-          /* Overall Statistics */
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600">Всего вопросов</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-blue-600">{totalQuestions}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600">Отвечено</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-green-600">{answeredQuestions}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600">Правильно</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-emerald-600">{correctAnswers}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-gray-600">Точность</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-purple-600">{accuracy}%</div>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          /* Question-by-Question Statistics */
-          <div className="grid gap-4">
-            {sessionResults.map((result, index) => (
-              <Card 
-                key={result.questionId} 
-                className={`hover:shadow-lg transition-shadow cursor-pointer ${
-                  result.isAnswered 
-                    ? (result.isCorrect ? "border-l-4 border-l-green-500" : "border-l-4 border-l-red-500")
-                    : "border-l-4 border-l-gray-400"
-                }`}
-                onClick={() => onGoToQuestion(result.questionIndex)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {result.isAnswered ? (
-                        result.isCorrect ? (
-                          <CheckCircle className="w-5 h-5 text-green-600" />
+        {/* Question-by-Question Statistics */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Результаты по вопросам</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              {sessionResults.map((result, index) => (
+                <Card 
+                  key={result.questionId} 
+                  className={`hover:shadow-lg transition-shadow cursor-pointer ${
+                    result.isAnswered 
+                      ? (result.isCorrect ? "border-l-4 border-l-green-500" : "border-l-4 border-l-red-500")
+                      : "border-l-4 border-l-gray-400"
+                  }`}
+                  onClick={() => onGoToQuestion(result.questionIndex)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {result.isAnswered ? (
+                          result.isCorrect ? (
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          ) : (
+                            <XCircle className="w-5 h-5 text-red-600" />
+                          )
                         ) : (
-                          <XCircle className="w-5 h-5 text-red-600" />
-                        )
-                      ) : (
-                        <XCircle className="w-5 h-5 text-gray-400" />
-                      )}
-                      <div>
-                        <div className="font-semibold">Вопрос №{index + 1}</div>
-                        <div className="text-sm text-gray-600">
-                          {result.isAnswered 
-                            ? `Ваш ответ: ${result.userAnswer}` 
-                            : "Пропущено"
-                          }
+                          <XCircle className="w-5 h-5 text-gray-400" />
+                        )}
+                        <div>
+                          <div className="font-semibold">Вопрос №{index + 1}</div>
+                          <div className="text-sm text-gray-600">
+                            {result.isAnswered 
+                              ? `Ваш ответ: ${result.userAnswer}` 
+                              : "Пропущено"
+                            }
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="text-sm text-gray-500">Правильный ответ:</div>
-                        <div className="font-medium">{result.correctAnswer}</div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-sm text-gray-500">Правильный ответ:</div>
+                          <div className="font-medium">{result.correctAnswer}</div>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          <Eye className="w-4 h-4 mr-1" />
+                          Просмотр
+                        </Button>
                       </div>
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4 mr-1" />
-                        Просмотр
-                      </Button>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -136,7 +136,7 @@ const PracticeByNumberOgemath = () => {
         groupNumbers = Array.from({ length: 25 }, (_, i) => (i + 1).toString());
         break;
       case 'part1':
-        groupNumbers = ['1-5', '6', '7', '8', '9', '10', '11', '12', '13', '14'];
+        groupNumbers = ['1-5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'];
         break;
       case 'part2_algebra':
         groupNumbers = ['15', '16', '17', '18', '19', '20', '21'];
