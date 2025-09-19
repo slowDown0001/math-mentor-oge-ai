@@ -1035,6 +1035,23 @@ const PracticeByNumberOgemath = () => {
                     </Button>
                   </div>
 
+                  {/* Note for non-numeric answers */}
+                  {currentQuestion.problem_number_type && currentQuestion.problem_number_type >= 20 && (
+                    <div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <div className="font-medium text-yellow-800 mb-2">
+                        Важно: форма ответа не имеет значения.
+                      </div>
+                      <div className="mb-2">
+                        Вы можете записать ответ в любом виде -- главное, чтобы он был математически верным.
+                      </div>
+                      <div className="text-xs">
+                        <div className="font-medium mb-1">Примеры:</div>
+                        <div>корень из трёх,</div>
+                        <div>интервал от 0 до 5</div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Photo Attachment Button for questions 20+ */}
                   {currentQuestion.problem_number_type && currentQuestion.problem_number_type >= 20 && (
                     <div className="flex justify-center">
