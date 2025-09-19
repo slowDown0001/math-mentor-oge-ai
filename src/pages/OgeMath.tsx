@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { useKaTeXInitializer } from "@/hooks/useMathJaxInitializer";
 import { loadChatHistory, saveChatLog, type ChatLog } from "@/services/chatLogsService";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
+import { DailyTaskStory } from "@/components/DailyTaskStory";
 
 const OgeMath = () => {
   const navigate = useNavigate();
@@ -220,6 +221,11 @@ const OgeMath = () => {
           >
             Прогресс
           </Button>
+        </div>
+
+        {/* Daily Task Story - 2 inches below Progress button */}
+        <div className="px-4 mt-[144px]">
+          <DailyTaskStory />
         </div>
       </div>
 
