@@ -23,7 +23,7 @@ const FormulaBookletDialog = ({ open, onOpenChange }: FormulaBookletDialogProps)
           <TabsContent value="algebra" className="mt-4">
             <div className="flex justify-center">
               <img 
-                src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/Formulas/oge_f1.jpg" 
+                src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/Formulas/oge_f2.jpg" 
                 alt="Формулы алгебры ОГЭ"
                 className="max-w-full h-auto rounded-lg shadow-sm"
               />
@@ -33,7 +33,7 @@ const FormulaBookletDialog = ({ open, onOpenChange }: FormulaBookletDialogProps)
           <TabsContent value="geometry" className="mt-4">
             <div className="flex justify-center">
               <img 
-                src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/Formulas/oge_f2.jpg" 
+                src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/Formulas/oge_f1.jpg" 
                 alt="Формулы геометрии ОГЭ"
                 className="max-w-full h-auto rounded-lg shadow-sm"
               />
