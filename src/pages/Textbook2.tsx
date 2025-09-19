@@ -383,17 +383,25 @@ export default function Textbook2() {
 
       setIsLoadingArticle(true);
       try {
-        const { data, error } = await supabase
-          .from('new_articles')
-          .select('*')
-          .eq('ID', selectedSkill)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error fetching article:', error);
+        const response = await fetch(
+          `https://kbaazksvkvnafrwtmkcw.supabase.co/rest/v1/articles_oge_full?ID=eq.${selectedSkill}&select=*`,
+          {
+            headers: {
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYWF6a3N2a3ZuYWZyd3Rta2N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3NTg2NTAsImV4cCI6MjA2MjMzNDY1MH0.aSyfch6PX1fr9wyWSGpUPNzT6jjIdfu9eA3E3J4uqzs',
+              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiYWF6a3N2a3ZuYWZyd3Rta2N3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3NTg2NTAsImV4cCI6MjA2MjMzNDY1MH0.aSyfch6PX1fr9wyWSGpUPNzT6jjIdfu9eA3E3J4uqzs',
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        const data = await response.json();
+        const article = data?.[0] || null;
+        
+        if (!response.ok) {
+          console.error('Error fetching article:', data);
           setCurrentArticle(null);
         } else {
-          setCurrentArticle(data);
+          setCurrentArticle(article);
         }
       } catch (error) {
         console.error('Error fetching article:', error);
