@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo, useTransition } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle, ArrowLeft, Highlighter, MessageCircle, X, Trophy, PartyPopper, Menu, Copy } from "lucide-react";
+import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle, ArrowLeft, Highlighter, MessageCircle, X, Trophy, PartyPopper, Menu, Copy, ChevronRight, XCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 import Header from "@/components/Header";
 import { useMasterySystem } from "@/hooks/useMasterySystem";
 import MathRenderer from "@/components/MathRenderer";
@@ -15,8 +15,7 @@ import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
 import { sendChatMessage } from "@/services/chatService";
-import { SubtopicSidebar } from "@/components/SubtopicSidebar";
-import UnitProgressSummary from "@/components/UnitProgressSummary";
+import { useToast } from "@/hooks/use-toast";
 
 // Updated topic mapping data to match new JSON structure
 const topicMapping = [
@@ -55,25 +54,40 @@ const topicMapping = [
 ];
 
 // TypeScript interfaces
-interface Subunit {
-  id: string;
-  title: string;
+interface Topic {
+  topic: string;
+  name: string;
   skills: number[];
 }
 
-interface Unit {
-  title: string;
-  description: string;
-  color: string;
-  subunits: Subunit[];
+interface MCQQuestion {
+  question_id: string;
+  problem_text: string;
+  answer: string;
+  skills: number;
+  option1: string;
+  option2: string;
+  option3: string;
+  option4: string;
+  problem_image: string | null;
+  solution_text: string | null;
 }
 
-interface CourseStructure {
-  [key: number]: Unit;
+interface Article {
+  ID: number;
+  article_text: string;
+  image_recommendations?: string;
+  img1?: string;
+  img2?: string;
+  img3?: string;
+  img4?: string;
+  img5?: string;
+  img6?: string;
+  img7?: string;
 }
 
 // Type for view modes in URL params
-type ViewMode = "overview" | "subunit" | "articles" | "videos" | "exercises";
+type ViewMode = "overview" | "topic" | "skill" | "practice";
 
 // Math skills data updated to match new JSON structure
 const mathSkills = [
@@ -276,134 +290,61 @@ const mathSkills = [
   { "skill": "Построение простейших графиков на координатной плоскости по табличным данным", "id": 200 }
 ];
 
-// Updated course structure to match new JSON format
-const courseStructure: CourseStructure = {
-  1: {
-    title: "Числа и вычисления",
-    description: "Основы числовых систем и вычислительных операций",
-    color: "bg-gradient-to-r from-blue-500 to-blue-600",
-    subunits: [
-      { id: "1.1", title: "Натуральные и целые числа", skills: [1,2,3,4,5] },
-      { id: "1.2", title: "Дроби и проценты", skills: [6,195,7,8,9,10] },
-      { id: "1.3", title: "Рациональные числа и арифметические действия", skills: [11,12,13,14,15,16,17,180] },
-      { id: "1.4", title: "Действительные числа", skills: [18,19,20,197] },
-      { id: "1.5", title: "Приближённые вычисления", skills: [21,22,23] }
-    ]
-  },
-  2: {
-    title: "Алгебраические выражения",
-    description: "Работа с буквенными выражениями и их преобразованиями",
-    color: "bg-gradient-to-r from-green-500 to-green-600",
-    subunits: [
-      { id: "2.1", title: "Буквенные выражения", skills: [35,36,37,38] },
-      { id: "2.2", title: "Степени", skills: [39,40,41,42,43,44] },
-      { id: "2.3", title: "Многочлены", skills: [45,46,47,48,49,179] },
-      { id: "2.4", title: "Алгебраические дроби", skills: [50,51,52,53] },
-      { id: "2.5", title: "Арифметические корни", skills: [54,55,56,57] }
-    ]
-  },
-  3: {
-    title: "Уравнения и неравенства",
-    description: "Методы решения уравнений, неравенств и текстовых задач",
-    color: "bg-gradient-to-r from-purple-500 to-purple-600",
-    subunits: [
-      { id: "3.1", title: "Уравнения и системы", skills: [58,59,60,61,62,188,190,191] },
-      { id: "3.2", title: "Неравенства и системы", skills: [63,64,65,66,67,68] },
-      { id: "3.3", title: "Текстовые задачи", skills: [69,70,71,72,73,74,184,185,75] }
-    ]
-  },
-  4: {
-    title: "Числовые последовательности",
-    description: "Изучение закономерностей в числовых последовательностях",
-    color: "bg-gradient-to-r from-orange-500 to-orange-600",
-    subunits: [
-      { id: "4.1", title: "Последовательности", skills: [76,77,78,79] },
-      { id: "4.2", title: "Арифметическая и геометрическая прогрессии. Формула сложных процентов", skills: [80,81,82,83,84,85,86,87,88] }
-    ]
-  },
-  5: {
-    title: "Функции",
-    description: "Изучение функций и их свойств",
-    color: "bg-gradient-to-r from-red-500 to-red-600",
-    subunits: [
-      { id: "5.1", title: "Свойства и графики функций", skills: [89,90,91,92,93,94,95,96,97,98,99,186,187,100,101,102] }
-    ]
-  },
-  6: {
-    title: "Координаты на прямой и плоскости",
-    description: "Работа с координатными системами",
-    color: "bg-gradient-to-r from-indigo-500 to-indigo-600",
-    subunits: [
-      { id: "6.1", title: "Координатная прямая", skills: [103,104,105,106,107,108,109] },
-      { id: "6.2", title: "Декартовы координаты", skills: [110,111] }
-    ]
-  },
-  7: {
-    title: "Геометрия",
-    description: "Изучение геометрических фигур и их свойств",
-    color: "bg-gradient-to-r from-teal-500 to-teal-600",
-    subunits: [
-      { id: "7.1", title: "Геометрические фигуры", skills: [112,113,114,115,116] },
-      { id: "7.2", title: "Треугольники", skills: [117,118,119,120,121,122,123,124] },
-      { id: "7.3", title: "Многоугольники", skills: [125,126,127,128,129,130,131,132,133,134] },
-      { id: "7.4", title: "Окружность и круг", skills: [135,136,137,138] },
-      { id: "7.5", title: "Измерения", skills: [139,140,141,142,143,144,145,146,147,148,149,150,151,152,153] },
-      { id: "7.6", title: "Векторы", skills: [154,155,156,157,196] },
-      { id: "7.7", title: "Дополнительные темы по геометрии", skills: [158,159,160,161] }
-    ]
-  },
-  8: {
-    title: "Вероятность и статистика",
-    description: "Основы теории вероятностей и статистического анализа",
-    color: "bg-gradient-to-r from-pink-500 to-pink-600",
-    subunits: [
-      { id: "8.1", title: "Описательная статистика", skills: [162,163,164,165] },
-      { id: "8.2", title: "Вероятность", skills: [166,167,168] },
-      { id: "8.3", title: "Комбинаторика", skills: [169,170,171,172] },
-      { id: "8.4", title: "Множества", skills: [173,174] },
-      { id: "8.5", title: "Графы", skills: [175,176,177,178] }
-    ]
-  },
-  9: {
-    title: "Применение математики к прикладным задачам",
-    description: "Применение математических знаний в реальных ситуациях",
-    color: "bg-gradient-to-r from-amber-500 to-amber-600",
-    subunits: [
-      { id: "9.1", title: "Работа с данными и графиками", skills: [24,25,198,199,181,182,183,192,200] },
-      { id: "9.2", title: "Прикладная геометрия / Чтение и анализ графических схем", skills: [26,27,28,29,30,31,32,33,34] }
-    ]
-  }
+// Updated module structure to group by main modules
+const moduleStructure = {
+  1: { title: "Числа и вычисления", topics: topicMapping.filter(t => t.topic.startsWith('1.')) },
+  2: { title: "Алгебраические выражения", topics: topicMapping.filter(t => t.topic.startsWith('2.')) },
+  3: { title: "Уравнения и неравенства", topics: topicMapping.filter(t => t.topic.startsWith('3.')) },
+  4: { title: "Числовые последовательности", topics: topicMapping.filter(t => t.topic.startsWith('4.')) },
+  5: { title: "Функции", topics: topicMapping.filter(t => t.topic.startsWith('5.')) },
+  6: { title: "Координаты на прямой и плоскости", topics: topicMapping.filter(t => t.topic.startsWith('6.')) },
+  7: { title: "Геометрия", topics: topicMapping.filter(t => t.topic.startsWith('7.')) },
+  8: { title: "Вероятность и статистика", topics: topicMapping.filter(t => t.topic.startsWith('8.')) },
+  9: { title: "Применение математики к прикладным задачам", topics: topicMapping.filter(t => t.topic.startsWith('9.')) }
 };
 
 export default function Textbook2() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
   
-  const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
-  const [selectedSubunit, setSelectedSubunit] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<number | null>(null);
   const [currentView, setCurrentView] = useState<ViewMode>("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [isPending, startTransition] = useTransition();
-  const [currentArticle, setCurrentArticle] = useState<any>(null);
+  const [currentArticle, setCurrentArticle] = useState<Article | null>(null);
   const [isLoadingArticle, setIsLoadingArticle] = useState(false);
   const [readSkills, setReadSkills] = useState<Set<number>>(new Set());
   const [selectedText, setSelectedText] = useState('');
   const [isTextSelection, setIsTextSelection] = useState(false);
   const [showSelectedTextPanel, setShowSelectedTextPanel] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  
+  // MCQ Practice state
+  const [questions, setQuestions] = useState<MCQQuestion[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [showSolution, setShowSolution] = useState(false);
+  
   const { getUserMastery, loading } = useMasterySystem();
   const { messages, isTyping, addMessage, setIsTyping, resetChat } = useChatContext();
 
+  // Russian option labels
+  const optionLabels = ['А', 'Б', 'В', 'Г'];
+
   // Initialize from URL parameters
   useEffect(() => {
-    const unit = searchParams.get('unit');
-    const subunit = searchParams.get('subunit');
+    const topic = searchParams.get('topic');
     const skill = searchParams.get('skill');
     const view = searchParams.get('view') as ViewMode;
 
-    if (unit) setSelectedUnit(parseInt(unit));
-    if (subunit) setSelectedSubunit(subunit);
+    if (topic) {
+      const foundTopic = topicMapping.find(t => t.topic === topic);
+      if (foundTopic) setSelectedTopic(foundTopic);
+    }
     if (skill) setSelectedSkill(parseInt(skill));
     if (view) setCurrentView(view);
   }, [searchParams]);
@@ -442,12 +383,11 @@ export default function Textbook2() {
 
       setIsLoadingArticle(true);
       try {
-        // Fetch from new_articles table 
         const { data, error } = await supabase
           .from('new_articles')
           .select('*')
           .eq('ID', selectedSkill)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching article:', error);
@@ -465,6 +405,157 @@ export default function Textbook2() {
 
     fetchArticle();
   }, [selectedSkill]);
+
+  // Fetch MCQ questions when practice mode is activated
+  const fetchQuestions = async (skillId: number) => {
+    try {
+      const { data, error } = await supabase
+        .from('oge_math_skills_questions')
+        .select('question_id, problem_text, answer, skills, option1, option2, option3, option4, problem_image, solution_text')
+        .eq('skills', skillId)
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching questions:', error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось загрузить вопросы",
+          variant: "destructive",
+        });
+        return [];
+      }
+      return data || [];
+    } catch (error) {
+      console.error('Error in fetchQuestions:', error);
+      return [];
+    }
+  };
+
+  // Navigation functions
+  const handleTopicClick = (topic: Topic) => {
+    startTransition(() => {
+      setSelectedTopic(topic);
+      setSelectedSkill(null);
+      setCurrentView("topic");
+      setSearchParams({ topic: topic.topic, view: "topic" });
+    });
+  };
+
+  const handleSkillClick = (skillId: number) => {
+    startTransition(() => {
+      setSelectedSkill(skillId);
+      setCurrentView("skill");
+      setSearchParams({ 
+        topic: selectedTopic?.topic || "", 
+        skill: skillId.toString(), 
+        view: "skill" 
+      });
+    });
+  };
+
+  const handlePracticeClick = async (skillId: number) => {
+    const practiceQuestions = await fetchQuestions(skillId);
+    if (practiceQuestions.length === 0) {
+      toast({
+        title: "Вопросы не найдены",
+        description: `Для навыка ${skillId} пока нет доступных упражнений`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setQuestions(practiceQuestions);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+    setCorrectAnswers(0);
+    setShowSolution(false);
+    setCurrentView("practice");
+    setSearchParams({ 
+      topic: selectedTopic?.topic || "", 
+      skill: skillId.toString(), 
+      view: "practice" 
+    });
+  };
+
+  const handleBackToOverview = () => {
+    startTransition(() => {
+      setSelectedTopic(null);
+      setSelectedSkill(null);
+      setCurrentView("overview");
+      setSearchParams({});
+    });
+  };
+
+  const handleBackToTopic = () => {
+    startTransition(() => {
+      setSelectedSkill(null);
+      setCurrentView("topic");
+      setSearchParams({ topic: selectedTopic?.topic || "", view: "topic" });
+    });
+  };
+
+  // MCQ Practice functions
+  const handleAnswerClick = (optionIndex: number) => {
+    if (isAnswered) return;
+    
+    const clickedOption = optionLabels[optionIndex];
+    setSelectedAnswer(clickedOption);
+    setIsAnswered(true);
+    
+    const currentQuestion = questions[currentQuestionIndex];
+    const correctAnswer = currentQuestion.answer.trim();
+    
+    const isCorrect = clickedOption === correctAnswer;
+
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      toast({
+        title: "🎉 ПОЗДРАВЛЯЕМ!",
+        description: "Правильный ответ!",
+      });
+    } else {
+      toast({
+        title: "❌ Неправильно!",
+        description: `Правильный ответ: ${correctAnswer}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      setSelectedAnswer(null);
+      setIsAnswered(false);
+      setShowSolution(false);
+    } else {
+      toast({
+        title: "Квиз завершен!",
+        description: `Вы правильно ответили на ${correctAnswers} из ${questions.length} вопросов`,
+      });
+      handleBackToTopic();
+    }
+  };
+
+  // Utility functions
+  const getSkillName = (skillId: number) => {
+    const skill = mathSkills.find(s => s.id === skillId);
+    return skill?.skill || `Навык ${skillId}`;
+  };
+
+  const getMasteryLevel = (skillId: number) => {
+    // Since we don't have skill-level mastery, return a default status
+    return 'not_started';
+  };
+
+  const getMasteryIcon = (status: string) => {
+    switch (status) {
+      case 'mastered': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'in_progress': return <Play className="h-4 w-4 text-yellow-500" />;
+      default: return <Lock className="h-4 w-4 text-gray-400" />;
+    }
+  };
 
   // Mark article as read when user reads it
   const markSkillAsRead = async (skillId: number) => {
@@ -487,105 +578,6 @@ export default function Textbook2() {
     } catch (error) {
       console.error('Error marking skill as read:', error);
     }
-  };
-
-  // Navigation functions
-  const handleUnitClick = (unitId: number) => {
-    startTransition(() => {
-      setSelectedUnit(unitId);
-      setSelectedSubunit(null);
-      setSelectedSkill(null);
-      setCurrentView("subunit");
-      setSearchParams({ unit: unitId.toString(), view: "subunit" });
-    });
-  };
-
-  const handleSubunitClick = (subunitId: string) => {
-    startTransition(() => {
-      setSelectedSubunit(subunitId);
-      setSelectedSkill(null);
-      setCurrentView("articles");
-      setSearchParams({ 
-        unit: selectedUnit?.toString() || "", 
-        subunit: subunitId, 
-        view: "articles" 
-      });
-    });
-  };
-
-  const handleSkillClick = (skillId: number) => {
-    startTransition(() => {
-      setSelectedSkill(skillId);
-      setCurrentView("articles");
-      setSearchParams({ 
-        unit: selectedUnit?.toString() || "", 
-        subunit: selectedSubunit || "", 
-        skill: skillId.toString(), 
-        view: "articles" 
-      });
-    });
-  };
-
-  const handleBackToOverview = () => {
-    startTransition(() => {
-      setSelectedUnit(null);
-      setSelectedSubunit(null);
-      setSelectedSkill(null);
-      setCurrentView("overview");
-      setSearchParams({});
-    });
-  };
-
-  const handleBackToUnit = () => {
-    startTransition(() => {
-      setSelectedSubunit(null);
-      setSelectedSkill(null);
-      setCurrentView("subunit");
-      setSearchParams({ unit: selectedUnit?.toString() || "", view: "subunit" });
-    });
-  };
-
-  const handleBackToSubunit = () => {
-    startTransition(() => {
-      setSelectedSkill(null);
-      setCurrentView("articles");
-      setSearchParams({ 
-        unit: selectedUnit?.toString() || "", 
-        subunit: selectedSubunit || "", 
-        view: "articles" 
-      });
-    });
-  };
-
-  // Utility functions
-  const getSkillName = (skillId: number) => {
-    const skill = mathSkills.find(s => s.id === skillId);
-    return skill?.skill || `Навык ${skillId}`;
-  };
-
-  const getMasteryLevel = (skillId: number) => {
-    // Since we don't have skill-level mastery, return a default status
-    return 'not_started';
-  };
-
-  const getMasteryIcon = (status: string) => {
-    switch (status) {
-      case 'mastered': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'in_progress': return <Play className="h-4 w-4 text-yellow-500" />;
-      default: return <Lock className="h-4 w-4 text-gray-400" />;
-    }
-  };
-
-  // Calculate progress for units and subunits
-  const getUnitProgress = (unit: Unit) => {
-    const allSkills = unit.subunits.flatMap(s => s.skills);
-    const masteredSkills = allSkills.filter(skillId => getMasteryLevel(skillId) === 'mastered');
-    return allSkills.length > 0 ? (masteredSkills.length / allSkills.length) * 100 : 0;
-  };
-
-  const getSubunitProgress = (subunit: Subunit) => {
-    const masteredSkills = subunit.skills.filter(skillId => getMasteryLevel(skillId) === 'mastered');
-    return subunit.skills.length > 0 ? (masteredSkills.length / subunit.skills.length) * 100 : 0;
   };
 
   // Text selection functionality
@@ -657,373 +649,464 @@ export default function Textbook2() {
   };
 
   // Filter functions for search
-  const filteredUnits = useMemo(() => {
-    if (!searchQuery.trim()) return Object.entries(courseStructure);
+  const filteredTopics = useMemo(() => {
+    if (!searchQuery.trim()) return topicMapping;
     
-    return Object.entries(courseStructure).filter(([_, unit]) => {
-      const unitMatch = unit.title.toLowerCase().includes(searchQuery.toLowerCase());
-      const subunitMatch = unit.subunits.some(subunit => 
-        subunit.title.toLowerCase().includes(searchQuery.toLowerCase())
+    return topicMapping.filter(topic => {
+      const topicMatch = topic.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const skillMatch = topic.skills.some(skillId =>
+        getSkillName(skillId).toLowerCase().includes(searchQuery.toLowerCase())
       );
-      const skillMatch = unit.subunits.some(subunit =>
-        subunit.skills.some(skillId =>
-          getSkillName(skillId).toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
-      return unitMatch || subunitMatch || skillMatch;
+      return topicMatch || skillMatch;
     });
   }, [searchQuery]);
 
   // Render functions
   const renderOverview = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Учебник по математике ОГЭ
-        </h1>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          Полная программа подготовки к ОГЭ по математике. 9 модулей, 32 темы, 200 навыков.
-        </p>
-      </div>
-      
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Поиск по темам и навыкам..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredUnits.map(([unitId, unit]) => (
-          <Card key={unitId} className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
-            <CardHeader className={`${unit.color} text-white rounded-t-lg`}>
-              <CardTitle className="flex items-center justify-between">
-                <span>Модуль {unitId}</span>
-                <Badge variant="secondary" className="bg-white/20 text-white">
-                  {unit.subunits.length} тем
-                </Badge>
-              </CardTitle>
-              <CardDescription className="text-white/90 font-medium">
-                {unit.title}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-6" onClick={() => handleUnitClick(parseInt(unitId))}>
-              <p className="text-gray-600 mb-4">{unit.description}</p>
-              <div className="mb-4">
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Прогресс</span>
-                  <span>{Math.round(getUnitProgress(unit))}%</span>
-                </div>
-                <Progress value={getUnitProgress(unit)} className="h-2" />
-              </div>
-              <div className="space-y-2">
-                {unit.subunits.slice(0, 3).map((subunit) => (
-                  <div key={subunit.id} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700">{subunit.title}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {subunit.skills.length} навыков
-                    </Badge>
-                  </div>
-                ))}
-                {unit.subunits.length > 3 && (
-                  <div className="text-xs text-gray-500 text-center pt-2">
-                    +{unit.subunits.length - 3} ещё
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderUnitView = () => {
-    if (!selectedUnit) return null;
-    const unit = courseStructure[selectedUnit];
-    if (!unit) return null;
-
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" onClick={handleBackToOverview} className="text-blue-600 hover:text-blue-800">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Назад к модулям
-          </Button>
-          <Button variant="outline" onClick={copyUrlToClipboard} size="sm">
-            <Copy className="h-4 w-4 mr-2" />
-            Скопировать ссылку
-          </Button>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Учебник по математике ОГЭ
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Полная программа подготовки к ОГЭ по математике. 9 модулей, 32 темы, 200 навыков.
+          </p>
+        </div>
+        
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Поиск по темам и навыкам..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
         </div>
 
-        <div className={`${unit.color} text-white p-8 rounded-lg mb-8`}>
-          <h1 className="text-3xl font-bold mb-2">Модуль {selectedUnit}: {unit.title}</h1>
-          <p className="text-white/90 text-lg mb-4">{unit.description}</p>
-          <div className="flex items-center gap-6">
-            <div>
-              <div className="text-2xl font-bold">{Math.round(getUnitProgress(unit))}%</div>
-              <div className="text-sm text-white/80">Завершено</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{unit.subunits.length}</div>
-              <div className="text-sm text-white/80">Тем</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold">
-                {unit.subunits.reduce((sum, s) => sum + s.skills.length, 0)}
-              </div>
-              <div className="text-sm text-white/80">Навыков</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          {unit.subunits.map((subunit) => (
-            <Card key={subunit.id} className="cursor-pointer hover:shadow-lg transition-shadow">
-              <CardHeader>
+        <div className="grid gap-4">
+          {Object.entries(moduleStructure).map(([moduleId, module]) => (
+            <Card key={moduleId} className="overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b">
                 <CardTitle className="flex items-center justify-between">
-                  <span>{subunit.title}</span>
-                  <Badge variant="outline">
-                    {subunit.skills.length} навыков
+                  <span className="text-xl font-bold text-blue-900">
+                    {moduleId}. {module.title}
+                  </span>
+                  <Badge variant="secondary" className="bg-blue-200 text-blue-800">
+                    {module.topics.length} тем
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent onClick={() => handleSubunitClick(subunit.id)}>
-                <div className="mb-4">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Прогресс</span>
-                    <span>{Math.round(getSubunitProgress(subunit))}%</span>
-                  </div>
-                  <Progress value={getSubunitProgress(subunit)} className="h-2" />
-                </div>
-                <div className="space-y-2">
-                  {subunit.skills.slice(0, 4).map((skillId) => (
-                    <div key={skillId} className="flex items-center gap-2">
-                      {getMasteryIcon(getMasteryLevel(skillId))}
-                      <span className="text-sm text-gray-600 truncate">
-                        {getSkillName(skillId)}
-                      </span>
-                    </div>
+              <CardContent className="p-6">
+                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                  {module.topics.map((topic) => (
+                    <Card 
+                      key={topic.topic} 
+                      className="cursor-pointer hover:shadow-md transition-shadow border border-gray-200 hover:border-blue-300"
+                      onClick={() => handleTopicClick(topic)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-gray-900 text-sm">
+                            {topic.topic}
+                          </span>
+                          <ChevronRight className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <h3 className="font-semibold text-gray-800 mb-2 text-sm leading-tight">
+                          {topic.name}
+                        </h3>
+                        <Badge variant="outline" className="text-xs">
+                          {topic.skills.length} навыков
+                        </Badge>
+                      </CardContent>
+                    </Card>
                   ))}
-                  {subunit.skills.length > 4 && (
-                    <div className="text-xs text-gray-500 text-center pt-2">
-                      +{subunit.skills.length - 4} ещё
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
-    );
-  };
+    </div>
+  );
 
-  const renderSubunitView = () => {
-    if (!selectedUnit || !selectedSubunit) return null;
-    const unit = courseStructure[selectedUnit];
-    const subunit = unit?.subunits.find(s => s.id === selectedSubunit);
-    if (!unit || !subunit) return null;
+  const renderTopicView = () => {
+    if (!selectedTopic) return null;
 
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" onClick={handleBackToUnit} className="text-blue-600 hover:text-blue-800">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Назад к модулю
-          </Button>
-          <Button variant="outline" onClick={copyUrlToClipboard} size="sm">
-            <Copy className="h-4 w-4 mr-2" />
-            Скопировать ссылку
-          </Button>
-          <Button
-            variant={isTextSelection ? "default" : "outline"}
-            onClick={() => setIsTextSelection(!isTextSelection)}
-            size="sm"
-          >
-            <Highlighter className="h-4 w-4 mr-2" />
-            {isTextSelection ? "Выключить выделение" : "Выделить текст"}
-          </Button>
-        </div>
-
-        <div className={`${unit.color} text-white p-8 rounded-lg mb-8`}>
-          <div className="mb-4">
-            <div className="text-sm text-white/80 mb-2">
-              Модуль {selectedUnit}: {unit.title}
-            </div>
-            <h1 className="text-3xl font-bold">{subunit.title}</h1>
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="flex items-center gap-4 mb-6">
+            <Button variant="ghost" onClick={handleBackToOverview} className="text-blue-600 hover:text-blue-800">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Назад к модулям
+            </Button>
+            <Button variant="outline" onClick={copyUrlToClipboard} size="sm">
+              <Copy className="h-4 w-4 mr-2" />
+              Скопировать ссылку
+            </Button>
           </div>
-          <div className="flex items-center gap-6">
-            <div>
-              <div className="text-2xl font-bold">{Math.round(getSubunitProgress(subunit))}%</div>
-              <div className="text-sm text-white/80">Завершено</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{subunit.skills.length}</div>
-              <div className="text-sm text-white/80">Навыков</div>
-            </div>
-          </div>
-        </div>
 
-        <div className="grid gap-4">
-          {subunit.skills.map((skillId) => {
-            const masteryLevel = getMasteryLevel(skillId);
-            const isRead = readSkills.has(skillId);
-            
-            return (
-              <Card key={skillId} className="cursor-pointer hover:shadow-lg transition-shadow">
-                <CardContent className="p-6" onClick={() => handleSkillClick(skillId)}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {getMasteryIcon(masteryLevel)}
-                      <div>
-                        <h3 className="font-semibold text-gray-900">
-                          Навык {skillId}: {getSkillName(skillId)}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant={isRead ? "default" : "secondary"} className="text-xs">
-                            {isRead ? "Прочитано" : "Не прочитано"}
-                          </Badge>
-                          <Badge 
-                            variant={masteryLevel === 'mastered' ? 'default' : 'outline'} 
-                            className="text-xs"
-                          >
-                            {masteryLevel === 'mastered' ? 'Освоено' : 
-                             masteryLevel === 'in_progress' ? 'В процессе' : 'Не начато'}
-                          </Badge>
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-8 rounded-lg mb-8">
+            <h1 className="text-3xl font-bold mb-2">{selectedTopic.topic}: {selectedTopic.name}</h1>
+            <p className="text-blue-100 text-lg">
+              {selectedTopic.skills.length} навыков для изучения
+            </p>
+          </div>
+
+          <div className="grid gap-4">
+            {selectedTopic.skills.map((skillId) => {
+              const masteryLevel = getMasteryLevel(skillId);
+              const isRead = readSkills.has(skillId);
+              
+              return (
+                <Card key={skillId} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        {getMasteryIcon(masteryLevel)}
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 mb-1">
+                            Навык {skillId}: {getSkillName(skillId)}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={isRead ? "default" : "secondary"} className="text-xs">
+                              {isRead ? "Прочитано" : "Не прочитано"}
+                            </Badge>
+                            <Badge 
+                              variant={masteryLevel === 'mastered' ? 'default' : 'outline'} 
+                              className="text-xs"
+                            >
+                              {masteryLevel === 'mastered' ? 'Освоено' : 
+                               masteryLevel === 'in_progress' ? 'В процессе' : 'Не начато'}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleSkillClick(skillId)}
+                        >
+                          <BookOpen className="h-4 w-4 mr-1" />
+                          Теория
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handlePracticeClick(skillId)}
+                        >
+                          <PenTool className="h-4 w-4 mr-1" />
+                          Практика
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        <BookOpen className="h-4 w-4 mr-1" />
-                        Теория
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/mcq-practice-skill-${skillId}`);
-                      }}>
-                        <PenTool className="h-4 w-4 mr-1" />
-                        Практика
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
   };
 
-  const renderArticleView = () => {
+  const renderSkillView = () => {
     if (!selectedSkill) return null;
 
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" onClick={handleBackToSubunit} className="text-blue-600 hover:text-blue-800">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Назад к теме
-          </Button>
-          <Button variant="outline" onClick={copyUrlToClipboard} size="sm">
-            <Copy className="h-4 w-4 mr-2" />
-            Скопировать ссылку
-          </Button>
-          <Button
-            variant={isTextSelection ? "default" : "outline"}
-            onClick={() => setIsTextSelection(!isTextSelection)}
-            size="sm"
-          >
-            <Highlighter className="h-4 w-4 mr-2" />
-            {isTextSelection ? "Выключить выделение" : "Выделить текст"}
-          </Button>
-        </div>
-
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-8 rounded-lg mb-8">
-          <h1 className="text-3xl font-bold mb-2">
-            Навык {selectedSkill}: {getSkillName(selectedSkill)}
-          </h1>
-          <div className="flex items-center gap-4">
-            <Badge variant="secondary" className="bg-white/20 text-white">
-              {readSkills.has(selectedSkill) ? "Прочитано" : "Не прочитано"}
-            </Badge>
-            <Badge variant="secondary" className="bg-white/20 text-white">
-              {getMasteryLevel(selectedSkill) === 'mastered' ? 'Освоено' : 
-               getMasteryLevel(selectedSkill) === 'in_progress' ? 'В процессе' : 'Не начато'}
-            </Badge>
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="flex items-center gap-4 mb-6">
+            <Button variant="ghost" onClick={handleBackToTopic} className="text-blue-600 hover:text-blue-800">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Назад к теме
+            </Button>
+            <Button variant="outline" onClick={copyUrlToClipboard} size="sm">
+              <Copy className="h-4 w-4 mr-2" />
+              Скопировать ссылку
+            </Button>
+            <Button
+              variant={isTextSelection ? "default" : "outline"}
+              onClick={() => setIsTextSelection(!isTextSelection)}
+              size="sm"
+            >
+              <Highlighter className="h-4 w-4 mr-2" />
+              {isTextSelection ? "Выключить выделение" : "Выделить текст"}
+            </Button>
           </div>
-        </div>
 
-        {isLoadingArticle ? (
-          <div className="bg-white rounded-lg p-8">
-            <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-8 rounded-lg mb-8">
+            <h1 className="text-3xl font-bold mb-2">
+              Навык {selectedSkill}: {getSkillName(selectedSkill)}
+            </h1>
+            <div className="flex items-center gap-4">
+              <Badge variant="secondary" className="bg-white/20 text-white">
+                {readSkills.has(selectedSkill) ? "Прочитано" : "Не прочитано"}
+              </Badge>
+              <Badge variant="secondary" className="bg-white/20 text-white">
+                {getMasteryLevel(selectedSkill) === 'mastered' ? 'Освоено' : 
+                 getMasteryLevel(selectedSkill) === 'in_progress' ? 'В процессе' : 'Не начато'}
+              </Badge>
             </div>
           </div>
-        ) : currentArticle ? (
-          <div className="bg-white rounded-lg p-8 shadow-sm" style={{ userSelect: isTextSelection ? 'text' : 'none' }}>
-            <div className="prose max-w-none">
-              <MathRenderer text={currentArticle.article_text || 'Материал находится в разработке.'} />
+
+          {isLoadingArticle ? (
+            <div className="bg-white rounded-lg p-8">
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+              </div>
+            </div>
+          ) : currentArticle ? (
+            <div className="bg-white rounded-lg p-8 shadow-sm" style={{ userSelect: isTextSelection ? 'text' : 'none' }}>
+              <div className="prose max-w-none">
+                <MathRenderer text={currentArticle.article_text || 'Материал находится в разработке.'} />
+                
+                {/* Display images if available */}
+                {[1,2,3,4,5,6,7].map(num => {
+                  const imgKey = `img${num}` as keyof typeof currentArticle;
+                  const imgUrl = currentArticle[imgKey];
+                  return imgUrl ? (
+                    <div key={imgKey} className="my-4">
+                      <img 
+                        src={imgUrl} 
+                        alt={`Иллюстрация ${num}`}
+                        className="max-w-full h-auto rounded-lg shadow-sm"
+                      />
+                    </div>
+                  ) : null;
+                })}
+              </div>
               
-              {/* Display images if available */}
-              {[1,2,3,4,5,6,7].map(num => {
-                const imgKey = `img${num}`;
-                const imgUrl = currentArticle[imgKey];
-                return imgUrl ? (
-                  <div key={imgKey} className="my-4">
-                    <img 
-                      src={imgUrl} 
-                      alt={`Иллюстрация ${num}`}
-                      className="max-w-full h-auto rounded-lg shadow-sm"
-                    />
-                  </div>
-                ) : null;
-              })}
+              <div className="flex gap-4 mt-8 pt-6 border-t">
+                <Button 
+                  onClick={() => markSkillAsRead(selectedSkill)}
+                  disabled={readSkills.has(selectedSkill)}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  {readSkills.has(selectedSkill) ? "Прочитано" : "Отметить как прочитанное"}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => handlePracticeClick(selectedSkill)}
+                >
+                  <PenTool className="h-4 w-4 mr-2" />
+                  Перейти к упражнениям
+                </Button>
+              </div>
             </div>
-            
-            <div className="flex gap-4 mt-8 pt-6 border-t">
-              <Button 
-                onClick={() => {
-                  markSkillAsRead(selectedSkill);
-                }}
-                disabled={readSkills.has(selectedSkill)}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                {readSkills.has(selectedSkill) ? "Прочитано" : "Отметить как прочитанное"}
-              </Button>
+          ) : (
+            <div className="bg-white rounded-lg p-8 text-center">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Материал в разработке</h3>
+              <p className="text-gray-600 mb-6">
+                Теоретический материал для этого навыка пока находится в разработке.
+              </p>
               <Button 
                 variant="outline"
-                onClick={() => navigate(`/mcq-practice-skill-${selectedSkill}`)}
+                onClick={() => handlePracticeClick(selectedSkill)}
               >
                 <PenTool className="h-4 w-4 mr-2" />
                 Перейти к упражнениям
               </Button>
             </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderPracticeView = () => {
+    if (questions.length === 0 || !selectedSkill) {
+      return (
+        <div className="min-h-screen bg-gray-50">
+          <div className="container mx-auto px-4 py-8 max-w-4xl">
+            <div className="flex items-center gap-4 mb-6">
+              <Button variant="ghost" onClick={handleBackToTopic} className="text-blue-600 hover:text-blue-800">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Назад к теме
+              </Button>
+            </div>
+            <Card>
+              <CardContent className="text-center py-12">
+                <h3 className="text-lg font-medium mb-2">
+                  Упражнения не найдены
+                </h3>
+                <p className="text-gray-600">
+                  Для навыка {selectedSkill} пока нет доступных упражнений
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        ) : (
-          <div className="bg-white rounded-lg p-8 text-center">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Материал в разработке</h3>
-            <p className="text-gray-600 mb-6">
-              Теоретический материал для этого навыка пока находится в разработке.
-            </p>
-            <Button 
-              variant="outline"
-              onClick={() => navigate(`/mcq-practice-skill-${selectedSkill}`)}
-            >
-              <PenTool className="h-4 w-4 mr-2" />
-              Перейти к упражнениям
+        </div>
+      );
+    }
+
+    const currentQuestion = questions[currentQuestionIndex];
+    const answerOptions = [
+      currentQuestion.option1,
+      currentQuestion.option2,
+      currentQuestion.option3,
+      currentQuestion.option4
+    ].filter(option => option && option.trim().length > 0);
+
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="flex items-center justify-between mb-6">
+            <Button variant="ghost" onClick={handleBackToTopic} className="text-blue-600 hover:text-blue-800">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Назад к теме
             </Button>
+            <div className="flex items-center gap-4">
+              <Badge variant="secondary">
+                {currentQuestionIndex + 1}/{questions.length}
+              </Badge>
+              <span className="text-sm text-gray-600">
+                Правильных: {correctAnswers}
+              </span>
+            </div>
           </div>
-        )}
+
+          <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+            <span className="font-medium text-blue-900">
+              Практика - Навык {selectedSkill}: {getSkillName(selectedSkill)}
+            </span>
+          </div>
+
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              {currentQuestion.problem_image && (
+                <div className="mb-6 flex justify-center">
+                  <img 
+                    src={currentQuestion.problem_image} 
+                    alt="Изображение к задаче" 
+                    className="max-w-sm w-full h-auto object-contain rounded border"
+                  />
+                </div>
+              )}
+              
+              <div className="mb-6">
+                <MathRenderer text={currentQuestion.problem_text} />
+              </div>
+
+              {answerOptions.length > 0 ? (
+                <div className="grid gap-3 mb-6">
+                  {answerOptions.map((option, index) => {
+                    const optionLetter = optionLabels[index];
+                    const isSelected = selectedAnswer === optionLetter;
+                    const isCorrect = currentQuestion.answer.trim() === optionLetter;
+                    
+                    let buttonStyle = "w-full text-left p-4 h-auto justify-start ";
+                    
+                    if (isAnswered) {
+                      if (isSelected && isCorrect) {
+                        buttonStyle += "bg-green-100 border-green-500 text-green-800";
+                      } else if (isSelected && !isCorrect) {
+                        buttonStyle += "bg-red-100 border-red-500 text-red-800";
+                      } else if (!isSelected && isCorrect) {
+                        buttonStyle += "bg-green-50 border-green-300 text-green-700";
+                      } else {
+                        buttonStyle += "bg-gray-50 border-gray-300 text-gray-600";
+                      }
+                    } else {
+                      buttonStyle += "bg-white border-gray-300 hover:bg-gray-50";
+                    }
+
+                    return (
+                      <Button
+                        key={index}
+                        onClick={() => handleAnswerClick(index)}
+                        disabled={isAnswered}
+                        variant="outline"
+                        className={buttonStyle}
+                      >
+                        <span className="font-bold text-blue-600 mr-3">
+                          {optionLetter}.
+                        </span>
+                        <div className="flex-1">
+                          <MathRenderer text={option} />
+                        </div>
+                        {isAnswered && isCorrect && (
+                          <CheckCircle className="w-5 h-5 text-green-600 ml-2" />
+                        )}
+                        {isAnswered && isSelected && !isCorrect && (
+                          <XCircle className="w-5 h-5 text-red-600 ml-2" />
+                        )}
+                      </Button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-gray-600">
+                  Варианты ответов не найдены
+                </div>
+              )}
+
+              {isAnswered && (
+                <div className="flex justify-center gap-3 flex-wrap">
+                  {currentQuestion.solution_text && (
+                    <Button
+                      onClick={() => setShowSolution(!showSolution)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      {showSolution ? 'Скрыть решение' : 'Показать решение'}
+                    </Button>
+                  )}
+                  <Button
+                    onClick={() => setIsTextSelection(!isTextSelection)}
+                    variant={isTextSelection ? "default" : "outline"}
+                    size="sm"
+                  >
+                    <Highlighter className="w-4 h-4 mr-1" />
+                    {isTextSelection ? 'Выключить' : 'Включить'} селектор
+                  </Button>
+                  <Button 
+                    onClick={() => setShowChat(true)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-1" />
+                    Чат с ИИ
+                  </Button>
+                  <Button onClick={handleNextQuestion} size="sm">
+                    {currentQuestionIndex < questions.length - 1 ? 'Далее' : 'Завершить'}
+                  </Button>
+                </div>
+              )}
+
+              {isAnswered && isTextSelection && (
+                <div className="mt-4 text-center">
+                  <p className="text-sm text-yellow-600 flex items-center justify-center gap-1 px-2 py-1 bg-yellow-50 rounded">
+                    <Highlighter className="w-4 h-4" />
+                    Выделите текст для вопроса к ИИ
+                  </p>
+                </div>
+              )}
+
+              {showSolution && currentQuestion.solution_text && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                  <h4 className="font-medium mb-2">Решение:</h4>
+                  <MathRenderer text={currentQuestion.solution_text} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-500 h-2 rounded-full transition-all"
+              style={{
+                width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`
+              }}
+            ></div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -1032,12 +1115,10 @@ export default function Textbook2() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="container mx-auto px-4 py-8">
-        {currentView === "overview" && renderOverview()}
-        {currentView === "subunit" && renderUnitView()}
-        {currentView === "articles" && !selectedSkill && renderSubunitView()}
-        {currentView === "articles" && selectedSkill && renderArticleView()}
-      </div>
+      {currentView === "overview" && renderOverview()}
+      {currentView === "topic" && renderTopicView()}
+      {currentView === "skill" && renderSkillView()}
+      {currentView === "practice" && renderPracticeView()}
 
       {/* Selected text panel */}
       {showSelectedTextPanel && selectedText && (
