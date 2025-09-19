@@ -41,6 +41,19 @@ const PracticeByNumberOgemath = () => {
   const [currentAttemptId, setCurrentAttemptId] = useState<number | null>(null);
   const [attemptStartTime, setAttemptStartTime] = useState<Date | null>(null);
   
+  // Test session tracking
+  const [showStatistics, setShowStatistics] = useState(false);
+  const [sessionResults, setSessionResults] = useState<Array<{
+    questionIndex: number;
+    questionId: string;
+    isCorrect: boolean;
+    userAnswer: string;
+    correctAnswer: string;
+    problemText: string;
+    solutionText: string;
+    isAnswered: boolean;
+  }>>([]);
+  
   // Streak animation state
   const [showStreakAnimation, setShowStreakAnimation] = useState(false);
   const [streakData, setStreakData] = useState({
@@ -181,6 +194,24 @@ const PracticeByNumberOgemath = () => {
     setPracticeStarted(false);
     setQuestions([]);
     setCurrentQuestionIndex(0);
+    resetQuestionState();
+    setSessionResults([]);
+    setShowStatistics(false);
+  };
+
+  const handleFinishTest = () => {
+    setShowStatistics(true);
+  };
+
+  const handleNewTest = () => {
+    setShowStatistics(false);
+    setSessionResults([]);
+    handleBackToSelection();
+  };
+
+  const handleGoToQuestion = (questionIndex: number) => {
+    setShowStatistics(false);
+    setCurrentQuestionIndex(questionIndex);
     resetQuestionState();
   };
 
@@ -333,6 +364,29 @@ const PracticeByNumberOgemath = () => {
       setIsCorrect(isCorrect);
       setIsAnswered(true);
 
+      // Track result in session
+      setSessionResults(prev => {
+        const newResults = [...prev];
+        const existingIndex = newResults.findIndex(r => r.questionIndex === currentQuestionIndex);
+        const result = {
+          questionIndex: currentQuestionIndex,
+          questionId: currentQuestion.question_id,
+          isCorrect,
+          userAnswer: userAnswer.trim(),
+          correctAnswer: currentQuestion.answer,
+          problemText: currentQuestion.problem_text,
+          solutionText: currentQuestion.solution_text,
+          isAnswered: true
+        };
+        
+        if (existingIndex >= 0) {
+          newResults[existingIndex] = result;
+        } else {
+          newResults.push(result);
+        }
+        return newResults;
+      });
+
       // Update student_activity directly instead of using failing edge function
       await updateStudentActivity(isCorrect, 0);
 
@@ -484,6 +538,29 @@ const PracticeByNumberOgemath = () => {
         console.error('Error skipping question:', error);
       }
     }
+    
+    // Track skipped question in session
+    setSessionResults(prev => {
+      const newResults = [...prev];
+      const existingIndex = newResults.findIndex(r => r.questionIndex === currentQuestionIndex);
+      const result = {
+        questionIndex: currentQuestionIndex,
+        questionId: currentQuestion.question_id,
+        isCorrect: false,
+        userAnswer: '',
+        correctAnswer: currentQuestion.answer,
+        problemText: currentQuestion.problem_text,
+        solutionText: currentQuestion.solution_text,
+        isAnswered: false
+      };
+      
+      if (existingIndex >= 0) {
+        newResults[existingIndex] = result;
+      } else {
+        newResults.push(result);
+      }
+      return newResults;
+    });
     
     // Immediately move to next question
     if (currentQuestionIndex < questions.length - 1) {
@@ -885,11 +962,15 @@ const PracticeByNumberOgemath = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="flex gap-3 flex-wrap">
+                  <Button variant="destructive" onClick={handleFinishTest} className="flex-1 min-w-32">
+                    Завершить тест
+                  </Button>
+                  
                   <Button
                     variant="outline"
                     onClick={handleShowSolution}
-                    className="flex-1"
+                    className="flex-1 min-w-32"
                   >
                     <BookOpen className="w-4 h-4 mr-2" />
                     Показать решение
@@ -899,18 +980,23 @@ const PracticeByNumberOgemath = () => {
                     <Button
                       variant="outline"
                       onClick={skipQuestion}
-                      className="flex-1"
+                      className="flex-1 min-w-32"
                     >
                       Пропустить
                     </Button>
                   )}
                   
                   {isAnswered && currentQuestionIndex < questions.length - 1 && (
-                    <Button onClick={nextQuestion} className="flex-1">
+                    <Button onClick={nextQuestion} className="flex-1 min-w-32">
                       <ArrowRight className="w-4 h-4 mr-2" />
                       Следующий вопрос
                     </Button>
                   )}
+                  
+                  <Button variant="outline" onClick={handleBackToSelection} className="flex-1 min-w-32">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Назад к выбору
+                  </Button>
                 </div>
 
                 {/* Solution */}
@@ -931,8 +1017,102 @@ const PracticeByNumberOgemath = () => {
             ) : null
           )}
 
+          {/* Statistics Page */}
+          {showStatistics && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Статистика теста
+                  <Button variant="outline" onClick={() => setShowStatistics(false)}>
+                    <X className="w-4 h-4 mr-2" />
+                    Закрыть
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Test Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-800">
+                        {sessionResults.filter(r => r.isCorrect).length}
+                      </div>
+                      <div className="text-green-600">Правильно</div>
+                    </div>
+                  </div>
+                  <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-red-800">
+                        {sessionResults.filter(r => !r.isCorrect).length}
+                      </div>
+                      <div className="text-red-600">Неправильно</div>
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-800">
+                        {sessionResults.length}
+                      </div>
+                      <div className="text-blue-600">Всего</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Question Results */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold">Результаты по вопросам</h3>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {sessionResults.map((result, index) => (
+                      <div 
+                        key={result.questionId}
+                        className={`p-4 rounded-lg border cursor-pointer hover:bg-gray-50 transition-colors ${
+                          result.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+                        }`}
+                        onClick={() => handleGoToQuestion(result.questionIndex)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {result.isCorrect ? (
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                            ) : (
+                              <XCircle className="w-5 h-5 text-red-600" />
+                            )}
+                            <span className="font-medium">
+                              Вопрос {result.questionIndex + 1}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              {result.isAnswered ? 'Отвечен' : 'Пропущен'}
+                            </span>
+                          </div>
+                          <Button variant="ghost" size="sm">
+                            Перейти к вопросу
+                          </Button>
+                        </div>
+                        {result.userAnswer && (
+                          <div className="mt-2 text-sm text-gray-600">
+                            Ваш ответ: <span className="font-mono">{result.userAnswer}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <Button onClick={handleNewTest} className="flex-1">
+                    Новый тест
+                  </Button>
+                  <Button variant="outline" onClick={handleBackToSelection} className="flex-1">
+                    Вернуться к выбору
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Results Summary */}
-          {practiceStarted && questions.length > 0 && (
+          {practiceStarted && questions.length > 0 && !showStatistics && (
             <Card>
               <CardHeader>
                 <CardTitle>Статистика</CardTitle>
