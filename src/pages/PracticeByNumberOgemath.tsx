@@ -1111,10 +1111,6 @@ const PracticeByNumberOgemath = () => {
                     </Button>
                   )}
                   
-                  <Button variant="outline" onClick={handleBackToSelection} className="flex-1 min-w-32">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Назад к выбору
-                  </Button>
                 </div>
 
                 {/* Solution */}
