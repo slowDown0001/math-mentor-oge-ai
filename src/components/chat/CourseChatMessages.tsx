@@ -4,6 +4,8 @@ import CourseChatMessage from "./CourseChatMessage";
 import TypingIndicator from "./TypingIndicator";
 import { ChevronDown } from "lucide-react";
 import { kaTeXManager } from "@/hooks/useMathJaxInitializer";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CourseChatMessagesProps {
   messages: Message[];
@@ -20,6 +22,36 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
   const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const lastMessageCountRef = useRef(messages.length);
+  const [tutorAvatar, setTutorAvatar] = useState<string>('');
+  const { user } = useAuth();
+
+  // Fetch tutor avatar from profiles table
+  useEffect(() => {
+    const fetchTutorAvatar = async () => {
+      if (user) {
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('tutor_avatar_url')
+            .eq('user_id', user.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching tutor avatar:', error);
+            return;
+          }
+
+          if (profile?.tutor_avatar_url) {
+            setTutorAvatar(profile.tutor_avatar_url);
+          }
+        } catch (error) {
+          console.error('Error fetching tutor avatar:', error);
+        }
+      }
+    };
+
+    fetchTutorAvatar();
+  }, [user]);
 
   const scrollToBottom = (smooth = true) => {
     messagesEndRef.current?.scrollIntoView({ 
@@ -125,7 +157,7 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
           <div className="flex justify-start items-start gap-3 animate-fade-in">
             <div className="flex-shrink-0">
               <img 
-                src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png"
+                src={tutorAvatar || "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png"}
                 alt="AI avatar"
                 className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
               />

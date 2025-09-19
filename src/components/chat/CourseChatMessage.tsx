@@ -12,32 +12,37 @@ interface CourseChatMessageProps {
 const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
   const { user } = useAuth();
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [tutorAvatar, setTutorAvatar] = useState<string | null>(null);
   const messageRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    const fetchUserAvatar = async () => {
-      if (user && message.isUser) {
+    const fetchAvatars = async () => {
+      if (user) {
         try {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('avatar_url')
+            .select('avatar_url, tutor_avatar_url')
             .eq('user_id', user.id)
             .single();
           
-          setUserAvatar(profile?.avatar_url || null);
+          if (message.isUser) {
+            setUserAvatar(profile?.avatar_url || null);
+          } else {
+            setTutorAvatar(profile?.tutor_avatar_url || null);
+          }
         } catch (error) {
-          console.error('Error fetching user avatar:', error);
+          console.error('Error fetching avatars:', error);
         }
       }
     };
 
-    fetchUserAvatar();
+    fetchAvatars();
   }, [user, message.isUser]);
 
   // No additional KaTeX processing needed - ChatRenderer2 handles it via ReactMarkdown
 
   const fallbackAvatar = "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/kawaiiboy1.jpg";
-  const aiAvatar = "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png";
+  const aiAvatar = tutorAvatar || "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png";
   
   const formatTime = (timestamp: Date) => {
     return timestamp.toLocaleTimeString('ru-RU', { 
