@@ -16,6 +16,7 @@ import { StreakRingAnimation } from "@/components/streak/StreakRingAnimation";
 import { awardStreakPoints, calculateStreakReward, getCurrentStreakData } from "@/services/streakPointsService";
 import { toast } from "sonner";
 import TestStatisticsWindow from "@/components/TestStatisticsWindow";
+import FormulaBookletDialog from "@/components/FormulaBookletDialog";
 
 interface Question {
   question_id: string;
@@ -90,6 +91,9 @@ const PracticeByNumberOgemath = () => {
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [photoFeedback, setPhotoFeedback] = useState<string>("");
   const [photoScores, setPhotoScores] = useState<number | null>(null);
+
+  // Formula booklet state
+  const [showFormulaBooklet, setShowFormulaBooklet] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -1060,16 +1064,24 @@ const PracticeByNumberOgemath = () => {
             questions.length > 0 && currentQuestion ? (
             <Card className="mb-6">
               <CardHeader>
-                 <CardTitle className="flex justify-between items-center">
-                   <span>Вопрос №{currentQuestion.problem_number_type} ({currentQuestionIndex + 1} из {questions.length})</span>
-                   <div className="flex items-center gap-4">
-                     <Button
-                       onClick={handleFinishTest}
-                       variant="outline"
-                       className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
-                     >
-                       Завершить тест
-                     </Button>
+                  <CardTitle className="flex justify-between items-center">
+                    <span>Вопрос №{currentQuestion.problem_number_type} ({currentQuestionIndex + 1} из {questions.length})</span>
+                    <div className="flex items-center gap-4">
+                      <Button
+                        onClick={() => setShowFormulaBooklet(true)}
+                        variant="outline"
+                        className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                      >
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        Справочник формул
+                      </Button>
+                      <Button
+                        onClick={handleFinishTest}
+                        variant="outline"
+                        className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
+                      >
+                        Завершить тест
+                      </Button>
                      <div className="flex items-center gap-2">
                        <span className="text-sm font-normal text-gray-500">
                          ID: {currentQuestion.question_id}
@@ -1340,6 +1352,12 @@ const PracticeByNumberOgemath = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Formula Booklet Dialog */}
+      <FormulaBookletDialog 
+        open={showFormulaBooklet} 
+        onOpenChange={setShowFormulaBooklet} 
+      />
     </div>
   );
 };
