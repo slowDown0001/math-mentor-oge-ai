@@ -132,7 +132,7 @@ const PracticeByNumberOgemath = () => {
             } else if (mostRecent.is_correct === true) {
               questionStatusMap[question.question_id] = { status: 'correct', priority: 4 };
             } else {
-              questionStatusMap[question.question_id] = { status: 'unseen', priority: 3 };
+              questionStatusMap[question.question_id] = { status: 'unfinished', priority: 2 };
             }
           }
         });
