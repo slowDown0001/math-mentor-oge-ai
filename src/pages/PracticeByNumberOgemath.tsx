@@ -116,7 +116,7 @@ const PracticeByNumberOgemath = () => {
       // Calculate probabilities for each question based on user activity
       const questionsWithProbabilities = allQuestions.map(question => {
         const questionActivity = userActivity.filter(a => a.question_id === question.question_id);
-        let probability = 1.0; // Default probability for unseen questions
+        let probability = 0.5; // Default probability for unseen questions
 
         if (questionActivity.length > 0) {
           // Get most recent attempt
