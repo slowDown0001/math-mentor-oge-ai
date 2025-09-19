@@ -99,16 +99,85 @@ const PracticeByNumberOgemath = () => {
         }
       }
 
-      // Shuffle questions for variety
-      const shuffledQuestions = allQuestions.sort(() => Math.random() - 0.5);
+      // Get user's activity history for these questions if logged in
+      let userActivity: any[] = [];
+      if (user && allQuestions.length > 0) {
+        const questionIds = allQuestions.map(q => q.question_id);
+        const { data: activityData } = await supabase
+          .from('student_activity')
+          .select('question_id, is_correct, finished_or_not, created_at')
+          .eq('user_id', user.id)
+          .in('question_id', questionIds)
+          .order('created_at', { ascending: false });
+        
+        userActivity = activityData || [];
+      }
 
-      setQuestions(shuffledQuestions);
+      // Calculate probabilities for each question based on user activity
+      const questionsWithProbabilities = allQuestions.map(question => {
+        const questionActivity = userActivity.filter(a => a.question_id === question.question_id);
+        let probability = 1.0; // Default probability for unseen questions
+
+        if (questionActivity.length > 0) {
+          // Get most recent attempt
+          const mostRecent = questionActivity[0];
+          
+          // Check if user ever solved correctly
+          const hasCorrectSolution = questionActivity.some(a => a.is_correct === true && a.finished_or_not === true);
+          const hasIncorrectSolution = questionActivity.some(a => a.is_correct === false && a.finished_or_not === true);
+          
+          if (hasCorrectSolution && !hasIncorrectSolution) {
+            // Solved correctly on first attempt
+            probability = 0.1;
+          } else if (mostRecent.finished_or_not === false) {
+            // Saw question but didn't finish most recent attempt
+            probability = 0.8;
+          } else if (mostRecent.is_correct === false && mostRecent.finished_or_not === true) {
+            // Most recent attempt was wrong
+            probability = 0.9;
+          } else if (hasIncorrectSolution && hasCorrectSolution) {
+            // Solved wrong once then correctly
+            probability = 0.6;
+          }
+        }
+
+        return { ...question, probability };
+      });
+
+      // Weighted random selection
+      const selectedQuestions: Question[] = [];
+      const totalQuestions = Math.min(20, questionsWithProbabilities.length); // Limit to reasonable number
+      
+      for (let i = 0; i < totalQuestions; i++) {
+        if (questionsWithProbabilities.length === 0) break;
+        
+        // Calculate total weight
+        const totalWeight = questionsWithProbabilities.reduce((sum, q) => sum + q.probability, 0);
+        
+        // Random selection based on weights
+        let random = Math.random() * totalWeight;
+        let selectedIndex = 0;
+        
+        for (let j = 0; j < questionsWithProbabilities.length; j++) {
+          random -= questionsWithProbabilities[j].probability;
+          if (random <= 0) {
+            selectedIndex = j;
+            break;
+          }
+        }
+        
+        // Add selected question and remove from pool
+        const selected = questionsWithProbabilities.splice(selectedIndex, 1)[0];
+        selectedQuestions.push(selected);
+      }
+
+      setQuestions(selectedQuestions);
       setCurrentQuestionIndex(0);
       resetQuestionState();
       
       // Start attempt for the first question if user is logged in
-      if (shuffledQuestions.length > 0 && user) {
-        await startAttempt(shuffledQuestions[0].question_id);
+      if (selectedQuestions.length > 0 && user) {
+        await startAttempt(selectedQuestions[0].question_id);
       }
     } catch (error) {
       console.error('Error fetching questions:', error);
