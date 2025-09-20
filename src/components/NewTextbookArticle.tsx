@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, ArrowRight, Zap, Check } from "lucide-react";
+import { BookOpen, ArrowRight, Zap, Check, ArrowLeft, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import ArticleRenderer from "@/components/ArticleRenderer";
 import NewTextbookReadButton from "@/components/NewTextbookReadButton";
+import SkillPracticeQuiz from "@/components/SkillPracticeQuiz";
 
 interface Skill {
   id: number;
@@ -48,6 +50,7 @@ interface NewTextbookArticleProps {
   onMarkAsRead: (skillId: number) => void;
   onSkillSelect: (skill: Skill) => void;
   onTopicSelect: (topic: Topic) => void;
+  onBackToSyllabus?: () => void;
 }
 
 const NewTextbookArticle = ({ 
@@ -60,9 +63,11 @@ const NewTextbookArticle = ({
   searchTerm,
   onMarkAsRead,
   onSkillSelect,
-  onTopicSelect
+  onTopicSelect,
+  onBackToSyllabus
 }: NewTextbookArticleProps) => {
   const navigate = useNavigate();
+  const [showPractice, setShowPractice] = useState(false);
 
   const handleGoToExercise = () => {
     if (skill) {
@@ -108,6 +113,15 @@ const NewTextbookArticle = ({
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => onBackToSyllabus?.()}
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  К программе
+                </Button>
                 <Zap className="w-5 h-5 text-yellow-300" />
                 <span className="text-sm text-blue-100">Выберите навык</span>
               </div>
@@ -152,7 +166,7 @@ const NewTextbookArticle = ({
   }
 
   // Show syllabus overview when nothing is selected
-  if (!skill) {
+  if (!skill && !topic) {
     return (
       <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
         <CardContent className="p-0">
@@ -266,6 +280,16 @@ const NewTextbookArticle = ({
 
   const images = getImageUrls(article);
 
+  // If showing practice quiz
+  if (showPractice) {
+    return (
+      <SkillPracticeQuiz
+        skill={skill}
+        onBackToArticle={() => setShowPractice(false)}
+      />
+    );
+  }
+
   return (
     <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
       <CardContent className="p-0">
@@ -285,6 +309,15 @@ const NewTextbookArticle = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                onClick={() => onBackToSyllabus?.()}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                К программе
+              </Button>
               <Zap className="w-5 h-5 text-yellow-300" />
               <span className="text-sm text-blue-100">Интерактивное обучение</span>
             </div>
@@ -337,12 +370,12 @@ const NewTextbookArticle = ({
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-gray-200">
             <Button
-              onClick={handleGoToExercise}
+              onClick={() => setShowPractice(true)}
               className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
               size="lg"
             >
-              <ArrowRight className="w-5 h-5 mr-2" />
-              Перейти к упражнениям!
+              <Target className="w-5 h-5 mr-2" />
+              Практиковать навык
             </Button>
 
             <NewTextbookReadButton

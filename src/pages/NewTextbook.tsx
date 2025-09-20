@@ -109,6 +109,12 @@ const NewTextbook = () => {
     setSelectedSkill(null);
     setCurrentArticle(null);
   };
+
+  const handleBackToSyllabus = () => {
+    setSelectedTopic(null);
+    setSelectedSkill(null);
+    setCurrentArticle(null);
+  };
   const handleSkillSelect = async (skill: Skill) => {
     setLoadingArticle(true);
     setSelectedSkill(skill);
@@ -389,6 +395,7 @@ const NewTextbook = () => {
                 onMarkAsRead={handleMarkAsRead}
                 onSkillSelect={handleSkillSelect}
                 onTopicSelect={handleTopicSelect}
+                onBackToSyllabus={handleBackToSyllabus}
               />
             </div>
           </div>
