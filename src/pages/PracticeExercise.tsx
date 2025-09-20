@@ -26,7 +26,7 @@ interface FRQProblem {
   problem_image?: string;
   code: string;
   difficulty?: string;
-  calculator_allowed?: boolean;
+  calculator_allowed?: string;
 }
 
 interface MCQProblem {
@@ -84,17 +84,17 @@ const PracticeExercise = () => {
     try {
       // Fetch FRQ problems
       const { data: frqData, error: frqError } = await supabase
-        .from('OGE_SHFIPI_problems_1_25')
-        .select('question_id, problem_text, answer, solution_text, solutiontextexpanded, problem_image, code, difficulty, calculator_allowed')
-        .order('code');
+        .from('oge_math_fipi_bank')
+        .select('question_id, problem_text, answer, solution_text, solutiontextexpanded, problem_image, problem_number_type, difficulty, calculator_allowed')
+        .order('problem_number_type');
 
       if (frqError) {
         console.error('Error fetching FRQ problems:', frqError);
       } else if (frqData) {
-        // Convert code from number to string and difficulty to string to match interface
+        // Convert problem_number_type to string and difficulty to string to match interface
         const formattedFrqData = frqData.map(problem => ({
           ...problem,
-          code: problem.code?.toString() || '',
+          code: problem.problem_number_type?.toString() || '',
           difficulty: problem.difficulty?.toString() || ''
         }));
         setFrqProblems(formattedFrqData);
@@ -319,12 +319,12 @@ const PracticeExercise = () => {
                                         </div>
                                         
                                         <div className="flex items-center gap-2 mb-4">
-                                          {problem.calculator_allowed && (
-                                            <Badge variant="secondary">
-                                              <Calculator className="h-3 w-3 mr-1" />
-                                              Калькулятор разрешён
-                                            </Badge>
-                                          )}
+                                         {problem.calculator_allowed === 'да' && (
+                                           <Badge variant="secondary">
+                                             <Calculator className="h-3 w-3 mr-1" />
+                                             Калькулятор разрешён
+                                           </Badge>
+                                         )}
                                           {problem.difficulty && (
                                             <Badge variant="outline">{problem.difficulty}</Badge>
                                           )}

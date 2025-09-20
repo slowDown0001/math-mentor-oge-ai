@@ -17,7 +17,7 @@ import Header from '@/components/Header';
 import { toast } from 'sonner';
 
 interface FipiQuestion {
-  question_id: number;
+  question_id: string;
   problem_number_type: number;
   problem_text: string;
   answer: string;
@@ -26,7 +26,7 @@ interface FipiQuestion {
 }
 
 interface UserAnswer {
-  questionId: number;
+  questionId: string;
   userAnswer: string;
   isCorrect: boolean;
   attempted: boolean;
@@ -85,7 +85,7 @@ const FipiBank = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('ogemath_fipi_bank')
+        .from('oge_math_fipi_bank')
         .select('*')
         .in('problem_number_type', selectedNumbers);
 
@@ -106,10 +106,10 @@ const FipiBank = () => {
       
       // TEMPORARY: Force question with id 2677 to be first for question type 20
       if (selectedNumbers.includes(20)) {
-        const question2677Index = shuffled.findIndex(q => q.question_id === 2677);
+        const question2677Index = shuffled.findIndex(q => q.question_id === '2677');
         if (question2677Index !== -1) {
           const question2677 = shuffled[question2677Index];
-          shuffled = shuffled.filter(q => q.question_id !== 2677);
+          shuffled = shuffled.filter(q => q.question_id !== '2677');
           shuffled.unshift(question2677); // Put it first
         }
       }

@@ -68,7 +68,7 @@ const PracticeNow = () => {
 
       // Fetch FRQ questions
       const { data: frqData, error: frqError } = await supabase
-        .from('OGE_SHFIPI_problems_1_25')
+        .from('oge_math_fipi_bank')
         .select('question_id, problem_text, answer, solution_text, problem_image')
         .limit(10);
 

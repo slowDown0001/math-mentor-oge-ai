@@ -20,7 +20,7 @@ interface PracticeQuestion {
   problem_text: string;
   answer: string;
   solution_text?: string;
-  code: number;
+  problem_number_type: number;
   problem_image?: string;
   difficulty?: string | number;
 }
@@ -80,9 +80,9 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
       
       for (const topic of selectedTopics) {
         const { data, error } = await supabase
-          .from('OGE_SHFIPI_problems_1_25')
+          .from('oge_math_fipi_bank')
           .select('*')
-          .eq('code', parseFloat(topic))
+          .eq('problem_number_type', parseFloat(topic))
           .limit(questionsPerTopic * 2); // Get more to have variety
 
         if (error) {
@@ -104,9 +104,9 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
         const usedQuestionIds = new Set(allQuestions.map(q => q.question_id));
 
         const { data: additionalData, error: additionalError } = await supabase
-          .from('OGE_SHFIPI_problems_1_25')
+          .from('oge_math_fipi_bank')
           .select('*')
-          .in('code', selectedTopics.map(t => parseFloat(t)))
+          .in('problem_number_type', selectedTopics.map(t => parseFloat(t)))
           .not('question_id', 'in', `(${Array.from(usedQuestionIds).map(id => `'${id}'`).join(',')})`)
           .limit(remainingNeeded);
 
@@ -302,7 +302,7 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Вопрос {currentQuestionIndex + 1} из {questions.length}</CardTitle>
-            <Badge variant="outline">{currentQuestion.code}</Badge>
+            <Badge variant="outline">{currentQuestion.problem_number_type}</Badge>
           </div>
           <Progress value={progress} className="w-full" />
         </CardHeader>
@@ -404,7 +404,7 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
                           <XCircle className="w-5 h-5 text-red-600" />
                         )}
                       </div>
-                      <Badge variant="outline">{question.code}</Badge>
+                      <Badge variant="outline">{question.problem_number_type}</Badge>
                     </div>
                     
                     {/* Show image first if it exists in results */}
