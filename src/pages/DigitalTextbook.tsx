@@ -390,7 +390,14 @@ const DigitalTextbook = () => {
                             </div>
                           ) : (
                             <div>
-                              <ArticleRenderer text={currentArticle.article_text || ''} article={currentArticle} />
+                              <ArticleRenderer 
+                                text={currentArticle.article_text || ''} 
+                                article={{
+                                  skill: selectedSkill || 0,
+                                  art: currentArticle.article_text || '',
+                                  ...currentArticle
+                                }} 
+                              />
                             </div>
                           )}
                         </CardContent>

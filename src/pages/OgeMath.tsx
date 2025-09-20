@@ -10,12 +10,15 @@ import { useKaTeXInitializer } from "@/hooks/useMathJaxInitializer";
 import { loadChatHistory, saveChatLog, type ChatLog } from "@/services/chatLogsService";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
 import { DailyTaskStory } from "@/components/DailyTaskStory";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const OgeMath = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
+  const { toast } = useToast();
   
   // State for chat history pagination
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -177,6 +180,37 @@ const OgeMath = () => {
     navigate("/ogemath-progress2");
   };
 
+  const handleCreateTask = async () => {
+    if (!user) {
+      toast({
+        title: "Ошибка",
+        description: "Необходимо войти в систему",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-task', {
+        body: { user_id: user.id }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Задание создано",
+        description: "Персональное задание успешно создано!",
+      });
+    } catch (error) {
+      console.error('Error creating task:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось создать задание",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="flex h-screen w-full bg-background">
       {/* Left Sidebar - Fixed */}
@@ -220,6 +254,14 @@ const OgeMath = () => {
             className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
             Прогресс
+          </Button>
+          
+          <Button
+            onClick={handleCreateTask}
+            variant="ghost"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          >
+            Создать задание
           </Button>
         </div>
 
