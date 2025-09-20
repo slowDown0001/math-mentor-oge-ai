@@ -1,5 +1,6 @@
 import React from 'react';
 import MathRenderer from './MathRenderer';
+import '../styles/style_for_textbook.css';
 
 interface Article {
   skill: number;
@@ -33,54 +34,33 @@ interface ArticleRendererProps {
 }
 
 const ArticleRenderer: React.FC<ArticleRendererProps> = ({ text, article }) => {
-  // Replace <imgX> tags with actual images and convert !!...!! to links
-  const renderTextWithImages = (content: string) => {
-    // Split content by <imgX> pattern
-    const parts = content.split(/(<img\d+>)/g);
+  // Handle HTML content with proper CSS classes and math rendering
+  const renderHtmlWithImages = (content: string) => {
+    // First, replace <imgX> tags with actual images
+    let processedContent = content;
     
-    return parts.map((part, index) => {
-      // Check if this part is an image tag
-      const imgMatch = part.match(/^<img(\d+)>$/);
+    // Replace image tags
+    processedContent = processedContent.replace(/<img(\d+)>/g, (match, imgNumber) => {
+      const imgKey = `img${imgNumber}`;
+      const imgUrl = article[imgKey];
       
-      if (imgMatch) {
-        const imgNumber = imgMatch[1];
-        const imgKey = `img${imgNumber}`;
-        const imgUrl = article[imgKey];
-        
-        if (imgUrl) {
-          return (
-            <div key={index} className="my-6">
-              <img 
-                src={imgUrl} 
-                alt={`Иллюстрация ${imgNumber}`}
-                className="mx-auto rounded-lg shadow-sm"
-              />
-            </div>
-          );
-        }
-        // If no image URL found, don't render anything
-        return null;
+      if (imgUrl) {
+        return `<div class="my-6"><img src="${imgUrl}" alt="Иллюстрация ${imgNumber}" class="mx-auto rounded-lg shadow-sm" /></div>`;
       }
-      
-      // Regular text content - process !!...!! patterns and render with MathRenderer
-      if (part.trim()) {
-        return (
-          <div key={index}>
-            <MathRenderer text={convertLinksToMarkdown(part)} compiler="mathjax" />
-          </div>
-        );
-      }
-      
-      return null;
-    }).filter(Boolean);
+      return '';
+    });
+    
+    // Convert !!text!! to clickable links
+    processedContent = processedContent.replace(/!!(.*?)!!/g, '<a href="#" style="color: #10b981; text-decoration: underline;" onclick="event.preventDefault(); window.open(\'https://www.google.com/search?q=\' + encodeURIComponent(\'$1\'), \'_blank\');">$1</a>');
+    
+    return (
+      <div className="textbook-preview">
+        <MathRenderer text={processedContent} compiler="mathjax" />
+      </div>
+    );
   };
 
-  // Convert !!text!! to clickable links
-  const convertLinksToMarkdown = (text: string) => {
-    return text.replace(/!!(.*?)!!/g, '<a href="#" style="color: #10b981; text-decoration: underline;" onclick="event.preventDefault(); window.open(\'https://www.google.com/search?q=\' + encodeURIComponent(\'$1\'), \'_blank\');">$1</a>');
-  };
-
-  return <div>{renderTextWithImages(text)}</div>;
+  return renderHtmlWithImages(text);
 };
 
 export default ArticleRenderer;
