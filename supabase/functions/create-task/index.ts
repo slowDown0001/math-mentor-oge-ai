@@ -89,7 +89,8 @@ Deno.serve(async (req) => {
       .insert({
         user_id,
         task,
-        seen: 0
+        seen: 0,
+        upload_id: crypto.randomUUID()
       })
       .select()
       .single();
