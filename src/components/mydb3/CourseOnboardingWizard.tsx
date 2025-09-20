@@ -90,6 +90,16 @@ export function CourseOnboardingWizard({ courseId, onDone, onError }: CourseOnbo
   const getSmartComment = (): string => {
     if (!data.goalScore) return '';
 
+    const isOGE = courseId === 'oge-math';
+    
+    if (isOGE) {
+      const score = data.goalScore;
+      if (score >= 22) return "Отлично! Целишься на 5! 🚀";
+      if (score >= 15) return "Хороша цель! На 4 вполне реально 💪";
+      if (score >= 8) return "Неплохо! Тройка будет в кармане 😊";
+      return "Давай поставим цель чуть повыше? 😉";
+    }
+
     const baselineFromSelfAssessment = (data.basicLevel || 1) * 15;
     const mockScore = data.tookMock ? data.mockScore : null;
     const ambitionGap = data.goalScore - (mockScore ?? baselineFromSelfAssessment);
@@ -118,7 +128,9 @@ export function CourseOnboardingWizard({ courseId, onDone, onError }: CourseOnbo
       case 3:
         return data.tookMock !== undefined && (!data.tookMock || (data.mockScore !== undefined && data.mockScore >= 0 && data.mockScore <= 100));
       case 4:
-        return data.goalScore !== undefined && data.goalScore >= 0 && data.goalScore <= 100;
+        const isOGE = courseId === 'oge-math';
+        const maxScore = isOGE ? 31 : 100;
+        return data.goalScore !== undefined && data.goalScore >= 0 && data.goalScore <= maxScore;
       default:
         return false;
     }
@@ -282,6 +294,10 @@ export function CourseOnboardingWizard({ courseId, onDone, onError }: CourseOnbo
         );
 
       case 4:
+        const isOGE = courseId === 'oge-math';
+        const maxScore = isOGE ? 31 : 100;
+        const defaultScore = isOGE ? 15 : 50;
+        
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -303,19 +319,45 @@ export function CourseOnboardingWizard({ courseId, onDone, onError }: CourseOnbo
                   }}
                 />
                 <Slider
-                  value={[data.goalScore || 50]}
+                  value={[data.goalScore || defaultScore]}
                   onValueChange={([value]) => updateData({ goalScore: value })}
                   min={0}
-                  max={100}
+                  max={maxScore}
                   step={1}
                   className="w-full"
                 />
                 <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                  <span>0%</span>
-                  <span className="font-semibold text-lg text-foreground">{data.goalScore || 50}%</span>
-                  <span>100%</span>
+                  <span>0{isOGE ? '' : '%'}</span>
+                  <span className="font-semibold text-lg text-foreground">
+                    {data.goalScore || defaultScore}{isOGE ? '' : '%'}
+                  </span>
+                  <span>{maxScore}{isOGE ? '' : '%'}</span>
                 </div>
               </div>
+
+              {isOGE && (
+                <div className="space-y-2">
+                  <div className="text-sm text-muted-foreground text-center">Оценки по баллам:</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="text-center p-2 rounded-lg bg-red-100 dark:bg-red-900/20">
+                      <div className="font-bold text-red-700 dark:text-red-400">2</div>
+                      <div className="text-xs text-red-600 dark:text-red-500">0-7</div>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                      <div className="font-bold text-orange-700 dark:text-orange-400">3</div>
+                      <div className="text-xs text-orange-600 dark:text-orange-500">8-14</div>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                      <div className="font-bold text-blue-700 dark:text-blue-400">4</div>
+                      <div className="text-xs text-blue-600 dark:text-blue-500">15-21</div>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
+                      <div className="font-bold text-green-700 dark:text-green-400">5</div>
+                      <div className="text-xs text-green-600 dark:text-green-500">22-31</div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {data.goalScore && (
                 <motion.div
