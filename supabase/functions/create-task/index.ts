@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
         user_id,
         task,
         seen: 0,
-        upload_id: crypto.randomUUID()
+        upload_id: Math.floor(Math.random() * 1000000)
       })
       .select()
       .single();
