@@ -1288,18 +1288,21 @@ export type Database = {
           context: string | null
           id: number
           system_prompt: string | null
+          task_context: string | null
         }
         Insert: {
           category_description?: string | null
           context?: string | null
           id: number
           system_prompt?: string | null
+          task_context?: string | null
         }
         Update: {
           category_description?: string | null
           context?: string | null
           id?: number
           system_prompt?: string | null
+          task_context?: string | null
         }
         Relationships: []
       }
@@ -1651,7 +1654,7 @@ export type Database = {
           problem_submission_id: string | null
           seen: number | null
           task: string | null
-          telegram_upload_content: string | null
+          telegram_notification: number | null
           telegram_user_id: number | null
           upload_id: number
           user_id: string | null
@@ -1661,7 +1664,7 @@ export type Database = {
           problem_submission_id?: string | null
           seen?: number | null
           task?: string | null
-          telegram_upload_content?: string | null
+          telegram_notification?: number | null
           telegram_user_id?: number | null
           upload_id: number
           user_id?: string | null
@@ -1671,7 +1674,7 @@ export type Database = {
           problem_submission_id?: string | null
           seen?: number | null
           task?: string | null
-          telegram_upload_content?: string | null
+          telegram_notification?: number | null
           telegram_user_id?: number | null
           upload_id?: number
           user_id?: string | null
@@ -2353,6 +2356,33 @@ export type Database = {
           skill_98?: number | null
           skill_99?: number | null
           uid?: string
+        }
+        Relationships: []
+      }
+      telegram_uploads: {
+        Row: {
+          created_at: string | null
+          extracted_text: string | null
+          id: number
+          problem_submission_id: string
+          telegram_upload_content: string
+          telegram_user_id: number
+        }
+        Insert: {
+          created_at?: string | null
+          extracted_text?: string | null
+          id?: number
+          problem_submission_id: string
+          telegram_upload_content: string
+          telegram_user_id: number
+        }
+        Update: {
+          created_at?: string | null
+          extracted_text?: string | null
+          id?: number
+          problem_submission_id?: string
+          telegram_upload_content?: string
+          telegram_user_id?: number
         }
         Relationships: []
       }
