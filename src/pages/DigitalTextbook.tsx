@@ -1,784 +1,485 @@
-import { useState, useEffect } from "react";
-import { Book, Search, Star, ChevronRight, ChevronDown, FileText, Highlighter, MessageCircle, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import Header from "@/components/Header";
-import MathRenderer from "@/components/MathRenderer";
-import ChatMessages from "@/components/chat/ChatMessages";
-import ChatInput from "@/components/chat/ChatInput";
-import { useChatContext } from "@/contexts/ChatContext";
-import { sendChatMessage } from "@/services/chatService";
-import { supabase } from "@/integrations/supabase/client";
-import mathSkillsData from "../../documentation/math_skills_full.json";
-import topicSkillMapping from "../../documentation/topic_skill_mapping_with_names.json";
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import Header from '../components/Header';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import newSyllabusData from '../data/newSyllabusStructure.json';
+import ArticleRenderer from '../components/ArticleRenderer';
 
-// Main topics mapping
-const mainTopics = {
-  "1": "Числа и вычисления",
-  "2": "Алгебраические выражения", 
-  "3": "Уравнения и неравенства",
-  "4": "Числовые последовательности",
-  "5": "Функции",
-  "6": "Координаты на прямой и плоскости",
-  "7": "Геометрия",
-  "8": "Вероятность и статистика"
-};
-
-// Extract skills and mappings from imported data
-const skills: MathSkill[] = mathSkillsData;
-const mappings: TopicMapping[] = topicSkillMapping;
-
-interface MathSkill {
-  skill: string;
-  id: number;
+interface Skill {
+  number: number;
+  name: string;
+  importance: number;
 }
 
-interface TopicMapping {
-  topic: string;
+interface Topic {
   name: string;
-  skills: number[];
+  skills: Skill[];
+}
+
+interface Module {
+  [topicKey: string]: Topic;
+}
+
+interface SyllabusStructure {
+  [moduleName: string]: Module;
 }
 
 interface Article {
-  skill: number;
-  art: string;
+  ID: number;
+  article_text: string;
   img1?: string;
   img2?: string;
   img3?: string;
+  img4?: string;
+  img5?: string;
+  img6?: string;
+  img7?: string;
+  [key: string]: any;
 }
 
+interface MCQQuestion {
+  question_id: string;
+  problem_text: string;
+  option1?: string;
+  option2?: string;
+  option3?: string;
+  option4?: string;
+  answer: string;
+  skills: number;
+}
+
+const getArticleForSkill = async (skillId: number): Promise<Article | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('articles_oge_full')
+      .select('*')
+      .eq('ID', skillId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching article:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error:', error);
+    return null;
+  }
+};
+
+const getMCQForSkill = async (skillId: number): Promise<MCQQuestion[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('oge_math_skills_questions')
+      .select('*')
+      .eq('skills', skillId);
+
+    if (error) {
+      console.error('Error fetching MCQ:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error:', error);
+    return [];
+  }
+};
+
+const getAllSkillsFromStructure = (): Skill[] => {
+  const allSkills: Skill[] = [];
+  const syllabusData = newSyllabusData as SyllabusStructure;
+  
+  Object.values(syllabusData).forEach(module => {
+    Object.values(module).forEach(topic => {
+      allSkills.push(...topic.skills);
+    });
+  });
+  
+  return allSkills;
+};
+
+const getFilteredSkills = (skills: Skill[], searchTerm: string): Skill[] => {
+  if (!searchTerm) return skills;
+  
+  return skills.filter(skill => 
+    skill.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+};
+
 const DigitalTextbook = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTopic, setSelectedTopic] = useState<string>("all");
-  const [selectedSubtopic, setSelectedSubtopic] = useState<string | null>(null);
-  const [selectedSkill, setSelectedSkill] = useState<MathSkill | null>(null);
-  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["1"]));
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loadingArticle, setLoadingArticle] = useState(false);
-  const [isSelecterActive, setIsSelecterActive] = useState(false);
-  const [selectedText, setSelectedText] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedModule, setSelectedModule] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [selectedSkill, setSelectedSkill] = useState<number | null>(null);
+  const [currentArticle, setCurrentArticle] = useState<Article | null>(null);
+  const [currentMCQs, setCurrentMCQs] = useState<MCQQuestion[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingMCQ, setLoadingMCQ] = useState(false);
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedText, setSelectedText] = useState('');
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
+  const [isLoadingResponse, setIsLoadingResponse] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [missingMCQs, setMissingMCQs] = useState<number[]>([]);
 
-  const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
-
-  // Handle URL parameters for direct navigation to topics
   useEffect(() => {
-    const topicParam = searchParams.get('topic');
-    if (topicParam && mainTopics[topicParam as keyof typeof mainTopics]) {
-      setSelectedTopic(topicParam);
-      setExpandedTopics(prev => new Set([...prev, topicParam]));
+    const skillParam = searchParams.get('skill');
+    if (skillParam) {
+      const skillId = parseInt(skillParam);
+      setSelectedSkill(skillId);
+      handleSkillSelect(skillId);
     }
   }, [searchParams]);
 
-  // Fetch articles from Supabase articles2 table
-  useEffect(() => {
-    const fetchArticles = async () => {
-      const { data, error } = await supabase
-        .from('articles2')
-        .select('skill, art, img1, img2, img3');
-      
-      if (error) {
-        console.error('Error fetching articles:', error);
-      } else if (data) {
-        setArticles(data as unknown as Article[]);
-      }
-    };
-
-    fetchArticles();
-  }, []);
-
-  // Get article content for a skill
-  const getArticleForSkill = (skillId: number): Article | null => {
-    const article = articles.find(a => a.skill === skillId);
-    return article || null;
-  };
-
-  // Get main topic number from topic string (e.g., "1.1" -> "1")
-  const getMainTopicNumber = (topicStr: string): string => {
-    if (topicStr === "Special") return "Special";
-    return topicStr.split(".")[0];
-  };
-
-  // Get subtopics for a main topic
-  const getSubtopicsForMainTopic = (mainTopicNum: string) => {
-    return mappings.filter(mapping => 
-      getMainTopicNumber(mapping.topic) === mainTopicNum
-    );
-  };
-
-  // Get skill name by ID
-  const getSkillNameById = (skillId: number): string => {
-    const skill = skills.find(s => s.id === skillId);
-    return skill ? skill.skill : `Навык ${skillId}`;
-  };
-
-  // Filter skills based on search term
-  const getFilteredSkills = () => {
-    if (!searchTerm) return skills;
-    
-    return skills.filter(skill => 
-      skill.skill.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      skill.id.toString().includes(searchTerm)
-    );
-  };
-
-  // Count total skills across all topics
-  const getTotalSkillsCount = () => {
-    return skills.length;
-  };
-
-  const toggleTopic = (topic: string) => {
-    const newExpanded = new Set(expandedTopics);
-    if (newExpanded.has(topic)) {
-      newExpanded.delete(topic);
+  const toggleModule = (moduleName: string) => {
+    const newExpanded = new Set(expandedModules);
+    if (newExpanded.has(moduleName)) {
+      newExpanded.delete(moduleName);
     } else {
-      newExpanded.add(topic);
+      newExpanded.add(moduleName);
+    }
+    setExpandedModules(newExpanded);
+  };
+
+  const toggleTopic = (topicKey: string) => {
+    const newExpanded = new Set(expandedTopics);
+    if (newExpanded.has(topicKey)) {
+      newExpanded.delete(topicKey);
+    } else {
+      newExpanded.add(topicKey);
     }
     setExpandedTopics(newExpanded);
   };
 
-  const handleTopicSelect = (topicNum: string) => {
-    setSelectedTopic(topicNum);
-    setSelectedSubtopic(null);
-    setSelectedSkill(null); // Clear selected skill when changing topic
-  };
-
-  const handleSubtopicSelect = (subtopicId: string) => {
-    setSelectedSubtopic(subtopicId);
-    setSelectedTopic("subtopic");
+  const handleModuleSelect = (moduleName: string) => {
+    setSelectedModule(moduleName);
+    setSelectedTopic(null);
     setSelectedSkill(null);
+    setCurrentArticle(null);
+    setCurrentMCQs([]);
+    
+    if (!expandedModules.has(moduleName)) {
+      toggleModule(moduleName);
+    }
   };
 
-  const handleSkillSelect = (skill: MathSkill) => {
-    setLoadingArticle(true);
-    setSelectedSkill(skill);
-    // Small delay to show loading state
-    setTimeout(() => setLoadingArticle(false), 300);
+  const handleTopicSelect = (topicKey: string) => {
+    setSelectedTopic(topicKey);
+    setSelectedSkill(null);
+    setCurrentArticle(null);
+    setCurrentMCQs([]);
+    
+    if (!expandedTopics.has(topicKey)) {
+      toggleTopic(topicKey);
+    }
   };
 
-  const handleGoToExercise = (skillId: number) => {
-    navigate(`/mcq-practice?skill=${skillId}`);
+  const handleSkillSelect = async (skillId: number) => {
+    setSelectedSkill(skillId);
+    setLoading(true);
+    setLoadingMCQ(true);
+    
+    try {
+      const [article, mcqs] = await Promise.all([
+        getArticleForSkill(skillId),
+        getMCQForSkill(skillId)
+      ]);
+      
+      setCurrentArticle(article);
+      setCurrentMCQs(mcqs);
+      
+      if (mcqs.length === 0) {
+        setMissingMCQs(prev => {
+          if (!prev.includes(skillId)) {
+            return [...prev, skillId];
+          }
+          return prev;
+        });
+      }
+    } catch (error) {
+      console.error('Error loading content:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMCQ(false);
+    }
   };
 
   const toggleSelecter = () => {
-    setIsSelecterActive(!isSelecterActive);
+    setIsSelecting(!isSelecting);
   };
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
     if (selection && selection.toString().trim()) {
-      const text = selection.toString().trim();
-      setSelectedText(text);
-      
-      if (isSelecterActive) {
-        const range = selection.getRangeAt(0);
-        const span = document.createElement('span');
-        span.style.backgroundColor = 'yellow';
-        span.style.padding = '1px 2px';
-        
-        try {
-          range.surroundContents(span);
-          selection.removeAllRanges();
-        } catch (error) {
-          const contents = range.extractContents();
-          span.appendChild(contents);
-          range.insertNode(span);
-          selection.removeAllRanges();
-        }
-      }
+      setSelectedText(selection.toString().trim());
     }
   };
 
   const handleAskEzhik = async () => {
     if (!selectedText) return;
-    
     setIsChatOpen(true);
-    
-    // Add user message with selected text
-    const newUserMessage = {
-      id: Date.now(),
-      text: `Объясни мне это: "${selectedText}"`,
-      isUser: true,
-      timestamp: new Date()
-    };
-    
-    addMessage(newUserMessage);
-    setIsTyping(true);
-
-    try {
-      // Send message to AI and get response
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
-      addMessage(aiResponse);
-    } finally {
-      setIsTyping(false);
-    }
-    
-    // Clear selected text
-    setSelectedText("");
+    setSelectedText('');
   };
 
   const handleSendChatMessage = async (userInput: string) => {
-    const newUserMessage = {
-      id: Date.now(),
-      text: userInput,
-      isUser: true,
-      timestamp: new Date()
-    };
-    
-    addMessage(newUserMessage);
-    setIsTyping(true);
-
-    try {
-      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
-      addMessage(aiResponse);
-    } finally {
-      setIsTyping(false);
-    }
+    // Chat functionality implementation
   };
 
-  // Add event listener for text selection when selecter is active
   useEffect(() => {
-    if (isSelecterActive) {
+    if (isSelecting) {
       document.addEventListener('mouseup', handleTextSelection);
-      return () => {
-        document.removeEventListener('mouseup', handleTextSelection);
-      };
+      return () => document.removeEventListener('mouseup', handleTextSelection);
     }
-  }, [isSelecterActive]);
+  }, [isSelecting]);
 
-  const filteredSkills = getFilteredSkills();
+  useEffect(() => {
+    if (missingMCQs.length > 0) {
+      console.log('Missing MCQs for skills:', missingMCQs);
+    }
+  }, [missingMCQs]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Header />
-      <div className="pt-20 pb-8">
-        <div className="container mx-auto px-4">
-          {/* Header Section */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 font-heading">
-              Электронный учебник
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              {getTotalSkillsCount()} навыков математики для подготовки к ОГЭ
-            </p>
+      
+      {selectedText && (
+        <div className="fixed top-20 right-4 z-50 bg-white p-4 rounded-lg shadow-lg border max-w-sm">
+          <div className="flex justify-between items-start mb-2">
+            <h4 className="font-medium text-sm">Выделенный текст:</h4>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedText('')} className="h-6 w-6 p-0">
+              <X className="h-4 w-4" />
+            </Button>
           </div>
+          <p className="text-sm text-gray-600 mb-3 max-h-20 overflow-y-auto">"{selectedText}"</p>
+          <Button onClick={handleAskEzhik} size="sm" className="w-full">
+            <MessageCircle className="h-4 w-4 mr-2" />
+            Спросить у Ёжика
+          </Button>
+        </div>
+      )}
 
-          {/* Search Bar */}
-          <div className="max-w-md mx-auto mb-8">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+      <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+          <SheetHeader>
+            <SheetTitle>Ёжик помогает</SheetTitle>
+          </SheetHeader>
+        </SheetContent>
+      </Sheet>
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Цифровой учебник ОГЭ по математике</h1>
+          <p className="text-xl text-gray-600 mb-6">Изучайте программу ОГЭ поэтапно с подробными объяснениями и практическими заданиями</p>
+
+          <div className="flex gap-4 items-center mb-6">
+            <div className="flex-1">
               <Input
-                placeholder="Поиск навыков..."
+                type="text"
+                placeholder="Поиск по навыкам..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="w-full"
               />
             </div>
+            <Button
+              variant={isSelecting ? "default" : "outline"}
+              onClick={toggleSelecter}
+              className="flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              {isSelecting ? "Выключить выделение" : "Включить выделение"}
+            </Button>
           </div>
 
-          {/* Selected Text and Ask Ёжик Button */}
-          {selectedText && (
-            <div className="fixed top-24 right-4 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-md">
-              <div className="flex items-start gap-2 mb-3">
-                <MessageCircle className="w-4 h-4 text-blue-600 mt-1 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 mb-1">Выделенный текст:</p>
-                  <p className="text-sm text-gray-600 line-clamp-3">"{selectedText}"</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedText("")}
-                  className="p-1 h-auto"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </div>
-              <Button 
-                onClick={handleAskEzhik}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                size="sm"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Спросить Ёжика
-              </Button>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 relative">
-            {/* Chat Window */}
-            {isChatOpen && (
-              <div className="fixed left-4 top-24 bottom-4 w-80 z-40 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col">
-                <div className="flex items-center justify-between p-4 border-b">
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="w-5 h-5 text-blue-600" />
-                    <h3 className="font-medium text-gray-900">Чат с Ёжиком</h3>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsChatOpen(false)}
-                    className="p-1 h-auto"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-                
-                <div className="flex-1 flex flex-col min-h-0">
-                  <ScrollArea className="flex-1 p-4">
-                    <div className="space-y-4">
-                      {messages.map(message => (
-                        <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
-                          <div 
-                            className={`max-w-[85%] p-3 rounded-lg text-sm ${
-                              message.isUser 
-                                ? "bg-blue-600 text-white rounded-tr-none" 
-                                : "bg-gray-100 text-gray-900 rounded-tl-none"
-                            }`}
-                          >
-                            <MathRenderer text={message.text} />
-                            <div className={`text-xs mt-1 ${message.isUser ? "text-blue-100" : "text-gray-500"}`}>
-                              {message.timestamp.toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      {isTyping && (
-                        <div className="flex justify-start">
-                          <div className="bg-gray-100 text-gray-900 rounded-lg rounded-tl-none p-3 text-sm">
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                  
-                  <div className="border-t p-4">
-                    <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Sidebar */}
-            <div className="lg:col-span-1">
-              <Card className="sticky top-24">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Book className="w-5 h-5" />
-                    Разделы
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <ScrollArea className="h-96">
-                    <div className="space-y-2 p-4">
-                      <Button
-                        variant={selectedTopic === "all" ? "default" : "ghost"}
-                        className="w-full justify-start"
-                        onClick={() => handleTopicSelect("all")}
-                      >
-                        Все навыки ({getTotalSkillsCount()})
-                      </Button>
-                      
-                      {Object.entries(mainTopics).map(([topicNum, topicName]) => {
-                        const subtopics = getSubtopicsForMainTopic(topicNum);
-                        const totalSkills = subtopics.reduce((sum, subtopic) => sum + subtopic.skills.length, 0);
-
-                        return (
-                          <Collapsible 
-                            key={topicNum}
-                            open={expandedTopics.has(topicNum)}
-                            onOpenChange={() => toggleTopic(topicNum)}
-                          >
-                            <CollapsibleTrigger asChild>
-                              <Button
-                                variant={selectedTopic === topicNum ? "default" : "ghost"}
-                                className="w-full justify-between text-sm"
-                                onClick={() => handleTopicSelect(topicNum)}
-                              >
-                                <span className="text-left flex-1">
-                                  {topicNum}. {topicName} ({totalSkills})
-                                </span>
-                                {expandedTopics.has(topicNum) ? 
-                                  <ChevronDown className="w-4 h-4" /> : 
-                                  <ChevronRight className="w-4 h-4" />
-                                }
-                              </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="space-y-1 ml-2 mt-1">
-                              {subtopics.map((subtopic) => (
-                                <button
-                                  key={subtopic.topic}
-                                  onClick={() => handleSubtopicSelect(subtopic.topic)}
-                                  className={`w-full text-left p-2 text-xs rounded hover:bg-gray-100 transition-colors ${
-                                    selectedSubtopic === subtopic.topic ? 'bg-blue-100 text-blue-800' : 'text-gray-700'
+          <div className="mb-6">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="lg:col-span-1">
+                  <Card className="h-fit sticky top-4">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Программа ОГЭ</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[calc(100vh-300px)]">
+                        <div className="space-y-2">
+                          {Object.entries(newSyllabusData as SyllabusStructure).map(([moduleName, module]) => (
+                            <Collapsible key={moduleName} open={expandedModules.has(moduleName)}>
+                              <CollapsibleTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  className={`w-full justify-between h-auto p-3 ${
+                                    selectedModule === moduleName ? 'bg-primary/10' : ''
                                   }`}
+                                  onClick={() => handleModuleSelect(moduleName)}
                                 >
-                                  {subtopic.topic} {subtopic.name} ({subtopic.skills.length})
-                                </button>
-                              ))}
-                            </CollapsibleContent>
-                          </Collapsible>
-                        );
-                      })}
-
-                      {/* Special Topics */}
-                      <Button
-                        variant={selectedTopic === "Special" ? "default" : "ghost"}
-                        className="w-full justify-start text-sm"
-                        onClick={() => handleTopicSelect("Special")}
-                      >
-                        Дополнительные навыки ({mappings.find(m => m.topic === "Special")?.skills.length || 0})
-                      </Button>
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-              {selectedSkill ? (
-                /* Selected Skill Page */
-                <Card className="min-h-[600px] bg-white">
-                  <CardHeader className="border-b">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-6 h-6 text-blue-600" />
-                        <div>
-                          <CardTitle className="text-xl">
-                            Навык {selectedSkill.id}: {selectedSkill.skill}
-                          </CardTitle>
-                          <CardDescription>
-                            Изучение математического навыка
-                          </CardDescription>
-                        </div>
-                      </div>
-                      
-                      {/* Selecter Button */}
-                      <Button
-                        variant={isSelecterActive ? "default" : "outline"}
-                        size="sm"
-                        onClick={toggleSelecter}
-                        className={`flex items-center gap-2 ${
-                          isSelecterActive ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''
-                        }`}
-                      >
-                        <Highlighter className="w-4 h-4" />
-                        Selecter {isSelecterActive ? 'ON' : 'OFF'}
-                      </Button>
-                    </div>
-                    
-                    <div className="flex gap-2 mt-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedSkill(null)}
-                      >
-                        ← Назад к списку
-                      </Button>
-                      
-                      {isSelecterActive && (
-                        <p className="text-sm text-yellow-600 flex items-center gap-1 px-2 py-1 bg-yellow-50 rounded">
-                          <Highlighter className="w-3 h-3" />
-                          Выделите текст для создания заметок
-                        </p>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-8">
-                    {loadingArticle ? (
-                      <div className="text-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Загрузка материала...</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-6">
-                         {(() => {
-                           const article = getArticleForSkill(selectedSkill.id);
-                           if (article && article.art) {
-                             return (
-                               <>
-                                 {/* Article Images */}
-                                 {(article.img1 || article.img2 || article.img3) && (
-                                   <div className="mb-6 space-y-4">
-                                     {article.img1 && (
-                                       <img 
-                                         src={article.img1} 
-                                         alt="Иллюстрация к навыку" 
-                                         className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
-                                       />
-                                     )}
-                                     {article.img2 && (
-                                       <img 
-                                         src={article.img2} 
-                                         alt="Иллюстрация к навыку" 
-                                         className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
-                                       />
-                                     )}
-                                     {article.img3 && (
-                                       <img 
-                                         src={article.img3} 
-                                         alt="Иллюстрация к навыку" 
-                                         className="w-full max-w-2xl mx-auto rounded-lg shadow-sm"
-                                       />
-                                     )}
-                                   </div>
-                                 )}
-                                 
-                                 <div 
-                                   className={`prose max-w-none ${
-                                     isSelecterActive ? 'cursor-text select-text' : ''
-                                   }`}
-                                   style={{ userSelect: isSelecterActive ? 'text' : 'auto' }}
-                                 >
-                                   <MathRenderer text={article.art} />
-                                 </div>
-                                <div className="flex justify-center pt-6 border-t">
-                                  <Button 
-                                    onClick={() => handleGoToExercise(selectedSkill.id)}
-                                    className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-                                  >
-                                    Перейти к упражнениям!
-                                  </Button>
-                                </div>
-                              </>
-                            );
-                          } else {
-                            return (
-                              <div className="text-center py-12">
-                                <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                  Материал готовится
-                                </h3>
-                                <p className="text-gray-600 mb-6">
-                                  Содержимое для навыка "{selectedSkill.skill}" скоро будет добавлено
-                                </p>
-                                <Button 
-                                  onClick={() => handleGoToExercise(selectedSkill.id)}
-                                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-                                >
-                                  Перейти к упражнениям!
+                                  <span className="text-left font-medium">{moduleName}</span>
+                                  {expandedModules.has(moduleName) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                 </Button>
-                              </div>
-                            );
-                          }
-                        })()}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ) : (
-                /* Skills List */
-                <div className="space-y-6">
-                  {/* Show current selection info */}
-                  {selectedTopic !== "all" && (
-                    <div className="mb-6">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                        {selectedTopic === "Special" 
-                          ? "Дополнительные навыки" 
-                          : selectedTopic === "subtopic" && selectedSubtopic
-                          ? (() => {
-                              const subtopic = mappings.find(m => m.topic === selectedSubtopic);
-                              return subtopic ? `${subtopic.topic} ${subtopic.name}` : "Подтема";
-                            })()
-                          : `${selectedTopic}. ${mainTopics[selectedTopic as keyof typeof mainTopics]}`
-                        }
-                      </h2>
-                    </div>
-                  )}
-
-                  {/* Skills List */}
-                  <div className="space-y-4">
-                    {selectedTopic === "subtopic" && selectedSubtopic ? (
-                      // Show selected subtopic skills
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>
-                            {(() => {
-                              const subtopic = mappings.find(m => m.topic === selectedSubtopic);
-                              return subtopic ? `${subtopic.topic} ${subtopic.name}` : "Подтема";
-                            })()}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid gap-2">
-                            {(() => {
-                              const subtopic = mappings.find(m => m.topic === selectedSubtopic);
-                              if (!subtopic) return null;
-                              
-                              const subtopicSkills = filteredSkills.filter(skill => 
-                                subtopic.skills.includes(skill.id)
-                              );
-                              
-                              return subtopicSkills.map((skill) => (
-                                <button
-                                  key={skill.id}
-                                  onClick={() => handleSkillSelect(skill)}
-                                  className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded text-left transition-colors"
-                                >
-                                  <Badge variant="outline" className="text-xs">
-                                    {skill.id}
-                                  </Badge>
-                                  <span className="text-sm">{skill.skill}</span>
-                                </button>
-                              ));
-                            })()}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ) : selectedTopic === "all" ? (
-                      // Show all skills organized by topics
-                      Object.entries(mainTopics).map(([topicNum, topicName]) => {
-                        const subtopics = getSubtopicsForMainTopic(topicNum);
-                        const topicSkills = subtopics.flatMap(subtopic => subtopic.skills);
-                        const displaySkills = filteredSkills.filter(skill => topicSkills.includes(skill.id));
-                        
-                        if (displaySkills.length === 0 && searchTerm) return null;
-
-                        return (
-                          <Card key={topicNum} className="mb-6">
-                            <CardHeader>
-                              <CardTitle className="text-lg">
-                                {topicNum}. {topicName}
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="grid gap-2">
-                                {subtopics.map((subtopic) => {
-                                  const subtopicSkills = filteredSkills.filter(skill => 
-                                    subtopic.skills.includes(skill.id)
-                                  );
-                                  
-                                  if (subtopicSkills.length === 0 && searchTerm) return null;
-
-                                  return (
-                                    <div key={subtopic.topic} className="mb-4">
-                                      <h4 className="font-medium text-sm text-gray-700 mb-2">
-                                        {subtopic.topic} {subtopic.name}
-                                      </h4>
-                                      <div className="grid gap-1 ml-4">
-                                        {subtopicSkills.map((skill) => (
-                                          <button
-                                            key={skill.id}
-                                            onClick={() => handleSkillSelect(skill)}
-                                            className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded text-left transition-colors"
-                                          >
-                                            <Badge variant="outline" className="text-xs">
-                                              {skill.id}
-                                            </Badge>
-                                            <span className="text-sm">{skill.skill}</span>
-                                          </button>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })
-                    ) : selectedTopic === "Special" ? (
-                      // Show special skills
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Дополнительные навыки</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid gap-2">
-                            {mappings
-                              .filter(m => m.topic === "Special")
-                              .flatMap(subtopic => 
-                                filteredSkills.filter(skill => subtopic.skills.includes(skill.id))
-                              )
-                              .map((skill) => (
-                                <button
-                                  key={skill.id}
-                                  onClick={() => handleSkillSelect(skill)}
-                                  className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded text-left transition-colors"
-                                >
-                                  <Badge variant="outline" className="text-xs">
-                                    {skill.id}
-                                  </Badge>
-                                  <span className="text-sm">{skill.skill}</span>
-                                </button>
-                              ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ) : (
-                      // Show selected topic skills
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>
-                            {selectedTopic}. {mainTopics[selectedTopic as keyof typeof mainTopics]}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            {getSubtopicsForMainTopic(selectedTopic).map((subtopic) => {
-                              const subtopicSkills = filteredSkills.filter(skill => 
-                                subtopic.skills.includes(skill.id)
-                              );
-                              
-                              if (subtopicSkills.length === 0 && searchTerm) return null;
-
-                              return (
-                                <div key={subtopic.topic}>
-                                  <h4 className="font-medium text-sm text-gray-700 mb-2">
-                                    {subtopic.topic} {subtopic.name}
-                                  </h4>
-                                  <div className="grid gap-1 ml-4">
-                                    {subtopicSkills.map((skill) => (
-                                      <button
-                                        key={skill.id}
-                                        onClick={() => handleSkillSelect(skill)}
-                                        className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded text-left transition-colors"
+                              </CollapsibleTrigger>
+                              <CollapsibleContent className="pl-4 space-y-1 mt-2">
+                                {Object.entries(module).map(([topicKey, topic]) => (
+                                  <Collapsible key={topicKey} open={expandedTopics.has(topicKey)}>
+                                    <CollapsibleTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className={`w-full justify-between text-sm ${
+                                          selectedTopic === topicKey ? 'bg-primary/10' : ''
+                                        }`}
+                                        onClick={() => handleTopicSelect(topicKey)}
                                       >
-                                        <Badge variant="outline" className="text-xs">
-                                          {skill.id}
-                                        </Badge>
-                                        <span className="text-sm">{skill.skill}</span>
-                                      </button>
-                                    ))}
+                                        <span className="text-left truncate">{topicKey} {topic.name}</span>
+                                        {expandedTopics.has(topicKey) ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                      </Button>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                                      {getFilteredSkills(topic.skills, searchTerm).map((skill) => (
+                                        <Button
+                                          key={skill.number}
+                                          variant="ghost"
+                                          size="sm"
+                                          className={`w-full text-left justify-start text-xs h-auto py-2 ${
+                                            selectedSkill === skill.number ? 'bg-primary/20 text-primary' : ''
+                                          }`}
+                                          onClick={() => handleSkillSelect(skill.number)}
+                                        >
+                                          <BookOpen className="h-3 w-3 mr-2 flex-shrink-0" />
+                                          <span className="truncate">{skill.number}. {skill.name}</span>
+                                        </Button>
+                                      ))}
+                                    </CollapsibleContent>
+                                  </Collapsible>
+                                ))}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="lg:col-span-3">
+                  {selectedSkill && currentArticle ? (
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <BookOpen className="h-5 w-5" />
+                            {selectedSkill}. {getAllSkillsFromStructure().find(s => s.number === selectedSkill)?.name}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {loading ? (
+                            <div className="space-y-4">
+                              <div className="h-4 bg-muted rounded animate-pulse"></div>
+                              <div className="h-4 bg-muted rounded animate-pulse w-3/4"></div>
+                              <div className="h-4 bg-muted rounded animate-pulse w-1/2"></div>
+                            </div>
+                          ) : (
+                            <div>
+                              <ArticleRenderer text={currentArticle.article_text || ''} article={currentArticle} />
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Lightbulb className="h-5 w-5" />
+                            Практические задания
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {loadingMCQ ? (
+                            <div className="space-y-4">
+                              <div className="h-8 bg-muted rounded animate-pulse"></div>
+                              <div className="h-6 bg-muted rounded animate-pulse w-1/2"></div>
+                            </div>
+                          ) : currentMCQs.length > 0 ? (
+                            <div className="space-y-4">
+                              {currentMCQs.map((mcq, index) => (
+                                <div key={mcq.question_id} className="border rounded-lg p-4">
+                                  <h4 className="font-medium mb-3">Задача {index + 1}</h4>
+                                  <p className="mb-4">{mcq.problem_text}</p>
+                                  {mcq.option1 && (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center space-x-2">
+                                        <span className="font-medium">A)</span>
+                                        <span>{mcq.option1}</span>
+                                      </div>
+                                      {mcq.option2 && (
+                                        <div className="flex items-center space-x-2">
+                                          <span className="font-medium">Б)</span>
+                                          <span>{mcq.option2}</span>
+                                        </div>
+                                      )}
+                                      {mcq.option3 && (
+                                        <div className="flex items-center space-x-2">
+                                          <span className="font-medium">В)</span>
+                                          <span>{mcq.option3}</span>
+                                        </div>
+                                      )}
+                                      {mcq.option4 && (
+                                        <div className="flex items-center space-x-2">
+                                          <span className="font-medium">Г)</span>
+                                          <span>{mcq.option4}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  <div className="mt-4 pt-4 border-t">
+                                    <span className="text-sm text-muted-foreground">
+                                      Ответ: <span className="font-medium">{mcq.answer}</span>
+                                    </span>
                                   </div>
                                 </div>
-                              );
-                            })}
-                          </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-8">
+                              <p className="text-muted-foreground">Задания скоро появятся</p>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
-                    )}
-                  </div>
-
-                  {filteredSkills.length === 0 && searchTerm && (
-                    <div className="text-center py-12">
-                      <Book className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Навыки не найдены
-                      </h3>
-                      <p className="text-gray-600">
-                        Попробуйте изменить поисковый запрос
-                      </p>
                     </div>
+                  ) : selectedSkill && !currentArticle && !loading ? (
+                    <Card>
+                      <CardContent className="flex flex-col items-center justify-center py-16">
+                        <Lightbulb className="h-16 w-16 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">Материал в разработке</h3>
+                        <p className="text-muted-foreground text-center">
+                          Материал для этого навыка пока готовится. Скоро здесь появится подробное объяснение!
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card>
+                      <CardContent className="flex flex-col items-center justify-center py-16">
+                        <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">Выберите тему для изучения</h3>
+                        <p className="text-muted-foreground text-center">
+                          Используйте панель слева для навигации по модулям, темам и навыкам, или воспользуйтесь поиском выше
+                        </p>
+                      </CardContent>
+                    </Card>
                   )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
