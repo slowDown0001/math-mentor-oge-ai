@@ -118,7 +118,7 @@ ${studentProgress}
     };
 
     const data = {
-      "model": "google/gemini-2.0-flash-exp",
+      "model": "google/gemini-flash-1.5",
       "messages": [
         {"role": "system", "content": "You are a math tutor."},
         {"role": "user", "content": prompt}
@@ -134,6 +134,8 @@ ${studentProgress}
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`OpenRouter API error: ${response.status} ${response.statusText}`, errorText);
       throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
     }
 
