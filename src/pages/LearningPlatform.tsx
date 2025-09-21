@@ -1,190 +1,225 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Flag, Trophy, Medal, Calculator, BookOpen, Target, TrendingUp, LineChart, MapPin, Shapes, PieChart, Zap } from "lucide-react";
+import { Flag, Trophy, Medal, Calculator, BookOpen, Target, TrendingUp, LineChart, MapPin, Shapes, PieChart, Zap, Star, Info } from "lucide-react";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-interface ModuleNode {
+interface UnitData {
   id: string;
   title: string;
-  type: 'start' | 'module' | 'checkpoint' | 'final';
   icon: React.ReactNode;
-  dueDate: string;
+  exercises: number;
+  quizzes: number;
+  hasTest: boolean;
   isUnlocked: boolean;
-  position: { x: number; y: number };
+  completedExercises: number;
+  completedQuizzes: number;
+  testCompleted: boolean;
 }
 
 const LearningPlatform = () => {
-  // Calculate dates from today to May 29, 2026
-  const startDate = new Date();
-  const endDate = new Date('2026-05-29');
-  const totalDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  
-  const formatDate = (daysFromNow: number) => {
-    const date = new Date();
-    date.setDate(date.getDate() + daysFromNow);
-    return date.toLocaleDateString('ru-RU', { 
-      day: 'numeric', 
-      month: 'long'
-    });
-  };
-
-  const modules: ModuleNode[] = [
+  const units: UnitData[] = [
     {
-      id: 'start',
-      title: 'Старт',
-      type: 'start',
-      icon: <Flag className="h-5 w-5" />,
-      dueDate: formatDate(0),
-      isUnlocked: true,
-      position: { x: 15, y: 15 }
-    },
-    {
-      id: 'module-1',
+      id: 'unit-1',
       title: 'Числа и вычисления',
-      type: 'module',
       icon: <Calculator className="h-5 w-5" />,
-      dueDate: formatDate(Math.floor(totalDays * 0.1)),
+      exercises: 8,
+      quizzes: 2,
+      hasTest: true,
       isUnlocked: true,
-      position: { x: 25, y: 15 }
+      completedExercises: 3,
+      completedQuizzes: 1,
+      testCompleted: false
     },
     {
-      id: 'module-2',
+      id: 'unit-2',
       title: 'Алгебраические выражения',
-      type: 'module',
       icon: <BookOpen className="h-5 w-5" />,
-      dueDate: formatDate(Math.floor(totalDays * 0.2)),
+      exercises: 6,
+      quizzes: 1,
+      hasTest: true,
       isUnlocked: true,
-      position: { x: 35, y: 15 }
+      completedExercises: 0,
+      completedQuizzes: 0,
+      testCompleted: false
     },
     {
-      id: 'module-3',
+      id: 'unit-3',
       title: 'Уравнения и неравенства',
-      type: 'module',
       icon: <Target className="h-5 w-5" />,
-      dueDate: formatDate(Math.floor(totalDays * 0.3)),
-      isUnlocked: true,
-      position: { x: 45, y: 15 }
+      exercises: 9,
+      quizzes: 2,
+      hasTest: true,
+      isUnlocked: false,
+      completedExercises: 0,
+      completedQuizzes: 0,
+      testCompleted: false
     },
     {
-      id: 'checkpoint-1',
-      title: 'ОГЭ Симуляция',
-      type: 'checkpoint',
-      icon: <Medal className="h-5 w-5" />,
-      dueDate: formatDate(Math.floor(totalDays * 0.35)),
-      isUnlocked: true,
-      position: { x: 55, y: 15 }
-    },
-    {
-      id: 'module-4',
+      id: 'unit-4',
       title: 'Числовые последовательности',
-      type: 'module',
       icon: <TrendingUp className="h-5 w-5" />,
-      dueDate: formatDate(Math.floor(totalDays * 0.4)),
-      isUnlocked: true,
-      position: { x: 65, y: 15 }
+      exercises: 5,
+      quizzes: 1,
+      hasTest: true,
+      isUnlocked: false,
+      completedExercises: 0,
+      completedQuizzes: 0,
+      testCompleted: false
     },
     {
-      id: 'module-5',
+      id: 'unit-5',
       title: 'Функции',
-      type: 'module',
       icon: <LineChart className="h-5 w-5" />,
-      dueDate: formatDate(Math.floor(totalDays * 0.5)),
-      isUnlocked: true,
-      position: { x: 15, y: 35 }
+      exercises: 7,
+      quizzes: 2,
+      hasTest: true,
+      isUnlocked: false,
+      completedExercises: 0,
+      completedQuizzes: 0,
+      testCompleted: false
     },
     {
-      id: 'module-6',
+      id: 'unit-6',
       title: 'Координаты на прямой и плоскости',
-      type: 'module',
       icon: <MapPin className="h-5 w-5" />,
-      dueDate: formatDate(Math.floor(totalDays * 0.6)),
-      isUnlocked: true,
-      position: { x: 25, y: 35 }
+      exercises: 6,
+      quizzes: 1,
+      hasTest: true,
+      isUnlocked: false,
+      completedExercises: 0,
+      completedQuizzes: 0,
+      testCompleted: false
     },
     {
-      id: 'checkpoint-2',
-      title: 'ОГЭ Симуляция',
-      type: 'checkpoint',
-      icon: <Medal className="h-5 w-5" />,
-      dueDate: formatDate(Math.floor(totalDays * 0.65)),
-      isUnlocked: true,
-      position: { x: 35, y: 35 }
-    },
-    {
-      id: 'module-7',
+      id: 'unit-7',
       title: 'Геометрия',
-      type: 'module',
       icon: <Shapes className="h-5 w-5" />,
-      dueDate: formatDate(Math.floor(totalDays * 0.7)),
-      isUnlocked: true,
-      position: { x: 45, y: 35 }
+      exercises: 10,
+      quizzes: 3,
+      hasTest: true,
+      isUnlocked: false,
+      completedExercises: 0,
+      completedQuizzes: 0,
+      testCompleted: false
     },
     {
-      id: 'module-8',
+      id: 'unit-8',
       title: 'Вероятность и статистика',
-      type: 'module',
       icon: <PieChart className="h-5 w-5" />,
-      dueDate: formatDate(Math.floor(totalDays * 0.8)),
+      exercises: 5,
+      quizzes: 1,
+      hasTest: true,
       isUnlocked: false,
-      position: { x: 55, y: 35 }
+      completedExercises: 0,
+      completedQuizzes: 0,
+      testCompleted: false
     },
     {
-      id: 'module-9',
+      id: 'unit-9',
       title: 'Применение математики к прикладным задачам',
-      type: 'module',
       icon: <Zap className="h-5 w-5" />,
-      dueDate: formatDate(Math.floor(totalDays * 0.9)),
+      exercises: 4,
+      quizzes: 1,
+      hasTest: true,
       isUnlocked: false,
-      position: { x: 65, y: 35 }
-    },
-    {
-      id: 'final',
-      title: 'Ты готов к ОГЭ!',
-      type: 'final',
-      icon: <Trophy className="h-5 w-5" />,
-      dueDate: '29 мая 2026',
-      isUnlocked: false,
-      position: { x: 35, y: 55 }
+      completedExercises: 0,
+      completedQuizzes: 0,
+      testCompleted: false
     }
   ];
 
-  const getNodeColor = (node: ModuleNode, isHovered: boolean) => {
-    if (node.type === 'start') return 'from-green-400 to-green-600';
-    if (node.type === 'final') return 'from-purple-400 to-purple-600';
-    if (node.type === 'checkpoint') return 'from-orange-400 to-orange-600';
-    if (node.isUnlocked) return 'from-blue-400 to-blue-600';
-    return 'from-gray-300 to-gray-500';
-  };
+  const renderProgressSquare = (completed: boolean, index: number) => (
+    <div
+      key={index}
+      className={`w-6 h-6 border-2 rounded ${
+        completed 
+          ? 'bg-green-500 border-green-500' 
+          : 'bg-white border-gray-300'
+      }`}
+    />
+  );
 
-  const PathLine = ({ from, to }: { from: ModuleNode; to: ModuleNode }) => {
-    const x1 = from.position.x;
-    const y1 = from.position.y;
-    const x2 = to.position.x;
-    const y2 = to.position.y;
-    
-    // Create control points for smooth curves
-    const controlX1 = x1 + (x2 - x1) * 0.3;
-    const controlY1 = y1;
-    const controlX2 = x1 + (x2 - x1) * 0.7;
-    const controlY2 = y2;
-    
-    const path = `M ${x1} ${y1} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${x2} ${y2}`;
-    
-    return (
-      <path
-        d={path}
-        stroke="url(#pathGradient)"
-        strokeWidth="4"
-        strokeDasharray="8,4"
-        fill="none"
-        className="opacity-70"
-      />
-    );
-  };
+  const renderQuizIcon = (completed: boolean, index: number) => (
+    <Zap
+      key={`quiz-${index}`}
+      className={`h-5 w-5 ${
+        completed ? 'text-blue-600' : 'text-gray-400'
+      }`}
+    />
+  );
+
+  const renderTestIcon = (completed: boolean) => (
+    <Star
+      className={`h-5 w-5 ${
+        completed ? 'text-yellow-600' : 'text-gray-400'
+      }`}
+    />
+  );
+
+  const UnitRow = ({ unit, index }: { unit: UnitData; index: number }) => (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.1 }}
+      className={`
+        p-4 rounded-lg border mb-3 cursor-pointer transition-all duration-200
+        ${unit.isUnlocked ? 'bg-white hover:bg-blue-50 border-gray-200' : 'bg-gray-50 border-gray-300'}
+        ${unit.id === 'unit-1' && unit.isUnlocked ? 'hover:shadow-md' : ''}
+      `}
+      onClick={() => {
+        if (unit.id === 'unit-1' && unit.isUnlocked) {
+          window.location.href = '/module/numbers-calculations';
+        }
+      }}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className={`
+            p-2 rounded-full
+            ${unit.isUnlocked ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-500'}
+          `}>
+            {unit.icon}
+          </div>
+          <div>
+            <h3 className={`font-semibold text-sm ${
+              unit.isUnlocked ? 'text-gray-800' : 'text-gray-500'
+            }`}>
+              Unit {index + 1}
+            </h3>
+            <p className={`text-xs ${
+              unit.isUnlocked ? 'text-gray-600' : 'text-gray-400'
+            }`}>
+              {unit.title}
+            </p>
+          </div>
+        </div>
+        {unit.id === 'unit-1' && (
+          <div className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded">
+            UP NEXT FOR YOU!
+          </div>
+        )}
+      </div>
+      
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Exercises */}
+        {Array.from({ length: unit.exercises }, (_, i) => 
+          renderProgressSquare(i < unit.completedExercises, i)
+        )}
+        
+        {/* Quizzes */}
+        {Array.from({ length: unit.quizzes }, (_, i) => 
+          renderQuizIcon(i < unit.completedQuizzes, i)
+        )}
+        
+        {/* Unit Test */}
+        {unit.hasTest && renderTestIcon(unit.testCompleted)}
+      </div>
+    </motion.div>
+  );
 
   return (
     <TooltipProvider>
-      <div className="h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 relative overflow-hidden flex flex-col">
+      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 relative overflow-hidden">
         {/* Fun Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-200 rounded-full opacity-30 animate-pulse"></div>
@@ -218,137 +253,103 @@ const LearningPlatform = () => {
           <div className="absolute bottom-1/6 left-2/3 text-5xl text-green-200 opacity-17 -rotate-20">∝</div>
         </div>
         
-        <div className="container mx-auto px-4 py-4 flex flex-col h-full">
+        <div className="container mx-auto px-4 py-6 relative z-10">
+          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-4"
+            className="mb-6"
           >
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Твой путь к успеху в ОГЭ
-            </h1>
-            <p className="text-base text-gray-600 mb-4">
-              Игровая карта обучения • Следуй по пути и достигай целей
-            </p>
-            <motion.a
-              href="/textbook"
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <BookOpen className="h-5 w-5 mr-2" />
-              READ AS A BOOK
-            </motion.a>
-          </motion.div>
-
-          {/* Course Map */}
-          <div className="relative w-full flex-1 mx-auto max-w-5xl">
-            <svg
-              className="absolute inset-0 w-full h-full"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="xMidYMid meet"
-            >
-              {/* Gradient Definition for Path */}
-              <defs>
-                <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#3B82F6" />
-                  <stop offset="50%" stopColor="#8B5CF6" />
-                  <stop offset="100%" stopColor="#EC4899" />
-                </linearGradient>
-              </defs>
-              
-              {/* No connecting paths - straight line layout */}
-            </svg>
-
-            {/* Module Nodes */}
-            {modules.map((module, index) => (
-              <Tooltip key={module.id}>
-                <TooltipTrigger asChild>
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ 
-                      scale: 1.2, 
-                      y: -5,
-                      boxShadow: "0 20px 40px rgba(0,0,0,0.1)"
-                    }}
-                    className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer"
-                    style={{
-                      left: `${module.position.x}%`,
-                      top: `${module.position.y}%`,
-                    }}
-                    onClick={() => {
-                      if (module.id === 'module-1' && module.isUnlocked) {
-                        window.location.href = '/module/numbers-calculations';
-                      }
-                    }}
-                  >
-                    <div
-                      className={`
-                        w-14 h-14 rounded-full bg-gradient-to-br ${getNodeColor(module, false)}
-                        flex items-center justify-center text-white shadow-lg
-                        border-3 border-white
-                        ${module.isUnlocked ? 'hover:shadow-xl' : 'opacity-70'}
-                        transition-all duration-300
-                      `}
-                    >
-                      {module.icon}
-                    </div>
-                    
-                    {/* Module Title and Date */}
-                    <div className="absolute top-16 left-1/2 transform -translate-x-1/2 text-center min-w-max pointer-events-none">
-                      <div className="bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 shadow-md border border-gray-200">
-                        <p className="text-xs font-semibold text-gray-800 leading-tight">
-                          {module.title}
-                        </p>
-                        <p className="text-[10px] text-gray-500">
-                          до {module.dueDate}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-3xl font-bold text-gray-800">
+                ОГЭ Математика 2025
+              </h1>
+              <motion.a
+                href="/textbook"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <BookOpen className="h-5 w-5 mr-2" />
+                Читать как книгу
+              </motion.a>
+            </div>
+            
+            <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+              <span className="font-medium">11,300 возможных баллов мастерства</span>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-gray-400" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <div className="text-center">
-                    <p className="font-semibold">{module.title}</p>
-                    <p className="text-sm text-gray-600">Срок: {module.dueDate}</p>
-                    <p className="text-xs text-gray-500">
-                      {module.isUnlocked ? 'Доступен сейчас' : 'Скоро откроется'}
-                    </p>
-                  </div>
+                  <p>Общее количество баллов за все задания курса</p>
                 </TooltipContent>
               </Tooltip>
+            </div>
+
+            {/* Legend */}
+            <div className="flex flex-wrap items-center gap-6 text-xs text-gray-600 bg-white/80 backdrop-blur-sm rounded-lg p-3 border">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-purple-600 rounded"></div>
+                <span>Освоено</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-blue-400 rounded"></div>
+                <span>Знакомо</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-orange-400 rounded"></div>
+                <span>Изучено</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-400 rounded"></div>
+                <span>Пробовал</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-gray-300 bg-white rounded"></div>
+                <span>Не начато</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-blue-600" />
+                <span>Тест</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-yellow-600" />
+                <span>Экзамен</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Units Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-6xl">
+            {units.map((unit, index) => (
+              <UnitRow key={unit.id} unit={unit} index={index} />
             ))}
           </div>
 
-          {/* Progress Summary */}
+          {/* Course Challenge Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="mt-4 text-center"
+            className="mt-8 bg-white rounded-lg p-6 shadow-lg max-w-md"
           >
-            <div className="bg-white rounded-xl p-4 shadow-lg max-w-sm mx-auto">
-              <h3 className="text-lg font-bold text-gray-800 mb-3">
-                Твой прогресс
+            <div className="flex items-center gap-3 mb-3">
+              <Trophy className="h-6 w-6 text-purple-600" />
+              <h3 className="text-lg font-bold text-gray-800">
+                ИТОГОВЫЙ ВЫЗОВ
               </h3>
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-gray-600 text-sm">Модулей завершено:</span>
-                <span className="font-bold text-blue-600">1 / 9</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: "22%" }}
-                  transition={{ delay: 1, duration: 1 }}
-                  className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full"
-                />
-              </div>
-              <p className="text-xs text-gray-600">
-                Продолжай в том же духе! 🎯
-              </p>
             </div>
+            <p className="text-gray-600 text-sm mb-4">
+              Проверь свои знания навыков этого курса.
+            </p>
+            <motion.button
+              className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-purple-700 transition-all duration-300"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Начать итоговый вызов
+            </motion.button>
           </motion.div>
         </div>
       </div>
