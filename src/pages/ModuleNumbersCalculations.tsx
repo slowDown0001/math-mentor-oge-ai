@@ -368,7 +368,7 @@ const ModuleNumbersCalculations = () => {
   orderedContent.push({ type: 'quiz', content: { id: 'module-test', title: 'Итоговый тест модуля', description: 'Проверьте свои знания по всему модулю "Числа и вычисления"' }, index: 2 });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-indigo-950">
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 relative overflow-hidden">
       {/* Video Player Modal */}
       {selectedVideo && (
         <VideoPlayerWithChat 
