@@ -105,7 +105,7 @@ const ModuleNumbersCalculations = () => {
                 <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full">
                   <BookOpen className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 </div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Статья</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Обзор</span>
               </div>
               <span className="text-sm text-gray-500 dark:text-gray-400">Не начато</span>
             </div>
