@@ -385,16 +385,18 @@ const DigitalTextbook = () => {
             <SheetTitle>Ёжик помогает</SheetTitle>
           </SheetHeader>
           
-          <div className="flex-1 flex flex-col mt-4">
+          <div className="flex-1 flex flex-col mt-4 min-h-0">
             {/* Chat Messages Area - Scrollable */}
-            <div className="flex-1 overflow-hidden">
-              <CourseChatMessages 
-                messages={messages} 
-                isTyping={isTyping} 
-                onLoadMoreHistory={() => {}}
-                isLoadingHistory={false}
-                hasMoreHistory={false}
-              />
+            <div className="flex-1 overflow-hidden min-h-0">
+              <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
+                <CourseChatMessages 
+                  messages={messages} 
+                  isTyping={isTyping} 
+                  onLoadMoreHistory={() => {}}
+                  isLoadingHistory={false}
+                  hasMoreHistory={false}
+                />
+              </div>
             </div>
 
             {/* Chat Input Area - Fixed at bottom */}
