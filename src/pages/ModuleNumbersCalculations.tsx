@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Play, BookOpen, Target } from "lucide-react";
+import { ArrowLeft, Play, BookOpen, Target, Crown, Zap, Star, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -204,11 +204,92 @@ const ModuleNumbersCalculations = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Числа и вычисления
+              Модуль 1: Числа и вычисления
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Модуль 1 • 5 тем • 10 видео • 5 статей • 12 упражнений
+              5 тем • 10 видео • 5 статей • 12 упражнений
             </p>
+          </div>
+        </motion.div>
+
+        {/* Module Statistics */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-6 mb-8 border border-white/20 dark:border-gray-700/20 shadow-lg"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">1,200 возможных баллов мастерства</span>
+            <Info className="h-4 w-4 text-gray-500" />
+          </div>
+          
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Навыки: Арифметика, Базовые операции, Числовые системы, Вычисления, Округление
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-4 mb-6">
+            <div className="flex items-center gap-2">
+              <Crown className="h-4 w-4 text-purple-700" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Освоено</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-purple-500 rounded"></div>
+              <span className="text-sm text-gray-700 dark:text-gray-300">Владею</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-orange-500 rounded"></div>
+              <span className="text-sm text-gray-700 dark:text-gray-300">Знаком</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-orange-400 rounded"></div>
+              <span className="text-sm text-gray-700 dark:text-gray-300">Попытался</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-gray-300 rounded bg-white"></div>
+              <span className="text-sm text-gray-700 dark:text-gray-300">Не начато</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-blue-600" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Тест</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-yellow-600" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Итоговый тест</span>
+            </div>
+          </div>
+
+          {/* Progress Grid */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Topic 1 progress */}
+            <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center">
+              <div className="w-4 h-4 bg-white rounded"></div>
+            </div>
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            
+            {/* Quiz 1 */}
+            <Zap className="h-6 w-6 text-blue-600 mx-1" />
+            
+            {/* Topic 2 progress */}
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            
+            {/* Quiz 2 */}
+            <Zap className="h-6 w-6 text-blue-600 mx-1" />
+            
+            {/* Topic 3 progress */}
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            
+            {/* Final test */}
+            <Star className="h-6 w-6 text-yellow-600 mx-1" />
           </div>
         </motion.div>
 
