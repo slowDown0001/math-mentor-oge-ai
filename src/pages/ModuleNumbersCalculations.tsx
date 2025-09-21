@@ -227,7 +227,7 @@ const ModuleNumbersCalculations = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-6 mb-8 border border-white/20 dark:border-gray-700/20 shadow-lg"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-6 mb-8 border border-white/20 dark:border-gray-700/20 shadow-lg max-w-4xl mx-auto"
         >
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">1,200 возможных баллов мастерства</span>
