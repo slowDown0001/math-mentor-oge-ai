@@ -23,6 +23,7 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const lastMessageCountRef = useRef(messages.length);
   const [tutorAvatar, setTutorAvatar] = useState<string>('');
+  const lastUserMessageRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
   // Fetch tutor avatar from profiles table
@@ -53,6 +54,20 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
     fetchTutorAvatar();
   }, [user]);
 
+  
+  const scrollToUserMessage = (smooth = true) => {
+    // Find the last user message
+    const userMessages = messages.filter(msg => msg.isUser);
+    if (userMessages.length === 0) return;
+    
+    if (lastUserMessageRef.current) {
+      lastUserMessageRef.current.scrollIntoView({ 
+        behavior: smooth ? "smooth" : "auto",
+        block: "start" // Position at the top of the visible area
+      });
+    }
+  };
+
   const scrollToBottom = (smooth = true) => {
     messagesEndRef.current?.scrollIntoView({ 
       behavior: smooth ? "smooth" : "auto" 
@@ -60,7 +75,7 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
   };
 
   const handleScrollToBottomClick = () => {
-    scrollToBottom();
+    scrollToUserMessage();
   };
 
   const isNearBottom = () => {
@@ -100,8 +115,13 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
         kaTeXManager.renderMath(msg as HTMLElement);
       });
       
-      // Scroll to bottom for new messages or typing indicator
-      if (hasNewMessage || isTyping) {
+      // Scroll to show user's last message at top for new messages
+      if (hasNewMessage) {
+        setTimeout(() => {
+          scrollToUserMessage();
+        }, 50);
+      } else if (isTyping) {
+        // For typing indicator, scroll to bottom
         setTimeout(() => {
           scrollToBottom();
         }, 50);
@@ -109,11 +129,11 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
     }
   }, [messages, isTyping, shouldAutoScroll]);
 
-  // Initial scroll to bottom when component mounts
+  // Initial scroll when component mounts
   useEffect(() => {
     if (messages.length > 0 && !isUserScrolledUp) {
       setTimeout(() => {
-        scrollToBottom(false); // Instant scroll on initial load
+        scrollToUserMessage(false); // Instant scroll on initial load to user's last message
       }, 100);
     }
   }, []);
@@ -123,7 +143,7 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
       <div 
         ref={containerRef}
         onScroll={handleScroll}
-        className="h-full overflow-y-auto p-4 space-y-4 scroll-smooth"
+        className="h-full overflow-y-auto overflow-x-hidden p-4 space-y-4 scroll-smooth scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400"
         style={{ fontFamily: 'Inter, Poppins, Montserrat, sans-serif' }}
       >
         {/* Load more history button */}
@@ -148,9 +168,19 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
             Начните беседу...
           </div>
         ) : (
-          messages.map((message) => (
-            <CourseChatMessage key={message.id} message={message} />
-          ))
+          messages.map((message, index) => {
+            const isLastUserMessage = message.isUser && 
+              messages.slice(index + 1).every(msg => !msg.isUser);
+            
+            return (
+              <div 
+                key={message.id} 
+                ref={isLastUserMessage ? lastUserMessageRef : null}
+              >
+                <CourseChatMessage message={message} />
+              </div>
+            );
+          })
         )}
         
         {isTyping && (
@@ -179,7 +209,7 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
                      hover:from-blue-400 hover:to-purple-500 text-white rounded-full shadow-lg 
                      transform transition-all duration-300 ease-in-out hover:scale-105 
                      hover:shadow-xl hover:shadow-blue-500/30 animate-fade-in z-10"
-          aria-label="Scroll to latest message"
+          aria-label="Scroll to user's last message"
         >
           <ChevronDown className="w-5 h-5 mx-auto" />
         </button>
