@@ -58,6 +58,14 @@ const EgemathbasicPractice = lazy(() => import("./pages/EgemathbasicPractice"));
 const NewPracticeSkills = lazy(() => import("./pages/NewPracticeSkills"));
 const LearningPlatform = lazy(() => import("./pages/LearningPlatform"));
 const ModuleNumbersCalculations = lazy(() => import("./pages/ModuleNumbersCalculations"));
+const ModuleAlgebraicExpressions = lazy(() => import("./pages/ModuleAlgebraicExpressions"));
+const ModuleEquationsInequalities = lazy(() => import("./pages/ModuleEquationsInequalities"));
+const ModuleSequences = lazy(() => import("./pages/ModuleSequences"));
+const ModuleFunctions = lazy(() => import("./pages/ModuleFunctions"));
+const ModuleCoordinates = lazy(() => import("./pages/ModuleCoordinates"));
+const ModuleGeometry = lazy(() => import("./pages/ModuleGeometry"));
+const ModuleProbabilityStatistics = lazy(() => import("./pages/ModuleProbabilityStatistics"));
+const ModuleAppliedMath = lazy(() => import("./pages/ModuleAppliedMath"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const MyDb3 = lazy(() => import("./pages/MyDb3"));
 
