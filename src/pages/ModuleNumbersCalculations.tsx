@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Play, BookOpen, Target, Crown, Zap, Star, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
 
 interface TopicContent {
   id: string;
@@ -10,6 +11,11 @@ interface TopicContent {
   videos: number;
   articles: number;
   exercises: number;
+  videoData?: Array<{
+    videoId: string;
+    title: string;
+    description: string;
+  }>;
 }
 
 interface QuizContent {
@@ -20,13 +26,27 @@ interface QuizContent {
 
 const ModuleNumbersCalculations = () => {
   const navigate = useNavigate();
+  const [selectedVideo, setSelectedVideo] = useState<{videoId: string; title: string; description: string} | null>(null);
+  
   const topics: TopicContent[] = [
     {
       id: "natural-integers",
       title: "Натуральные и целые числа",
       videos: 2,
       articles: 1,
-      exercises: 2
+      exercises: 2,
+      videoData: [
+        {
+          videoId: "QUGmwPwtbpg",
+          title: "Натуральные и целые числа - Видео 1",
+          description: "Изучение основ натуральных и целых чисел"
+        },
+        {
+          videoId: "fjdeo6anRY4",
+          title: "Натуральные и целые числа - Видео 2", 
+          description: "Продолжение изучения натуральных и целых чисел"
+        }
+      ]
     },
     {
       id: "fractions-percentages",
@@ -91,14 +111,24 @@ const ModuleNumbersCalculations = () => {
           <div className="space-y-3">
             {/* Videos */}
             {Array.from({ length: topic.videos }, (_, i) => (
-              <div key={`video-${i}`} className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-blue-200/30 dark:border-blue-800/30">
+              <div 
+                key={`video-${i}`} 
+                className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-blue-200/30 dark:border-blue-800/30 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer transition-colors"
+                onClick={() => {
+                  if (topic.videoData && topic.videoData[i]) {
+                    setSelectedVideo(topic.videoData[i]);
+                  }
+                }}
+              >
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
                     <Play className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Видео {i + 1}</span>
                 </div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">Не начато</span>
+                <span className="text-sm text-blue-600 dark:text-blue-400">
+                  {topic.videoData && topic.videoData[i] ? "Доступно" : "Не начато"}
+                </span>
               </div>
             ))}
             
@@ -213,6 +243,14 @@ const ModuleNumbersCalculations = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-indigo-950">
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayerWithChat 
+          video={selectedVideo} 
+          onClose={() => setSelectedVideo(null)} 
+        />
+      )}
+      
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
