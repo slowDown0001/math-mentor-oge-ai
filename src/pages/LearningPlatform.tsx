@@ -285,6 +285,11 @@ const LearningPlatform = () => {
                       left: `${module.position.x}%`,
                       top: `${module.position.y}%`,
                     }}
+                    onClick={() => {
+                      if (module.id === 'module-1' && module.isUnlocked) {
+                        window.location.href = '/module/numbers-calculations';
+                      }
+                    }}
                   >
                     <div
                       className={`
