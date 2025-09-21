@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb } from 'lucide-react';
+import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import newSyllabusData from '../data/newSyllabusStructure.json';
 import ArticleRenderer from '../components/ArticleRenderer';
+import SkillPracticeQuiz from '../components/SkillPracticeQuiz';
 
 interface Skill {
   number: number;
@@ -133,6 +134,7 @@ const DigitalTextbook = () => {
   const [isLoadingResponse, setIsLoadingResponse] = useState(false);
   const [searchParams] = useSearchParams();
   const [missingMCQs, setMissingMCQs] = useState<number[]>([]);
+  const [showPractice, setShowPractice] = useState(false);
 
   useEffect(() => {
     const skillParam = searchParams.get('skill');
@@ -235,6 +237,78 @@ const DigitalTextbook = () => {
 
   const handleSendChatMessage = async (userInput: string) => {
     // Chat functionality implementation
+  };
+
+  const handleBackToSyllabus = () => {
+    setSelectedModule(null);
+    setSelectedTopic(null);
+    setSelectedSkill(null);
+    setCurrentArticle(null);
+    setCurrentMCQs([]);
+    setShowPractice(false);
+  };
+
+  const handleBackToTopic = () => {
+    setSelectedSkill(null);
+    setCurrentArticle(null);
+    setCurrentMCQs([]);
+    setShowPractice(false);
+  };
+
+  const handleStartPractice = () => {
+    setShowPractice(true);
+  };
+
+  const handleBackToArticle = () => {
+    setShowPractice(false);
+  };
+
+  const renderFullSyllabus = () => {
+    const syllabusData = newSyllabusData as SyllabusStructure;
+    
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Программа ОГЭ по математике</h2>
+          <p className="text-lg text-gray-600">Выберите любой навык для изучения</p>
+        </div>
+        
+        <div className="grid gap-6">
+          {Object.entries(syllabusData).map(([moduleName, module]) => (
+            <Card key={moduleName} className="overflow-hidden">
+              <CardHeader className="bg-primary/5">
+                <CardTitle className="text-xl text-primary">{moduleName}</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid gap-4">
+                  {Object.entries(module).map(([topicKey, topic]) => (
+                    <div key={topicKey} className="border rounded-lg p-4">
+                      <h4 className="font-semibold text-lg mb-3 text-gray-800">
+                        {topicKey} {topic.name}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {getFilteredSkills(topic.skills, searchTerm).map((skill) => (
+                          <Button
+                            key={skill.number}
+                            variant="outline"
+                            size="sm"
+                            className="justify-start text-left h-auto py-2 hover:bg-primary/10"
+                            onClick={() => handleSkillSelect(skill.number)}
+                          >
+                            <BookOpen className="h-3 w-3 mr-2 flex-shrink-0" />
+                            <span className="text-xs">{skill.number}. {skill.name}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   useEffect(() => {
@@ -372,13 +446,33 @@ const DigitalTextbook = () => {
                 </div>
 
                 <div className="lg:col-span-3">
-                  {selectedSkill && currentArticle ? (
+                  {showPractice && selectedSkill ? (
+                    <SkillPracticeQuiz
+                      skill={{
+                        id: selectedSkill,
+                        title: getAllSkillsFromStructure().find(s => s.number === selectedSkill)?.name || ''
+                      }}
+                      onBackToArticle={handleBackToArticle}
+                    />
+                  ) : selectedSkill && currentArticle ? (
                     <div className="space-y-6">
                       <Card>
                         <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <BookOpen className="h-5 w-5" />
-                            {selectedSkill}. {getAllSkillsFromStructure().find(s => s.number === selectedSkill)?.name}
+                          <CardTitle className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <BookOpen className="h-5 w-5" />
+                              {selectedSkill}. {getAllSkillsFromStructure().find(s => s.number === selectedSkill)?.name}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" onClick={handleBackToTopic}>
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                К теме
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={handleBackToSyllabus}>
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                К программе
+                              </Button>
+                            </div>
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -398,67 +492,13 @@ const DigitalTextbook = () => {
                                   ...currentArticle
                                 }} 
                               />
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Lightbulb className="h-5 w-5" />
-                            Практические задания
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {loadingMCQ ? (
-                            <div className="space-y-4">
-                              <div className="h-8 bg-muted rounded animate-pulse"></div>
-                              <div className="h-6 bg-muted rounded animate-pulse w-1/2"></div>
-                            </div>
-                          ) : currentMCQs.length > 0 ? (
-                            <div className="space-y-4">
-                              {currentMCQs.map((mcq, index) => (
-                                <div key={mcq.question_id} className="border rounded-lg p-4">
-                                  <h4 className="font-medium mb-3">Задача {index + 1}</h4>
-                                  <p className="mb-4">{mcq.problem_text}</p>
-                                  {mcq.option1 && (
-                                    <div className="space-y-2">
-                                      <div className="flex items-center space-x-2">
-                                        <span className="font-medium">A)</span>
-                                        <span>{mcq.option1}</span>
-                                      </div>
-                                      {mcq.option2 && (
-                                        <div className="flex items-center space-x-2">
-                                          <span className="font-medium">Б)</span>
-                                          <span>{mcq.option2}</span>
-                                        </div>
-                                      )}
-                                      {mcq.option3 && (
-                                        <div className="flex items-center space-x-2">
-                                          <span className="font-medium">В)</span>
-                                          <span>{mcq.option3}</span>
-                                        </div>
-                                      )}
-                                      {mcq.option4 && (
-                                        <div className="flex items-center space-x-2">
-                                          <span className="font-medium">Г)</span>
-                                          <span>{mcq.option4}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                  <div className="mt-4 pt-4 border-t">
-                                    <span className="text-sm text-muted-foreground">
-                                      Ответ: <span className="font-medium">{mcq.answer}</span>
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="text-center py-8">
-                              <p className="text-muted-foreground">Задания скоро появятся</p>
+                              
+                              <div className="mt-6 pt-6 border-t">
+                                <Button onClick={handleStartPractice} className="w-full" size="lg">
+                                  <Play className="h-5 w-5 mr-2" />
+                                  Тренировать навык
+                                </Button>
+                              </div>
                             </div>
                           )}
                         </CardContent>
@@ -472,18 +512,20 @@ const DigitalTextbook = () => {
                         <p className="text-muted-foreground text-center">
                           Материал для этого навыка пока готовится. Скоро здесь появится подробное объяснение!
                         </p>
+                        <div className="mt-4 flex gap-2">
+                          <Button variant="outline" size="sm" onClick={handleBackToTopic}>
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            К теме
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={handleBackToSyllabus}>
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            К программе
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ) : (
-                    <Card>
-                      <CardContent className="flex flex-col items-center justify-center py-16">
-                        <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">Выберите тему для изучения</h3>
-                        <p className="text-muted-foreground text-center">
-                          Используйте панель слева для навигации по модулям, темам и навыкам, или воспользуйтесь поиском выше
-                        </p>
-                      </CardContent>
-                    </Card>
+                    renderFullSyllabus()
                   )}
                 </div>
               </div>
