@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Play, BookOpen, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface TopicContent {
   id: string;
@@ -18,6 +19,7 @@ interface QuizContent {
 }
 
 const ModuleNumbersCalculations = () => {
+  const navigate = useNavigate();
   const topics: TopicContent[] = [
     {
       id: "natural-integers",
@@ -194,7 +196,7 @@ const ModuleNumbersCalculations = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => window.history.back()}
+            onClick={() => navigate('/learning-platform')}
             className="mr-4 hover:bg-white/20 dark:hover:bg-gray-800/20"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
