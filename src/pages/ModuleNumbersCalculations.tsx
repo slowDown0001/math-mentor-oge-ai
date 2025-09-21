@@ -79,54 +79,64 @@ const ModuleNumbersCalculations = () => {
       transition={{ delay: index * 0.05 }}
       className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg p-6 mb-4 border border-blue-200/50 dark:border-blue-800/50"
     >
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">{topic.title}</h3>
-        
-        {/* Videos */}
-        <div className="space-y-3">
-          {Array.from({ length: topic.videos }, (_, i) => (
-            <div key={`video-${i}`} className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-blue-200/30 dark:border-blue-800/30">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
-                  <Play className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+      <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6">{topic.title}</h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left Column - Learn (Videos and Articles) */}
+        <div>
+          <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3 uppercase tracking-wide">Learn</h4>
+          <div className="space-y-3">
+            {/* Videos */}
+            {Array.from({ length: topic.videos }, (_, i) => (
+              <div key={`video-${i}`} className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-blue-200/30 dark:border-blue-800/30">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
+                    <Play className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Видео {i + 1}</span>
                 </div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Видео {i + 1}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Не начато</span>
+              </div>
+            ))}
+            
+            {/* Article */}
+            <div className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-purple-200/30 dark:border-purple-800/30">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full">
+                  <BookOpen className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                </div>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Статья</span>
               </div>
               <span className="text-sm text-gray-500 dark:text-gray-400">Не начато</span>
             </div>
-          ))}
-          
-          {/* Article */}
-          <div className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-purple-200/30 dark:border-purple-800/30">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full">
-                <BookOpen className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-              </div>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Статья</span>
-            </div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">Не начато</span>
           </div>
+        </div>
 
-          {/* Exercises */}
-          {Array.from({ length: topic.exercises }, (_, i) => (
-            <div key={`exercise-${i}`} className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-green-200/30 dark:border-green-800/30">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
-                  <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
+        {/* Right Column - Practice (Exercises) */}
+        <div>
+          <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3 uppercase tracking-wide">Practice</h4>
+          <div className="space-y-3">
+            {/* Exercises */}
+            {Array.from({ length: topic.exercises }, (_, i) => (
+              <div key={`exercise-${i}`} className="p-4 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-green-200/30 dark:border-green-800/30">
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                    <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{topic.title} (упражнение {i + 1})</span>
+                  </div>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Не начато</span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{topic.title}</span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Ответьте правильно на 3 из 4 вопросов для повышения уровня!</span>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 ml-11">Ответьте правильно на 3 из 4 вопросов для повышения уровня!</p>
+                <div className="ml-11">
+                  <Button variant="outline" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600">
+                    Практика
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <Button variant="outline" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600">
-                  Практика
-                </Button>
-                <span className="text-sm text-gray-500 dark:text-gray-400">Не начато</span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </motion.div>
