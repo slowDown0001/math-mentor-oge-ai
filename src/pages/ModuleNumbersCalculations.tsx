@@ -262,11 +262,13 @@ const ModuleNumbersCalculations = () => {
 
           {/* Progress Grid */}
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Topic 1 progress */}
+            {/* Topic 1: Натуральные и целые числа (2 exercises) */}
             <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center">
               <div className="w-4 h-4 bg-white rounded"></div>
             </div>
             <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            
+            {/* Topic 2: Дроби и проценты (3 exercises) */}
             <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
             <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
             <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
@@ -274,21 +276,23 @@ const ModuleNumbersCalculations = () => {
             {/* Quiz 1 */}
             <Zap className="h-6 w-6 text-blue-600 mx-1" />
             
-            {/* Topic 2 progress */}
+            {/* Topic 3: Рациональные числа и арифметические действия (3 exercises) */}
             <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            
+            {/* Topic 4: Действительные числа (2 exercises) */}
             <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
             <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
             
             {/* Quiz 2 */}
             <Zap className="h-6 w-6 text-blue-600 mx-1" />
             
-            {/* Topic 3 progress */}
-            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
-            <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+            {/* Topic 5: Приближённые вычисления (2 exercises) */}
             <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
             <div className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
             
-            {/* Final test */}
+            {/* Final module test */}
             <Star className="h-6 w-6 text-yellow-600 mx-1" />
           </div>
         </motion.div>
