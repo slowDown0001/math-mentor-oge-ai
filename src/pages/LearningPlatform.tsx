@@ -33,125 +33,125 @@ const LearningPlatform = () => {
       id: 'start',
       title: 'Старт',
       type: 'start',
-      icon: <Flag className="h-6 w-6" />,
+      icon: <Flag className="h-5 w-5" />,
       dueDate: formatDate(0),
       isUnlocked: true,
-      position: { x: 15, y: 15 }
+      position: { x: 10, y: 20 }
     },
     {
       id: 'module-1',
       title: 'Числа и вычисления',
       type: 'module',
-      icon: <Calculator className="h-6 w-6" />,
+      icon: <Calculator className="h-5 w-5" />,
       dueDate: formatDate(Math.floor(totalDays * 0.1)),
       isUnlocked: true,
-      position: { x: 30, y: 25 }
+      position: { x: 25, y: 15 }
     },
     {
       id: 'module-2',
       title: 'Алгебраические выражения',
       type: 'module',
-      icon: <BookOpen className="h-6 w-6" />,
+      icon: <BookOpen className="h-5 w-5" />,
       dueDate: formatDate(Math.floor(totalDays * 0.2)),
       isUnlocked: false,
-      position: { x: 50, y: 20 }
+      position: { x: 45, y: 10 }
     },
     {
       id: 'module-3',
       title: 'Уравнения и неравенства',
       type: 'module',
-      icon: <Target className="h-6 w-6" />,
+      icon: <Target className="h-5 w-5" />,
       dueDate: formatDate(Math.floor(totalDays * 0.3)),
       isUnlocked: false,
-      position: { x: 70, y: 30 }
+      position: { x: 65, y: 15 }
     },
     {
       id: 'checkpoint-1',
       title: 'ОГЭ Симуляция',
       type: 'checkpoint',
-      icon: <Medal className="h-6 w-6" />,
+      icon: <Medal className="h-5 w-5" />,
       dueDate: formatDate(Math.floor(totalDays * 0.35)),
       isUnlocked: false,
-      position: { x: 85, y: 25 }
+      position: { x: 85, y: 20 }
     },
     {
       id: 'module-4',
       title: 'Числовые последовательности',
       type: 'module',
-      icon: <TrendingUp className="h-6 w-6" />,
+      icon: <TrendingUp className="h-5 w-5" />,
       dueDate: formatDate(Math.floor(totalDays * 0.4)),
       isUnlocked: false,
-      position: { x: 90, y: 45 }
+      position: { x: 90, y: 35 }
     },
     {
       id: 'module-5',
       title: 'Функции',
       type: 'module',
-      icon: <LineChart className="h-6 w-6" />,
+      icon: <LineChart className="h-5 w-5" />,
       dueDate: formatDate(Math.floor(totalDays * 0.5)),
       isUnlocked: false,
-      position: { x: 80, y: 60 }
+      position: { x: 85, y: 50 }
     },
     {
       id: 'module-6',
       title: 'Координаты на прямой и плоскости',
       type: 'module',
-      icon: <MapPin className="h-6 w-6" />,
+      icon: <MapPin className="h-5 w-5" />,
       dueDate: formatDate(Math.floor(totalDays * 0.6)),
       isUnlocked: false,
-      position: { x: 65, y: 70 }
+      position: { x: 70, y: 60 }
     },
     {
       id: 'checkpoint-2',
       title: 'ОГЭ Симуляция',
       type: 'checkpoint',
-      icon: <Medal className="h-6 w-6" />,
+      icon: <Medal className="h-5 w-5" />,
       dueDate: formatDate(Math.floor(totalDays * 0.65)),
       isUnlocked: false,
-      position: { x: 45, y: 75 }
+      position: { x: 50, y: 65 }
     },
     {
       id: 'module-7',
       title: 'Геометрия',
       type: 'module',
-      icon: <Shapes className="h-6 w-6" />,
+      icon: <Shapes className="h-5 w-5" />,
       dueDate: formatDate(Math.floor(totalDays * 0.7)),
       isUnlocked: false,
-      position: { x: 25, y: 65 }
+      position: { x: 30, y: 70 }
     },
     {
       id: 'module-8',
       title: 'Вероятность и статистика',
       type: 'module',
-      icon: <PieChart className="h-6 w-6" />,
+      icon: <PieChart className="h-5 w-5" />,
       dueDate: formatDate(Math.floor(totalDays * 0.8)),
       isUnlocked: false,
-      position: { x: 15, y: 80 }
+      position: { x: 15, y: 75 }
     },
     {
       id: 'module-9',
       title: 'Применение математики к прикладным задачам',
       type: 'module',
-      icon: <Zap className="h-6 w-6" />,
+      icon: <Zap className="h-5 w-5" />,
       dueDate: formatDate(Math.floor(totalDays * 0.9)),
       isUnlocked: false,
-      position: { x: 35, y: 90 }
+      position: { x: 25, y: 85 }
     },
     {
       id: 'final',
       title: 'Ты готов к ОГЭ!',
       type: 'final',
-      icon: <Trophy className="h-6 w-6" />,
+      icon: <Trophy className="h-5 w-5" />,
       dueDate: '29 мая 2026',
       isUnlocked: false,
-      position: { x: 55, y: 85 }
+      position: { x: 50, y: 90 }
     }
   ];
 
   const getNodeColor = (node: ModuleNode, isHovered: boolean) => {
     if (node.type === 'start') return 'from-green-400 to-green-600';
     if (node.type === 'final') return 'from-purple-400 to-purple-600';
-    if (node.type === 'checkpoint') return 'from-orange-400 to-orange-600';
+    if (node.type === 'checkpoint') return 'from-gray-400 to-gray-600';
     if (node.isUnlocked) return 'from-blue-400 to-blue-600';
     return 'from-gray-300 to-gray-500';
   };
@@ -222,18 +222,27 @@ const LearningPlatform = () => {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-6"
+            className="text-center mb-4"
           >
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
               Твой путь к успеху в ОГЭ
             </h1>
-            <p className="text-base text-gray-600">
+            <p className="text-base text-gray-600 mb-4">
               Игровая карта обучения • Следуй по пути и достигай целей
             </p>
+            <motion.a
+              href="/textbook"
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <BookOpen className="h-5 w-5 mr-2" />
+              READ AS A BOOK
+            </motion.a>
           </motion.div>
 
           {/* Course Map */}
-          <div className="relative w-full flex-1 mx-auto">
+          <div className="relative w-full flex-1 mx-auto max-w-5xl">
             <svg
               className="absolute inset-0 w-full h-full"
               viewBox="0 0 100 100"
@@ -279,22 +288,23 @@ const LearningPlatform = () => {
                   >
                     <div
                       className={`
-                        w-16 h-16 rounded-full bg-gradient-to-br ${getNodeColor(module, false)}
+                        w-14 h-14 rounded-full bg-gradient-to-br ${getNodeColor(module, false)}
                         flex items-center justify-center text-white shadow-lg
-                        border-4 border-white
-                        ${module.isUnlocked ? 'hover:shadow-xl' : 'opacity-60'}
+                        border-3 border-white
+                        ${module.isUnlocked ? 'hover:shadow-xl' : 'opacity-70'}
+                        transition-all duration-300
                       `}
                     >
                       {module.icon}
                     </div>
                     
                     {/* Module Title and Date */}
-                    <div className="absolute top-20 left-1/2 transform -translate-x-1/2 text-center min-w-max">
-                      <div className="bg-white rounded-lg px-3 py-2 shadow-md border">
-                        <p className="text-sm font-semibold text-gray-800">
+                    <div className="absolute top-16 left-1/2 transform -translate-x-1/2 text-center min-w-max pointer-events-none">
+                      <div className="bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 shadow-md border border-gray-200">
+                        <p className="text-xs font-semibold text-gray-800 leading-tight">
                           {module.title}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-[10px] text-gray-500">
                           до {module.dueDate}
                         </p>
                       </div>
