@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '../components/Header';
 import { Button } from '@/components/ui/button';
@@ -138,16 +138,22 @@ const DigitalTextbook = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const { user } = useAuth();
   const { messages, isTyping, isDatabaseMode, addMessage, setIsTyping } = useChatContext();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [missingMCQs, setMissingMCQs] = useState<number[]>([]);
   const [showPractice, setShowPractice] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const skillParam = searchParams.get('skill');
+    const topicParam = searchParams.get('topic');
+    
     if (skillParam) {
       const skillId = parseInt(skillParam);
       setSelectedSkill(skillId);
       handleSkillSelect(skillId);
+    } else if (topicParam) {
+      setSelectedTopic(topicParam);
+      handleTopicSelect(topicParam);
     }
   }, [searchParams]);
 
@@ -188,6 +194,9 @@ const DigitalTextbook = () => {
     setSelectedSkill(null);
     setCurrentArticle(null);
     setCurrentMCQs([]);
+    
+    // Update URL with topic parameter
+    setSearchParams({ topic: topicKey });
     
     if (!expandedTopics.has(topicKey)) {
       toggleTopic(topicKey);
@@ -281,6 +290,8 @@ const DigitalTextbook = () => {
     setCurrentArticle(null);
     setCurrentMCQs([]);
     setShowPractice(false);
+    // Clear URL parameters
+    setSearchParams({});
   };
 
   const handleBackToTopic = () => {
@@ -320,7 +331,7 @@ const DigitalTextbook = () => {
                     <div 
                       key={topicKey} 
                       className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => window.location.href = `/textbook/topic/${topicKey}`}
+                      onClick={() => handleTopicSelect(topicKey)}
                     >
                       <h4 className="font-semibold text-lg mb-3 text-gray-800 hover:text-primary">
                         {topicKey} {topic.name}
@@ -345,6 +356,106 @@ const DigitalTextbook = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderTopicView = () => {
+    if (!selectedTopic) return null;
+
+    const syllabusData = newSyllabusData as SyllabusStructure;
+    let currentTopic = null;
+    let currentTopicData = null;
+
+    // Find the selected topic in the data structure
+    for (const [moduleName, module] of Object.entries(syllabusData)) {
+      for (const [topicKey, topicData] of Object.entries(module)) {
+        if (topicKey === selectedTopic) {
+          currentTopic = topicKey;
+          currentTopicData = topicData;
+          break;
+        }
+      }
+      if (currentTopic) break;
+    }
+
+    if (!currentTopicData) return null;
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={handleBackToSyllabus}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Назад к программе
+          </Button>
+        </div>
+
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            {currentTopic} {currentTopicData.name}
+          </h2>
+          <p className="text-lg text-gray-600">
+            Все навыки по теме - выберите для изучения
+          </p>
+        </div>
+
+        <div className="grid gap-4">
+          {getFilteredSkills(currentTopicData.skills, searchTerm).map((skill) => (
+            <Card 
+              key={skill.number}
+              className="transition-all duration-200 hover:shadow-lg cursor-pointer hover:bg-primary/5"
+              onClick={() => handleSkillSelect(skill.number)}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 text-primary rounded-full">
+                      <BookOpen className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {skill.number}. {skill.name}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Важность: {skill.importance}/4
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Изучить
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Topic Summary */}
+        <div className="mt-8 bg-white/80 rounded-lg p-6 border">
+          <h3 className="text-lg font-semibold mb-4">Сводка по теме</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-bold text-primary">{currentTopicData.skills.length}</div>
+              <div className="text-sm text-gray-600">Всего навыков</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-green-600">
+                {currentTopicData.skills.filter(s => s.importance <= 2).length}
+              </div>
+              <div className="text-sm text-gray-600">Базовых навыков</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-orange-600">
+                {currentTopicData.skills.filter(s => s.importance >= 3).length}
+              </div>
+              <div className="text-sm text-gray-600">Продвинутых навыков</div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -473,7 +584,7 @@ const DigitalTextbook = () => {
                                         }`}
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          window.location.href = `/textbook/topic/${topicKey}`;
+                                          handleTopicSelect(topicKey);
                                         }}
                                       >
                                         <span className="text-left truncate">{topicKey} {topic.name}</span>
@@ -586,6 +697,8 @@ const DigitalTextbook = () => {
                         </div>
                       </CardContent>
                     </Card>
+                  ) : selectedTopic ? (
+                    renderTopicView()
                   ) : (
                     renderFullSyllabus()
                   )}

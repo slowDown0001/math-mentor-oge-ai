@@ -22,7 +22,6 @@ const NewPractice = lazy(() => import("./pages/NewPractice"));
 const PracticeNow = lazy(() => import("./pages/PracticeNow"));
 const PracticeByNumber = lazy(() => import("./pages/PracticeByNumber"));
 const DigitalTextbook = lazy(() => import("./pages/DigitalTextbook"));
-const TextbookTopic = lazy(() => import("./pages/TextbookTopic"));
 const TriangleSimilarity = lazy(() => import("./pages/TriangleSimilarity"));
 const TriangleSimilarityVideo = lazy(() => import("./pages/TriangleSimilarityVideo"));
 const TriangleSimilarityBrainrot = lazy(() => import("./pages/TriangleSimilarityBrainrot"));
@@ -76,7 +75,6 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/textbook" element={<DigitalTextbook />} />
-                <Route path="/textbook/topic/:topicCode" element={<TextbookTopic />} />
                 <Route path="/new-textbook" element={<NewTextbook />} />
                 <Route path="/triangle-similarity" element={<TriangleSimilarity />} />
                 <Route path="/triangle-similarity-video" element={<TriangleSimilarityVideo />} />
