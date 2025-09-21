@@ -407,8 +407,8 @@ const ModuleNumbersCalculations = () => {
 
       {/* Exercise Quiz Modal */}
       {selectedExercise && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-transparent w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+          <div className="w-full max-w-2xl max-h-[95vh] overflow-y-auto">
             <OgeExerciseQuiz
               title={selectedExercise.title}
               skills={selectedExercise.skills}

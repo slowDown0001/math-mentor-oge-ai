@@ -169,14 +169,14 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
 
   if (loading) {
     return (
-      <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-lg">
-        <CardContent className="p-12 text-center">
+      <Card className="shadow-2xl border-0 bg-white backdrop-blur-lg mx-auto">
+        <CardContent className="p-8 text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
-            <Sparkles className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-blue-600" />
+            <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+            <Sparkles className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-blue-600" />
           </div>
-          <p className="text-lg font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Загружаем крутые вопросы...
+          <p className="text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Загружаем вопросы...
           </p>
         </CardContent>
       </Card>
@@ -185,16 +185,16 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
 
   if (questions.length === 0) {
     return (
-      <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-        <CardContent className="p-12 text-center">
-          <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+      <Card className="shadow-2xl border-0 bg-white backdrop-blur-lg mx-auto">
+        <CardContent className="p-8 text-center">
+          <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
             Вопросы не найдены
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 mb-4 text-sm">
             К сожалению, для этого упражнения пока нет доступных вопросов.
           </p>
-          <Button onClick={onBack} variant="outline">
+          <Button onClick={onBack} variant="outline" size="sm">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Назад
           </Button>
@@ -205,55 +205,55 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
 
   return (
     <>
-      <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-lg overflow-hidden">
+      <Card className="shadow-2xl border-0 bg-white backdrop-blur-lg overflow-hidden mx-auto">
         <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-1">
           <div className="bg-white rounded-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
+            <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  <CardTitle className="text-lg sm:text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                     🎯 {title}
                   </CardTitle>
-                  <p className="text-gray-600 font-medium">Вопрос {currentQuestionIndex + 1} из {questions.length}</p>
+                  <p className="text-gray-600 font-medium text-sm">Вопрос {currentQuestionIndex + 1} из {questions.length}</p>
                 </div>
                 <Button onClick={onBack} variant="outline" size="sm" className="hover:bg-purple-50">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Назад
                 </Button>
               </div>
-              <Progress value={(currentQuestionIndex / questions.length) * 100} className="w-full h-3 bg-gray-200">
+              <Progress value={(currentQuestionIndex / questions.length) * 100} className="w-full h-2 bg-gray-200">
                 <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" 
                      style={{width: `${(currentQuestionIndex / questions.length) * 100}%`}} />
               </Progress>
             </CardHeader>
             
-            <CardContent className="space-y-6 p-6">
+            <CardContent className="space-y-4 p-4">
               {/* Question */}
-              <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 shadow-sm">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                 <MathRenderer 
                   text={questions[currentQuestionIndex]?.problem_text || ''} 
-                  className="text-lg font-medium"
+                  className="text-base font-medium"
                   compiler="mathjax"
                 />
               </div>
 
               {/* Answer Options */}
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-3">
                 {options.map((letter, index) => (
                   <div
                     key={letter}
-                    className={`p-5 border-2 rounded-xl cursor-pointer transition-all duration-300 ${getOptionStyle(index)}`}
+                    className={`p-3 border-2 rounded-lg cursor-pointer transition-all duration-300 ${getOptionStyle(index)}`}
                     onClick={() => handleAnswerSelect(index)}
                   >
-                    <div className="flex items-start space-x-4">
+                    <div className="flex items-start space-x-3">
                       <div className={`
-                        w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0
+                        w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0
                         ${!showResult && selectedAnswer === letter 
-                          ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg' 
+                          ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md' 
                           : showResult && letter === questions[currentQuestionIndex]?.answer?.toUpperCase()
-                          ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md'
                           : showResult && selectedAnswer === letter && letter !== questions[currentQuestionIndex]?.answer?.toUpperCase()
-                          ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg'
+                          ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-md'
                           : 'bg-gray-100 text-gray-600'
                         }
                       `}>
@@ -261,7 +261,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
                       </div>
                       <MathRenderer 
                         text={getOptionContent(index)} 
-                        className="flex-1 text-base font-medium"
+                        className="flex-1 text-sm font-medium"
                         compiler="mathjax"
                       />
                     </div>
@@ -271,28 +271,28 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
 
               {/* Result */}
               {showResult && (
-                <div className="text-center py-6">
+                <div className="text-center py-4">
                   {selectedAnswer === questions[currentQuestionIndex]?.answer?.toUpperCase() ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
-                          <Check className="w-6 h-6 text-white" />
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
+                          <Check className="w-4 h-4 text-white" />
                         </div>
                         <div>
-                          <p className="text-2xl font-bold text-green-600">Правильно!</p>
-                          <p className="text-green-500">Отличная работа! 🎉</p>
+                          <p className="text-lg font-bold text-green-600">Правильно!</p>
+                          <p className="text-green-500 text-sm">Отличная работа! 🎉</p>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center">
-                          <X className="w-6 h-6 text-white" />
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="w-8 h-8 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center">
+                          <X className="w-4 h-4 text-white" />
                         </div>
                         <div>
-                          <p className="text-2xl font-bold text-red-600">Неправильно</p>
-                          <p className="text-red-500">Не расстраивайтесь, попробуйте еще раз! 💪</p>
+                          <p className="text-lg font-bold text-red-600">Неправильно</p>
+                          <p className="text-red-500 text-sm">Не расстраивайтесь! 💪</p>
                         </div>
                       </div>
                     </div>
@@ -315,14 +315,14 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
                   
                   {/* Solution Display */}
                   {showSolution && questions[currentQuestionIndex]?.solution_text && (
-                    <div className="mt-4 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
-                      <div className="flex items-center gap-2 mb-3">
-                        <BookOpen className="w-5 h-5 text-purple-600" />
-                        <h4 className="font-bold text-purple-700">Решение:</h4>
+                    <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <BookOpen className="w-4 h-4 text-purple-600" />
+                        <h4 className="font-bold text-purple-700 text-sm">Решение:</h4>
                       </div>
                       <MathRenderer 
                         text={questions[currentQuestionIndex].solution_text} 
-                        className="text-left text-gray-700"
+                        className="text-left text-gray-700 text-sm"
                         compiler="mathjax"
                       />
                     </div>
