@@ -317,8 +317,12 @@ const DigitalTextbook = () => {
               <CardContent className="p-6">
                 <div className="grid gap-4">
                   {Object.entries(module).map(([topicKey, topic]) => (
-                    <div key={topicKey} className="border rounded-lg p-4">
-                      <h4 className="font-semibold text-lg mb-3 text-gray-800">
+                    <div 
+                      key={topicKey} 
+                      className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => window.location.href = `/textbook/topic/${topicKey}`}
+                    >
+                      <h4 className="font-semibold text-lg mb-3 text-gray-800 hover:text-primary">
                         {topicKey} {topic.name}
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -467,7 +471,10 @@ const DigitalTextbook = () => {
                                         className={`w-full justify-between text-sm ${
                                           selectedTopic === topicKey ? 'bg-primary/10' : ''
                                         }`}
-                                        onClick={() => handleTopicSelect(topicKey)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          window.location.href = `/textbook/topic/${topicKey}`;
+                                        }}
                                       >
                                         <span className="text-left truncate">{topicKey} {topic.name}</span>
                                         {expandedTopics.has(topicKey) ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
