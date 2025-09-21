@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Check, X, ArrowLeft, Trophy, Target, RotateCcw } from 'lucide-react';
+import { Check, X, ArrowLeft, Trophy, Target, RotateCcw, BookOpen, Eye, Sparkles } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useStreakTracking } from '@/hooks/useStreakTracking';
 import MathRenderer from '@/components/MathRenderer';
@@ -25,6 +25,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
   const [showResult, setShowResult] = useState(false);
   const [showFinalResults, setShowFinalResults] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showSolution, setShowSolution] = useState(false);
 
   const options = ['А', 'Б', 'В', 'Г'];
 
@@ -78,6 +79,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
       setCurrentQuestionIndex(prev => prev + 1);
       setSelectedAnswer('');
       setShowResult(false);
+      setShowSolution(false); // Reset solution visibility
     } else {
       setShowFinalResults(true);
     }
@@ -89,6 +91,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
     setAnswers([]);
     setSelectedAnswer('');
     setShowResult(false);
+    setShowSolution(false);
     loadQuestions();
   };
 
@@ -110,8 +113,8 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
     
     if (!showResult) {
       return selectedAnswer === options[optionIndex] 
-        ? 'border-primary bg-primary/10' 
-        : 'border-border hover:border-primary/50 hover:bg-muted/50';
+        ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 shadow-lg transform scale-105' 
+        : 'border-gray-200 hover:border-blue-400 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:shadow-md';
     }
     
     const answerLetter = options[optionIndex];
@@ -119,14 +122,14 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
     const isCorrectAnswer = answerLetter === currentQuestion?.answer?.toUpperCase();
     
     if (isCorrectAnswer) {
-      return 'border-green-500 bg-green-50 text-green-700';
+      return 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 shadow-lg';
     }
     
     if (isSelected && !isCorrectAnswer) {
-      return 'border-red-500 bg-red-50 text-red-700';
+      return 'border-red-500 bg-gradient-to-r from-red-50 to-pink-50 text-red-700 shadow-lg';
     }
     
-    return 'border-border opacity-50';
+    return 'border-gray-200 opacity-60 bg-gray-50';
   };
 
   const correctAnswers = answers.filter(Boolean).length;
@@ -166,10 +169,15 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
 
   if (loading) {
     return (
-      <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+      <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-lg">
         <CardContent className="p-12 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg text-muted-foreground">Загружаем вопросы...</p>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+            <Sparkles className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-blue-600" />
+          </div>
+          <p className="text-lg font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Загружаем крутые вопросы...
+          </p>
         </CardContent>
       </Card>
     );
@@ -197,85 +205,152 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
 
   return (
     <>
-      <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-xl">{title}</CardTitle>
-              <p className="text-muted-foreground">Вопрос {currentQuestionIndex + 1} из {questions.length}</p>
-            </div>
-            <Button onClick={onBack} variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Назад
-            </Button>
-          </div>
-          <Progress value={(currentQuestionIndex / questions.length) * 100} className="w-full" />
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
-          {/* Question */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <MathRenderer 
-              text={questions[currentQuestionIndex]?.problem_text || ''} 
-              className="text-base"
-              compiler="mathjax"
-            />
-          </div>
-
-          {/* Answer Options */}
-          <div className="grid grid-cols-1 gap-3">
-            {options.map((letter, index) => (
-              <div
-                key={letter}
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${getOptionStyle(index)}`}
-                onClick={() => handleAnswerSelect(index)}
-              >
-                <div className="flex items-start space-x-3">
-                  <span className="font-bold text-sm flex-shrink-0">{letter})</span>
-                  <MathRenderer 
-                    text={getOptionContent(index)} 
-                    className="flex-1 text-sm"
-                    compiler="mathjax"
-                  />
+      <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-1">
+          <div className="bg-white rounded-lg">
+            <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    🎯 {title}
+                  </CardTitle>
+                  <p className="text-gray-600 font-medium">Вопрос {currentQuestionIndex + 1} из {questions.length}</p>
                 </div>
+                <Button onClick={onBack} variant="outline" size="sm" className="hover:bg-purple-50">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Назад
+                </Button>
               </div>
-            ))}
-          </div>
+              <Progress value={(currentQuestionIndex / questions.length) * 100} className="w-full h-3 bg-gray-200">
+                <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" 
+                     style={{width: `${(currentQuestionIndex / questions.length) * 100}%`}} />
+              </Progress>
+            </CardHeader>
+            
+            <CardContent className="space-y-6 p-6">
+              {/* Question */}
+              <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 shadow-sm">
+                <MathRenderer 
+                  text={questions[currentQuestionIndex]?.problem_text || ''} 
+                  className="text-lg font-medium"
+                  compiler="mathjax"
+                />
+              </div>
 
-          {/* Result */}
-          {showResult && (
-            <div className="text-center py-4">
-              {selectedAnswer === questions[currentQuestionIndex]?.answer?.toUpperCase() ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <Check className="w-6 h-6 text-green-500" />
-                  <p className="text-lg font-semibold text-green-600">Правильно!</p>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center space-x-2">
-                  <X className="w-6 h-6 text-red-500" />
-                  <p className="text-lg font-semibold text-red-600">Неправильно</p>
+              {/* Answer Options */}
+              <div className="grid grid-cols-1 gap-4">
+                {options.map((letter, index) => (
+                  <div
+                    key={letter}
+                    className={`p-5 border-2 rounded-xl cursor-pointer transition-all duration-300 ${getOptionStyle(index)}`}
+                    onClick={() => handleAnswerSelect(index)}
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div className={`
+                        w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0
+                        ${!showResult && selectedAnswer === letter 
+                          ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg' 
+                          : showResult && letter === questions[currentQuestionIndex]?.answer?.toUpperCase()
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
+                          : showResult && selectedAnswer === letter && letter !== questions[currentQuestionIndex]?.answer?.toUpperCase()
+                          ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg'
+                          : 'bg-gray-100 text-gray-600'
+                        }
+                      `}>
+                        {letter}
+                      </div>
+                      <MathRenderer 
+                        text={getOptionContent(index)} 
+                        className="flex-1 text-base font-medium"
+                        compiler="mathjax"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Result */}
+              {showResult && (
+                <div className="text-center py-6">
+                  {selectedAnswer === questions[currentQuestionIndex]?.answer?.toUpperCase() ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
+                          <Check className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-green-600">Правильно!</p>
+                          <p className="text-green-500">Отличная работа! 🎉</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center">
+                          <X className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-red-600">Неправильно</p>
+                          <p className="text-red-500">Не расстраивайтесь, попробуйте еще раз! 💪</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Solution Button */}
+                  {questions[currentQuestionIndex]?.solution_text && (
+                    <div className="mt-4">
+                      <Button
+                        onClick={() => setShowSolution(!showSolution)}
+                        variant="outline"
+                        className="bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        {showSolution ? 'Скрыть решение' : 'Показать решение'}
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* Solution Display */}
+                  {showSolution && questions[currentQuestionIndex]?.solution_text && (
+                    <div className="mt-4 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <BookOpen className="w-5 h-5 text-purple-600" />
+                        <h4 className="font-bold text-purple-700">Решение:</h4>
+                      </div>
+                      <MathRenderer 
+                        text={questions[currentQuestionIndex].solution_text} 
+                        className="text-left text-gray-700"
+                        compiler="mathjax"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-          {/* Action Buttons */}
-          <div className="flex justify-center space-x-4">
-            {!showResult ? (
-              <Button
-                onClick={handleSubmitAnswer}
-                disabled={!selectedAnswer}
-                className="px-8"
-              >
-                Ответить
-              </Button>
-            ) : (
-              <Button onClick={handleNextQuestion} className="px-8">
-                {currentQuestionIndex < questions.length - 1 ? 'Следующий вопрос' : 'Завершить тест'}
-              </Button>
-            )}
+              {/* Action Buttons */}
+              <div className="flex justify-center space-x-4">
+                {!showResult ? (
+                  <Button
+                    onClick={handleSubmitAnswer}
+                    disabled={!selectedAnswer}
+                    className="px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
+                  >
+                    ✨ Ответить
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleNextQuestion} 
+                    className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
+                  >
+                    {currentQuestionIndex < questions.length - 1 ? '➡️ Следующий вопрос' : '🏁 Завершить тест'}
+                  </Button>
+                )}
+              </div>
+            </CardContent>
           </div>
-        </CardContent>
+        </div>
       </Card>
 
       {/* Final Results Dialog */}
