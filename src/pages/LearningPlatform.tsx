@@ -184,7 +184,7 @@ const LearningPlatform = () => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 relative overflow-hidden">
+      <div className="h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 relative overflow-hidden flex flex-col">
         {/* Fun Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-200 rounded-full opacity-30 animate-pulse"></div>
@@ -217,22 +217,23 @@ const LearningPlatform = () => {
           <div className="absolute top-1/6 right-2/3 text-4xl text-pink-200 opacity-15 rotate-65">×</div>
           <div className="absolute bottom-1/6 left-2/3 text-5xl text-green-200 opacity-17 -rotate-20">∝</div>
         </div>
-        <div className="container mx-auto px-4 py-8">
+        
+        <div className="container mx-auto px-4 py-4 flex flex-col h-full">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            className="text-center mb-6"
           >
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
               Твой путь к успеху в ОГЭ
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-base text-gray-600">
               Игровая карта обучения • Следуй по пути и достигай целей
             </p>
           </motion.div>
 
           {/* Course Map */}
-          <div className="relative w-full h-[700px] mx-auto">
+          <div className="relative w-full flex-1 mx-auto">
             <svg
               className="absolute inset-0 w-full h-full"
               viewBox="0 0 100 100"
@@ -318,25 +319,25 @@ const LearningPlatform = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="mt-12 text-center"
+            className="mt-4 text-center"
           >
-            <div className="bg-white rounded-xl p-6 shadow-lg max-w-md mx-auto">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
+            <div className="bg-white rounded-xl p-4 shadow-lg max-w-sm mx-auto">
+              <h3 className="text-lg font-bold text-gray-800 mb-3">
                 Твой прогресс
               </h3>
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-gray-600">Модулей завершено:</span>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-gray-600 text-sm">Модулей завершено:</span>
                 <span className="font-bold text-blue-600">1 / 9</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: "22%" }}
                   transition={{ delay: 1, duration: 1 }}
-                  className="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full"
+                  className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full"
                 />
               </div>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs text-gray-600">
                 Продолжай в том же духе! 🎯
               </p>
             </div>
