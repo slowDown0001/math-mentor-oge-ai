@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Play, BookOpen, Target, Crown, Zap, Star, Info } from "lucide-react";
+import { ArrowLeft, Play, BookOpen, Target, Crown, Zap, Star, Info, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
+import ArticleRenderer from "@/components/ArticleRenderer";
 
 interface TopicContent {
   id: string;
@@ -27,6 +28,7 @@ interface QuizContent {
 const ModuleNumbersCalculations = () => {
   const navigate = useNavigate();
   const [selectedVideo, setSelectedVideo] = useState<{videoId: string; title: string; description: string} | null>(null);
+  const [selectedArticle, setSelectedArticle] = useState<{title: string; content: string} | null>(null);
   
   const topics: TopicContent[] = [
     {
@@ -133,14 +135,113 @@ const ModuleNumbersCalculations = () => {
             ))}
             
             {/* Article */}
-            <div className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-purple-200/30 dark:border-purple-800/30">
+            <div 
+              className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-purple-200/30 dark:border-purple-800/30 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer transition-colors"
+              onClick={() => {
+                if (topic.id === "natural-integers") {
+                  setSelectedArticle({
+                    title: "Натуральные и целые числа — конспект",
+                    content: `<h1>Натуральные и целые числа — конспект</h1>
+
+<div class="intro">
+  <p>Краткий конспект по ключевым определениям и формулам: натуральные и целые числа, научная форма, делимость, признаки делимости, НОД и НОК.</p>
+</div>
+
+<div class="section-badge badge-theory">Теория</div>
+<div class="theory">
+
+  <p><b>Определения</b></p>
+  <div class="definition-card">
+    Натуральные числа: множество \\( \\mathbb{N} = \\{1,2,3,\\dots\\} \\).<br>
+    Целые числа: множество \\( \\mathbb{Z} = \\{\\dots,-2,-1,0,1,2,\\dots\\} \\).<br>
+    Модуль числа: \\( |a| = \\begin{cases} a, & a \\ge 0 \\\\ -a, & a < 0 \\end{cases} \\).<br>
+    Порядок: для \\( a,b \\in \\mathbb{Z} \\) верно одно из: \\( a<b \\), \\( a=b \\), \\( a>b \\).
+  </div>
+
+  <p><b>Мини-глоссарий</b></p>
+  <ul class="mini-glossary">
+    <li><b>Чётность:</b> \\(a\\) чётное, если \\(2\\mid a\\); нечётное — иначе.</li>
+    <li><b>Делимость:</b> \\(b\\mid a \\iff \\exists k\\in\\mathbb{Z}: a=b\\cdot k\\).</li>
+    <li><b>Кратное:</b> число вида \\(a=b\\cdot k\\).</li>
+  </ul>
+
+  <p><b>Ключевые свойства операций в \\( \\mathbb{Z} \\)</b></p>
+  <ul>
+    <li>Замкнутость: \\( a\\pm b,\\, a\\cdot b \\in \\mathbb{Z} \\).</li>
+    <li>Коммутативность и ассоциативность для \\( + \\) и \\( \\cdot \\); дистрибутивность: \\( a(b+c)=ab+ac \\).</li>
+    <li>Правила знаков: \\( (+)\\cdot(+)=+,\\; (+)\\cdot(-)=-,\\; (-)\\cdot(-)=+ \\).</li>
+  </ul>
+
+  <div class="section-badge badge-theory">Научная форма числа</div>
+  <div class="definition-card">
+    Число в научной форме: \\( a\\times 10^{b} \\), где \\( 1\\le a<10 \\) и \\( b\\in\\mathbb{Z} \\).<br>
+    Сложение/вычитание через приведение показателей; умножение и деление:<br>
+    \\[
+      (a_1\\cdot 10^{b_1})(a_2\\cdot 10^{b_2})=(a_1a_2)\\cdot 10^{\\,b_1+b_2},
+      \\qquad
+      \\frac{a_1\\cdot 10^{b_1}}{a_2\\cdot 10^{b_2}}=\\Big(\\frac{a_1}{a_2}\\Big)\\cdot 10^{\\,b_1-b_2}.
+    \\]
+  </div>
+
+  <div class="section-badge badge-theory">Делимость</div>
+  <div class="definition-card">
+    Основное определение: \\( b\\mid a \\iff \\exists k\\in\\mathbb{Z}: a=bk \\).<br>
+    Базовые свойства:<br>
+    \\(\\;\\)• Транзитивность: \\( b\\mid a \\) и \\( a\\mid c \\Rightarrow b\\mid c \\).<br>
+    \\(\\;\\)• Линейная комбинация: если \\( d\\mid a \\) и \\( d\\mid b \\), то \\( d\\mid (ax+by) \\) для любых \\( x,y\\in\\mathbb{Z} \\).<br>
+    \\(\\;\\)• Если \\( b\\mid a \\), то \\( b\\mid ac \\) для любого \\( c\\in\\mathbb{Z} \\).
+  </div>
+
+  <p><b>Признаки делимости</b></p>
+  <ul>
+    <li>На \\(2\\): последняя цифра чётная \\((0,2,4,6,8)\\).</li>
+    <li>На \\(3\\): сумма цифр кратна \\(3\\).</li>
+    <li>На \\(5\\): последняя цифра \\(0\\) или \\(5\\).</li>
+    <li>На \\(9\\): сумма цифр кратна \\(9\\).</li>
+    <li>На \\(10\\): последняя цифра \\(0\\).</li>
+  </ul>
+
+  <div class="section-badge badge-theory">НОД и НОК</div>
+  <div class="definition-card">
+    НОД \\( (a,b) \\) — наибольшее \\( d\\in\\mathbb{Z}_{\\ge 0} \\), такое что \\( d\\mid a \\) и \\( d\\mid b \\).<br>
+    НОК \\( [a,b] \\) — наименьшее положительное число, кратное и \\( a \\), и \\( b \\).<br>
+    Связь: \\[
+      \\gcd(a,b)\\cdot \\operatorname{lcm}(a,b)=|a\\cdot b|.
+    \\]
+    Разложение по простым: если \\( a=\\prod p_i^{\\alpha_i},\\; b=\\prod p_i^{\\beta_i} \\), то
+    \\[
+      \\gcd(a,b)=\\prod p_i^{\\min(\\alpha_i,\\beta_i)},\\qquad
+      \\operatorname{lcm}(a,b)=\\prod p_i^{\\max(\\alpha_i,\\beta_i)}.
+    \\]
+    Евклидов алгоритм: \\( \\gcd(a,b)=\\gcd(b,\\,a\\bmod b) \\) до нулевого остатка.
+  </div>
+
+</div>
+
+<div class="section-badge badge-conclusion">Заключение</div>
+<div class="conclusion">
+  <p>
+    Целые числа образуют основу для изучения арифметики и алгебры. Понимание структуры множества \\(\\mathbb{Z}\\), 
+    принципов делимости и методов нахождения НОД/НОК критически важно для решения задач во всех разделах математики.
+  </p>
+  <p>
+    Практическое применение этих знаний включает решение диофантовых уравнений, работу с дробями, анализ 
+    периодичности функций и многие другие задачи математики и её приложений.
+  </p>
+</div>`
+                  });
+                }
+              }}
+            >
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full">
                   <BookOpen className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 </div>
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Обзор</span>
               </div>
-              <span className="text-sm text-gray-500 dark:text-gray-400">Не начато</span>
+              <span className="text-sm text-purple-600 dark:text-purple-400">
+                {topic.id === "natural-integers" ? "Доступно" : "Не начато"}
+              </span>
             </div>
 
             {/* Read Textbook */}
@@ -249,6 +350,34 @@ const ModuleNumbersCalculations = () => {
           video={selectedVideo} 
           onClose={() => setSelectedVideo(null)} 
         />
+      )}
+
+      {/* Article Modal */}
+      {selectedArticle && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{selectedArticle.title}</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedArticle(null)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(90vh-4rem)] p-6">
+              <ArticleRenderer 
+                text={selectedArticle.content} 
+                article={{
+                  skill: 1,
+                  art: selectedArticle.content
+                }} 
+              />
+            </div>
+          </div>
+        </div>
       )}
       
       <div className="container mx-auto px-4 py-8">
