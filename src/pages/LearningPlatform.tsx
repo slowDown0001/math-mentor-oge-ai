@@ -36,7 +36,7 @@ const LearningPlatform = () => {
       icon: <Flag className="h-6 w-6" />,
       dueDate: formatDate(0),
       isUnlocked: true,
-      position: { x: 10, y: 20 }
+      position: { x: 15, y: 15 }
     },
     {
       id: 'module-1',
@@ -45,7 +45,7 @@ const LearningPlatform = () => {
       icon: <Calculator className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.1)),
       isUnlocked: true,
-      position: { x: 25, y: 35 }
+      position: { x: 30, y: 25 }
     },
     {
       id: 'module-2',
@@ -54,7 +54,7 @@ const LearningPlatform = () => {
       icon: <BookOpen className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.2)),
       isUnlocked: false,
-      position: { x: 40, y: 15 }
+      position: { x: 50, y: 20 }
     },
     {
       id: 'module-3',
@@ -63,7 +63,7 @@ const LearningPlatform = () => {
       icon: <Target className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.3)),
       isUnlocked: false,
-      position: { x: 55, y: 40 }
+      position: { x: 70, y: 30 }
     },
     {
       id: 'checkpoint-1',
@@ -72,7 +72,7 @@ const LearningPlatform = () => {
       icon: <Medal className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.35)),
       isUnlocked: false,
-      position: { x: 70, y: 25 }
+      position: { x: 85, y: 25 }
     },
     {
       id: 'module-4',
@@ -81,7 +81,7 @@ const LearningPlatform = () => {
       icon: <TrendingUp className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.4)),
       isUnlocked: false,
-      position: { x: 80, y: 50 }
+      position: { x: 90, y: 45 }
     },
     {
       id: 'module-5',
@@ -90,7 +90,7 @@ const LearningPlatform = () => {
       icon: <LineChart className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.5)),
       isUnlocked: false,
-      position: { x: 85, y: 15 }
+      position: { x: 80, y: 60 }
     },
     {
       id: 'module-6',
@@ -99,7 +99,7 @@ const LearningPlatform = () => {
       icon: <MapPin className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.6)),
       isUnlocked: false,
-      position: { x: 75, y: 65 }
+      position: { x: 65, y: 70 }
     },
     {
       id: 'checkpoint-2',
@@ -108,7 +108,7 @@ const LearningPlatform = () => {
       icon: <Medal className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.65)),
       isUnlocked: false,
-      position: { x: 60, y: 70 }
+      position: { x: 45, y: 75 }
     },
     {
       id: 'module-7',
@@ -117,7 +117,7 @@ const LearningPlatform = () => {
       icon: <Shapes className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.7)),
       isUnlocked: false,
-      position: { x: 40, y: 75 }
+      position: { x: 25, y: 65 }
     },
     {
       id: 'module-8',
@@ -126,7 +126,7 @@ const LearningPlatform = () => {
       icon: <PieChart className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.8)),
       isUnlocked: false,
-      position: { x: 25, y: 60 }
+      position: { x: 15, y: 80 }
     },
     {
       id: 'module-9',
@@ -135,7 +135,7 @@ const LearningPlatform = () => {
       icon: <Zap className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.9)),
       isUnlocked: false,
-      position: { x: 15, y: 80 }
+      position: { x: 35, y: 90 }
     },
     {
       id: 'final',
@@ -144,7 +144,7 @@ const LearningPlatform = () => {
       icon: <Trophy className="h-6 w-6" />,
       dueDate: '29 мая 2026',
       isUnlocked: false,
-      position: { x: 50, y: 90 }
+      position: { x: 55, y: 85 }
     }
   ];
 
@@ -162,27 +162,43 @@ const LearningPlatform = () => {
     const x2 = to.position.x;
     const y2 = to.position.y;
     
-    const midX = (x1 + x2) / 2;
-    const midY = (y1 + y2) / 2;
+    // Create control points for smooth curves
+    const controlX1 = x1 + (x2 - x1) * 0.3;
+    const controlY1 = y1;
+    const controlX2 = x1 + (x2 - x1) * 0.7;
+    const controlY2 = y2;
     
-    // Create a smooth curve
-    const curve = `M ${x1} ${y1} Q ${midX + (Math.random() - 0.5) * 10} ${midY + (Math.random() - 0.5) * 10} ${x2} ${y2}`;
+    const path = `M ${x1} ${y1} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${x2} ${y2}`;
     
     return (
       <path
-        d={curve}
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeDasharray="10,5"
+        d={path}
+        stroke="url(#pathGradient)"
+        strokeWidth="4"
+        strokeDasharray="8,4"
         fill="none"
-        className="text-gray-400"
+        className="opacity-70"
       />
     );
   };
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 relative overflow-hidden">
+        {/* Fun Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-200 rounded-full opacity-30 animate-pulse"></div>
+          <div className="absolute top-40 right-20 w-16 h-16 bg-pink-200 rounded-full opacity-40 animate-bounce"></div>
+          <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-blue-200 rounded-full opacity-25 animate-pulse"></div>
+          <div className="absolute top-1/3 right-1/3 w-12 h-12 bg-green-200 rounded-full opacity-35 animate-bounce"></div>
+          <div className="absolute bottom-40 right-10 w-18 h-18 bg-purple-200 rounded-full opacity-30 animate-pulse"></div>
+          
+          {/* Decorative Math Symbols */}
+          <div className="absolute top-20 left-1/3 text-6xl text-blue-200 opacity-20 rotate-12">π</div>
+          <div className="absolute top-1/2 right-20 text-5xl text-pink-200 opacity-20 -rotate-12">∑</div>
+          <div className="absolute bottom-1/3 left-20 text-4xl text-purple-200 opacity-20 rotate-45">∞</div>
+          <div className="absolute top-3/4 right-1/3 text-5xl text-green-200 opacity-20 -rotate-45">√</div>
+        </div>
         <div className="container mx-auto px-4 py-8">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -198,12 +214,21 @@ const LearningPlatform = () => {
           </motion.div>
 
           {/* Course Map */}
-          <div className="relative w-full h-[600px] mx-auto">
+          <div className="relative w-full h-[700px] mx-auto">
             <svg
               className="absolute inset-0 w-full h-full"
               viewBox="0 0 100 100"
               preserveAspectRatio="xMidYMid meet"
             >
+              {/* Gradient Definition for Path */}
+              <defs>
+                <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#3B82F6" />
+                  <stop offset="50%" stopColor="#8B5CF6" />
+                  <stop offset="100%" stopColor="#EC4899" />
+                </linearGradient>
+              </defs>
+              
               {/* Draw connecting paths */}
               {modules.slice(0, -1).map((module, index) => (
                 <PathLine
@@ -283,12 +308,12 @@ const LearningPlatform = () => {
               </h3>
               <div className="flex justify-between items-center mb-4">
                 <span className="text-gray-600">Модулей завершено:</span>
-                <span className="font-bold text-blue-600">0 / 9</span>
+                <span className="font-bold text-blue-600">1 / 9</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: "11%" }}
+                  animate={{ width: "22%" }}
                   transition={{ delay: 1, duration: 1 }}
                   className="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full"
                 />
