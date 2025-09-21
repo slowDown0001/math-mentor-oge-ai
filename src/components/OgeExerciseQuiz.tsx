@@ -300,14 +300,15 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
                   
                   {/* Solution Button */}
                   {questions[currentQuestionIndex]?.solution_text && (
-                    <div className="mt-4">
+                    <div className="mt-3">
                       <Button
                         onClick={() => setShowSolution(!showSolution)}
                         variant="outline"
+                        size="sm"
                         className="bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200"
                       >
                         <Eye className="w-4 h-4 mr-2" />
-                        {showSolution ? 'Скрыть решение' : 'Показать решение'}
+                        {showSolution ? 'Скрыть' : 'Решение'}
                       </Button>
                     </div>
                   )}
@@ -330,21 +331,21 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
               )}
 
               {/* Action Buttons */}
-              <div className="flex justify-center space-x-4">
+              <div className="flex justify-center space-x-3">
                 {!showResult ? (
                   <Button
                     onClick={handleSubmitAnswer}
                     disabled={!selectedAnswer}
-                    className="px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
+                    className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-lg shadow-md transform hover:scale-105 transition-all duration-200"
                   >
                     ✨ Ответить
                   </Button>
                 ) : (
                   <Button 
                     onClick={handleNextQuestion} 
-                    className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
+                    className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-md transform hover:scale-105 transition-all duration-200"
                   >
-                    {currentQuestionIndex < questions.length - 1 ? '➡️ Следующий вопрос' : '🏁 Завершить тест'}
+                    {currentQuestionIndex < questions.length - 1 ? '➡️ Далее' : '🏁 Завершить'}
                   </Button>
                 )}
               </div>
