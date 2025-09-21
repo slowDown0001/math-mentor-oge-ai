@@ -54,7 +54,7 @@ const LearningPlatform = () => {
       icon: <BookOpen className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.2)),
       isUnlocked: false,
-      position: { x: 50, y: 20 }
+      position: { x: 55, y: 20 }
     },
     {
       id: 'module-3',
@@ -63,7 +63,7 @@ const LearningPlatform = () => {
       icon: <Target className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.3)),
       isUnlocked: false,
-      position: { x: 70, y: 30 }
+      position: { x: 75, y: 35 }
     },
     {
       id: 'checkpoint-1',
@@ -72,7 +72,7 @@ const LearningPlatform = () => {
       icon: <Medal className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.35)),
       isUnlocked: false,
-      position: { x: 85, y: 25 }
+      position: { x: 90, y: 30 }
     },
     {
       id: 'module-4',
@@ -81,7 +81,7 @@ const LearningPlatform = () => {
       icon: <TrendingUp className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.4)),
       isUnlocked: false,
-      position: { x: 90, y: 45 }
+      position: { x: 85, y: 50 }
     },
     {
       id: 'module-5',
@@ -90,7 +90,7 @@ const LearningPlatform = () => {
       icon: <LineChart className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.5)),
       isUnlocked: false,
-      position: { x: 80, y: 60 }
+      position: { x: 70, y: 65 }
     },
     {
       id: 'module-6',
@@ -99,7 +99,7 @@ const LearningPlatform = () => {
       icon: <MapPin className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.6)),
       isUnlocked: false,
-      position: { x: 65, y: 70 }
+      position: { x: 50, y: 75 }
     },
     {
       id: 'checkpoint-2',
@@ -108,7 +108,7 @@ const LearningPlatform = () => {
       icon: <Medal className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.65)),
       isUnlocked: false,
-      position: { x: 45, y: 75 }
+      position: { x: 30, y: 80 }
     },
     {
       id: 'module-7',
@@ -117,7 +117,7 @@ const LearningPlatform = () => {
       icon: <Shapes className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.7)),
       isUnlocked: false,
-      position: { x: 25, y: 65 }
+      position: { x: 15, y: 70 }
     },
     {
       id: 'module-8',
@@ -126,7 +126,7 @@ const LearningPlatform = () => {
       icon: <PieChart className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.8)),
       isUnlocked: false,
-      position: { x: 15, y: 80 }
+      position: { x: 20, y: 85 }
     },
     {
       id: 'module-9',
@@ -135,7 +135,7 @@ const LearningPlatform = () => {
       icon: <Zap className="h-6 w-6" />,
       dueDate: formatDate(Math.floor(totalDays * 0.9)),
       isUnlocked: false,
-      position: { x: 35, y: 90 }
+      position: { x: 40, y: 90 }
     },
     {
       id: 'final',
@@ -144,14 +144,14 @@ const LearningPlatform = () => {
       icon: <Trophy className="h-6 w-6" />,
       dueDate: '29 мая 2026',
       isUnlocked: false,
-      position: { x: 55, y: 85 }
+      position: { x: 60, y: 85 }
     }
   ];
 
   const getNodeColor = (node: ModuleNode, isHovered: boolean) => {
     if (node.type === 'start') return 'from-green-400 to-green-600';
-    if (node.type === 'final') return 'from-purple-400 to-purple-600';
-    if (node.type === 'checkpoint') return 'from-orange-400 to-orange-600';
+    if (node.type === 'final') return 'from-gray-700 to-gray-900';
+    if (node.type === 'checkpoint') return 'from-gray-600 to-gray-800';
     if (node.isUnlocked) return 'from-blue-400 to-blue-600';
     return 'from-gray-300 to-gray-500';
   };
