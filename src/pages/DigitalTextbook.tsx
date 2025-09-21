@@ -12,6 +12,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import newSyllabusData from '../data/newSyllabusStructure.json';
 import ArticleRenderer from '../components/ArticleRenderer';
 import SkillPracticeQuiz from '../components/SkillPracticeQuiz';
+import { useChatContext } from '@/contexts/ChatContext';
+import { sendChatMessage } from '@/services/chatService';
+import CourseChatMessages from '@/components/chat/CourseChatMessages';
+import ChatInput from '@/components/chat/ChatInput';
+import { useAuth } from '@/contexts/AuthContext';
+import { saveChatLog } from '@/services/chatLogsService';
 
 interface Skill {
   number: number;
@@ -130,8 +136,8 @@ const DigitalTextbook = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedText, setSelectedText] = useState('');
   const [isSelecting, setIsSelecting] = useState(false);
-  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
-  const [isLoadingResponse, setIsLoadingResponse] = useState(false);
+  const { user } = useAuth();
+  const { messages, isTyping, isDatabaseMode, addMessage, setIsTyping } = useChatContext();
   const [searchParams] = useSearchParams();
   const [missingMCQs, setMissingMCQs] = useState<number[]>([]);
   const [showPractice, setShowPractice] = useState(false);
@@ -231,12 +237,41 @@ const DigitalTextbook = () => {
 
   const handleAskEzhik = async () => {
     if (!selectedText) return;
+    
+    // Open chat and send the selected text for explanation
     setIsChatOpen(true);
+    
+    // Create a message asking for explanation of the selected text
+    const explanationRequest = `Объясни кратко это: "${selectedText}"`;
+    await handleSendChatMessage(explanationRequest);
+    
     setSelectedText('');
   };
 
   const handleSendChatMessage = async (userInput: string) => {
-    // Chat functionality implementation
+    // Add user message
+    const newUserMessage = {
+      id: messages.length + 1,
+      text: userInput,
+      isUser: true,
+      timestamp: new Date()
+    };
+    
+    addMessage(newUserMessage);
+    setIsTyping(true);
+
+    try {
+      // Send message to AI and get response
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
+      addMessage(aiResponse);
+      
+      // Save chat interaction to database
+      await saveChatLog(userInput, aiResponse.text, '1');
+    } catch (error) {
+      console.error('Error saving chat log:', error);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleBackToSyllabus = () => {
@@ -345,10 +380,28 @@ const DigitalTextbook = () => {
       )}
 
       <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
-        <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+        <SheetContent side="right" className="w-[400px] sm:w-[540px] flex flex-col">
           <SheetHeader>
             <SheetTitle>Ёжик помогает</SheetTitle>
           </SheetHeader>
+          
+          <div className="flex-1 flex flex-col mt-4">
+            {/* Chat Messages Area - Scrollable */}
+            <div className="flex-1 overflow-hidden">
+              <CourseChatMessages 
+                messages={messages} 
+                isTyping={isTyping} 
+                onLoadMoreHistory={() => {}}
+                isLoadingHistory={false}
+                hasMoreHistory={false}
+              />
+            </div>
+
+            {/* Chat Input Area - Fixed at bottom */}
+            <div className="border-t border-border bg-background p-4">
+              <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
+            </div>
+          </div>
         </SheetContent>
       </Sheet>
 
