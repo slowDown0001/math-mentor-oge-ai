@@ -49,7 +49,7 @@ const LearningPlatform = () => {
       exercises: 9,
       quizzes: 2,
       hasTest: true,
-      isUnlocked: false,
+      isUnlocked: true,
       completedExercises: 0,
       completedQuizzes: 0,
       testCompleted: false
@@ -61,7 +61,7 @@ const LearningPlatform = () => {
       exercises: 5,
       quizzes: 1,
       hasTest: true,
-      isUnlocked: false,
+      isUnlocked: true,
       completedExercises: 0,
       completedQuizzes: 0,
       testCompleted: false
@@ -73,7 +73,7 @@ const LearningPlatform = () => {
       exercises: 7,
       quizzes: 2,
       hasTest: true,
-      isUnlocked: false,
+      isUnlocked: true,
       completedExercises: 0,
       completedQuizzes: 0,
       testCompleted: false
@@ -85,7 +85,7 @@ const LearningPlatform = () => {
       exercises: 6,
       quizzes: 1,
       hasTest: true,
-      isUnlocked: false,
+      isUnlocked: true,
       completedExercises: 0,
       completedQuizzes: 0,
       testCompleted: false
@@ -97,7 +97,7 @@ const LearningPlatform = () => {
       exercises: 10,
       quizzes: 3,
       hasTest: true,
-      isUnlocked: false,
+      isUnlocked: true,
       completedExercises: 0,
       completedQuizzes: 0,
       testCompleted: false
@@ -181,13 +181,8 @@ const LearningPlatform = () => {
             {unit.icon}
           </div>
           <div>
-            <h3 className={`font-semibold text-sm ${
+            <p className={`font-semibold text-sm ${
               unit.isUnlocked ? 'text-gray-800' : 'text-gray-500'
-            }`}>
-              Unit {index + 1}
-            </h3>
-            <p className={`text-xs ${
-              unit.isUnlocked ? 'text-gray-600' : 'text-gray-400'
             }`}>
               {unit.title}
             </p>
