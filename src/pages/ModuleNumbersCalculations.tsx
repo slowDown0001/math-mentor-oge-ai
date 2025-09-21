@@ -113,7 +113,7 @@ const ModuleNumbersCalculations = () => {
                   <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{topic.title} (введение)</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{topic.title}</span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">Ответьте правильно на 3 из 4 вопросов для повышения уровня!</span>
                 </div>
               </div>
@@ -178,6 +178,9 @@ const ModuleNumbersCalculations = () => {
   
   // Add fifth topic
   orderedContent.push({ type: 'topic', content: topics[4], index: 4 });
+  
+  // Add final module test
+  orderedContent.push({ type: 'quiz', content: { id: 'module-test', title: 'Итоговый тест модуля', description: 'Проверьте свои знания по всему модулю "Числа и вычисления"' }, index: 2 });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-indigo-950">
