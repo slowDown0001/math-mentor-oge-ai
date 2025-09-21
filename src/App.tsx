@@ -105,7 +105,15 @@ const App = () => (
                 <Route path="/egemathbasic-practice" element={<EgemathbasicPractice />} />
                 <Route path="/new-practice-skills" element={<NewPracticeSkills />} />
                 <Route path="/learning-platform" element={<LearningPlatform />} />
-                <Route path="/module/numbers-calculations" element={<ModuleNumbersCalculations />} />
+        <Route path="/module/numbers-calculations" element={<ModuleNumbersCalculations />} />
+        <Route path="/module/algebraic-expressions" element={<ModuleAlgebraicExpressions />} />
+        <Route path="/module/equations-inequalities" element={<ModuleEquationsInequalities />} />
+        <Route path="/module/sequences" element={<ModuleSequences />} />
+        <Route path="/module/functions" element={<ModuleFunctions />} />
+        <Route path="/module/coordinates" element={<ModuleCoordinates />} />
+        <Route path="/module/geometry" element={<ModuleGeometry />} />
+        <Route path="/module/probability-statistics" element={<ModuleProbabilityStatistics />} />
+        <Route path="/module/applied-math" element={<ModuleAppliedMath />} />
         <Route path="/book-test" element={<BookTest />} />
         <Route path="/after-registration" element={<AfterRegistration />} />
         <Route path="/db2" element={<Db2 />} />

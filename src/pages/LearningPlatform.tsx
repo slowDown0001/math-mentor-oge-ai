@@ -163,12 +163,25 @@ const LearningPlatform = () => {
       transition={{ delay: index * 0.1 }}
       className={`
         p-4 rounded-lg border mb-3 cursor-pointer transition-all duration-200
-        ${unit.isUnlocked ? 'bg-white hover:bg-blue-50 border-gray-200' : 'bg-gray-50 border-gray-300'}
-        ${unit.id === 'unit-1' && unit.isUnlocked ? 'hover:shadow-md' : ''}
+        ${unit.isUnlocked ? 'bg-white hover:bg-blue-50 border-gray-200 hover:shadow-md' : 'bg-gray-50 border-gray-300'}
       `}
       onClick={() => {
-        if (unit.id === 'unit-1' && unit.isUnlocked) {
-          window.location.href = '/module/numbers-calculations';
+        if (unit.isUnlocked) {
+          const moduleRoutes = {
+            'unit-1': '/module/numbers-calculations',
+            'unit-2': '/module/algebraic-expressions',
+            'unit-3': '/module/equations-inequalities',
+            'unit-4': '/module/sequences',
+            'unit-5': '/module/functions',
+            'unit-6': '/module/coordinates',
+            'unit-7': '/module/geometry',
+            'unit-8': '/module/probability-statistics',
+            'unit-9': '/module/applied-math'
+          };
+          const route = moduleRoutes[unit.id as keyof typeof moduleRoutes];
+          if (route) {
+            window.location.href = route;
+          }
         }
       }}
     >
