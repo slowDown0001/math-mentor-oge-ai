@@ -71,6 +71,9 @@ const ModuleNumbersCalculations = () => {
     }
   ];
 
+  // Topic mapping for textbook links
+  const topicMapping = ['1.1', '1.2', '1.3', '1.4', '1.5'];
+
   const renderTopicItem = (topic: TopicContent, index: number) => (
     <motion.div
       key={topic.id}
@@ -111,14 +114,17 @@ const ModuleNumbersCalculations = () => {
             </div>
 
             {/* Read Textbook */}
-            <div className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-purple-200/30 dark:border-purple-800/30">
+            <div 
+              className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-purple-200/30 dark:border-purple-800/30 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer transition-colors"
+              onClick={() => window.location.href = `/textbook?topic=${topicMapping[index]}`}
+            >
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full">
                   <BookOpen className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 </div>
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Читать учебник</span>
               </div>
-              <span className="text-sm text-gray-500 dark:text-gray-400">Не начато</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">Доступно</span>
             </div>
           </div>
         </div>
