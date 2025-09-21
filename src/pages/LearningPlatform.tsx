@@ -129,31 +129,74 @@ const LearningPlatform = () => {
   ];
 
   const renderProgressSquare = (completed: boolean, index: number) => (
-    <div
-      key={index}
-      className={`w-6 h-6 border-2 rounded ${
-        completed 
-          ? 'bg-green-500 border-green-500' 
-          : 'bg-white border-gray-300'
-      }`}
-    />
+    <Tooltip key={index}>
+      <TooltipTrigger>
+        <div
+          className={`
+            w-8 h-8 rounded-lg border-2 transition-all duration-200 flex items-center justify-center
+            ${completed 
+              ? 'bg-gradient-to-br from-green-400 to-green-600 border-green-500 shadow-lg' 
+              : 'bg-white border-gray-300 hover:border-blue-400 hover:shadow-md'
+            }
+          `}
+        >
+          {completed && <Target className="h-4 w-4 text-white" />}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{completed ? 'Упражнение завершено' : 'Упражнение не начато'}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 
   const renderQuizIcon = (completed: boolean, index: number) => (
-    <Zap
-      key={`quiz-${index}`}
-      className={`h-5 w-5 ${
-        completed ? 'text-blue-600' : 'text-gray-400'
-      }`}
-    />
+    <Tooltip key={`quiz-${index}`}>
+      <TooltipTrigger>
+        <div
+          className={`
+            w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200
+            ${completed 
+              ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg' 
+              : 'bg-gray-100 hover:bg-blue-50 hover:shadow-md'
+            }
+          `}
+        >
+          <Zap
+            className={`h-4 w-4 ${
+              completed ? 'text-white' : 'text-gray-400'
+            }`}
+          />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{completed ? 'Тест завершен' : 'Тест не начат'}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 
   const renderTestIcon = (completed: boolean) => (
-    <Star
-      className={`h-5 w-5 ${
-        completed ? 'text-yellow-600' : 'text-gray-400'
-      }`}
-    />
+    <Tooltip>
+      <TooltipTrigger>
+        <div
+          className={`
+            w-10 h-8 rounded-lg flex items-center justify-center transition-all duration-200
+            ${completed 
+              ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-lg' 
+              : 'bg-gray-100 hover:bg-yellow-50 hover:shadow-md'
+            }
+          `}
+        >
+          <Star
+            className={`h-5 w-5 ${
+              completed ? 'text-white' : 'text-gray-400'
+            }`}
+          />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{completed ? 'Итоговый экзамен завершен' : 'Итоговый экзамен не начат'}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 
   const UnitRow = ({ unit, index }: { unit: UnitData; index: number }) => (
@@ -162,8 +205,11 @@ const LearningPlatform = () => {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.1 }}
       className={`
-        p-4 rounded-lg border mb-3 cursor-pointer transition-all duration-200
-        ${unit.isUnlocked ? 'bg-white hover:bg-blue-50 border-gray-200 hover:shadow-md' : 'bg-gray-50 border-gray-300'}
+        p-6 rounded-xl border-2 mb-4 cursor-pointer transition-all duration-300 relative overflow-hidden
+        ${unit.isUnlocked 
+          ? 'bg-white/90 backdrop-blur-sm hover:bg-white border-white/50 hover:border-blue-300 hover:shadow-xl transform hover:-translate-y-1' 
+          : 'bg-gray-50/80 backdrop-blur-sm border-gray-200'
+        }
       `}
       onClick={() => {
         if (unit.isUnlocked) {
@@ -185,42 +231,91 @@ const LearningPlatform = () => {
         }
       }}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className={`
-            p-2 rounded-full
-            ${unit.isUnlocked ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-500'}
-          `}>
-            {unit.icon}
-          </div>
-          <div>
-            <p className={`font-semibold text-sm ${
-              unit.isUnlocked ? 'text-gray-800' : 'text-gray-500'
-            }`}>
-              {unit.title}
-            </p>
-          </div>
-        </div>
-        {unit.id === 'unit-1' && (
-          <div className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded">
-            UP NEXT FOR YOU!
-          </div>
-        )}
-      </div>
+      {/* Gradient overlay for unlocked units */}
+      {unit.isUnlocked && (
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/20 to-purple-50/20 pointer-events-none" />
+      )}
       
-      <div className="flex items-center gap-2 flex-wrap">
-        {/* Exercises */}
-        {Array.from({ length: unit.exercises }, (_, i) => 
-          renderProgressSquare(i < unit.completedExercises, i)
-        )}
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <div className={`
+              p-3 rounded-xl shadow-md
+              ${unit.isUnlocked 
+                ? 'bg-gradient-to-br from-blue-100 to-purple-100 text-blue-600' 
+                : 'bg-gray-200 text-gray-500'
+              }
+            `}>
+              {unit.icon}
+            </div>
+            <div>
+              <h3 className={`font-bold text-lg ${
+                unit.isUnlocked ? 'text-gray-800' : 'text-gray-500'
+              }`}>
+                {unit.title}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {unit.exercises} упражнений • {unit.quizzes} тестов
+              </p>
+            </div>
+          </div>
+          {unit.id === 'unit-1' && (
+            <div className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold rounded-full shadow-lg">
+              СЛЕДУЮЩИЙ!
+            </div>
+          )}
+        </div>
         
-        {/* Quizzes */}
-        {Array.from({ length: unit.quizzes }, (_, i) => 
-          renderQuizIcon(i < unit.completedQuizzes, i)
-        )}
-        
-        {/* Unit Test */}
-        {unit.hasTest && renderTestIcon(unit.testCompleted)}
+        {/* Progress Section */}
+        <div className="space-y-3">
+          {/* Exercises Row */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 min-w-[100px]">
+              <Target className="h-4 w-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-600">Упражнения</span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {Array.from({ length: unit.exercises }, (_, i) => 
+                renderProgressSquare(i < unit.completedExercises, i)
+              )}
+            </div>
+            <span className="text-xs text-gray-500 ml-auto">
+              {unit.completedExercises}/{unit.exercises}
+            </span>
+          </div>
+          
+          {/* Quizzes Row */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 min-w-[100px]">
+              <Zap className="h-4 w-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-600">Тесты</span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {Array.from({ length: unit.quizzes }, (_, i) => 
+                renderQuizIcon(i < unit.completedQuizzes, i)
+              )}
+            </div>
+            <span className="text-xs text-gray-500 ml-auto">
+              {unit.completedQuizzes}/{unit.quizzes}
+            </span>
+          </div>
+          
+          {/* Unit Test Row */}
+          {unit.hasTest && (
+            <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-2 min-w-[100px]">
+                <Star className="h-4 w-4 text-gray-600" />
+                <span className="text-sm font-medium text-gray-600">Экзамен</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {renderTestIcon(unit.testCompleted)}
+              </div>
+              <span className="text-xs text-gray-500 ml-auto">
+                {unit.testCompleted ? 'Завершен' : 'Не начат'}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );
