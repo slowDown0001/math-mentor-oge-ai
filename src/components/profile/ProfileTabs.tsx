@@ -4,6 +4,7 @@ import { ActivityTab } from "./ActivityTab";
 import { AchievementsTab } from "./AchievementsTab";
 import { SettingsTab } from "./SettingsTab";
 import { GoalsTab } from "./GoalsTab";
+import { TeacherTab } from "./TeacherTab";
 import { StreakSettings } from "../streak/StreakSettings";
 
 interface ProfileTabsProps {
@@ -27,10 +28,11 @@ interface ProfileTabsProps {
 export const ProfileTabs = ({ userData }: ProfileTabsProps) => {
   return (
     <Tabs defaultValue="activity" className="w-full">
-      <TabsList className="grid grid-cols-5 mb-4">
+      <TabsList className="grid grid-cols-6 mb-4">
         <TabsTrigger value="activity">Активность</TabsTrigger>
         <TabsTrigger value="goals">Цели</TabsTrigger>
         <TabsTrigger value="achievements">Достижения</TabsTrigger>
+        <TabsTrigger value="teacher">Преподаватель</TabsTrigger>
         <TabsTrigger value="streak">Серии</TabsTrigger>
         <TabsTrigger value="settings">Настройки</TabsTrigger>
       </TabsList>
@@ -48,6 +50,10 @@ export const ProfileTabs = ({ userData }: ProfileTabsProps) => {
       
       <TabsContent value="achievements" className="bg-white rounded-xl shadow-md p-6 border-0">
         <AchievementsTab achievements={userData.achievements} />
+      </TabsContent>
+      
+      <TabsContent value="teacher" className="bg-white rounded-xl shadow-md p-6 border-0">
+        <TeacherTab />
       </TabsContent>
       
       <TabsContent value="streak" className="bg-white rounded-xl shadow-md p-6 border-0">
