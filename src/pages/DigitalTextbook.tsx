@@ -19,6 +19,7 @@ import ChatInput from '@/components/chat/ChatInput';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveChatLog } from '@/services/chatLogsService';
 import { getSelectedTextWithMath } from '@/utils/getSelectedTextWithMath';
+import { useMathJaxSelection } from '../hooks/useMathJaxSelection';
 
 interface Skill {
   number: number;
@@ -124,6 +125,9 @@ const getFilteredSkills = (skills: Skill[], searchTerm: string): Skill[] => {
 };
 
 const DigitalTextbook = () => {
+  // Initialize MathJax selection highlighting
+  useMathJaxSelection();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);

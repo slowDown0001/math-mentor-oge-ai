@@ -9,28 +9,28 @@ mjx-container * {
   user-select: none;
 }
 
-/* Enable selection highlighting for MathJax containers */
+/* Enable selection for MathJax containers */
 mjx-container {
   user-select: text;
 }
 
-mjx-container::selection {
+/* Selection highlighting for regular text and MathJax fallback */
+::selection {
   background: hsl(var(--primary) / 0.3);
   color: inherit;
 }
 
-mjx-container mjx-math::selection {
-  background: hsl(var(--primary) / 0.3);
-  color: inherit;
+/* MathJax selection overlay */
+.mjx-selection-highlight {
+  background: hsl(var(--primary) / 0.3) !important;
+  border-radius: 2px;
+  transition: background-color 0.1s ease;
 }
 
-/* Additional selection styles for nested MathJax elements */
-mjx-container mjx-mtext::selection,
-mjx-container mjx-mi::selection,
-mjx-container mjx-mn::selection,
-mjx-container mjx-mo::selection {
+/* Force selection visibility on MathJax elements */
+mjx-container.mjx-selected {
   background: hsl(var(--primary) / 0.3);
-  color: inherit;
+  border-radius: 2px;
 }
 
 @layer base {
