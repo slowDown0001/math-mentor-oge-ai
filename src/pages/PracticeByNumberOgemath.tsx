@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, BookOpen, ArrowRight, Home, ArrowLeft, Camera, X, Upload } from "lucide-react";
+import { CheckCircle, XCircle, BookOpen, ArrowRight, Home, ArrowLeft, Camera, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import MathRenderer from "@/components/MathRenderer";
 import { useStreakTracking } from "@/hooks/useStreakTracking";
@@ -90,9 +90,6 @@ const PracticeByNumberOgemath = () => {
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [photoFeedback, setPhotoFeedback] = useState<string>("");
   const [photoScores, setPhotoScores] = useState<number | null>(null);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [showImageAnalysis, setShowImageAnalysis] = useState(false);
-  const [imageAnalysisResult, setImageAnalysisResult] = useState<string>("");
 
   // Formula booklet state
   const [showFormulaBooklet, setShowFormulaBooklet] = useState(false);
@@ -892,71 +889,6 @@ const PracticeByNumberOgemath = () => {
     setPhotoScores(null);
   };
 
-  // New image upload and analysis functionality
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Check if it's an image
-    if (!file.type.startsWith('image/')) {
-      toast.error('Пожалуйста, выберите файл изображения');
-      return;
-    }
-
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Размер файла должен быть менее 5MB');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setUploadedImage(result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleAnalyzeImage = async () => {
-    if (!uploadedImage || !currentQuestion) return;
-
-    setIsProcessingPhoto(true);
-    try {
-      // Convert data URL to base64
-      const base64Data = uploadedImage.split(',')[1];
-      
-      const { data, error } = await supabase.functions.invoke('analyze-photo-solution', {
-        body: {
-          imageBase64: base64Data,
-          questionText: currentQuestion.problem_text
-        }
-      });
-
-      if (error) {
-        console.error('Error analyzing image:', error);
-        toast.error('Ошибка при анализе изображения');
-        return;
-      }
-
-      if (data?.analysis) {
-        setImageAnalysisResult(data.analysis);
-        setShowImageAnalysis(true);
-        toast.success('Анализ завершён! Результат сохранён в базе данных.');
-      }
-    } catch (error) {
-      console.error('Error in handleAnalyzeImage:', error);
-      toast.error('Произошла ошибка при анализе');
-    } finally {
-      setIsProcessingPhoto(false);
-    }
-  };
-
-  const clearImageUpload = () => {
-    setUploadedImage(null);
-    setImageAnalysisResult("");
-    setShowImageAnalysis(false);
-  };
-
   const questionNumbers = Array.from({ length: 25 }, (_, i) => (i + 1).toString());
 
   return (
@@ -1284,76 +1216,17 @@ const PracticeByNumberOgemath = () => {
                     </div>
                   )}
 
-                  {/* Photo Upload for Part 2 questions (20-25) */}
+                  {/* Photo Attachment Button for questions 20+ */}
                   {currentQuestion.problem_number_type && currentQuestion.problem_number_type >= 20 && (
-                    <div className="space-y-4">
-                      <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center">
-                        <Upload className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                        <p className="text-blue-600 font-medium mb-2">Загрузите фото вашего решения</p>
-                        <p className="text-sm text-gray-600 mb-4">
-                          Поддерживаются форматы: JPG, PNG (макс. 5MB)
-                        </p>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          id="image-upload"
-                        />
-                        <label
-                          htmlFor="image-upload"
-                          className="inline-block bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors"
-                        >
-                          Выбрать файл
-                        </label>
-                      </div>
-
-                      {uploadedImage && (
-                        <div className="space-y-3">
-                          <div className="relative">
-                            <img 
-                              src={uploadedImage} 
-                              alt="Загруженное решение" 
-                              className="max-w-full h-auto max-h-64 mx-auto rounded-lg border"
-                            />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={clearImageUpload}
-                              className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white"
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                          <div className="flex justify-center">
-                            <Button
-                              onClick={handleAnalyzeImage}
-                              disabled={isProcessingPhoto}
-                              className="bg-green-500 hover:bg-green-600"
-                            >
-                              {isProcessingPhoto ? 'Анализ...' : 'Анализировать решение'}
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
-                      {showImageAnalysis && imageAnalysisResult && (
-                        <Card className="bg-green-50 border-green-200">
-                          <CardHeader>
-                            <CardTitle className="text-green-800 flex items-center justify-between">
-                              Анализ вашего решения
-                              <Button variant="ghost" size="sm" onClick={() => setShowImageAnalysis(false)}>
-                                <X className="w-4 h-4" />
-                              </Button>
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="prose max-w-none">
-                              <MathRenderer text={imageAnalysisResult} compiler="mathjax" />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
+                    <div className="flex justify-center">
+                      <Button
+                        variant="outline"
+                        onClick={handlePhotoAttachment}
+                        className="bg-blue-50 hover:bg-blue-100 border-blue-200"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Прикрепить фото
+                      </Button>
                     </div>
                   )}
 
