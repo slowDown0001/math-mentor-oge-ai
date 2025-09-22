@@ -740,49 +740,50 @@ const DigitalTextbook = () => {
 
       {/* Text Selection Popup */}
       {selectedText && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-lg p-6 max-w-sm w-full border border-gray-200 animate-fade-in">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">
+        <div className="fixed top-20 right-4 z-[100] max-w-xs w-80">
+          <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200 animate-slide-in-right">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium text-gray-900">
                 Выделенный текст
-              </h3>
+              </h4>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={closeSelectionPopup}
-                className="h-8 w-8 p-0 hover:bg-gray-100 rounded-lg"
+                className="h-6 w-6 p-0 hover:bg-gray-100 rounded"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3 w-3" />
               </Button>
             </div>
             
-            <div className="bg-gray-50 rounded-lg p-3 mb-4 max-h-32 overflow-y-auto">
-              <p className="text-sm text-gray-700">
+            <div className="bg-gray-50 rounded p-2 mb-3 max-h-20 overflow-y-auto">
+              <p className="text-xs text-gray-700 line-clamp-3">
                 "{selectedText}"
               </p>
             </div>
             
             <Textarea
-              placeholder="Дополнительный вопрос (необязательно)..."
+              placeholder="Дополнительный вопрос..."
               value={customQuestion}
               onChange={(e) => setCustomQuestion(e.target.value)}
-              className="mb-4 resize-none"
+              className="mb-3 resize-none text-xs"
               rows={2}
             />
             
             <div className="flex gap-2">
               <Button 
                 onClick={handleAskEzhik}
-                className="flex-1 flex items-center gap-2"
+                className="flex-1 text-xs py-1 h-7"
                 size="sm"
               >
-                <MessageCircle className="h-4 w-4" />
-                Спросить Ёжика
+                <MessageCircle className="h-3 w-3 mr-1" />
+                Спросить
               </Button>
               <Button 
                 variant="outline" 
                 onClick={closeSelectionPopup}
                 size="sm"
+                className="text-xs py-1 h-7"
               >
                 Отмена
               </Button>
