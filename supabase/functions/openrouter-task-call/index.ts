@@ -58,22 +58,12 @@ Deno.serve(async (req) => {
     if (course_id === 1) {
       console.log('Fetching student progress...');
       try {
-        // Add timeout to the function call
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Function call timeout after 30 seconds')), 30000);
-        });
-
-        const functionPromise = supabase.functions.invoke(
+        const { data: progressData, error: progressError } = await supabase.functions.invoke(
           'student-progress-calculate',
           {
             body: { user_id }
           }
         );
-
-        const { data: progressData, error: progressError } = await Promise.race([
-          functionPromise,
-          timeoutPromise
-        ]) as any;
 
         if (progressError) {
           console.error('Error fetching student progress:', progressError);
