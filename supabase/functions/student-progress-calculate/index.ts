@@ -167,9 +167,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Calculate skill mastery for all skills (1-180)
+    // Calculate skill mastery for all skills (1-200)
     console.log('Calculating skill mastery...');
-    const allSkills = Array.from({ length: 180 }, (_, i) => i + 1); // Skills 1 through 180
+    const allSkills = Array.from({ length: 200 }, (_, i) => i + 1); // Skills 1 through 200
     
     try {
       const { data: skillData, error: skillError } = await supabase.functions.invoke(
