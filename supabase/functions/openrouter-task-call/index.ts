@@ -57,24 +57,29 @@ Deno.serve(async (req) => {
     // Get student progress if course_id is 1
     if (course_id === 1) {
       console.log('Fetching student progress...');
-      const { data: progressData, error: progressError } = await supabase.functions.invoke(
-        'student-progress-calculate',
-        {
-          body: { user_id }
-        }
-      );
+      try {
+        const { data: progressData, error: progressError } = await supabase.functions.invoke(
+          'student-progress-calculate',
+          {
+            body: { user_id }
+          }
+        );
 
-      if (progressError) {
-        console.error('Error fetching student progress:', progressError);
-        studentProgress = 'Не удалось загрузить прогресс студента';
-      } else {
-        studentProgress = JSON.stringify(progressData, null, 2);
+        if (progressError) {
+          console.error('Error fetching student progress:', progressError);
+          studentProgress = 'Не удалось загрузить прогресс студента';
+        } else {
+          studentProgress = JSON.stringify(progressData, null, 2);
+        }
+      } catch (error) {
+        console.error('Exception while fetching student progress:', error);
+        studentProgress = 'Ошибка при загрузке прогресса студента';
       }
     }
 
     // Get student hardcoded task
     let student_hardcoded_task = '';
-    if (course_id === 1 && studentProgress) {
+    if (course_id === 1 && studentProgress && studentProgress !== 'Не удалось загрузить прогресс студента' && studentProgress !== 'Ошибка при загрузке прогресса студента') {
       try {
         const progressArray = JSON.parse(studentProgress);
         const { data: taskData, error: taskError } = await supabase.functions.invoke(
