@@ -69,6 +69,7 @@ Deno.serve(async (req) => {
           console.error('Error fetching student progress:', progressError);
           studentProgress = 'Не удалось загрузить прогресс студента';
         } else {
+          console.log('Progress data received:', JSON.stringify(progressData, null, 2));
           studentProgress = JSON.stringify(progressData, null, 2);
         }
       } catch (error) {
@@ -79,9 +80,18 @@ Deno.serve(async (req) => {
 
     // Get student hardcoded task
     let student_hardcoded_task = '';
+    console.log(`Checking conditions for ogemath-task-hardcode: course_id=${course_id}, studentProgress exists=${!!studentProgress}, studentProgress length=${studentProgress.length}`);
+    
     if (course_id === 1 && studentProgress && studentProgress !== 'Не удалось загрузить прогресс студента' && studentProgress !== 'Ошибка при загрузке прогресса студента') {
+      console.log('Calling ogemath-task-hardcode function...');
       try {
         const progressArray = JSON.parse(studentProgress);
+        console.log('Progress array parsed successfully, structure:', Object.keys(progressArray));
+        
+        // Extract progress_bars if it exists
+        const progressData = progressArray.progress_bars || progressArray;
+        console.log('Using progress data:', Array.isArray(progressData) ? `Array with ${progressData.length} items` : typeof progressData);
+        
         const { data: taskData, error: taskError } = await supabase.functions.invoke(
           'ogemath-task-hardcode',
           {
@@ -90,7 +100,7 @@ Deno.serve(async (req) => {
               hours_per_week: weekly_hours,
               school_grade: school_grade,
               days_to_exam: daysToExam,
-              progress: progressArray
+              progress: progressData
             }
           }
         );
@@ -99,12 +109,18 @@ Deno.serve(async (req) => {
           console.error('Error generating student task:', taskError);
           student_hardcoded_task = 'Не удалось сгенерировать задание';
         } else {
+          console.log('ogemath-task-hardcode completed successfully');
           student_hardcoded_task = JSON.stringify(taskData, null, 2);
         }
       } catch (error) {
         console.error('Error parsing student progress for task generation:', error);
         student_hardcoded_task = 'Ошибка при обработке прогресса';
       }
+    } else {
+      console.log('Conditions not met for ogemath-task-hardcode. Reasons:');
+      console.log(`- course_id !== 1: ${course_id !== 1}`);
+      console.log(`- no studentProgress: ${!studentProgress}`);
+      console.log(`- studentProgress is error: ${studentProgress === 'Не удалось загрузить прогресс студента' || studentProgress === 'Ошибка при загрузке прогресса студента'}`);
     }
 
     // Get task context from oge_entrypage_rag table
