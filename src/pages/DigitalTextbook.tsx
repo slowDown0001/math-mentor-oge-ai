@@ -330,9 +330,9 @@ const DigitalTextbook = () => {
         
         <div className="grid gap-6">
           {Object.entries(syllabusData).map(([moduleName, module]) => (
-            <Card key={moduleName} className="overflow-hidden">
-              <CardHeader className="bg-primary/5">
-                <CardTitle className="text-xl text-primary">{moduleName}</CardTitle>
+            <Card key={moduleName} className="overflow-hidden bg-white/90 backdrop-blur-sm border-white/50 hover:border-blue-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <CardHeader className="bg-gradient-to-br from-blue-100 to-purple-100">
+                <CardTitle className="text-xl text-blue-700">{moduleName}</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid gap-4">
@@ -454,7 +454,7 @@ const DigitalTextbook = () => {
         </div>
 
         {/* Topic Summary */}
-        <div className="mt-8 bg-white/80 rounded-lg p-6 border">
+        <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-lg p-6 border-white/50 border">
           <h3 className="text-lg font-semibold mb-4">Сводка по теме</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
             <div>
@@ -512,7 +512,41 @@ const DigitalTextbook = () => {
   }, [missingMCQs]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 relative overflow-hidden">
+      {/* Fun Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-200 rounded-full opacity-30 animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-pink-200 rounded-full opacity-40 animate-bounce"></div>
+        <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-blue-200 rounded-full opacity-25 animate-pulse"></div>
+        <div className="absolute top-1/3 right-1/3 w-12 h-12 bg-green-200 rounded-full opacity-35 animate-bounce"></div>
+        <div className="absolute bottom-40 right-10 w-18 h-18 bg-purple-200 rounded-full opacity-30 animate-pulse"></div>
+        
+        {/* Decorative Math Symbols */}
+        <div className="absolute top-20 left-1/3 text-6xl text-blue-200 opacity-20 rotate-12">π</div>
+        <div className="absolute top-1/2 right-20 text-5xl text-pink-200 opacity-20 -rotate-12">∑</div>
+        <div className="absolute bottom-1/3 left-20 text-4xl text-purple-200 opacity-20 rotate-45">∞</div>
+        <div className="absolute top-3/4 right-1/3 text-5xl text-green-200 opacity-20 -rotate-45">√</div>
+        <div className="absolute top-10 right-1/4 text-4xl text-orange-200 opacity-15 rotate-30">∆</div>
+        <div className="absolute bottom-10 left-1/2 text-6xl text-indigo-200 opacity-18 -rotate-20">∫</div>
+        <div className="absolute top-1/3 left-10 text-5xl text-red-200 opacity-16 rotate-60">α</div>
+        <div className="absolute bottom-1/2 right-10 text-4xl text-teal-200 opacity-20 -rotate-30">β</div>
+        <div className="absolute top-2/3 left-1/4 text-3xl text-yellow-200 opacity-15 rotate-15">γ</div>
+        <div className="absolute bottom-20 right-1/4 text-5xl text-purple-300 opacity-17 -rotate-45">θ</div>
+        <div className="absolute top-40 left-2/3 text-4xl text-blue-300 opacity-19 rotate-25">λ</div>
+        <div className="absolute bottom-1/4 left-1/3 text-6xl text-pink-300 opacity-16 -rotate-15">Ω</div>
+        <div className="absolute top-1/4 right-1/2 text-3xl text-green-300 opacity-18 rotate-40">φ</div>
+        <div className="absolute bottom-40 left-10 text-4xl text-orange-300 opacity-15 -rotate-25">ψ</div>
+        <div className="absolute top-80 right-40 text-5xl text-indigo-300 opacity-17 rotate-35">≈</div>
+        <div className="absolute bottom-60 right-1/2 text-4xl text-red-300 opacity-16 -rotate-40">≠</div>
+        <div className="absolute top-1/5 left-1/2 text-3xl text-teal-300 opacity-19 rotate-50">≤</div>
+        <div className="absolute bottom-1/5 right-1/5 text-4xl text-yellow-300 opacity-14 -rotate-35">≥</div>
+        <div className="absolute top-3/5 right-1/6 text-5xl text-purple-200 opacity-16 rotate-20">±</div>
+        <div className="absolute bottom-2/3 left-1/5 text-3xl text-blue-200 opacity-18 -rotate-50">÷</div>
+        <div className="absolute top-1/6 right-2/3 text-4xl text-pink-200 opacity-15 rotate-65">×</div>
+        <div className="absolute bottom-1/6 left-2/3 text-5xl text-green-200 opacity-17 -rotate-20">∝</div>
+      </div>
+      
+      <div className="relative z-10">
       <Header />
       
       {selectedText && (
@@ -588,7 +622,7 @@ const DigitalTextbook = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div className="lg:col-span-1">
-                  <Card className="h-fit sticky top-4">
+                  <Card className="h-fit sticky top-4 bg-white/90 backdrop-blur-sm border-white/50">
                     <CardHeader>
                       <CardTitle className="text-lg">Программа ОГЭ</CardTitle>
                     </CardHeader>
@@ -671,7 +705,7 @@ const DigitalTextbook = () => {
                     />
                   ) : selectedSkill && currentArticle ? (
                     <div className="space-y-6">
-                      <Card>
+                      <Card className="bg-white/90 backdrop-blur-sm border-white/50">
                         <CardHeader>
                           <CardTitle className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -720,7 +754,7 @@ const DigitalTextbook = () => {
                       </Card>
                     </div>
                   ) : selectedSkill && !currentArticle && !loading ? (
-                    <Card>
+                    <Card className="bg-white/90 backdrop-blur-sm border-white/50">
                       <CardContent className="flex flex-col items-center justify-center py-16">
                         <Lightbulb className="h-16 w-16 text-muted-foreground mb-4" />
                         <h3 className="text-lg font-semibold mb-2">Материал в разработке</h3>
@@ -749,6 +783,7 @@ const DigitalTextbook = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
