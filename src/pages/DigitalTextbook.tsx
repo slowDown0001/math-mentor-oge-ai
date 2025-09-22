@@ -698,7 +698,7 @@ const DigitalTextbook = () => {
                               <div className="h-4 bg-muted rounded animate-pulse w-1/2"></div>
                             </div>
                           ) : (
-                             <div className={!isSelecting ? 'highlighter-cursor' : ''}>
+                             <div className={`${!isSelecting ? 'highlighter-cursor' : 'selection-mode'}`}>
                               <ArticleRenderer 
                                 text={currentArticle.article_text || ''} 
                                 article={{
