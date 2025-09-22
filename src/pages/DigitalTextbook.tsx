@@ -637,6 +637,7 @@ const DigitalTextbook = () => {
                           style={{ cursor: isSelecting ? 'text' : 'default' }}
                         >
                           <ArticleRenderer 
+                            text={currentArticle.article_text}
                             article={{
                               ...currentArticle,
                               skill: currentArticle.ID,
@@ -692,8 +693,7 @@ const DigitalTextbook = () => {
                       id: selectedSkill,
                       title: getAllSkillsFromStructure().find(s => s.number === selectedSkill)?.name || ''
                     }}
-                    questions={currentMCQs}
-                    onBack={handleBackToArticle}
+                    onBackToArticle={handleBackToArticle}
                   />
                 )}
               </div>
