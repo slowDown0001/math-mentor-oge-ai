@@ -72,6 +72,36 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Get student hardcoded task
+    let student_hardcoded_task = '';
+    if (course_id === 1 && studentProgress) {
+      try {
+        const progressArray = JSON.parse(studentProgress);
+        const { data: taskData, error: taskError } = await supabase.functions.invoke(
+          'ogemath-task-hardcode',
+          {
+            body: {
+              goal: target_score,
+              hours_per_week: weekly_hours,
+              school_grade: school_grade,
+              days_to_exam: daysToExam,
+              progress: progressArray
+            }
+          }
+        );
+
+        if (taskError) {
+          console.error('Error generating student task:', taskError);
+          student_hardcoded_task = 'Не удалось сгенерировать задание';
+        } else {
+          student_hardcoded_task = JSON.stringify(taskData, null, 2);
+        }
+      } catch (error) {
+        console.error('Error parsing student progress for task generation:', error);
+        student_hardcoded_task = 'Ошибка при обработке прогресса';
+      }
+    }
+
     // Get task context from oge_entrypage_rag table
     console.log(`Fetching task context for course_id: ${course_id}`);
     const { data: ragData, error: ragError } = await supabase
@@ -87,9 +117,27 @@ Deno.serve(async (req) => {
 
     const prompt1 = ragData.task_context || '';
 
+    // Filter student progress to remove skill elements
+    let filteredStudentProgress = studentProgress;
+    if (studentProgress && course_id === 1) {
+      try {
+        const progressArray = JSON.parse(studentProgress);
+        const filteredProgress = progressArray.filter((item: any) => !item.hasOwnProperty('навык'));
+        filteredStudentProgress = JSON.stringify(filteredProgress, null, 2);
+      } catch (error) {
+        console.error('Error filtering student progress:', error);
+        // Keep original if filtering fails
+      }
+    }
+
     // Construct the full prompt
     const prompt = prompt1 + `
 Твой ответ должен иметь длину до ${number_of_words} слов.
+
+### Задание студента
+
+{ЗАДАНИЕ_ДЛЯ_СТУДЕНТА}:
+${student_hardcoded_task}
 
 ### Данные студента
 
@@ -106,7 +154,7 @@ ${school_grade}
 ${daysToExam}
 
 {ПРОГРЕСС_СТУДЕНТА}:
-${studentProgress}
+${filteredStudentProgress}
 `;
 
     console.log('Making OpenRouter API call...');
