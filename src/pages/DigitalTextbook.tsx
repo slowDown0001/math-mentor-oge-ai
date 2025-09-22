@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { saveChatLog } from '@/services/chatLogsService';
 import { getSelectedTextWithMath } from '@/utils/getSelectedTextWithMath';
 import { useMathJaxSelection } from '../hooks/useMathJaxSelection';
+import { StreakDisplay } from '@/components/streak/StreakDisplay';
 
 interface Skill {
   number: number;
@@ -257,15 +258,8 @@ const DigitalTextbook = () => {
     setIsSelecting(!isSelecting);
   };
 
-  const handleTextSelection = (e?: Event) => {
+  const handleTextSelection = () => {
     setTimeout(() => {
-      // Don't clear selection if clicking inside the popup
-      if (e && e.target) {
-        const target = e.target as Element;
-        const popup = target.closest('.selection-popup');
-        if (popup) return;
-      }
-      
       const selected = getSelectedTextWithMath();
       if (!selected) {
         setSelectedText('');
@@ -498,293 +492,283 @@ const DigitalTextbook = () => {
 
   useEffect(() => {
     if (isSelecting) {
-      const mouseUpHandler = (e: MouseEvent) => handleTextSelection(e);
-      const touchEndHandler = (e: TouchEvent) => handleTextSelection(e);
-      
-      document.addEventListener('mouseup', mouseUpHandler);
-      document.addEventListener('touchend', touchEndHandler);
-      return () => {
-        document.removeEventListener('mouseup', mouseUpHandler);
-        document.removeEventListener('touchend', touchEndHandler);
-      };
+      document.addEventListener('mouseup', handleTextSelection);
+      document.addEventListener('touchend', handleTextSelection);
+    } else {
+      document.removeEventListener('mouseup', handleTextSelection);
+      document.removeEventListener('touchend', handleTextSelection);
     }
-  }, [isSelecting]);
 
-  // Optional: make Ctrl/Cmd+C copy TeX correctly on this page
-  useEffect(() => {
-    const onCopy = (e: ClipboardEvent) => {
-      if (isSelecting) {
-        const content = getSelectedTextWithMath();
-        if (content) {
-          e.clipboardData?.setData('text/plain', content);
-          e.preventDefault();
-        }
-      }
+    return () => {
+      document.removeEventListener('mouseup', handleTextSelection);
+      document.removeEventListener('touchend', handleTextSelection);
     };
-    document.addEventListener('copy', onCopy as any);
-    return () => document.removeEventListener('copy', onCopy as any);
   }, [isSelecting]);
-
-  useEffect(() => {
-    if (missingMCQs.length > 0) {
-      console.log('Missing MCQs for skills:', missingMCQs);
-    }
-  }, [missingMCQs]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 relative overflow-hidden">
-      {/* Fun Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-200 rounded-full opacity-30 animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-16 h-16 bg-pink-200 rounded-full opacity-40 animate-bounce"></div>
-        <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-blue-200 rounded-full opacity-25 animate-pulse"></div>
-        <div className="absolute top-1/3 right-1/3 w-12 h-12 bg-green-200 rounded-full opacity-35 animate-bounce"></div>
-        <div className="absolute bottom-40 right-10 w-18 h-18 bg-purple-200 rounded-full opacity-30 animate-pulse"></div>
-        
-        {/* Decorative Math Symbols */}
-        <div className="absolute top-20 left-1/3 text-6xl text-blue-200 opacity-20 rotate-12">π</div>
-        <div className="absolute top-1/2 right-20 text-5xl text-pink-200 opacity-20 -rotate-12">∑</div>
-        <div className="absolute bottom-1/3 left-20 text-4xl text-purple-200 opacity-20 rotate-45">∞</div>
-        <div className="absolute top-3/4 right-1/3 text-5xl text-green-200 opacity-20 -rotate-45">√</div>
-        <div className="absolute top-10 right-1/4 text-4xl text-orange-200 opacity-15 rotate-30">∆</div>
-        <div className="absolute bottom-10 left-1/2 text-6xl text-indigo-200 opacity-18 -rotate-20">∫</div>
-        <div className="absolute top-1/3 left-10 text-5xl text-red-200 opacity-16 rotate-60">α</div>
-        <div className="absolute bottom-1/2 right-10 text-4xl text-teal-200 opacity-20 -rotate-30">β</div>
-        <div className="absolute top-2/3 left-1/4 text-3xl text-yellow-200 opacity-15 rotate-15">γ</div>
-        <div className="absolute bottom-20 right-1/4 text-5xl text-purple-300 opacity-17 -rotate-45">θ</div>
-        <div className="absolute top-40 left-2/3 text-4xl text-blue-300 opacity-19 rotate-25">λ</div>
-        <div className="absolute bottom-1/4 left-1/3 text-6xl text-pink-300 opacity-16 -rotate-15">Ω</div>
-        <div className="absolute top-1/4 right-1/2 text-3xl text-green-300 opacity-18 rotate-40">φ</div>
-        <div className="absolute bottom-40 left-10 text-4xl text-orange-300 opacity-15 -rotate-25">ψ</div>
-        <div className="absolute top-80 right-40 text-5xl text-indigo-300 opacity-17 rotate-35">≈</div>
-        <div className="absolute bottom-60 right-1/2 text-4xl text-red-300 opacity-16 -rotate-40">≠</div>
-        <div className="absolute top-1/5 left-1/2 text-3xl text-teal-300 opacity-19 rotate-50">≤</div>
-        <div className="absolute bottom-1/5 right-1/5 text-4xl text-yellow-300 opacity-14 -rotate-35">≥</div>
-        <div className="absolute top-3/5 right-1/6 text-5xl text-purple-200 opacity-16 rotate-20">±</div>
-        <div className="absolute bottom-2/3 left-1/5 text-3xl text-blue-200 opacity-18 -rotate-50">÷</div>
-        <div className="absolute top-1/6 right-2/3 text-4xl text-pink-200 opacity-15 rotate-65">×</div>
-        <div className="absolute bottom-1/6 left-2/3 text-5xl text-green-200 opacity-17 -rotate-20">∝</div>
-      </div>
-      
-      <div className="relative z-10">
-        {/* Simplified Top Bar with User Info and Navigation */}
-        <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-white/50 shadow-sm">
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex items-center justify-between gap-4">
-              {/* User Info */}
-              <div className="flex items-center gap-4">
-                <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                  {user?.user_metadata?.full_name?.charAt(0) || 'У'}
-                </div>
-                <div className="hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">
-                    {user?.user_metadata?.full_name || 'Пользователь'}
-                  </p>
-                  <p className="text-xs text-gray-500">Серия: 0 дней</p>
-                </div>
-              </div>
-
-              {/* Navigation Buttons */}
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={isSelecting ? "default" : "outline"}
-                  onClick={toggleSelecter}
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  {isSelecting ? "Выключить выделение" : "Включить выделение"}
-                </Button>
-                
-                {selectedSkill && (
-                  <>
-                    <Button variant="outline" size="sm" onClick={handleBackToTopic}>
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      К теме
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleBackToSyllabus}>
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      К программе
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="container mx-auto px-4 py-4">
-          <Input
-            type="text"
-            placeholder="Поиск по навыкам..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-md mx-auto"
-          />
-        </div>
-
-        {selectedText && (
-          <div className="fixed top-20 right-4 z-50 animate-scale-in">
-            <div 
-              className="selection-popup bg-gradient-to-br from-white via-blue-50 to-purple-50 backdrop-blur-sm border border-blue-200/60 rounded-2xl shadow-2xl max-w-sm overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-4 py-3 border-b border-blue-200/40">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
-                    <h4 className="font-medium text-sm text-gray-700">Выделенный текст</h4>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={closeSelectionPopup} 
-                    className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600 transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-4 space-y-3">
-                <div className="bg-white/60 p-3 rounded-lg border border-blue-100">
-                  <p className="text-sm text-gray-700 max-h-16 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-200">
-                    "{selectedText}"
-                  </p>
-                </div>
-
-                {/* Question Input */}
-                <div className="space-y-2">
-                  <Textarea
-                    value={customQuestion}
-                    onChange={(e) => setCustomQuestion(e.target.value)}
-                    placeholder="Объясни кратко это:"
-                    className="min-h-[60px] text-sm resize-none border-blue-200/60 focus:border-blue-400 focus:ring-blue-200"
-                  />
-                </div>
-
-                {/* Ask Button */}
-                <Button 
-                  onClick={handleAskEzhik} 
-                  size="sm" 
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover-scale"
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Спросить у Ёжика
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
-          <SheetContent side="right" className="w-[400px] sm:w-[540px] flex flex-col">
-            <SheetHeader>
-              <SheetTitle>Ёжик помогает</SheetTitle>
-            </SheetHeader>
-            
-            <div className="flex-1 flex flex-col mt-4 min-h-0">
-              {/* Chat Messages Area - Scrollable */}
-              <div className="flex-1 overflow-hidden min-h-0">
-                <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
-                  <CourseChatMessages 
-                    messages={messages} 
-                    isTyping={isTyping} 
-                    onLoadMoreHistory={() => {}}
-                    isLoadingHistory={false}
-                    hasMoreHistory={false}
-                  />
-                </div>
-              </div>
-
-              {/* Chat Input Area - Fixed at bottom */}
-              <div className="border-t border-border bg-background p-4">
-                <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        {/* Floating Chat Arrow Button */}
-        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40">
-          <Button
-            onClick={() => setIsChatOpen(true)}
-            size="sm"
-            className="w-12 h-12 p-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
-            title="Открыть чат с Ёжиком"
+    <div className="flex h-screen w-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Left Sidebar - Fixed */}
+      <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0">
+        {/* Logo area */}
+        <div className="p-4">
+          <button 
+            onClick={() => navigate("/mydb3")}
+            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
           >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="container mx-auto px-4 pb-8">
-          {showPractice && selectedSkill ? (
-            <SkillPracticeQuiz
-              skill={{
-                id: selectedSkill,
-                title: getAllSkillsFromStructure().find(s => s.number === selectedSkill)?.name || ''
-              }}
-              onBackToArticle={handleBackToArticle}
+            <img 
+              src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png" 
+              alt="EGEChat Logo" 
+              className="w-8 h-8"
             />
-          ) : selectedSkill && currentArticle ? (
-            <div className="space-y-6">
-              <Card className="bg-white/90 backdrop-blur-sm border-white/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5" />
-                    {selectedSkill}. {getAllSkillsFromStructure().find(s => s.number === selectedSkill)?.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <div className="space-y-4">
-                      <div className="h-4 bg-muted rounded animate-pulse"></div>
-                      <div className="h-4 bg-muted rounded animate-pulse w-3/4"></div>
-                      <div className="h-4 bg-muted rounded animate-pulse w-1/2"></div>
-                    </div>
-                  ) : (
-                     <div className={`${!isSelecting ? 'highlighter-cursor' : 'selection-mode'}`}>
-                      <ArticleRenderer 
-                        text={currentArticle.article_text || ''} 
-                        article={{
-                          skill: selectedSkill || 0,
-                          art: currentArticle.article_text || '',
-                          ...currentArticle
-                        }} 
-                      />
-                      
-                      <div className="mt-6 pt-6 border-t">
-                        <Button onClick={handleStartPractice} className="w-full" size="lg">
-                          <Play className="h-5 w-5 mr-2" />
-                          Тренировать навык
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          ) : selectedSkill && !currentArticle && !loading ? (
-            <Card className="bg-white/90 backdrop-blur-sm border-white/50">
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <Lightbulb className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Материал в разработке</h3>
-                <p className="text-muted-foreground text-center">
-                  Материал для этого навыка пока готовится. Скоро здесь появится подробное объяснение!
-                </p>
-              </CardContent>
-            </Card>
-          ) : selectedTopic ? (
-            renderTopicView()
-          ) : (
-            renderFullSyllabus()
+            <span className="font-bold text-lg text-sidebar-foreground">EGEChat</span>
+          </button>
+        </div>
+        
+        {/* Navigation buttons */}
+        <div className="p-4 space-y-2">
+          <Button
+            onClick={toggleSelecter}
+            variant={isSelecting ? "default" : "ghost"}
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          >
+            <Edit3 className="mr-2 h-4 w-4" />
+            Включить выделение
+          </Button>
+          
+          <Button
+            onClick={handleBackToSyllabus}
+            variant="ghost"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          >
+            <BookOpen className="mr-2 h-4 w-4" />
+            К программе
+          </Button>
+          
+          {selectedTopic && (
+            <Button
+              onClick={handleBackToTopic}
+              variant="ghost"
+              className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              К теме
+            </Button>
           )}
         </div>
       </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-full">
+        {/* Header */}
+        <div className="h-14 border-b border-border bg-background flex items-center justify-between px-4">
+          <h1 className="text-xl font-semibold">Учебник</h1>
+          {user && (
+            <div className="flex items-center gap-4">
+              <StreakDisplay />
+              <button 
+                onClick={() => navigate("/mydashboard")}
+                className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+              >
+                <img 
+                  src="/placeholder.svg" 
+                  alt="User Avatar" 
+                  className="w-8 h-8 rounded-full bg-primary/10"
+                />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-auto">
+          <div className="max-w-3xl mx-auto px-4 py-6">
+            {/* Breadcrumb Navigation */}
+            {(selectedModule || selectedTopic || selectedSkill) && (
+              <div className="flex items-center gap-2 mb-6 text-sm text-gray-600">
+                <button 
+                  onClick={handleBackToSyllabus}
+                  className="hover:text-primary transition-colors"
+                >
+                  Программа
+                </button>
+                {selectedModule && (
+                  <>
+                    <ChevronRight className="h-4 w-4" />
+                    <span>{selectedModule}</span>
+                  </>
+                )}
+                {selectedTopic && (
+                  <>
+                    <ChevronRight className="h-4 w-4" />
+                    <button 
+                      onClick={handleBackToTopic}
+                      className="hover:text-primary transition-colors"
+                    >
+                      {selectedTopic}
+                    </button>
+                  </>
+                )}
+                {selectedSkill && (
+                  <>
+                    <ChevronRight className="h-4 w-4" />
+                    <span>Навык {selectedSkill}</span>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Main Content */}
+            {!selectedSkill && !selectedTopic && renderFullSyllabus()}
+            {selectedTopic && !selectedSkill && renderTopicView()}
+            {selectedSkill && (
+              <div className="space-y-6">
+                {!showPractice ? (
+                  <>
+                    {currentArticle && (
+                      <Card className="w-full bg-white/90 backdrop-blur-sm border-white/50">
+                        <CardHeader className="bg-gradient-to-r from-blue-100 to-purple-100">
+                          <CardTitle className="text-xl text-blue-700">
+                            Навык {selectedSkill}: {getAllSkillsFromStructure().find(s => s.number === selectedSkill)?.name}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent 
+                          className="p-6"
+                          onClick={isSelecting ? handleTextSelection : undefined}
+                          style={{ cursor: isSelecting ? 'text' : 'default' }}
+                        >
+                          <ArticleRenderer 
+                            article={{
+                              ...currentArticle,
+                              skill: currentArticle.ID,
+                              art: currentArticle.article_text
+                            }}
+                          />
+                          
+                          {/* Practice Button */}
+                          <div className="mt-8 pt-6 border-t border-gray-200">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Готовы к практике?</h3>
+                                <p className="text-sm text-gray-600">
+                                  Закрепите знания с помощью интерактивных заданий
+                                </p>
+                              </div>
+                              <Button 
+                                onClick={handleStartPractice}
+                                className="flex items-center gap-2"
+                                disabled={loadingMCQ}
+                              >
+                                <Play className="h-4 w-4" />
+                                {loadingMCQ ? 'Загрузка...' : 'Начать практику'}
+                              </Button>
+                            </div>
+                            {missingMCQs.includes(selectedSkill) && (
+                              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p className="text-sm text-yellow-800">
+                                  <Lightbulb className="h-4 w-4 inline mr-2" />
+                                  Для этого навыка пока нет готовых заданий. Вы можете задать вопросы через чат!
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                    
+                    {loading && (
+                      <Card className="w-full bg-white/90 backdrop-blur-sm border-white/50">
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-center py-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            <span className="ml-3 text-gray-600">Загружаем материал...</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
+                ) : (
+                  <SkillPracticeQuiz 
+                    skill={{
+                      id: selectedSkill,
+                      title: getAllSkillsFromStructure().find(s => s.number === selectedSkill)?.name || ''
+                    }}
+                    questions={currentMCQs}
+                    onBack={handleBackToArticle}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Text Selection Popup */}
+      {selectedText && (
+        <div className="fixed inset-0 z-[100] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="selection-popup bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full border-white/50 border backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Выделенный текст</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={closeSelectionPopup}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-4 mb-4 max-h-32 overflow-y-auto">
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                {selectedText}
+              </p>
+            </div>
+            
+            <Textarea
+              placeholder="Дополнительный вопрос (необязательно)"
+              value={customQuestion}
+              onChange={(e) => setCustomQuestion(e.target.value)}
+              className="mb-4 resize-none"
+              rows={3}
+            />
+            
+            <div className="flex gap-3">
+              <Button 
+                onClick={handleAskEzhik}
+                className="flex-1 flex items-center gap-2"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Спросить у Ёжика
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={closeSelectionPopup}
+                className="px-4"
+              >
+                Отмена
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chat Sheet */}
+      <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <SheetContent className="w-full sm:max-w-lg h-full p-0 bg-white/95 backdrop-blur-md border-white/50">
+          <SheetHeader className="px-6 py-4 border-b border-white/50">
+            <SheetTitle className="text-left">Чат с Ёжиком</SheetTitle>
+          </SheetHeader>
+          
+          <div className="flex flex-col h-[calc(100vh-80px)]">
+            <div className="flex-1 overflow-hidden">
+              <CourseChatMessages messages={messages} isTyping={isTyping} />
+            </div>
+            <div className="border-t border-white/50 p-4 bg-white/50">
+              <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
