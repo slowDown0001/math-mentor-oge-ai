@@ -53,7 +53,7 @@ const aiTutors: Teacher[] = [
   {
     id: "3",
     name: "Сакура",
-    avatar: "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/avatars/anime_girl.jpg",
+    avatar: "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/avatars/anime_girl.png",
     rating: 4.7,
     experience: 300,
     specialization: ["ОГЭ", "Базовая математика", "Мотивация"],
