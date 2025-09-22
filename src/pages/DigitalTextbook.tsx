@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play, Edit3, Send } from 'lucide-react';
+import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play, Edit3, Send, ChevronLeft } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import newSyllabusData from '../data/newSyllabusStructure.json';
 import ArticleRenderer from '../components/ArticleRenderer';
@@ -715,6 +715,18 @@ const DigitalTextbook = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Floating Chat Arrow Button */}
+      <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40">
+        <Button
+          onClick={() => setIsChatOpen(true)}
+          size="sm"
+          className="w-12 h-12 p-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+          title="Открыть чат с Ёжиком"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
