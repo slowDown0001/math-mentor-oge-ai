@@ -9,12 +9,12 @@ timeout = 600
 
 [functions.openrouter-task-call]
 verify_jwt = false
-timeout = 180
+timeout = 600
 
 [functions.ogemath-task-hardcode]
 verify_jwt = false
-timeout = 120
+timeout = 600
 
 [functions.student-progress-calculate]
 verify_jwt = false
-timeout = 60
+timeout = 600
