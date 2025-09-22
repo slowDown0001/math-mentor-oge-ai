@@ -19,45 +19,45 @@ interface Teacher {
   availability: string;
 }
 
-const mockTeachers: Teacher[] = [
+const aiTutors: Teacher[] = [
   {
     id: "1",
-    name: "Анна Петрова",
-    avatar: "/placeholder.svg",
+    name: "Ёжик",
+    avatar: "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/avatars/egik.png",
     rating: 4.9,
-    experience: 8,
+    experience: 1000,
     specialization: ["ОГЭ", "ЕГЭ", "Алгебра", "Геометрия"],
-    location: "Москва",
-    hourlyRate: 1500,
-    studentsCount: 142,
-    description: "Опытный преподаватель математики с большим опытом подготовки к экзаменам. Индивидуальный подход к каждому ученику.",
-    availability: "Пн-Пт 14:00-20:00"
+    location: "Онлайн",
+    hourlyRate: 0,
+    studentsCount: 50000,
+    description: "Дружелюбный и терпеливый AI-наставник. Превращаю сложные математические концепции в простые объяснения с примерами из жизни.",
+    availability: "24/7"
   },
   {
     id: "2",
-    name: "Дмитрий Иванов",
-    avatar: "/placeholder.svg",
+    name: "Кеnji",
+    avatar: "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/avatars/anime_guy.png",
     rating: 4.8,
-    experience: 12,
-    specialization: ["ЕГЭ", "Высшая математика", "Физика"],
-    location: "Санкт-Петербург",
-    hourlyRate: 2000,
-    studentsCount: 89,
-    description: "Кандидат физико-математических наук. Специализируюсь на подготовке к ЕГЭ по математике профильного уровня.",
-    availability: "Вт-Сб 16:00-22:00"
+    experience: 500,
+    specialization: ["ЕГЭ", "Профильная математика", "Логика"],
+    location: "Онлайн",
+    hourlyRate: 0,
+    studentsCount: 25000,
+    description: "Строгий, но справедливый AI-преподаватель. Использую структурированный подход и четкие алгоритмы решения задач.",
+    availability: "24/7"
   },
   {
     id: "3",
-    name: "Елена Смирнова",
-    avatar: "/placeholder.svg",
+    name: "Сакура",
+    avatar: "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/avatars/anime_girl.jpg",
     rating: 4.7,
-    experience: 6,
-    specialization: ["ОГЭ", "Алгебра", "Геометрия"],
-    location: "Екатеринбург",
-    hourlyRate: 1200,
-    studentsCount: 76,
-    description: "Молодой и энергичный преподаватель. Использую современные методики обучения и интерактивные материалы.",
-    availability: "Пн-Чт 15:00-19:00"
+    experience: 300,
+    specialization: ["ОГЭ", "Базовая математика", "Мотивация"],
+    location: "Онлайн",
+    hourlyRate: 0,
+    studentsCount: 30000,
+    description: "Веселая и вдохновляющая AI-учительница. Помогаю преодолеть страх перед математикой и делаю обучение увлекательным!",
+    availability: "24/7"
   }
 ];
 
@@ -71,12 +71,12 @@ export const TeacherTab = () => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Выбор преподавателя</h2>
-        <p className="text-gray-600">Найдите идеального преподавателя для индивидуальных занятий</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Выбор AI-наставника</h2>
+        <p className="text-gray-600">Выберите AI-наставника, который подходит вашему стилю обучения</p>
       </div>
 
       <div className="grid gap-6">
-        {mockTeachers.map((teacher) => (
+        {aiTutors.map((teacher) => (
           <Card 
             key={teacher.id}
             className={`transition-all duration-200 hover:shadow-lg cursor-pointer ${
@@ -136,8 +136,8 @@ export const TeacherTab = () => {
                 </div>
                 
                 <div className="text-right space-y-1">
-                  <div className="text-2xl font-bold text-primary">{teacher.hourlyRate} ₽</div>
-                  <div className="text-sm text-gray-600">за час</div>
+                  <div className="text-2xl font-bold text-primary">Бесплатно</div>
+                  <div className="text-sm text-gray-600">всегда</div>
                 </div>
               </div>
               
@@ -161,12 +161,12 @@ export const TeacherTab = () => {
         <Card className="bg-gradient-to-r from-primary/10 to-purple-100 border-primary/20">
           <CardContent className="p-6">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Преподаватель выбран!</h3>
+              <h3 className="text-lg font-semibold mb-2">AI-наставник выбран!</h3>
               <p className="text-gray-600 mb-4">
-                Вы можете связаться с преподавателем для согласования расписания занятий
+                Теперь ваш персональный AI-наставник готов помочь вам в изучении математики
               </p>
               <Button className="w-full sm:w-auto">
-                Связаться с преподавателем
+                Начать обучение
               </Button>
             </div>
           </CardContent>
