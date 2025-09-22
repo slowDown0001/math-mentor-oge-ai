@@ -260,8 +260,15 @@ const DigitalTextbook = () => {
     setIsSelecting(!isSelecting);
   };
 
-  const handleTextSelection = () => {
+  const handleTextSelection = (e?: Event) => {
     setTimeout(() => {
+      // Don't clear selection if clicking inside the popup
+      if (e && e.target) {
+        const target = e.target as Element;
+        const popup = target.closest('.selection-popup');
+        if (popup) return;
+      }
+      
       const selected = getSelectedTextWithMath();
       if (!selected) {
         setSelectedText('');
@@ -513,11 +520,14 @@ const DigitalTextbook = () => {
 
   useEffect(() => {
     if (isSelecting) {
-      document.addEventListener('mouseup', handleTextSelection);
-      document.addEventListener('touchend', handleTextSelection);
+      const mouseUpHandler = (e: MouseEvent) => handleTextSelection(e);
+      const touchEndHandler = (e: TouchEvent) => handleTextSelection(e);
+      
+      document.addEventListener('mouseup', mouseUpHandler);
+      document.addEventListener('touchend', touchEndHandler);
       return () => {
-        document.removeEventListener('mouseup', handleTextSelection);
-        document.removeEventListener('touchend', handleTextSelection);
+        document.removeEventListener('mouseup', mouseUpHandler);
+        document.removeEventListener('touchend', touchEndHandler);
       };
     }
   }, [isSelecting]);
@@ -584,7 +594,7 @@ const DigitalTextbook = () => {
       {selectedText && (
         <div className="fixed top-20 right-4 z-50 animate-scale-in">
           <div 
-            className="bg-gradient-to-br from-white via-blue-50 to-purple-50 backdrop-blur-sm border border-blue-200/60 rounded-2xl shadow-2xl max-w-sm overflow-hidden"
+            className="selection-popup bg-gradient-to-br from-white via-blue-50 to-purple-50 backdrop-blur-sm border border-blue-200/60 rounded-2xl shadow-2xl max-w-sm overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
