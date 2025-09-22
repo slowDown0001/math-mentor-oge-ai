@@ -159,6 +159,11 @@ mjx-container * {
   @apply inline;
 }
 
+/* Highlighter cursor for disabled selection mode */
+.highlighter-cursor {
+  cursor: url('src/assets/highlighter-cursor.png') 8 24, auto;
+}
+
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
