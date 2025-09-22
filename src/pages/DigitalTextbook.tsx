@@ -348,7 +348,12 @@ const DigitalTextbook = () => {
                             variant="outline"
                             size="sm"
                             className="justify-start text-left h-auto py-2 hover:bg-primary/10"
-                            onClick={() => handleSkillSelect(skill.number)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSkillSelect(skill.number);
+                              // Update URL with skill parameter
+                              setSearchParams({ skill: skill.number.toString() });
+                            }}
                           >
                             <BookOpen className="h-3 w-3 mr-2 flex-shrink-0" />
                             <span className="text-xs">{skill.number}. {skill.name}</span>
@@ -414,7 +419,11 @@ const DigitalTextbook = () => {
             <Card 
               key={skill.number}
               className="transition-all duration-200 hover:shadow-lg cursor-pointer hover:bg-primary/5"
-              onClick={() => handleSkillSelect(skill.number)}
+              onClick={() => {
+                handleSkillSelect(skill.number);
+                // Update URL with skill parameter
+                setSearchParams({ skill: skill.number.toString() });
+              }}
             >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -624,7 +633,12 @@ const DigitalTextbook = () => {
                                           className={`w-full text-left justify-start text-xs h-auto py-2 ${
                                             selectedSkill === skill.number ? 'bg-primary/20 text-primary' : ''
                                           }`}
-                                          onClick={() => handleSkillSelect(skill.number)}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSkillSelect(skill.number);
+                                            // Update URL with skill parameter
+                                            setSearchParams({ skill: skill.number.toString() });
+                                          }}
                                         >
                                           <BookOpen className="h-3 w-3 mr-2 flex-shrink-0" />
                                           <span className="truncate">{skill.number}. {skill.name}</span>
