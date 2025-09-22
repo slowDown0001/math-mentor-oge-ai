@@ -192,6 +192,27 @@ ${filteredStudentProgress}
 
     console.log('Successfully generated AI response');
 
+    // Insert hardcode_task to stories_and_telegram table if it exists
+    if (student_hardcoded_task && course_id === 1) {
+      console.log('Saving hardcode task to database...');
+      const { data: insertData, error: insertError } = await supabase
+        .from('stories_and_telegram')
+        .insert({
+          user_id,
+          hardcode_task: student_hardcoded_task,
+          seen: 0,
+          upload_id: Math.floor(Math.random() * 1000000)
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error inserting hardcode task:', insertError);
+      } else {
+        console.log('Hardcode task saved successfully');
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         response: aiResponse,

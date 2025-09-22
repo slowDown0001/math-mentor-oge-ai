@@ -83,24 +83,60 @@ Deno.serve(async (req) => {
     const task = taskData.response;
     console.log('Generated task successfully');
 
-    // Insert new row to stories_and_telegram table
-    const { data: insertData, error: insertError } = await supabase
+    // Find the most recent row for this user with hardcode_task and update it
+    const { data: existingRows, error: fetchError } = await supabase
       .from('stories_and_telegram')
-      .insert({
-        user_id,
-        task,
-        seen: 0,
-        upload_id: Math.floor(Math.random() * 1000000)
-      })
-      .select()
-      .single();
+      .select('*')
+      .eq('user_id', user_id)
+      .not('hardcode_task', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-    if (insertError) {
-      console.error('Error inserting task:', insertError);
-      throw new Error('Failed to save task');
+    if (fetchError) {
+      console.error('Error fetching existing rows:', fetchError);
+      throw new Error('Failed to fetch existing task data');
     }
 
-    console.log('Task saved successfully');
+    let insertData;
+    if (existingRows && existingRows.length > 0) {
+      // Update the existing row with the task
+      console.log('Updating existing row with task...');
+      const { data: updateData, error: updateError } = await supabase
+        .from('stories_and_telegram')
+        .update({ task })
+        .eq('upload_id', existingRows[0].upload_id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Error updating task:', updateError);
+        throw new Error('Failed to update task');
+      }
+      
+      insertData = updateData;
+      console.log('Task updated successfully');
+    } else {
+      // No existing row found, create a new one
+      console.log('No existing hardcode_task found, creating new row...');
+      const { data: newData, error: insertError } = await supabase
+        .from('stories_and_telegram')
+        .insert({
+          user_id,
+          task,
+          seen: 0,
+          upload_id: Math.floor(Math.random() * 1000000)
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error inserting task:', insertError);
+        throw new Error('Failed to save task');
+      }
+      
+      insertData = newData;
+      console.log('New task row created successfully');
+    }
 
     return new Response(
       JSON.stringify({ 
