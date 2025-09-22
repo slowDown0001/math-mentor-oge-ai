@@ -3,7 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MapPin, Clock, Users, MessageCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Star, MapPin, Clock, Users, MessageCircle, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 interface Teacher {
   id: string;
@@ -63,9 +67,70 @@ const aiTutors: Teacher[] = [
 
 export const TeacherTab = () => {
   const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
+  const [showThankYouModal, setShowThankYouModal] = useState<boolean>(false);
+  const [selectedTutorMessage, setSelectedTutorMessage] = useState<string>("");
+  const { user } = useAuth();
 
-  const handleSelectTeacher = (teacherId: string) => {
-    setSelectedTeacher(teacherId);
+  const getTutorMessage = (teacherId: string) => {
+    switch (teacherId) {
+      case "1": // Ёжик
+        return "Спасибо, что выбрали меня! Я помогу вам полюбить математику и сделаю обучение увлекательным. Вместе мы достигнем ваших целей! 🦔";
+      case "2": // Kenji
+        return "Благодарю за выбор! Я научу вас решать задачи с точностью и уверенностью. Дисциплина и упорство - ключ к успеху!";
+      case "3": // Sakura
+        return "Ура! Как здорово, что вы выбрали меня! Мы будем изучать математику с радостью и энтузиазмом. Давайте сделаем обучение веселым! ✨";
+      default:
+        return "Спасибо за выбор!";
+    }
+  };
+
+  const handleSelectTeacher = async (teacherId: string) => {
+    if (!user) {
+      toast({
+        title: "Ошибка",
+        description: "Необходимо войти в систему для выбора наставника",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const selectedTutor = aiTutors.find(tutor => tutor.id === teacherId);
+    if (!selectedTutor) return;
+
+    try {
+      // Update tutor_avatar_url in profiles table
+      const { error } = await supabase
+        .from('profiles')
+        .update({ tutor_avatar_url: selectedTutor.avatar })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating tutor selection:', error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось сохранить выбор наставника",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setSelectedTeacher(teacherId);
+      setSelectedTutorMessage(getTutorMessage(teacherId));
+      setShowThankYouModal(true);
+
+      toast({
+        title: "Успешно!",
+        description: `Вы выбрали ${selectedTutor.name} в качестве своего AI-наставника`,
+      });
+
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла неожиданная ошибка",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -172,6 +237,53 @@ export const TeacherTab = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Thank You Modal */}
+      <Dialog open={showThankYouModal} onOpenChange={setShowThankYouModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Ваш AI-наставник</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowThankYouModal(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center space-y-4 py-4">
+            {selectedTeacher && (
+              <>
+                <Avatar className="w-20 h-20 mx-auto">
+                  <AvatarImage 
+                    src={aiTutors.find(t => t.id === selectedTeacher)?.avatar} 
+                    alt="Выбранный наставник" 
+                  />
+                  <AvatarFallback>
+                    {aiTutors.find(t => t.id === selectedTeacher)?.name[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">
+                    {aiTutors.find(t => t.id === selectedTeacher)?.name}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {selectedTutorMessage}
+                  </p>
+                </div>
+                <Button 
+                  className="w-full"
+                  onClick={() => setShowThankYouModal(false)}
+                >
+                  Начать обучение
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
