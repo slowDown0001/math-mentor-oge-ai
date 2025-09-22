@@ -3,6 +3,8 @@ import { X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import ChatRenderer2 from './chat/ChatRenderer2';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface StoryData {
   upload_id: number;
@@ -13,12 +15,14 @@ interface StoryData {
 
 export const DailyTaskStory = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState('');
   const [task, setTask] = useState('');
   const [storyId, setStoryId] = useState<number | null>(null);
   const [seen, setSeen] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [learningTopics, setLearningTopics] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -42,16 +46,29 @@ export const DailyTaskStory = () => {
         // Fetch latest story for this user
         const { data: stories } = await supabase
           .from('stories_and_telegram')
-          .select('upload_id, task, created_at, seen')
+          .select('upload_id, task, created_at, seen, hardcode_task')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1);
 
         if (stories && stories.length > 0) {
-          const story = stories[0];
+          const story = stories[0] as any;
           setTask(story.task || '');
           setStoryId(story.upload_id);
           setSeen(story.seen);
+          
+          // Parse learning topics from hardcode_task
+          if (story.hardcode_task) {
+            try {
+              const parsedTask = JSON.parse(story.hardcode_task);
+              const topics = parsedTask["темы для изучения"];
+              if (Array.isArray(topics)) {
+                setLearningTopics(topics);
+              }
+            } catch (error) {
+              console.error('Error parsing hardcode_task:', error);
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching story data:', error);
@@ -131,6 +148,59 @@ export const DailyTaskStory = () => {
               >
                 <X className="w-5 h-5" />
               </button>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="flex-shrink-0 p-6 border-b border-border/20">
+              <div className="flex flex-wrap gap-3 justify-center">
+                {/* Revision Button */}
+                <Button
+                  onClick={() => {
+                    navigate('/ogemath-revision');
+                    setIsOpen(false);
+                  }}
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  Повторение
+                </Button>
+
+                {/* Learning Platform Buttons */}
+                {learningTopics.length > 0 ? (
+                  learningTopics.slice(0, 2).map((topic, index) => (
+                    <Button
+                      key={index}
+                      onClick={() => {
+                        navigate(`/learning-platform?topic=${topic}`);
+                        setIsOpen(false);
+                      }}
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                    >
+                      Изучить {topic}
+                    </Button>
+                  ))
+                ) : (
+                  <Button
+                    onClick={() => {
+                      navigate('/learning-platform');
+                      setIsOpen(false);
+                    }}
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  >
+                    Изучение
+                  </Button>
+                )}
+
+                {/* Practice by Number Button */}
+                <Button
+                  onClick={() => {
+                    navigate('/practice-by-number-ogemath');
+                    setIsOpen(false);
+                  }}
+                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                >
+                  Практика по номерам
+                </Button>
+              </div>
             </div>
 
             {/* Task Content with Scroll */}
