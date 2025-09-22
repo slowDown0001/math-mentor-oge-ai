@@ -273,6 +273,10 @@ const DigitalTextbook = () => {
   const closeSelectionPopup = () => {
     setSelectedText('');
     setCustomQuestion('');
+    // Clear any text selection
+    if (window.getSelection) {
+      window.getSelection()?.removeAllRanges();
+    }
   };
 
   const handleAskEzhik = async () => {
@@ -528,7 +532,7 @@ const DigitalTextbook = () => {
         {/* Navigation buttons */}
         <div className="p-4 space-y-2">
           {/* OGE Math Practice Link */}
-          <Link to="/ogemath-practice">
+          <Link to="/ogemath">
             <Button
               variant="ghost"
               className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -664,8 +668,8 @@ const DigitalTextbook = () => {
                             Навык {selectedSkill}: {getAllSkillsFromStructure().find(s => s.number === selectedSkill)?.name}
                           </CardTitle>
                         </CardHeader>
-                        <CardContent 
-                          className="p-6 relative"
+                         <CardContent 
+                          className={`p-6 relative ${isSelecting ? 'selection-mode' : ''}`}
                           onClick={isSelecting ? handleTextSelection : undefined}
                           style={{ 
                             cursor: isSelecting ? 'text' : 'default',

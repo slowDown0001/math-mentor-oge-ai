@@ -22,8 +22,8 @@ mjx-container {
 
 /* Pink highlighter selection when selection mode is enabled */
 .selection-mode ::selection {
-  background: hsl(330 85% 85%);
-  color: hsl(330 85% 15%);
+  background: hsl(320 60% 88%);
+  color: hsl(320 60% 20%);
 }
 
 /* MathJax selection overlay */
@@ -35,7 +35,7 @@ mjx-container {
 
 /* Pink highlighter for MathJax when selection mode is enabled */
 .selection-mode .mjx-selection-highlight {
-  background: hsl(330 85% 85%) !important;
+  background: hsl(320 60% 88%) !important;
 }
 
 /* Force selection visibility on MathJax elements */
@@ -46,7 +46,7 @@ mjx-container.mjx-selected {
 
 /* Pink highlighter for MathJax containers when selection mode is enabled */
 .selection-mode mjx-container.mjx-selected {
-  background: hsl(330 85% 85%);
+  background: hsl(320 60% 88%);
 }
 
 @layer base {
