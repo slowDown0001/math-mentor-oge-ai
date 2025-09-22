@@ -112,13 +112,16 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
 
   const handleShowSolution = () => {
     setShowSolution(!showSolution);
-    // Scroll to solution after state update
+    // Scroll to bottom of modal after state update
     if (!showSolution) {
       setTimeout(() => {
-        solutionRef.current?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'nearest' 
-        });
+        const modal = document.querySelector('.max-h-\\[95vh\\]');
+        if (modal) {
+          modal.scrollTo({ 
+            top: modal.scrollHeight, 
+            behavior: 'smooth' 
+          });
+        }
       }, 100);
     }
   };
