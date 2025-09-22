@@ -13,9 +13,10 @@ interface OgeExerciseQuizProps {
   title: string;
   skills: number[];
   onBack: () => void;
+  questionCount?: number;
 }
 
-const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack }) => {
+const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack, questionCount = 4 }) => {
   const { trackActivity } = useStreakTracking();
   
   const [questions, setQuestions] = useState<OgeQuestion[]>([]);
@@ -36,7 +37,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
   const loadQuestions = async () => {
     try {
       setLoading(true);
-      const questionsData = await getQuestionsBySkills(skills, 4);
+      const questionsData = await getQuestionsBySkills(skills, questionCount);
       setQuestions(questionsData);
     } catch (error) {
       console.error('Error loading questions:', error);

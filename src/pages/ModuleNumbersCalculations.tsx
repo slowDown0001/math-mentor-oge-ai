@@ -30,7 +30,7 @@ const ModuleNumbersCalculations = () => {
   const navigate = useNavigate();
   const [selectedVideo, setSelectedVideo] = useState<{videoId: string; title: string; description: string} | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<{title: string; content: string} | null>(null);
-  const [selectedExercise, setSelectedExercise] = useState<{title: string; skills: number[]} | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<{title: string; skills: number[]; questionCount?: number} | null>(null);
   
   const topics: TopicContent[] = [
     {
@@ -359,11 +359,11 @@ const ModuleNumbersCalculations = () => {
             className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
             onClick={() => {
               if (quiz.id === "quiz-1") {
-                setSelectedExercise({ title: "Тест 1: Дроби и проценты", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 195] });
+                setSelectedExercise({ title: "Тест 1: Дроби и проценты", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 195], questionCount: 6 });
               } else if (quiz.id === "quiz-2") {
-                setSelectedExercise({ title: "Тест 2: Рациональные и действительные числа", skills: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 180, 197] });
+                setSelectedExercise({ title: "Тест 2: Рациональные и действительные числа", skills: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 180, 197], questionCount: 6 });
               } else if (quiz.id === "module-test") {
-                setSelectedExercise({ title: "Итоговый тест модуля", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 180, 195, 197] });
+                setSelectedExercise({ title: "Итоговый тест модуля", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 180, 195, 197], questionCount: 10 });
               }
             }}
           >
@@ -451,6 +451,7 @@ const ModuleNumbersCalculations = () => {
             <OgeExerciseQuiz
               title={selectedExercise.title}
               skills={selectedExercise.skills}
+              questionCount={selectedExercise.questionCount}
               onBack={() => setSelectedExercise(null)}
             />
           </div>
