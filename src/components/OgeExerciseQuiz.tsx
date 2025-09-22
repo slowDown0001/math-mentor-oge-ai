@@ -302,15 +302,21 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
                   {/* Solution Display */}
                   {showSolution && questions[currentQuestionIndex]?.solution_text && (
                     <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <BookOpen className="w-4 w-4 text-purple-600" />
                         <h4 className="font-bold text-purple-700 text-sm">Решение:</h4>
                       </div>
-                      <MathRenderer 
-                        text={questions[currentQuestionIndex].solution_text} 
-                        className="text-left text-gray-700 text-sm"
-                        compiler="mathjax"
-                      />
+                      <div className="space-y-2">
+                        {questions[currentQuestionIndex].solution_text.split('\\n').map((line: string, index: number) => (
+                          <div key={index} className="text-left">
+                            <MathRenderer 
+                              text={line.trim()} 
+                              className="text-gray-700 text-sm leading-relaxed"
+                              compiler="mathjax"
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
