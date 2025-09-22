@@ -16,6 +16,7 @@ import ChatInput from "@/components/chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
 import { sendChatMessage } from "@/services/chatService";
 import { useToast } from "@/hooks/use-toast";
+import { getSelectedTextWithMath } from '@/utils/getSelectedTextWithMath';
 
 // Updated topic mapping data to match new JSON structure
 const topicMapping = [
@@ -590,20 +591,27 @@ export default function Textbook2() {
 
   // Text selection functionality
   const handleTextSelection = () => {
-    const selection = window.getSelection();
-    if (selection && selection.toString().trim()) {
-      const selectedText = selection.toString().trim();
-      if (selectedText.length > 10) {
-        setSelectedText(selectedText);
+    setTimeout(() => {
+      const selected = getSelectedTextWithMath();
+      if (!selected) {
+        setShowSelectedTextPanel(false);
+        return;
+      }
+      if (selected.length > 10) {
+        setSelectedText(selected);
         setShowSelectedTextPanel(true);
       }
-    }
+    }, 0);
   };
 
   useEffect(() => {
     if (isTextSelection) {
       document.addEventListener('mouseup', handleTextSelection);
-      return () => document.removeEventListener('mouseup', handleTextSelection);
+      document.addEventListener('touchend', handleTextSelection);
+      return () => {
+        document.removeEventListener('mouseup', handleTextSelection);
+        document.removeEventListener('touchend', handleTextSelection);
+      };
     }
   }, [isTextSelection]);
 

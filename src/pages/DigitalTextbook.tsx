@@ -239,10 +239,14 @@ const DigitalTextbook = () => {
   };
 
   const handleTextSelection = () => {
-    const merged = getSelectedTextWithMath();
-    if (merged) {
-      setSelectedText(merged);
-    }
+    setTimeout(() => {
+      const selected = getSelectedTextWithMath();
+      if (!selected) {
+        setSelectedText('');
+        return;
+      }
+      setSelectedText(selected);
+    }, 0);
   };
 
   const handleAskEzhik = async () => {
@@ -465,7 +469,11 @@ const DigitalTextbook = () => {
   useEffect(() => {
     if (isSelecting) {
       document.addEventListener('mouseup', handleTextSelection);
-      return () => document.removeEventListener('mouseup', handleTextSelection);
+      document.addEventListener('touchend', handleTextSelection);
+      return () => {
+        document.removeEventListener('mouseup', handleTextSelection);
+        document.removeEventListener('touchend', handleTextSelection);
+      };
     }
   }, [isSelecting]);
 
