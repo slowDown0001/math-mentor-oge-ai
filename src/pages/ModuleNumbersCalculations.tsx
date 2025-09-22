@@ -30,7 +30,7 @@ const ModuleNumbersCalculations = () => {
   const navigate = useNavigate();
   const [selectedVideo, setSelectedVideo] = useState<{videoId: string; title: string; description: string} | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<{title: string; content: string} | null>(null);
-  const [selectedExercise, setSelectedExercise] = useState<{title: string; skills: number[]; questionCount?: number} | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<{title: string; skills: number[]; questionCount?: number; isAdvanced?: boolean} | null>(null);
   
   const topics: TopicContent[] = [
     {
@@ -498,6 +498,138 @@ const ModuleNumbersCalculations = () => {
           
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
             Навыки: Арифметика, Базовые операции, Числовые системы, Вычисления, Округление
+          </div>
+          
+          {/* Progress Legend */}
+          <div className="flex flex-wrap items-center gap-4 mb-4 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-purple-500 rounded"></div>
+              <span>Освоено</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-purple-300 rounded"></div>
+              <span>Владею</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-orange-500 rounded"></div>
+              <span>Знаком</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 border-2 border-gray-400 rounded"></div>
+              <span>Попытался</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 border border-gray-300 rounded bg-white"></div>
+              <span>Не начато</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Zap className="w-3 h-3 text-blue-500" />
+              <span>Тест</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Star className="w-3 h-3 text-yellow-500" />
+              <span>Итоговый тест</span>
+            </div>
+          </div>
+          
+          {/* Interactive Progress Grid */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Natural and Integer Numbers - 2 exercises */}
+            <button 
+              className="w-6 h-6 bg-orange-500 rounded transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 1: Основы натуральных и целых чисел", skills: [1, 2, 3] })}
+              title="Упражнение 1: Основы натуральных и целых чисел"
+            />
+            <button 
+              className="w-6 h-6 border border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 2: Работа с числами", skills: [4, 5] })}
+              title="Упражнение 2: Работа с числами"
+            />
+            
+            {/* Fractions and Percentages - 3 exercises */}
+            <button 
+              className="w-6 h-6 border border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 1: Дроби", skills: [6, 195] })}
+              title="Упражнение 1: Дроби"
+            />
+            <button 
+              className="w-6 h-6 border border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 2: Проценты", skills: [7, 8, 9] })}
+              title="Упражнение 2: Проценты"
+            />
+            <button 
+              className="w-6 h-6 border border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 3: Сложные дроби*", skills: [10], isAdvanced: true })}
+              title="Упражнение 3: Сложные дроби (не в программе ОГЭ)"
+            />
+            
+            {/* Test 1 */}
+            <button 
+              className="w-6 h-6 flex items-center justify-center bg-blue-100 rounded transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Тест 1: Дроби и проценты", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 195], questionCount: 6 })}
+              title="Тест 1: Дроби и проценты"
+            >
+              <Zap className="w-3 h-3 text-blue-500" />
+            </button>
+            
+            {/* Rational Numbers - 3 exercises */}
+            <button 
+              className="w-6 h-6 border border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 1: Рациональные числа", skills: [11, 12, 13] })}
+              title="Упражнение 1: Рациональные числа"
+            />
+            <button 
+              className="w-6 h-6 border border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 2: Арифметические действия", skills: [14, 15, 16] })}
+              title="Упражнение 2: Арифметические действия"
+            />
+            <button 
+              className="w-6 h-6 border border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 3: Операции с рациональными числами", skills: [17, 180] })}
+              title="Упражнение 3: Операции с рациональными числами"
+            />
+            
+            {/* Real Numbers - 2 exercises */}
+            <button 
+              className="w-6 h-6 border border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 1: Действительные числа", skills: [18, 19] })}
+              title="Упражнение 1: Действительные числа"
+            />
+            <button 
+              className="w-6 h-6 border border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 2: Операции с действительными числами", skills: [20, 197] })}
+              title="Упражнение 2: Операции с действительными числами"
+            />
+            
+            {/* Test 2 */}
+            <button 
+              className="w-6 h-6 flex items-center justify-center bg-blue-100 rounded transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Тест 2: Рациональные и действительные числа", skills: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 180, 197], questionCount: 6 })}
+              title="Тест 2: Рациональные и действительные числа"
+            >
+              <Zap className="w-3 h-3 text-blue-500" />
+            </button>
+            
+            {/* Approximations - 2 exercises */}
+            <button 
+              className="w-6 h-6 border border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 1: Приближённые вычисления", skills: [21, 22] })}
+              title="Упражнение 1: Приближённые вычисления"
+            />
+            <button 
+              className="w-6 h-6 border border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Упражнение 2: Округление", skills: [23] })}
+              title="Упражнение 2: Округление"
+            />
+            
+            {/* Final Test */}
+            <button 
+              className="w-6 h-6 flex items-center justify-center bg-yellow-100 rounded transition-all hover:scale-110 hover:shadow-md"
+              onClick={() => setSelectedExercise({ title: "Итоговый тест модуля", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 180, 195, 197], questionCount: 10 })}
+              title="Итоговый тест модуля"
+            >
+              <Star className="w-3 h-3 text-yellow-500" />
+            </button>
           </div>
 
           {/* Legend */}
