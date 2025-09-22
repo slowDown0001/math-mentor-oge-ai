@@ -18,6 +18,7 @@ import CourseChatMessages from '@/components/chat/CourseChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveChatLog } from '@/services/chatLogsService';
+import { getSelectedTextWithMath } from '@/utils/getSelectedTextWithMath';
 
 interface Skill {
   number: number;
@@ -238,9 +239,9 @@ const DigitalTextbook = () => {
   };
 
   const handleTextSelection = () => {
-    const selection = window.getSelection();
-    if (selection && selection.toString().trim()) {
-      setSelectedText(selection.toString().trim());
+    const merged = getSelectedTextWithMath();
+    if (merged) {
+      setSelectedText(merged);
     }
   };
 
@@ -466,6 +467,21 @@ const DigitalTextbook = () => {
       document.addEventListener('mouseup', handleTextSelection);
       return () => document.removeEventListener('mouseup', handleTextSelection);
     }
+  }, [isSelecting]);
+
+  // Optional: make Ctrl/Cmd+C copy TeX correctly on this page
+  useEffect(() => {
+    const onCopy = (e: ClipboardEvent) => {
+      if (isSelecting) {
+        const content = getSelectedTextWithMath();
+        if (content) {
+          e.clipboardData?.setData('text/plain', content);
+          e.preventDefault();
+        }
+      }
+    };
+    document.addEventListener('copy', onCopy as any);
+    return () => document.removeEventListener('copy', onCopy as any);
   }, [isSelecting]);
 
   useEffect(() => {

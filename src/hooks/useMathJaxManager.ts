@@ -49,11 +49,35 @@ class MathJaxManager {
         startup: {
           ready: () => {
             console.log('MathJax is loaded and ready');
+            window.MathJax.startup.defaultReady();
+
+            // Tag all math with original TeX after initial render
+            function tagAllMath() {
+              const doc = window.MathJax.startup.document;
+              if (!doc || !doc.math) return;
+              for (const item of doc.math) {
+                const node = item.typesetRoot; // <mjx-container>
+                if (node && !node.hasAttribute('data-tex')) {
+                  node.setAttribute('data-tex', item.math); // original TeX
+                }
+              }
+            }
+
+            // Initial render
+            tagAllMath();
+
+            // Ensure dynamic typesets also get tagged
+            const origTypeset = window.MathJax.startup.document.typeset;
+            window.MathJax.startup.document.typeset = (...args: any[]) => {
+              const r = origTypeset.apply(window.MathJax.startup.document, args);
+              tagAllMath();
+              return r;
+            };
+
             this.isLoaded = true;
             this.isLoading = false;
             this.callbacks.forEach(callback => callback());
             this.callbacks = [];
-            window.MathJax.startup.defaultReady();
           }
         }
       };
@@ -89,17 +113,33 @@ class MathJaxManager {
           window.MathJax.startup.document.updateDocument();
         }
         await window.MathJax.typesetPromise([element]);
+        
+        // Tag math elements with original TeX after render
+        this.tagMathAfterRender();
       } catch (error) {
         console.error('MathJax render error:', error);
         // Fallback: try simple typeset
         try {
           window.MathJax.typeset([element]);
+          this.tagMathAfterRender();
         } catch (fallbackError) {
           console.error('MathJax fallback render error:', fallbackError);
         }
       }
     } else {
       console.warn('MathJax not ready for rendering');
+    }
+  }
+
+  private tagMathAfterRender(): void {
+    if (!window.MathJax?.startup?.document?.math) return;
+    
+    const doc = window.MathJax.startup.document;
+    for (const item of doc.math) {
+      const node = item.typesetRoot; // <mjx-container>
+      if (node && !node.hasAttribute('data-tex')) {
+        node.setAttribute('data-tex', item.math); // original TeX
+      }
     }
   }
 
