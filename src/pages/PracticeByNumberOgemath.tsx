@@ -85,7 +85,6 @@ const PracticeByNumberOgemath = () => {
   const [showAuthRequiredMessage, setShowAuthRequiredMessage] = useState(false);
   
   // Photo attachment states
-  const [showPhotoDialog, setShowPhotoDialog] = useState(false);
   const [showTelegramNotConnected, setShowTelegramNotConnected] = useState(false);
   const [showUploadPrompt, setShowUploadPrompt] = useState(false);
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
@@ -864,7 +863,6 @@ const PracticeByNumberOgemath = () => {
             setIsAnswered(true);
             
             setShowUploadPrompt(false);
-            setShowPhotoDialog(true);
           } else {
             toast.error('Неверный формат ответа API');
           }
@@ -874,7 +872,6 @@ const PracticeByNumberOgemath = () => {
           setPhotoFeedback(apiResponse.feedback);
           setPhotoScores(null);
           setShowUploadPrompt(false);
-          setShowPhotoDialog(true);
         }
       } else {
         toast.error('Не удалось получить обратную связь');
@@ -887,8 +884,7 @@ const PracticeByNumberOgemath = () => {
     }
   };
 
-  const closePhotoDialog = () => {
-    setShowPhotoDialog(false);
+  const clearPhotoFeedback = () => {
     setPhotoFeedback("");
     setPhotoScores(null);
   };
@@ -1311,6 +1307,32 @@ const PracticeByNumberOgemath = () => {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Photo Feedback */}
+                {photoFeedback && (
+                  <Card className="bg-green-50 border-green-200">
+                    <CardHeader>
+                      <CardTitle className="text-green-800 flex items-center justify-between">
+                        Обратная связь по решению
+                        <Button variant="ghost" size="sm" onClick={clearPhotoFeedback}>
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="prose max-w-none">
+                        <MathRenderer text={photoFeedback} compiler="mathjax" />
+                        {photoScores !== null && (
+                          <div className="mt-4 p-3 bg-green-100 rounded-lg border">
+                            <p className="text-lg font-semibold text-green-800">
+                              Баллы: {photoScores} из 2
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </CardContent>
             </Card>
             ) : null
@@ -1392,31 +1414,6 @@ const PracticeByNumberOgemath = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Photo Feedback Dialog */}
-      <Dialog open={showPhotoDialog} onOpenChange={closePhotoDialog}>
-        <DialogContent className="sm:max-w-2xl max-h-96 overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              Обратная связь по решению
-              <Button variant="ghost" size="sm" onClick={closePhotoDialog}>
-                <X className="w-4 h-4" />
-              </Button>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="prose max-w-none">
-              <MathRenderer text={photoFeedback} compiler="mathjax" />
-              {photoScores !== null && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg border">
-                  <p className="text-lg font-semibold text-blue-800">
-                    Баллы: {photoScores} из 2
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Formula Booklet Dialog */}
       <FormulaBookletDialog 
