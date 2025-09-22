@@ -13,6 +13,22 @@ interface RequestBody {
   number_of_words?: number;
 }
 
+// Helper functions to provide default values when profile data is missing
+function getDefaultTargetScore(course_id: number): number {
+  // Provide sensible defaults based on course type
+  switch (course_id) {
+    case 1: return 18; // OGE Math basic target score
+    case 2: return 15; // EGE Math basic target score  
+    case 3: return 12; // EGE Math advanced target score
+    default: return 15;
+  }
+}
+
+function getDefaultSchoolGrade(course_id: number): number {
+  // Default to grade 4 (good) for all courses
+  return 4;
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -50,12 +66,9 @@ Deno.serve(async (req) => {
       throw new Error('Failed to fetch user profile data');
     }
 
-    const target_score = profileData[targetScoreColumn];
-    const school_grade = profileData[schoolGradeColumn];
-
-    if (!target_score || !school_grade) {
-      throw new Error('Missing target score or school grade in user profile');
-    }
+    // Use profile data if available, otherwise use sensible defaults
+    const target_score = profileData[targetScoreColumn] || getDefaultTargetScore(course_id);
+    const school_grade = profileData[schoolGradeColumn] || getDefaultSchoolGrade(course_id);
 
     console.log(`Target score: ${target_score}, School grade: ${school_grade}`);
 
