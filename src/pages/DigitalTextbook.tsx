@@ -5,9 +5,10 @@ import Header from '../components/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play } from 'lucide-react';
+import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play, Edit3, Send } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import newSyllabusData from '../data/newSyllabusStructure.json';
 import ArticleRenderer from '../components/ArticleRenderer';
@@ -140,6 +141,8 @@ const DigitalTextbook = () => {
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedText, setSelectedText] = useState('');
+  const [customQuestion, setCustomQuestion] = useState('');
+  const [isEditingQuestion, setIsEditingQuestion] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const { user } = useAuth();
   const { messages, isTyping, isDatabaseMode, addMessage, setIsTyping } = useChatContext();
@@ -147,6 +150,21 @@ const DigitalTextbook = () => {
   const [missingMCQs, setMissingMCQs] = useState<number[]>([]);
   const [showPractice, setShowPractice] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && selectedText) {
+        setSelectedText('');
+        setCustomQuestion('');
+        setIsEditingQuestion(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedText]);
 
   useEffect(() => {
     const skillParam = searchParams.get('skill');
@@ -253,17 +271,31 @@ const DigitalTextbook = () => {
     }, 0);
   };
 
+  const closeSelectionPopup = () => {
+    setSelectedText('');
+    setCustomQuestion('');
+    setIsEditingQuestion(false);
+  };
+
   const handleAskEzhik = async () => {
     if (!selectedText) return;
     
     // Open chat and send the selected text for explanation
     setIsChatOpen(true);
     
-    // Create a message asking for explanation of the selected text
-    const explanationRequest = `Объясни кратко это: "${selectedText}"`;
-    await handleSendChatMessage(explanationRequest);
+    // Use custom question if provided, otherwise use default
+    const finalQuestion = customQuestion || `Объясни кратко это: "${selectedText}"`;
+    await handleSendChatMessage(finalQuestion);
     
-    setSelectedText('');
+    closeSelectionPopup();
+  };
+
+  const handleCustomAsk = async () => {
+    if (!selectedText || !customQuestion.trim()) return;
+    
+    setIsChatOpen(true);
+    await handleSendChatMessage(customQuestion);
+    closeSelectionPopup();
   };
 
   const handleSendChatMessage = async (userInput: string) => {
@@ -550,18 +582,96 @@ const DigitalTextbook = () => {
       <Header />
       
       {selectedText && (
-        <div className="fixed top-20 right-4 z-50 bg-white p-4 rounded-lg shadow-lg border max-w-sm">
-          <div className="flex justify-between items-start mb-2">
-            <h4 className="font-medium text-sm">Выделенный текст:</h4>
-            <Button variant="ghost" size="sm" onClick={() => setSelectedText('')} className="h-6 w-6 p-0">
-              <X className="h-4 w-4" />
-            </Button>
+        <div className="fixed top-20 right-4 z-50 animate-scale-in">
+          <div className="bg-gradient-to-br from-white via-blue-50 to-purple-50 backdrop-blur-sm border border-blue-200/60 rounded-2xl shadow-2xl max-w-sm overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-4 py-3 border-b border-blue-200/40">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+                  <h4 className="font-medium text-sm text-gray-700">Выделенный текст</h4>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={closeSelectionPopup} 
+                  className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 space-y-3">
+              <div className="bg-white/60 p-3 rounded-lg border border-blue-100">
+                <p className="text-sm text-gray-700 max-h-16 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-200">
+                  "{selectedText}"
+                </p>
+              </div>
+
+              {/* Question Input */}
+              <div className="space-y-2">
+                {!isEditingQuestion ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-2 rounded-lg border border-blue-200/60">
+                      <span className="text-sm text-gray-600">
+                        {customQuestion || "Объясни кратко это:"}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditingQuestion(true)}
+                      className="h-8 w-8 p-0 hover:bg-blue-100"
+                    >
+                      <Edit3 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={customQuestion}
+                      onChange={(e) => setCustomQuestion(e.target.value)}
+                      placeholder="Объясни кратко это:"
+                      className="min-h-[60px] text-sm resize-none border-blue-200/60 focus:border-blue-400 focus:ring-blue-200"
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => setIsEditingQuestion(false)}
+                        className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                      >
+                        Готово
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCustomQuestion('');
+                          setIsEditingQuestion(false);
+                        }}
+                        className="border-gray-300 hover:bg-gray-50"
+                      >
+                        Сброс
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Ask Button */}
+              <Button 
+                onClick={handleAskEzhik} 
+                size="sm" 
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover-scale"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Спросить у Ёжика
+              </Button>
+            </div>
           </div>
-          <p className="text-sm text-gray-600 mb-3 max-h-20 overflow-y-auto">"{selectedText}"</p>
-          <Button onClick={handleAskEzhik} size="sm" className="w-full">
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Спросить у Ёжика
-          </Button>
         </div>
       )}
 
