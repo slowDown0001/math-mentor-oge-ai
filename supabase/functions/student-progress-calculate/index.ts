@@ -18,6 +18,7 @@ interface TopicMapping {
 interface ProgressItem {
   topic?: string;
   "задача ФИПИ"?: string;
+  "навык"?: string;
   prob: number;
 }
 
@@ -161,6 +162,53 @@ Deno.serve(async (req) => {
       problemTypes.forEach(problemType => {
         result.push({
           "задача ФИПИ": problemType.toString(),
+          prob: 0.02
+        });
+      });
+    }
+
+    // Calculate skill mastery for all skills (1-180)
+    console.log('Calculating skill mastery...');
+    const allSkills = Array.from({ length: 180 }, (_, i) => i + 1); // Skills 1 through 180
+    
+    try {
+      const { data: skillData, error: skillError } = await supabase.functions.invoke(
+        'compute-skills-progress-bars',
+        {
+          body: {
+            user_id,
+            skill_ids: allSkills
+          }
+        }
+      );
+
+      if (skillError) {
+        console.error('Error computing skill progress:', skillError);
+        // Add default values for all skills
+        allSkills.forEach(skillId => {
+          result.push({
+            "навык": skillId.toString(),
+            prob: 0.02
+          });
+        });
+      } else {
+        const progressBars = skillData?.data?.progress_bars || [];
+        progressBars.forEach((skillProgress: Record<string, number>) => {
+          // skillProgress is in format { "skillId": probability }
+          Object.entries(skillProgress).forEach(([skillId, probability]) => {
+            result.push({
+              "навык": skillId,
+              prob: Math.round(probability * 100) / 100 // Round to 2 decimal places
+            });
+          });
+        });
+      }
+    } catch (error) {
+      console.error('Error processing skills:', error);
+      // Add default values for all skills
+      allSkills.forEach(skillId => {
+        result.push({
+          "навык": skillId.toString(),
           prob: 0.02
         });
       });
