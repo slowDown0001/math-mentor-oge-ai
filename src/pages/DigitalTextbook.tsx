@@ -674,11 +674,22 @@ const DigitalTextbook = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
                           setCustomQuestion('');
                           setIsEditingQuestion(false);
                         }}
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                        }}
                         className="border-gray-300 hover:bg-gray-50"
+                        type="button"
                       >
                         Сброс
                       </Button>
