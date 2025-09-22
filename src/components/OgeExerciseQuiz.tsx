@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -27,6 +27,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
   const [showFinalResults, setShowFinalResults] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showSolution, setShowSolution] = useState(false);
+  const solutionRef = useRef<HTMLDivElement>(null);
 
   const options = ['А', 'Б', 'В', 'Г'];
 
@@ -106,6 +107,19 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
       case 2: return question.option3 || '';
       case 3: return question.option4 || '';
       default: return '';
+    }
+  };
+
+  const handleShowSolution = () => {
+    setShowSolution(!showSolution);
+    // Scroll to solution after state update
+    if (!showSolution) {
+      setTimeout(() => {
+        solutionRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'nearest' 
+        });
+      }, 100);
     }
   };
 
@@ -301,7 +315,10 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
                   
                   {/* Solution Display */}
                   {showSolution && questions[currentQuestionIndex]?.solution_text && (
-                    <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                    <div 
+                      ref={solutionRef}
+                      className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200"
+                    >
                       <div className="flex items-center gap-2 mb-3">
                         <BookOpen className="w-4 w-4 text-purple-600" />
                         <h4 className="font-bold text-purple-700 text-sm">Решение:</h4>
@@ -327,7 +344,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
                 {/* Solution Button - Left Side */}
                 {questions[currentQuestionIndex]?.solution_text && showResult && (
                   <Button
-                    onClick={() => setShowSolution(!showSolution)}
+                    onClick={handleShowSolution}
                     variant="outline"
                     size="sm"
                     className="bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200"
