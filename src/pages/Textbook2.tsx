@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useTransition } from "react";
+import { useState, useEffect, useMemo, useTransition, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { BookOpen, Play, FileText, PenTool, HelpCircle, Award, Star, Lock, CheckCircle, ArrowLeft, Highlighter, MessageCircle, X, Trophy, PartyPopper, Menu, Copy, ChevronRight, XCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import { useChatContext } from "@/contexts/ChatContext";
 import { sendChatMessage } from "@/services/chatService";
 import { useToast } from "@/hooks/use-toast";
 import { getSelectedTextWithMath } from '@/utils/getSelectedTextWithMath';
+import { applyPinkHighlightToCurrentSelection, type HighlightHandle } from '@/utils/selectionHighlight';
 
 // Updated topic mapping data to match new JSON structure
 const topicMapping = [
@@ -319,6 +320,7 @@ export default function Textbook2() {
   const [readSkills, setReadSkills] = useState<Set<number>>(new Set());
   const [selectedText, setSelectedText] = useState('');
   const [isTextSelection, setIsTextSelection] = useState(false);
+  const highlightRef = useRef<HighlightHandle | null>(null);
   const [showSelectedTextPanel, setShowSelectedTextPanel] = useState(false);
   const [showChat, setShowChat] = useState(false);
   
@@ -594,10 +596,17 @@ export default function Textbook2() {
     setTimeout(() => {
       const selected = getSelectedTextWithMath();
       if (!selected) {
+        // no text → ensure any previous highlight is cleared
+        highlightRef.current?.clear?.();
+        highlightRef.current = null;
         setShowSelectedTextPanel(false);
         return;
       }
       if (selected.length > 10) {
+        // Apply pink highlight over the same selection
+        highlightRef.current?.clear?.();
+        highlightRef.current = applyPinkHighlightToCurrentSelection();
+        
         setSelectedText(selected);
         setShowSelectedTextPanel(true);
       }
@@ -621,6 +630,10 @@ export default function Textbook2() {
     resetChat();
     setShowChat(true);
     setShowSelectedTextPanel(false);
+    
+    // Clear highlight when sending to chat
+    highlightRef.current?.clear?.();
+    highlightRef.current = null;
     
     const messageText = `Объясни мне этот отрывок из учебника: "${selectedText}"`;
     const message = {
@@ -1144,7 +1157,11 @@ export default function Textbook2() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowSelectedTextPanel(false)}
+              onClick={() => {
+                highlightRef.current?.clear?.();
+                highlightRef.current = null;
+                setShowSelectedTextPanel(false);
+              }}
             >
               <X className="h-4 w-4" />
             </Button>

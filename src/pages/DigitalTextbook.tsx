@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '../components/Header';
@@ -19,6 +19,7 @@ import ChatInput from '@/components/chat/ChatInput';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveChatLog } from '@/services/chatLogsService';
 import { getSelectedTextWithMath } from '@/utils/getSelectedTextWithMath';
+import { applyPinkHighlightToCurrentSelection, type HighlightHandle } from '@/utils/selectionHighlight';
 
 interface Skill {
   number: number;
@@ -136,6 +137,7 @@ const DigitalTextbook = () => {
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedText, setSelectedText] = useState('');
+  const highlightRef = useRef<HighlightHandle | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const { user } = useAuth();
   const { messages, isTyping, isDatabaseMode, addMessage, setIsTyping } = useChatContext();
@@ -242,9 +244,17 @@ const DigitalTextbook = () => {
     setTimeout(() => {
       const selected = getSelectedTextWithMath();
       if (!selected) {
+        // no text → ensure any previous highlight is cleared
+        highlightRef.current?.clear?.();
+        highlightRef.current = null;
         setSelectedText('');
         return;
       }
+
+      // Apply pink highlight over the same selection
+      highlightRef.current?.clear?.();
+      highlightRef.current = applyPinkHighlightToCurrentSelection();
+
       setSelectedText(selected);
     }, 0);
   };
@@ -259,6 +269,10 @@ const DigitalTextbook = () => {
     const explanationRequest = `Объясни кратко это: "${selectedText}"`;
     await handleSendChatMessage(explanationRequest);
     
+    
+    // Clear highlight and close popup
+    highlightRef.current?.clear?.();
+    highlightRef.current = null;
     setSelectedText('');
   };
 
@@ -506,7 +520,11 @@ const DigitalTextbook = () => {
         <div className="fixed top-20 right-4 z-50 bg-white p-4 rounded-lg shadow-lg border max-w-sm">
           <div className="flex justify-between items-start mb-2">
             <h4 className="font-medium text-sm">Выделенный текст:</h4>
-            <Button variant="ghost" size="sm" onClick={() => setSelectedText('')} className="h-6 w-6 p-0">
+            <Button variant="ghost" size="sm" onClick={() => {
+              highlightRef.current?.clear?.();
+              highlightRef.current = null;
+              setSelectedText('');
+            }} className="h-6 w-6 p-0">
               <X className="h-4 w-4" />
             </Button>
           </div>

@@ -1,0 +1,23 @@
+/* Pink highlighter look */
+.hl-selected {
+  background: linear-gradient(
+    transparent 40%,
+    rgba(255, 64, 160, 0.35) 40%,
+    rgba(255, 64, 160, 0.35) 85%,
+    transparent 85%
+  );
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(255, 64, 160, 0.18) inset;
+  transition: background 120ms ease;
+}
+
+/* For block formulas: ensure wrapper doesn't collapse or shift layout */
+.hl-selected-block {
+  display: inline-block; /* safe around display math containers */
+  border-radius: 6px;
+}
+
+/* Optional: while dragging the mouse, make the native selection pink too */
+::selection {
+  background: rgba(255, 64, 160, 0.35);
+}
