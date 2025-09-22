@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Book, ChevronRight, ChevronDown, Check } from "lucide-react";
+import { Book, ChevronRight, ChevronDown, Check, Calculator } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 
 interface Skill {
   id: number;
@@ -95,6 +96,18 @@ const NewTextbookNavigation = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
+        {/* OGE Math Practice Link */}
+        <div className="p-4 border-b border-gray-100">
+          <Link to="/ogemath-practice">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-2 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 hover:border-orange-300 hover:text-orange-700 transition-all duration-300"
+            >
+              <Calculator className="w-4 h-4" />
+              Практика ОГЭ
+            </Button>
+          </Link>
+        </div>
         <ScrollArea className="h-[70vh]">
           <div className="space-y-2 p-4">
             {units.map((unit) => {

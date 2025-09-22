@@ -296,43 +296,55 @@ const NewTextbook = () => {
             <Button
               onClick={toggleSelecter}
               variant={isSelecterActive ? "default" : "outline"}
-              className={`transition-all duration-300 ${
+              className={`relative transition-all duration-500 transform ${
                 isSelecterActive 
-                  ? "bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white shadow-lg" 
-                  : "hover:bg-yellow-50 hover:border-yellow-300"
-              }`}
+                  ? "bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 text-white shadow-2xl scale-110 border-0 animate-pulse" 
+                  : "hover:bg-gradient-to-r hover:from-yellow-50 hover:to-orange-50 hover:border-yellow-400 hover:text-yellow-700 hover:shadow-lg hover:scale-105"
+              } ${isSelecterActive ? "ring-4 ring-yellow-300/50" : ""}`}
+              size="lg"
             >
-              <Highlighter className="w-4 h-4 mr-2" />
-              {isSelecterActive ? "Остановить выделение" : "Выделить текст"}
+              <Highlighter className={`w-5 h-5 mr-2 transition-transform duration-300 ${isSelecterActive ? "animate-bounce" : ""}`} />
+              <span className="font-semibold">
+                {isSelecterActive ? "🎯 Режим выделения активен" : "✨ Включить выделение"}
+              </span>
+              {isSelecterActive && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping"></div>
+              )}
             </Button>
           </div>
 
           {/* Selected Text and Ask Ёжик Button */}
           {selectedText && (
-            <div className="fixed top-24 right-4 z-50 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-2xl p-4 max-w-md">
-              <div className="flex items-start gap-2 mb-3">
-                <MessageCircle className="w-4 h-4 text-blue-600 mt-1 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 mb-1">Выделенный текст:</p>
-                  <p className="text-sm text-gray-600 line-clamp-3">"{selectedText}"</p>
+            <div className="fixed top-24 right-4 z-50 animate-fade-in">
+              <div className="bg-white/95 backdrop-blur-md border border-gray-200/60 rounded-2xl shadow-2xl p-5 max-w-md transform transition-all duration-300 hover:scale-105">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MessageCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900 mb-2">✨ Выделенный текст:</p>
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 border border-blue-100">
+                      <p className="text-sm text-gray-700 leading-relaxed">"{selectedText}"</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedText("")}
+                    className="p-1 h-auto hover:bg-red-50 hover:text-red-600 rounded-full transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
+                <Button 
+                  onClick={handleAskEzhik}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl py-2.5"
                   size="sm"
-                  onClick={() => setSelectedText("")}
-                  className="p-1 h-auto"
                 >
-                  <X className="w-3 h-3" />
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  🦔 Спросить Ёжика
                 </Button>
               </div>
-              <Button 
-                onClick={handleAskEzhik}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
-                size="sm"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Спросить Ёжика
-              </Button>
             </div>
           )}
 
