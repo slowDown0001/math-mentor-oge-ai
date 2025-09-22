@@ -14,13 +14,18 @@ serve(async (req) => {
   }
 
   try {
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
     
     if (!openRouterApiKey) {
       throw new Error('OPENROUTER_API_KEY is not configured');
     }
 
-    const { student_solution, problem_text, solution_text } = await req.json();
+    const { student_solution, problem_text, solution_text, user_id, question_id } = await req.json();
 
     if (!student_solution || !problem_text || !solution_text) {
       return new Response(JSON.stringify({ 
@@ -76,6 +81,23 @@ serve(async (req) => {
 
     if (!feedback) {
       throw new Error('No feedback received from OpenRouter API');
+    }
+
+    // Save raw output to photo_analysis_outputs table if user_id is provided
+    if (user_id) {
+      const { error: insertError } = await supabase
+        .from('photo_analysis_outputs')
+        .insert({
+          user_id: user_id,
+          question_id: question_id || null,
+          raw_output: feedback,
+          analysis_type: 'photo_solution'
+        });
+
+      if (insertError) {
+        console.error('Error saving raw output:', insertError);
+        // Don't fail the request if we can't save to database
+      }
     }
 
     return new Response(JSON.stringify({ 

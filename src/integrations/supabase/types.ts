@@ -1555,6 +1555,33 @@ export type Database = {
         }
         Relationships: []
       }
+      photo_analysis_outputs: {
+        Row: {
+          analysis_type: string | null
+          created_at: string
+          id: string
+          question_id: string | null
+          raw_output: string
+          user_id: string
+        }
+        Insert: {
+          analysis_type?: string | null
+          created_at?: string
+          id?: string
+          question_id?: string | null
+          raw_output: string
+          user_id: string
+        }
+        Update: {
+          analysis_type?: string | null
+          created_at?: string
+          id?: string
+          question_id?: string | null
+          raw_output?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

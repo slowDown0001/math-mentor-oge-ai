@@ -831,7 +831,9 @@ const PracticeByNumberOgemath = () => {
         body: {
           student_solution: profile.telegram_input,
           problem_text: currentQuestion.problem_text,
-          solution_text: currentQuestion.solution_text
+          solution_text: currentQuestion.solution_text,
+          user_id: user.id,
+          question_id: currentQuestion.question_id
         }
       });
 
