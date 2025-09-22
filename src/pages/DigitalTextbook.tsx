@@ -635,10 +635,18 @@ const DigitalTextbook = () => {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
                         setIsEditingQuestion(true);
+                      }}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
                       }}
                       className="h-8 w-8 p-0 hover:bg-blue-100"
                       type="button"
