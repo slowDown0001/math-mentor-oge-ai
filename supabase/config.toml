@@ -2,3 +2,12 @@ project_id = "kbaazksvkvnafrwtmkcw"
 
 [functions.process-user-query]
 timeout = 120
+
+[functions.create-task]
+verify_jwt = false
+
+[functions.openrouter-task-call]
+verify_jwt = false
+
+[functions.ogemath-task-hardcode]
+verify_jwt = false
