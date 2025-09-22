@@ -274,6 +274,29 @@ const ModuleNumbersCalculations = () => {
                     ? { title: "Упражнение 1: Основы натуральных и целых чисел", skills: [1, 2, 3] }
                     : { title: "Упражнение 2: Работа с числами", skills: [4, 5] };
                 }
+                
+                if (topicId === "fractions-percentages") {
+                  if (exerciseIndex === 0) return { title: "Упражнение 1: Дроби", skills: [6, 195] };
+                  if (exerciseIndex === 1) return { title: "Упражнение 2: Проценты", skills: [7, 8, 9] };
+                  if (exerciseIndex === 2) return { title: "Упражнение 3: Сложные дроби*", skills: [10], isAdvanced: true };
+                }
+                
+                if (topicId === "rational-numbers") {
+                  if (exerciseIndex === 0) return { title: "Упражнение 1: Рациональные числа", skills: [11, 12, 13] };
+                  if (exerciseIndex === 1) return { title: "Упражнение 2: Арифметические действия", skills: [14, 15, 16] };
+                  if (exerciseIndex === 2) return { title: "Упражнение 3: Операции с рациональными числами", skills: [17, 180] };
+                }
+                
+                if (topicId === "real-numbers") {
+                  if (exerciseIndex === 0) return { title: "Упражнение 1: Действительные числа", skills: [18, 19] };
+                  if (exerciseIndex === 1) return { title: "Упражнение 2: Операции с действительными числами", skills: [20, 197] };
+                }
+                
+                if (topicId === "approximations") {
+                  if (exerciseIndex === 0) return { title: "Упражнение 1: Приближённые вычисления", skills: [21, 22] };
+                  if (exerciseIndex === 1) return { title: "Упражнение 2: Округление", skills: [23] };
+                }
+                
                 return { title: `${topic.title} (упражнение ${i + 1})`, skills: [] };
               };
 
@@ -288,6 +311,11 @@ const ModuleNumbersCalculations = () => {
                     <div className="flex-1">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {exerciseData.title}
+                        {exerciseData.isAdvanced && (
+                          <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">
+                            * Не в программе ОГЭ
+                          </span>
+                        )}
                       </span>
                     </div>
                     <span className="text-sm text-gray-500 dark:text-gray-400">Не начато</span>
@@ -327,7 +355,18 @@ const ModuleNumbersCalculations = () => {
         <div className="flex-1">
           <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">{quiz.title}</h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{quiz.description}</p>
-          <Button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white">
+          <Button 
+            className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
+            onClick={() => {
+              if (quiz.id === "quiz-1") {
+                setSelectedExercise({ title: "Тест 1: Дроби и проценты", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 195] });
+              } else if (quiz.id === "quiz-2") {
+                setSelectedExercise({ title: "Тест 2: Рациональные и действительные числа", skills: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 180, 197] });
+              } else if (quiz.id === "module-test") {
+                setSelectedExercise({ title: "Итоговый тест модуля", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 180, 195, 197] });
+              }
+            }}
+          >
             Начать тест
           </Button>
         </div>
