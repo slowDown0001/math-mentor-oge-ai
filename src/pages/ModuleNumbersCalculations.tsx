@@ -536,101 +536,142 @@ const ModuleNumbersCalculations = () => {
           <div className="flex items-center gap-2 flex-wrap">
             {/* Topic 1: Натуральные и целые числа (2 exercises) */}
             <button 
-              className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center transition-all hover:scale-110 hover:shadow-md"
+              className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center transition-all hover:scale-110 hover:shadow-md relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 1: Основы натуральных и целых чисел", skills: [1, 2, 3] })}
-              title="Упражнение 1: Основы натуральных и целых чисел"
             >
               <div className="w-4 h-4 bg-white rounded"></div>
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 1: Основы натуральных и целых чисел • 4 вопроса
+              </div>
             </button>
             <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400"
+              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 2: Работа с числами", skills: [4, 5] })}
-              title="Упражнение 2: Работа с числами"
-            />
+            >
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 2: Работа с числами • 4 вопроса
+              </div>
+            </button>
             
             {/* Topic 2: Дроби и проценты (3 exercises) */}
             <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400"
+              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 1: Дроби", skills: [6, 195] })}
-              title="Упражнение 1: Дроби"
-            />
+            >
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 1: Дроби • 4 вопроса
+              </div>
+            </button>
             <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400"
+              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 2: Проценты", skills: [7, 8, 9] })}
-              title="Упражнение 2: Проценты"
-            />
+            >
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 2: Проценты • 4 вопроса
+              </div>
+            </button>
             <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400"
+              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 3: Сложные дроби*", skills: [10], isAdvanced: true })}
-              title="Упражнение 3: Сложные дроби (не в программе ОГЭ)"
-            />
+            >
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 3: Сложные дроби* • 4 вопроса • Не в программе ОГЭ
+              </div>
+            </button>
             
             {/* Quiz 1 */}
             <button 
-              className="transition-all hover:scale-110 hover:shadow-md"
+              className="transition-all hover:scale-110 hover:shadow-md relative group"
               onClick={() => setSelectedExercise({ title: "Тест 1: Дроби и проценты", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 195], questionCount: 6 })}
-              title="Тест 1: Дроби и проценты"
             >
               <Zap className="h-6 w-6 text-blue-600 mx-1" />
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Тест 1: Дроби и проценты • 6 вопросов
+              </div>
             </button>
             
             {/* Topic 3: Рациональные числа и арифметические действия (3 exercises) */}
             <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400"
+              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 1: Рациональные числа", skills: [11, 12, 13] })}
-              title="Упражнение 1: Рациональные числа"
-            />
+            >
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 1: Рациональные числа • 4 вопроса
+              </div>
+            </button>
             <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400"
+              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 2: Арифметические действия", skills: [14, 15, 16] })}
-              title="Упражнение 2: Арифметические действия"
-            />
+            >
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 2: Арифметические действия • 4 вопроса
+              </div>
+            </button>
             <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400"
+              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 3: Операции с рациональными числами", skills: [17, 180] })}
-              title="Упражнение 3: Операции с рациональными числами"
-            />
+            >
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 3: Операции с рациональными числами • 4 вопроса
+              </div>
+            </button>
             
             {/* Topic 4: Действительные числа (2 exercises) */}
             <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400"
+              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 1: Действительные числа", skills: [18, 19] })}
-              title="Упражнение 1: Действительные числа"
-            />
+            >
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 1: Действительные числа • 4 вопроса
+              </div>
+            </button>
             <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400"
+              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 2: Операции с действительными числами", skills: [20, 197] })}
-              title="Упражнение 2: Операции с действительными числами"
-            />
+            >
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 2: Операции с действительными числами • 4 вопроса
+              </div>
+            </button>
             
             {/* Quiz 2 */}
             <button 
-              className="transition-all hover:scale-110 hover:shadow-md"
+              className="transition-all hover:scale-110 hover:shadow-md relative group"
               onClick={() => setSelectedExercise({ title: "Тест 2: Рациональные и действительные числа", skills: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 180, 197], questionCount: 6 })}
-              title="Тест 2: Рациональные и действительные числа"
             >
               <Zap className="h-6 w-6 text-blue-600 mx-1" />
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Тест 2: Рациональные и действительные числа • 6 вопросов
+              </div>
             </button>
             
             {/* Topic 5: Приближённые вычисления (2 exercises) */}
             <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400"
+              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 1: Приближённые вычисления", skills: [21, 22] })}
-              title="Упражнение 1: Приближённые вычисления"
-            />
+            >
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 1: Приближённые вычисления • 4 вопроса
+              </div>
+            </button>
             <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400"
+              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
               onClick={() => setSelectedExercise({ title: "Упражнение 2: Округление", skills: [23] })}
-              title="Упражнение 2: Округление"
-            />
+            >
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Упражнение 2: Округление • 4 вопроса
+              </div>
+            </button>
             
             {/* Final module test */}
             <button 
-              className="transition-all hover:scale-110 hover:shadow-md"
+              className="transition-all hover:scale-110 hover:shadow-md relative group"
               onClick={() => setSelectedExercise({ title: "Итоговый тест модуля", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 180, 195, 197], questionCount: 10 })}
-              title="Итоговый тест модуля"
             >
               <Star className="h-6 w-6 text-yellow-600 mx-1" />
+              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                Итоговый тест модуля • 10 вопросов
+              </div>
             </button>
           </div>
         </motion.div>
