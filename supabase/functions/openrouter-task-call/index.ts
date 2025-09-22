@@ -58,23 +58,38 @@ Deno.serve(async (req) => {
     if (course_id === 1) {
       console.log('Fetching student progress...');
       try {
-        const { data: progressData, error: progressError } = await supabase.functions.invoke(
+        // Add timeout to the function call
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Function call timeout after 30 seconds')), 30000);
+        });
+
+        const functionPromise = supabase.functions.invoke(
           'student-progress-calculate',
           {
             body: { user_id }
           }
         );
 
+        const { data: progressData, error: progressError } = await Promise.race([
+          functionPromise,
+          timeoutPromise
+        ]) as any;
+
         if (progressError) {
           console.error('Error fetching student progress:', progressError);
-          studentProgress = 'Не удалось загрузить прогресс студента';
+          console.log('Using fallback for student progress');
+          studentProgress = '[]'; // Use empty array as fallback
         } else {
-          console.log('Progress data received:', JSON.stringify(progressData, null, 2));
+          console.log('Progress data received successfully');
+          console.log('Progress data type:', typeof progressData);
+          console.log('Progress data length:', Array.isArray(progressData) ? progressData.length : 'not array');
           studentProgress = JSON.stringify(progressData, null, 2);
         }
       } catch (error) {
         console.error('Exception while fetching student progress:', error);
-        studentProgress = 'Ошибка при загрузке прогресса студента';
+        console.log('Error details:', error.name, error.message);
+        console.log('Using fallback for student progress due to exception');
+        studentProgress = '[]'; // Use empty array as fallback
       }
     }
 
@@ -82,15 +97,34 @@ Deno.serve(async (req) => {
     let student_hardcoded_task = '';
     console.log(`Checking conditions for ogemath-task-hardcode: course_id=${course_id}, studentProgress exists=${!!studentProgress}, studentProgress length=${studentProgress.length}`);
     
-    if (course_id === 1 && studentProgress && studentProgress !== 'Не удалось загрузить прогресс студента' && studentProgress !== 'Ошибка при загрузке прогресса студента') {
+    if (course_id === 1 && studentProgress) {
       console.log('Calling ogemath-task-hardcode function...');
       try {
-        const progressArray = JSON.parse(studentProgress);
-        console.log('Progress array parsed successfully, structure:', Object.keys(progressArray));
+        let progressArray;
+        try {
+          progressArray = JSON.parse(studentProgress);
+        } catch (parseError) {
+          console.error('Failed to parse studentProgress JSON:', parseError);
+          progressArray = []; // Use empty array as fallback
+        }
         
-        // Extract progress_bars if it exists
-        const progressData = progressArray.progress_bars || progressArray;
-        console.log('Using progress data:', Array.isArray(progressData) ? `Array with ${progressData.length} items` : typeof progressData);
+        console.log('Progress array parsed, type:', typeof progressArray, 'is array:', Array.isArray(progressArray));
+        
+        // Extract progress_bars if it exists, otherwise use the array directly, or empty array as fallback
+        let progressData;
+        if (progressArray && typeof progressArray === 'object') {
+          progressData = progressArray.progress_bars || progressArray;
+        } else {
+          progressData = [];
+        }
+        
+        // Ensure progressData is an array
+        if (!Array.isArray(progressData)) {
+          console.log('progressData is not an array, converting to empty array');
+          progressData = [];
+        }
+        
+        console.log('Using progress data:', `Array with ${progressData.length} items`);
         
         const { data: taskData, error: taskError } = await supabase.functions.invoke(
           'ogemath-task-hardcode',
