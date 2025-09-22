@@ -5,7 +5,7 @@ timeout = 120
 
 [functions.create-task]
 verify_jwt = false
-timeout = 180
+timeout = 600
 
 [functions.openrouter-task-call]
 verify_jwt = false
