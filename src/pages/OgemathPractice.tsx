@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ClipboardList, Hash } from "lucide-react";
+import { ClipboardList, Hash, RefreshCw } from "lucide-react";
 
 const OgemathPractice = () => {
   const questionTypes = [
@@ -18,6 +18,13 @@ const OgemathPractice = () => {
       icon: ClipboardList,
       link: "/new-practice-skills",
       color: "bg-blue-50 hover:bg-blue-100 border-blue-200"
+    },
+    {
+      title: "Повторение",
+      description: "Практика навыков, которые нужно подтянуть - супер полезно!",
+      icon: RefreshCw,
+      link: "/ogemath-revision",
+      color: "bg-green-50 hover:bg-green-100 border-green-200"
     }
   ];
 
@@ -42,7 +49,7 @@ const OgemathPractice = () => {
             <p className="text-lg text-gray-600">Выберите тип практики для изучения математики</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {questionTypes.map((type) => (
               <Link key={type.title} to={type.link}>
                 <Card className={`h-full transition-all duration-200 ${type.color} hover:shadow-lg hover:scale-105`}>
