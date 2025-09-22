@@ -142,7 +142,6 @@ const DigitalTextbook = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedText, setSelectedText] = useState('');
   const [customQuestion, setCustomQuestion] = useState('');
-  const [isEditingQuestion, setIsEditingQuestion] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const { user } = useAuth();
   const { messages, isTyping, isDatabaseMode, addMessage, setIsTyping } = useChatContext();
@@ -156,7 +155,6 @@ const DigitalTextbook = () => {
       if (event.key === 'Escape' && selectedText) {
         setSelectedText('');
         setCustomQuestion('');
-        setIsEditingQuestion(false);
       }
     };
 
@@ -281,7 +279,6 @@ const DigitalTextbook = () => {
   const closeSelectionPopup = () => {
     setSelectedText('');
     setCustomQuestion('');
-    setIsEditingQuestion(false);
   };
 
   const handleAskEzhik = async () => {
@@ -290,18 +287,11 @@ const DigitalTextbook = () => {
     // Open chat and send the selected text for explanation
     setIsChatOpen(true);
     
-    // Use custom question if provided, otherwise use default
-    const finalQuestion = customQuestion || `Объясни кратко это: "${selectedText}"`;
+    // Use custom question if provided, otherwise use default, but always include selected text
+    const userMessage = customQuestion.trim() || "Объясни кратко это:";
+    const finalQuestion = `${userMessage} "${selectedText}"`;
     await handleSendChatMessage(finalQuestion);
     
-    closeSelectionPopup();
-  };
-
-  const handleCustomAsk = async () => {
-    if (!selectedText || !customQuestion.trim()) return;
-    
-    setIsChatOpen(true);
-    await handleSendChatMessage(customQuestion);
     closeSelectionPopup();
   };
 
@@ -625,77 +615,12 @@ const DigitalTextbook = () => {
 
               {/* Question Input */}
               <div className="space-y-2">
-                {!isEditingQuestion ? (
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-2 rounded-lg border border-blue-200/60">
-                      <span className="text-sm text-gray-600">
-                        {customQuestion || "Объясни кратко это:"}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        setIsEditingQuestion(true);
-                      }}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                      }}
-                      className="h-8 w-8 p-0 hover:bg-blue-100"
-                      type="button"
-                    >
-                      <Edit3 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Textarea
-                      value={customQuestion}
-                      onChange={(e) => setCustomQuestion(e.target.value)}
-                      placeholder="Объясни кратко это:"
-                      className="min-h-[60px] text-sm resize-none border-blue-200/60 focus:border-blue-400 focus:ring-blue-200"
-                      autoFocus
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => setIsEditingQuestion(false)}
-                        className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                      >
-                        Готово
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          setCustomQuestion('');
-                          setIsEditingQuestion(false);
-                        }}
-                        onTouchStart={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                        }}
-                        className="border-gray-300 hover:bg-gray-50"
-                        type="button"
-                      >
-                        Сброс
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <Textarea
+                  value={customQuestion}
+                  onChange={(e) => setCustomQuestion(e.target.value)}
+                  placeholder="Объясни кратко это:"
+                  className="min-h-[60px] text-sm resize-none border-blue-200/60 focus:border-blue-400 focus:ring-blue-200"
+                />
               </div>
 
               {/* Ask Button */}
