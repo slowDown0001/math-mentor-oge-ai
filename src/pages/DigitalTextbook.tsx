@@ -637,9 +637,11 @@ const DigitalTextbook = () => {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
+                        e.preventDefault();
                         setIsEditingQuestion(true);
                       }}
                       className="h-8 w-8 p-0 hover:bg-blue-100"
+                      type="button"
                     >
                       <Edit3 className="h-3 w-3" />
                     </Button>
