@@ -740,54 +740,44 @@ const DigitalTextbook = () => {
 
       {/* Text Selection Popup */}
       {selectedText && (
-        <div className="fixed top-20 right-4 z-[100] max-w-xs w-80">
-          <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200 animate-slide-in-right">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-medium text-gray-900">
-                Выделенный текст
-              </h4>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+        <div className="fixed top-24 right-4 z-50 animate-fade-in">
+          <div className="bg-white/95 backdrop-blur-md border border-gray-200/60 rounded-2xl shadow-2xl p-5 max-w-md transform transition-all duration-300 hover:scale-105">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-gray-900 mb-2">✨ Выделенный текст:</p>
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 border border-blue-100">
+                  <p className="text-sm text-gray-700 leading-relaxed">"{selectedText}"</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={closeSelectionPopup}
-                className="h-6 w-6 p-0 hover:bg-gray-100 rounded"
+                className="p-1 h-auto hover:bg-red-50 hover:text-red-600 rounded-full transition-colors"
               >
-                <X className="h-3 w-3" />
+                <X className="w-4 h-4" />
               </Button>
-            </div>
-            
-            <div className="bg-gray-50 rounded p-2 mb-3 max-h-20 overflow-y-auto">
-              <p className="text-xs text-gray-700 line-clamp-3">
-                "{selectedText}"
-              </p>
             </div>
             
             <Textarea
-              placeholder="Дополнительный вопрос..."
+              placeholder="Дополнительный вопрос (необязательно)..."
               value={customQuestion}
               onChange={(e) => setCustomQuestion(e.target.value)}
-              className="mb-3 resize-none text-xs"
+              className="mb-4 resize-none"
               rows={2}
             />
             
-            <div className="flex gap-2">
-              <Button 
-                onClick={handleAskEzhik}
-                className="flex-1 text-xs py-1 h-7"
-                size="sm"
-              >
-                <MessageCircle className="h-3 w-3 mr-1" />
-                Спросить
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={closeSelectionPopup}
-                size="sm"
-                className="text-xs py-1 h-7"
-              >
-                Отмена
-              </Button>
-            </div>
+            <Button 
+              onClick={handleAskEzhik}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl py-2.5"
+              size="sm"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              🦔 Спросить Ёжика
+            </Button>
           </div>
         </div>
       )}
