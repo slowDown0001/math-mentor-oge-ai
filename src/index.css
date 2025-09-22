@@ -4,9 +4,33 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Prevent partial selection of MathJax glyph subnodes */
+/* MathJax selection and display styling */
 mjx-container * {
   user-select: none;
+}
+
+/* Enable selection highlighting for MathJax containers */
+mjx-container {
+  user-select: text;
+}
+
+mjx-container::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: inherit;
+}
+
+mjx-container mjx-math::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: inherit;
+}
+
+/* Additional selection styles for nested MathJax elements */
+mjx-container mjx-mtext::selection,
+mjx-container mjx-mi::selection,
+mjx-container mjx-mn::selection,
+mjx-container mjx-mo::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: inherit;
 }
 
 @layer base {
