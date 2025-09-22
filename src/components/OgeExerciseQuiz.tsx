@@ -299,26 +299,11 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
                     </div>
                   )}
                   
-                  {/* Solution Button */}
-                  {questions[currentQuestionIndex]?.solution_text && (
-                    <div className="mt-3">
-                      <Button
-                        onClick={() => setShowSolution(!showSolution)}
-                        variant="outline"
-                        size="sm"
-                        className="bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        {showSolution ? 'Скрыть' : 'Решение'}
-                      </Button>
-                    </div>
-                  )}
-                  
                   {/* Solution Display */}
                   {showSolution && questions[currentQuestionIndex]?.solution_text && (
                     <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
                       <div className="flex items-center gap-2 mb-2">
-                        <BookOpen className="w-4 h-4 text-purple-600" />
+                        <BookOpen className="w-4 w-4 text-purple-600" />
                         <h4 className="font-bold text-purple-700 text-sm">Решение:</h4>
                       </div>
                       <MathRenderer 
@@ -331,8 +316,25 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex justify-center space-x-3">
+              {/* Action Buttons - Side by Side */}
+              <div className="flex justify-between items-center space-x-3">
+                {/* Solution Button - Left Side */}
+                {questions[currentQuestionIndex]?.solution_text && showResult && (
+                  <Button
+                    onClick={() => setShowSolution(!showSolution)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    {showSolution ? 'Скрыть' : 'Решение'}
+                  </Button>
+                )}
+                
+                {/* Empty div to push Next button to the right when no solution button */}
+                {(!questions[currentQuestionIndex]?.solution_text || !showResult) && <div />}
+                
+                {/* Submit/Next Button - Right Side */}
                 {!showResult ? (
                   <Button
                     onClick={handleSubmitAnswer}
