@@ -83,6 +83,44 @@ serve(async (req) => {
       throw new Error('No feedback received from OpenRouter API');
     }
 
+    // Second API call to polish LaTeX
+    const polishPrompt = `You are given a JSON output: ${feedback}, where scores_fipi is in {0,1,2} and review is LaTeX code.
+
+Your task: Return the SAME JSON, but ensure review is perfectly compilable LaTeX by applying these strict rules:
+
+1. All math must be wrapped in $...$, \\(...\\), \\[...\\], or $$...$$ — pick the most appropriate.
+2. NEVER use environments: itemize, tabular, enumerate.
+3. ALL textual content — including Russian — must be wrapped in \\text{...}.
+4. If any \\text{...} contains >10 words, split it into multiple \\text{...} calls with shorter phrases.
+5. **IMPORTANT**: Preserve original meaning and structure. Only fix LaTeX syntax.
+
+**IMPORTANT**: Return ONLY the corrected JSON. No explanations.`;
+
+    const polishResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openRouterApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'qwen/qwen3-coder-flash',
+        messages: [
+          { role: 'user', content: polishPrompt }
+        ],
+        temperature: 0,
+      }),
+    });
+
+    if (!polishResponse.ok) {
+      const errorData = await polishResponse.json();
+      console.error('OpenRouter Polish API error:', errorData);
+      // If polish fails, use original feedback
+      var finalFeedback = feedback;
+    } else {
+      const polishData = await polishResponse.json();
+      var finalFeedback = polishData.choices?.[0]?.message?.content || feedback;
+    }
+
     // Save raw output to photo_analysis_outputs table if user_id is provided
     if (user_id) {
       const { error: insertError } = await supabase
@@ -90,7 +128,7 @@ serve(async (req) => {
         .insert({
           user_id: user_id,
           question_id: question_id || null,
-          raw_output: feedback,
+          raw_output: finalFeedback,
           analysis_type: 'photo_solution'
         });
 
@@ -101,7 +139,7 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ 
-      feedback: feedback 
+      feedback: finalFeedback 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
