@@ -580,8 +580,22 @@ const DigitalTextbook = () => {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto">
-          <div className="max-w-3xl mx-auto px-4 py-6">
+        <div className="flex-1 overflow-auto relative">
+          {/* Chat Toggle Button */}
+          <button
+            onClick={() => setIsChatOpen(true)}
+            className="fixed left-4 top-1/2 -translate-y-1/2 z-50 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white p-3 rounded-r-2xl shadow-xl hover:shadow-2xl transform hover:scale-110 transition-all duration-300 border-l-4 border-white/30"
+            style={{ 
+              writingMode: 'vertical-lr',
+              textOrientation: 'mixed'
+            }}
+          >
+            <div className="flex flex-col items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              <span className="text-xs font-medium tracking-wider">ЧАТ</span>
+            </div>
+          </button>
+          <div className="max-w-6xl mx-auto px-4 py-6">
             {/* Breadcrumb Navigation */}
             {(selectedModule || selectedTopic || selectedSkill) && (
               <div className="flex items-center gap-2 mb-6 text-sm text-gray-600">
@@ -632,9 +646,12 @@ const DigitalTextbook = () => {
                           </CardTitle>
                         </CardHeader>
                         <CardContent 
-                          className="p-6"
+                          className="p-6 relative"
                           onClick={isSelecting ? handleTextSelection : undefined}
-                          style={{ cursor: isSelecting ? 'text' : 'default' }}
+                          style={{ 
+                            cursor: isSelecting ? 'text' : 'default',
+                            userSelect: isSelecting ? 'text' : 'auto'
+                          }}
                         >
                           <ArticleRenderer 
                             text={currentArticle.article_text}
@@ -705,21 +722,28 @@ const DigitalTextbook = () => {
       {/* Text Selection Popup */}
       {selectedText && (
         <div className="fixed inset-0 z-[100] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="selection-popup bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full border-white/50 border backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Выделенный текст</h3>
+          <div className="selection-popup bg-gradient-to-br from-white via-blue-50 to-purple-50 rounded-2xl shadow-2xl p-8 max-w-lg w-full border-2 border-white/70 backdrop-blur-xl transform animate-scale-in">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl text-white">
+                  <Edit3 className="h-5 w-5" />
+                </div>
+                <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Выделенный текст
+                </h3>
+              </div>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={closeSelectionPopup}
-                className="h-8 w-8 p-0"
+                className="h-10 w-10 p-0 hover:bg-red-100 hover:text-red-600 transition-colors rounded-xl"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </Button>
             </div>
             
-            <div className="bg-gray-50 rounded-lg p-4 mb-4 max-h-32 overflow-y-auto">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 mb-6 max-h-40 overflow-y-auto border border-white/50 shadow-inner">
+              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                 {selectedText}
               </p>
             </div>
@@ -728,22 +752,22 @@ const DigitalTextbook = () => {
               placeholder="Дополнительный вопрос (необязательно)"
               value={customQuestion}
               onChange={(e) => setCustomQuestion(e.target.value)}
-              className="mb-4 resize-none"
+              className="mb-6 resize-none border-2 border-white/50 bg-white/70 backdrop-blur-sm rounded-xl focus:border-blue-300 transition-colors"
               rows={3}
             />
             
             <div className="flex gap-3">
               <Button 
                 onClick={handleAskEzhik}
-                className="flex-1 flex items-center gap-2"
+                className="flex-1 flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 rounded-xl py-3"
               >
-                <MessageCircle className="h-4 w-4" />
+                <MessageCircle className="h-5 w-5" />
                 Спросить у Ёжика
               </Button>
               <Button 
                 variant="outline" 
                 onClick={closeSelectionPopup}
-                className="px-4"
+                className="px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
               >
                 Отмена
               </Button>
