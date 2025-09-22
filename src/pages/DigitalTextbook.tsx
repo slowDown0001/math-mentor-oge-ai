@@ -583,7 +583,10 @@ const DigitalTextbook = () => {
       
       {selectedText && (
         <div className="fixed top-20 right-4 z-50 animate-scale-in">
-          <div className="bg-gradient-to-br from-white via-blue-50 to-purple-50 backdrop-blur-sm border border-blue-200/60 rounded-2xl shadow-2xl max-w-sm overflow-hidden">
+          <div 
+            className="bg-gradient-to-br from-white via-blue-50 to-purple-50 backdrop-blur-sm border border-blue-200/60 rounded-2xl shadow-2xl max-w-sm overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-4 py-3 border-b border-blue-200/40">
               <div className="flex justify-between items-center">
