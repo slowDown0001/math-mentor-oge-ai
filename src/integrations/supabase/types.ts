@@ -68,6 +68,21 @@ export type Database = {
         }
         Relationships: []
       }
+      articles_oge_topics: {
+        Row: {
+          id: number
+          topic_text: string | null
+        }
+        Insert: {
+          id?: number
+          topic_text?: string | null
+        }
+        Update: {
+          id?: number
+          topic_text?: string | null
+        }
+        Relationships: []
+      }
       articles2: {
         Row: {
           art: string | null
@@ -1651,6 +1666,7 @@ export type Database = {
       stories_and_telegram: {
         Row: {
           created_at: string | null
+          hardcode_task: string | null
           problem_submission_id: string | null
           seen: number | null
           task: string | null
@@ -1661,6 +1677,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          hardcode_task?: string | null
           problem_submission_id?: string | null
           seen?: number | null
           task?: string | null
@@ -1671,6 +1688,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          hardcode_task?: string | null
           problem_submission_id?: string | null
           seen?: number | null
           task?: string | null
