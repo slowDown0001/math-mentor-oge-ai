@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play, Edit3, Send, ChevronLeft } from 'lucide-react';
+import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play, Edit3, Send, ChevronLeft, Calculator, Highlighter } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import newSyllabusData from '../data/newSyllabusStructure.json';
 import ArticleRenderer from '../components/ArticleRenderer';
@@ -21,6 +21,7 @@ import { saveChatLog } from '@/services/chatLogsService';
 import { getSelectedTextWithMath } from '@/utils/getSelectedTextWithMath';
 import { useMathJaxSelection } from '../hooks/useMathJaxSelection';
 import { StreakDisplay } from '@/components/streak/StreakDisplay';
+import { Link } from 'react-router-dom';
 
 interface Skill {
   number: number;
@@ -526,13 +527,31 @@ const DigitalTextbook = () => {
         
         {/* Navigation buttons */}
         <div className="p-4 space-y-2">
+          {/* OGE Math Practice Link */}
+          <Link to="/ogemath-practice">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            >
+              <Calculator className="mr-2 h-4 w-4" />
+              Практика ОГЭ
+            </Button>
+          </Link>
+          
           <Button
             onClick={toggleSelecter}
             variant={isSelecting ? "default" : "ghost"}
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className={`w-full justify-start relative transition-all duration-500 ${
+              isSelecting 
+                ? "bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 text-white shadow-xl animate-pulse ring-2 ring-yellow-300/50" 
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:bg-gradient-to-r hover:from-yellow-50 hover:to-orange-50"
+            }`}
           >
-            <Edit3 className="mr-2 h-4 w-4" />
-            Включить выделение
+            <Highlighter className={`mr-2 h-4 w-4 transition-transform duration-300 ${isSelecting ? "animate-bounce" : ""}`} />
+            {isSelecting ? "🎯 Режим выделения" : "✨ Включить выделение"}
+            {isSelecting && (
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
+            )}
           </Button>
           
           <Button
@@ -721,53 +740,53 @@ const DigitalTextbook = () => {
 
       {/* Text Selection Popup */}
       {selectedText && (
-        <div className="fixed inset-0 z-[100] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="selection-popup bg-gradient-to-br from-white via-blue-50 to-purple-50 rounded-2xl shadow-2xl p-8 max-w-lg w-full border-2 border-white/70 backdrop-blur-xl transform animate-scale-in">
+        <div className="fixed inset-0 z-[100] bg-black/10 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-gradient-to-br from-white via-blue-50 to-purple-50 rounded-3xl shadow-2xl p-8 max-w-lg w-full border-2 border-white/70 backdrop-blur-xl transform transition-all duration-300 hover:scale-105">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl text-white">
-                  <Edit3 className="h-5 w-5" />
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl text-white shadow-lg">
+                  <Highlighter className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Выделенный текст
+                  ✨ Выделенный текст
                 </h3>
               </div>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={closeSelectionPopup}
-                className="h-10 w-10 p-0 hover:bg-red-100 hover:text-red-600 transition-colors rounded-xl"
+                className="h-10 w-10 p-0 hover:bg-red-100 hover:text-red-600 transition-colors rounded-2xl"
               >
                 <X className="h-5 w-5" />
               </Button>
             </div>
             
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 mb-6 max-h-40 overflow-y-auto border border-white/50 shadow-inner">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                {selectedText}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-5 mb-6 max-h-40 overflow-y-auto border-2 border-blue-100 shadow-inner">
+              <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed font-medium">
+                "{selectedText}"
               </p>
             </div>
             
             <Textarea
-              placeholder="Дополнительный вопрос (необязательно)"
+              placeholder="Дополнительный вопрос (необязательно)..."
               value={customQuestion}
               onChange={(e) => setCustomQuestion(e.target.value)}
-              className="mb-6 resize-none border-2 border-white/50 bg-white/70 backdrop-blur-sm rounded-xl focus:border-blue-300 transition-colors"
+              className="mb-6 resize-none border-2 border-blue-200 bg-white/80 backdrop-blur-sm rounded-2xl focus:border-blue-400 transition-all duration-300 focus:shadow-lg"
               rows={3}
             />
             
             <div className="flex gap-3">
               <Button 
                 onClick={handleAskEzhik}
-                className="flex-1 flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 rounded-xl py-3"
+                className="flex-1 flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 rounded-2xl py-3 font-semibold"
               >
                 <MessageCircle className="h-5 w-5" />
-                Спросить у Ёжика
+                🦔 Спросить у Ёжика
               </Button>
               <Button 
                 variant="outline" 
                 onClick={closeSelectionPopup}
-                className="px-6 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors rounded-xl"
+                className="px-6 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-100 transition-all duration-200 rounded-2xl"
               >
                 Отмена
               </Button>
