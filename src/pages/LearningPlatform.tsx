@@ -14,6 +14,9 @@ interface UnitData {
   completedExercises: number;
   completedQuizzes: number;
   testCompleted: boolean;
+  exerciseData?: Array<{title: string; questions: number}>;
+  quizData?: Array<{title: string; questions: number}>;
+  examData?: {title: string; questions: number};
 }
 
 const LearningPlatform = () => {
@@ -28,7 +31,26 @@ const LearningPlatform = () => {
       isUnlocked: true,
       completedExercises: 3,
       completedQuizzes: 1,
-      testCompleted: false
+      testCompleted: false,
+      exerciseData: [
+        {title: "Упражнение 1: Основы натуральных и целых чисел", questions: 4},
+        {title: "Упражнение 2: Работа с числами", questions: 4},
+        {title: "Упражнение 1: Дроби", questions: 4},
+        {title: "Упражнение 2: Проценты", questions: 4},
+        {title: "Упражнение 3: Сложные дроби*", questions: 4},
+        {title: "Упражнение 1: Рациональные числа", questions: 4},
+        {title: "Упражнение 2: Арифметические действия", questions: 4},
+        {title: "Упражнение 3: Операции с рациональными числами", questions: 4},
+        {title: "Упражнение 1: Действительные числа", questions: 4},
+        {title: "Упражнение 2: Операции с действительными числами", questions: 4},
+        {title: "Упражнение 1: Приближённые вычисления", questions: 4},
+        {title: "Упражнение 2: Округление", questions: 4}
+      ],
+      quizData: [
+        {title: "Тест 1: Натуральные числа и дроби", questions: 6},
+        {title: "Тест 2: Рациональные и действительные числа", questions: 6}
+      ],
+      examData: {title: "Итоговый тест модуля", questions: 10}
     },
     {
       id: 'unit-2',
@@ -128,93 +150,93 @@ const LearningPlatform = () => {
     }
   ];
 
-  const renderProgressSquare = (completed: boolean, index: number, unitId: string) => (
-    <Tooltip key={index}>
-      <TooltipTrigger>
-        <div
-          className={`
-            w-8 h-8 rounded-lg border-2 transition-all duration-200 flex items-center justify-center cursor-pointer
-            ${completed 
-              ? 'bg-gradient-to-br from-green-400 to-green-600 border-green-500 shadow-lg' 
-              : 'bg-white border-gray-300 hover:border-blue-400 hover:shadow-md'
-            }
-            ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
-          `}
-          onClick={() => {
-            if (unitId === 'unit-1') {
-              window.location.href = '/module/numbers-calculations';
-            }
-          }}
-        >
-          {completed && <Target className="h-4 w-4 text-white" />}
+  const renderProgressSquare = (completed: boolean, index: number, unitId: string, exerciseData?: Array<{title: string; questions: number}>) => (
+    <div key={index} className="relative group">
+      <div
+        className={`
+          w-8 h-8 rounded-lg border-2 transition-all duration-200 flex items-center justify-center cursor-pointer
+          ${completed 
+            ? 'bg-gradient-to-br from-green-400 to-green-600 border-green-500 shadow-lg' 
+            : 'bg-white border-gray-300 hover:border-orange-400 hover:shadow-md'
+          }
+          ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
+        `}
+        onClick={() => {
+          if (unitId === 'unit-1') {
+            window.location.href = '/module/numbers-calculations';
+          }
+        }}
+      >
+        {completed && <Target className="h-4 w-4 text-white" />}
+      </div>
+      {unitId === 'unit-1' && exerciseData && exerciseData[index] && (
+        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          {exerciseData[index].title} • {exerciseData[index].questions} вопроса
         </div>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{completed ? 'Упражнение завершено' : 'Упражнение не начато'}</p>
-      </TooltipContent>
-    </Tooltip>
+      )}
+    </div>
   );
 
-  const renderQuizIcon = (completed: boolean, index: number, unitId: string) => (
-    <Tooltip key={`quiz-${index}`}>
-      <TooltipTrigger>
-        <div
-          className={`
-            w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer
-            ${completed 
-              ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg' 
-              : 'bg-gray-100 hover:bg-blue-50 hover:shadow-md'
-            }
-            ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
-          `}
-          onClick={() => {
-            if (unitId === 'unit-1') {
-              window.location.href = '/module/numbers-calculations';
-            }
-          }}
-        >
-          <Zap
-            className={`h-4 w-4 ${
-              completed ? 'text-white' : 'text-gray-400'
-            }`}
-          />
+  const renderQuizIcon = (completed: boolean, index: number, unitId: string, quizData?: Array<{title: string; questions: number}>) => (
+    <div key={`quiz-${index}`} className="relative group">
+      <div
+        className={`
+          w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer
+          ${completed 
+            ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg' 
+            : 'bg-gray-100 hover:bg-blue-50 hover:shadow-md'
+          }
+          ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
+        `}
+        onClick={() => {
+          if (unitId === 'unit-1') {
+            window.location.href = '/module/numbers-calculations';
+          }
+        }}
+      >
+        <Zap
+          className={`h-4 w-4 ${
+            completed ? 'text-white' : 'text-gray-400'
+          }`}
+        />
+      </div>
+      {unitId === 'unit-1' && quizData && quizData[index] && (
+        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          {quizData[index].title} • {quizData[index].questions} вопросов
         </div>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{completed ? 'Тест завершен' : 'Тест не начат'}</p>
-      </TooltipContent>
-    </Tooltip>
+      )}
+    </div>
   );
 
-  const renderTestIcon = (completed: boolean, unitId: string) => (
-    <Tooltip>
-      <TooltipTrigger>
-        <div
-          className={`
-            w-10 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer
-            ${completed 
-              ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-lg' 
-              : 'bg-gray-100 hover:bg-yellow-50 hover:shadow-md'
-            }
-            ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
-          `}
-          onClick={() => {
-            if (unitId === 'unit-1') {
-              window.location.href = '/module/numbers-calculations';
-            }
-          }}
-        >
-          <Star
-            className={`h-5 w-5 ${
-              completed ? 'text-white' : 'text-gray-400'
-            }`}
-          />
+  const renderTestIcon = (completed: boolean, unitId: string, examData?: {title: string; questions: number}) => (
+    <div className="relative group">
+      <div
+        className={`
+          w-10 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer
+          ${completed 
+            ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-lg' 
+            : 'bg-gray-100 hover:bg-yellow-50 hover:shadow-md'
+          }
+          ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
+        `}
+        onClick={() => {
+          if (unitId === 'unit-1') {
+            window.location.href = '/module/numbers-calculations';
+          }
+        }}
+      >
+        <Star
+          className={`h-5 w-5 ${
+            completed ? 'text-white' : 'text-gray-400'
+          }`}
+        />
+      </div>
+      {unitId === 'unit-1' && examData && (
+        <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          {examData.title} • {examData.questions} вопросов
         </div>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{completed ? 'Итоговый экзамен завершен' : 'Итоговый экзамен не начат'}</p>
-      </TooltipContent>
-    </Tooltip>
+      )}
+    </div>
   );
 
   const UnitRow = ({ unit, index }: { unit: UnitData; index: number }) => (
@@ -294,7 +316,7 @@ const LearningPlatform = () => {
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {Array.from({ length: unit.exercises }, (_, i) => 
-                renderProgressSquare(i < unit.completedExercises, i, unit.id)
+                renderProgressSquare(i < unit.completedExercises, i, unit.id, unit.exerciseData)
               )}
             </div>
             <span className="text-xs text-gray-500 ml-auto">
@@ -310,7 +332,7 @@ const LearningPlatform = () => {
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {Array.from({ length: unit.quizzes }, (_, i) => 
-                renderQuizIcon(i < unit.completedQuizzes, i, unit.id)
+                renderQuizIcon(i < unit.completedQuizzes, i, unit.id, unit.quizData)
               )}
             </div>
             <span className="text-xs text-gray-500 ml-auto">
@@ -326,7 +348,7 @@ const LearningPlatform = () => {
                 <span className="text-sm font-medium text-gray-600">Экзамен</span>
               </div>
               <div className="flex items-center gap-2">
-                {renderTestIcon(unit.testCompleted, unit.id)}
+                {renderTestIcon(unit.testCompleted, unit.id, unit.examData)}
               </div>
               <span className="text-xs text-gray-500 ml-auto">
                 {unit.testCompleted ? 'Завершен' : 'Не начат'}
