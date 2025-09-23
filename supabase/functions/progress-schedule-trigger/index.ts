@@ -61,7 +61,10 @@ serve(async (req) => {
             const { data: progressData, error: progressError } = await supabase.functions.invoke(
               'student-progress-calculate',
               {
-                body: { user_id, course_id }
+                body: { user_id, course_id },
+                headers: {
+                  'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+                }
               }
             );
 
@@ -122,9 +125,9 @@ async function checkEligibilityConditions(supabase: any, user_id: string, course
       .eq('course_id', course_id)
       .order('updated_at', { ascending: false })
       .limit(1)
-      .maybeSingle();
+      .single();
 
-    if (masteryError) {
+    if (masteryError && masteryError.code !== 'PGRST116') {
       console.error('Error checking student_mastery:', masteryError);
       return false;
     }
@@ -137,9 +140,9 @@ async function checkEligibilityConditions(supabase: any, user_id: string, course
       .eq('course_id', course_id)
       .order('run_timestamp', { ascending: false })
       .limit(1)
-      .maybeSingle();
+      .single();
 
-    if (snapshotError) {
+    if (snapshotError && snapshotError.code !== 'PGRST116') {
       console.error('Error checking mastery_snapshots:', snapshotError);
       return false;
     }
@@ -153,7 +156,7 @@ async function checkEligibilityConditions(supabase: any, user_id: string, course
       const masteryTime = new Date(masteryData.updated_at);
       const snapshotTime = new Date(snapshotData.run_timestamp);
       condition1 = masteryTime > snapshotTime;
-    } else if (!masteryData) {
+    } else if (!masteryData || masteryError?.code === 'PGRST116') {
       // No mastery data means no activity, so skip
       return false;
     }
