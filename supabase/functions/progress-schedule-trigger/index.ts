@@ -46,22 +46,24 @@ serve(async (req) => {
         continue;
       }
 
-      for (const course_id of courses) {
-        console.log(`Checking conditions for user ${user_id}, course ${course_id}`);
+    for (const course_id of courses) {
+        // Ensure course_id is a string and valid
+        const courseIdString = String(course_id);
+        console.log(`Checking conditions for user ${user_id}, course ${courseIdString}`);
         
         // Check if conditions are met
-        const isEligible = await checkEligibilityConditions(supabase, user_id, course_id);
+        const isEligible = await checkEligibilityConditions(supabase, user_id, courseIdString);
         
         if (isEligible) {
           eligibleCount++;
-          console.log(`Processing user ${user_id}, course ${course_id}`);
+          console.log(`Processing user ${user_id}, course ${courseIdString}`);
           
           try {
             // Call student-progress-calculate
             const { data: progressData, error: progressError } = await supabase.functions.invoke(
               'student-progress-calculate',
               {
-                body: { user_id, course_id },
+                body: { user_id, course_id: courseIdString },
                 headers: {
                   'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
                 }
@@ -69,27 +71,27 @@ serve(async (req) => {
             );
 
             if (progressError) {
-              console.error(`Error calling student-progress-calculate for user ${user_id}, course ${course_id}:`, progressError);
-              results.push({ user_id, course_id, status: 'error', error: progressError.message });
+              console.error(`Error calling student-progress-calculate for user ${user_id}, course ${courseIdString}:`, progressError);
+              results.push({ user_id, course_id: courseIdString, status: 'error', error: progressError.message });
               continue;
             }
 
             // Process and store the snapshot
-            await storeProgressSnapshot(supabase, user_id, course_id, progressData);
+            await storeProgressSnapshot(supabase, user_id, courseIdString, progressData);
             
             processedCount++;
-            results.push({ user_id, course_id, status: 'success' });
-            console.log(`Successfully processed user ${user_id}, course ${course_id}`);
+            results.push({ user_id, course_id: courseIdString, status: 'success' });
+            console.log(`Successfully processed user ${user_id}, course ${courseIdString}`);
             
             // Wait 1 second before next iteration
             await new Promise(resolve => setTimeout(resolve, 1000));
             
           } catch (error) {
-            console.error(`Error processing user ${user_id}, course ${course_id}:`, error);
-            results.push({ user_id, course_id, status: 'error', error: error.message });
+            console.error(`Error processing user ${user_id}, course ${courseIdString}:`, error);
+            results.push({ user_id, course_id: courseIdString, status: 'error', error: error.message });
           }
         } else {
-          console.log(`User ${user_id}, course ${course_id} not eligible, skipping`);
+          console.log(`User ${user_id}, course ${courseIdString} not eligible, skipping`);
         }
       }
     }
