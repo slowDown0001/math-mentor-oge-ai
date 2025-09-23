@@ -850,6 +850,41 @@ export type Database = {
         }
         Relationships: []
       }
+      mastery_snapshots: {
+        Row: {
+          computed_summary: Json
+          course_id: string | null
+          id: number
+          raw_data: Json
+          run_timestamp: string
+          user_id: string
+        }
+        Insert: {
+          computed_summary: Json
+          course_id?: string | null
+          id?: number
+          raw_data: Json
+          run_timestamp?: string
+          user_id: string
+        }
+        Update: {
+          computed_summary?: Json
+          course_id?: string | null
+          id?: number
+          raw_data?: Json
+          run_timestamp?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mastery_snapshots_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       mcq: {
         Row: {
           answer: string | null
