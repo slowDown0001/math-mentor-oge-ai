@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
             body: {
               user_id,
               topic_code: parseFloat(topicMapping.code),
-              course_id: 'ogemath'
+              course_id: '1'
             }
           }
         );
@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
           body: {
             user_id,
             problem_number_types: problemTypes,
-            course_id: 'ogemath'
+            course_id: '1'
           }
         }
       );
