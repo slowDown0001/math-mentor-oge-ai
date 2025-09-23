@@ -8,6 +8,7 @@ const corsHeaders = {
 
 interface RequestBody {
   user_id: string;
+  course_id?: string;
 }
 
 interface TopicMapping {
@@ -35,7 +36,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Parse request body
-    const { user_id }: RequestBody = await req.json();
+    const { user_id, course_id = '1' }: RequestBody = await req.json();
 
     if (!user_id) {
       return new Response(
@@ -44,43 +45,40 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Calculating progress for user: ${user_id}`);
+    console.log(`Calculating progress for user: ${user_id}, course: ${course_id}`);
 
-    // Define topic mappings
-    const topicMappings: TopicMapping[] = [
-      { code: "1.1", name: "1.1 - Натуральные и целые числа" },
-      { code: "1.2", name: "1.2 - Дроби и проценты" },
-      { code: "1.3", name: "1.3 - Рациональные числа и арифметические действия" },
-      { code: "1.4", name: "1.4 - Действительные числа" },
-      { code: "1.5", name: "1.5 - Приближённые вычисления" },
-      { code: "2.1", name: "2.1 - Буквенные выражения" },
-      { code: "2.2", name: "2.2 - Степени" },
-      { code: "2.3", name: "2.3 - Многочлены" },
-      { code: "2.4", name: "2.4 - Алгебраические дроби" },
-      { code: "2.5", name: "2.5 - Арифметические корни" },
-      { code: "3.1", name: "3.1 - Уравнения и системы" },
-      { code: "3.2", name: "3.2 - Неравенства и системы" },
-      { code: "3.3", name: "3.3 - Текстовые задачи" },
-      { code: "4.1", name: "4.1 - Последовательности" },
-      { code: "4.2", name: "4.2 - Арифметическая и геометрическая прогрессии. Формула сложных процентов" },
-      { code: "5.1", name: "5.1 - Свойства и графики функций" },
-      { code: "6.1", name: "6.1 - Координатная прямая" },
-      { code: "6.2", name: "6.2 - Декартовы координаты" },
-      { code: "7.1", name: "7.1 - Геометрические фигуры" },
-      { code: "7.2", name: "7.2 - Треугольники" },
-      { code: "7.3", name: "7.3 - Многоугольники" },
-      { code: "7.4", name: "7.4 - Окружность и круг" },
-      { code: "7.5", name: "7.5 - Измерения" },
-      { code: "7.6", name: "7.6 - Векторы" },
-      { code: "7.7", name: "7.7 - Дополнительные темы по геометрии" },
-      { code: "8.1", name: "8.1 - Описательная статистика" },
-      { code: "8.2", name: "8.2 - Вероятность" },
-      { code: "8.3", name: "8.3 - Комбинаторика" },
-      { code: "8.4", name: "8.4 - Множества" },
-      { code: "8.5", name: "8.5 - Графы" },
-      { code: "9.1", name: "9.1 - Работа с данными и графиками" },
-      { code: "9.2", name: "9.2 - Прикладная геометрия / Чтение и анализ графических схем" }
-    ];
+    // Define topic mappings based on course_id
+    let topicMappings: TopicMapping[] = [];
+    let topicsUrl: string;
+
+    if (course_id === '1') {
+      topicsUrl = 'https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/jsons_for_topic_skills/ogemath_topics_only_with_names.json';
+    } else if (course_id === '2') {
+      topicsUrl = 'https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/jsons_for_topic_skills/egemathbasic_topics_only_with_names.json';
+    } else if (course_id === '3') {
+      topicsUrl = 'https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/jsons_for_topic_skills/egemathprof_topics_only_with_names.json';
+    } else {
+      return new Response(
+        JSON.stringify({ error: 'Invalid course_id. Must be "1", "2", or "3"' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Fetch topic mappings from the appropriate URL
+    try {
+      const topicsResponse = await fetch(topicsUrl);
+      if (!topicsResponse.ok) {
+        throw new Error(`Failed to fetch topics: ${topicsResponse.statusText}`);
+      }
+      topicMappings = await topicsResponse.json();
+      console.log(`Loaded ${topicMappings.length} topics for course ${course_id}`);
+    } catch (error) {
+      console.error('Error fetching topic mappings:', error);
+      return new Response(
+        JSON.stringify({ error: 'Failed to load topic mappings' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const result: ProgressItem[] = [];
 
@@ -94,7 +92,7 @@ Deno.serve(async (req) => {
             body: {
               user_id,
               topic_code: parseFloat(topicMapping.code),
-              course_id: '1'
+              course_id
             }
           }
         );
@@ -123,7 +121,18 @@ Deno.serve(async (req) => {
 
     // Calculate problem type progress
     console.log('Calculating problem type progress...');
-    const problemTypes = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
+    
+    // Define problem types based on course_id
+    let problemTypes: number[];
+    if (course_id === '1') {
+      problemTypes = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
+    } else if (course_id === '2') {
+      problemTypes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+    } else if (course_id === '3') {
+      problemTypes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+    } else {
+      problemTypes = []; // This shouldn't happen due to earlier validation
+    }
     
     try {
       const { data: problemData, error: problemError } = await supabase.functions.invoke(
@@ -132,7 +141,7 @@ Deno.serve(async (req) => {
           body: {
             user_id,
             problem_number_types: problemTypes,
-            course_id: '1'
+            course_id
           }
         }
       );
