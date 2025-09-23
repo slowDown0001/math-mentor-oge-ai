@@ -173,7 +173,7 @@ const OgeMath = () => {
   };
 
   const handleTextbookClick = () => {
-    navigate("/new-textbook");
+    navigate("/learning-platform");
   };
 
   const handleProgressClick = () => {
@@ -245,7 +245,7 @@ const OgeMath = () => {
             variant="ghost"
             className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
-            Учебник
+            Платформа
           </Button>
           
           <Button
