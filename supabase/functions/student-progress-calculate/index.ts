@@ -176,9 +176,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Calculate skill mastery for all skills (1-200)
+    // Calculate skill mastery based on course_id
     console.log('Calculating skill mastery...');
-    const allSkills = Array.from({ length: 200 }, (_, i) => i + 1); // Skills 1 through 200
+    
+    let allSkills: number[];
+    if (course_id === '1') {
+      allSkills = Array.from({ length: 200 }, (_, i) => i + 1); // Skills 1 through 200
+    } else if (course_id === '2') {
+      allSkills = Array.from({ length: 550 }, (_, i) => i + 1); // Skills 1 through 550
+    } else if (course_id === '3') {
+      allSkills = Array.from({ length: 550 }, (_, i) => i + 1); // Skills 1 through 550
+    } else {
+      allSkills = Array.from({ length: 200 }, (_, i) => i + 1); // Default to 200 skills
+    }
     
     try {
       const { data: skillData, error: skillError } = await supabase.functions.invoke(
