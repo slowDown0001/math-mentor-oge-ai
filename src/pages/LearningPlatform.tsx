@@ -22,7 +22,7 @@ const LearningPlatform = () => {
       id: 'unit-1',
       title: 'Числа и вычисления',
       icon: <Calculator className="h-5 w-5" />,
-      exercises: 8,
+      exercises: 12,
       quizzes: 2,
       hasTest: true,
       isUnlocked: true,
@@ -128,17 +128,23 @@ const LearningPlatform = () => {
     }
   ];
 
-  const renderProgressSquare = (completed: boolean, index: number) => (
+  const renderProgressSquare = (completed: boolean, index: number, unitId: string) => (
     <Tooltip key={index}>
       <TooltipTrigger>
         <div
           className={`
-            w-8 h-8 rounded-lg border-2 transition-all duration-200 flex items-center justify-center
+            w-8 h-8 rounded-lg border-2 transition-all duration-200 flex items-center justify-center cursor-pointer
             ${completed 
               ? 'bg-gradient-to-br from-green-400 to-green-600 border-green-500 shadow-lg' 
               : 'bg-white border-gray-300 hover:border-blue-400 hover:shadow-md'
             }
+            ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
           `}
+          onClick={() => {
+            if (unitId === 'unit-1') {
+              window.location.href = '/module/numbers-calculations';
+            }
+          }}
         >
           {completed && <Target className="h-4 w-4 text-white" />}
         </div>
@@ -149,17 +155,23 @@ const LearningPlatform = () => {
     </Tooltip>
   );
 
-  const renderQuizIcon = (completed: boolean, index: number) => (
+  const renderQuizIcon = (completed: boolean, index: number, unitId: string) => (
     <Tooltip key={`quiz-${index}`}>
       <TooltipTrigger>
         <div
           className={`
-            w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200
+            w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer
             ${completed 
               ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg' 
               : 'bg-gray-100 hover:bg-blue-50 hover:shadow-md'
             }
+            ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
           `}
+          onClick={() => {
+            if (unitId === 'unit-1') {
+              window.location.href = '/module/numbers-calculations';
+            }
+          }}
         >
           <Zap
             className={`h-4 w-4 ${
@@ -174,17 +186,23 @@ const LearningPlatform = () => {
     </Tooltip>
   );
 
-  const renderTestIcon = (completed: boolean) => (
+  const renderTestIcon = (completed: boolean, unitId: string) => (
     <Tooltip>
       <TooltipTrigger>
         <div
           className={`
-            w-10 h-8 rounded-lg flex items-center justify-center transition-all duration-200
+            w-10 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer
             ${completed 
               ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-lg' 
               : 'bg-gray-100 hover:bg-yellow-50 hover:shadow-md'
             }
+            ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
           `}
+          onClick={() => {
+            if (unitId === 'unit-1') {
+              window.location.href = '/module/numbers-calculations';
+            }
+          }}
         >
           <Star
             className={`h-5 w-5 ${
@@ -276,7 +294,7 @@ const LearningPlatform = () => {
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {Array.from({ length: unit.exercises }, (_, i) => 
-                renderProgressSquare(i < unit.completedExercises, i)
+                renderProgressSquare(i < unit.completedExercises, i, unit.id)
               )}
             </div>
             <span className="text-xs text-gray-500 ml-auto">
@@ -292,7 +310,7 @@ const LearningPlatform = () => {
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {Array.from({ length: unit.quizzes }, (_, i) => 
-                renderQuizIcon(i < unit.completedQuizzes, i)
+                renderQuizIcon(i < unit.completedQuizzes, i, unit.id)
               )}
             </div>
             <span className="text-xs text-gray-500 ml-auto">
@@ -308,7 +326,7 @@ const LearningPlatform = () => {
                 <span className="text-sm font-medium text-gray-600">Экзамен</span>
               </div>
               <div className="flex items-center gap-2">
-                {renderTestIcon(unit.testCompleted)}
+                {renderTestIcon(unit.testCompleted, unit.id)}
               </div>
               <span className="text-xs text-gray-500 ml-auto">
                 {unit.testCompleted ? 'Завершен' : 'Не начат'}
