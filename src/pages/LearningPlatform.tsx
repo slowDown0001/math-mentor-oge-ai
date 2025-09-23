@@ -163,7 +163,7 @@ const LearningPlatform = () => {
         `}
         onClick={() => {
           if (unitId === 'unit-1') {
-            window.location.href = '/module/numbers-calculations';
+            window.location.href = `/practice-exercise?skill=${120 + index}&topic=numbers-calculations`;
           }
         }}
       >
@@ -190,7 +190,7 @@ const LearningPlatform = () => {
         `}
         onClick={() => {
           if (unitId === 'unit-1') {
-            window.location.href = '/module/numbers-calculations';
+            window.location.href = `/practice-exercise?skill=${120 + index}&topic=numbers-calculations`;
           }
         }}
       >
@@ -221,7 +221,7 @@ const LearningPlatform = () => {
         `}
         onClick={() => {
           if (unitId === 'unit-1') {
-            window.location.href = '/module/numbers-calculations';
+            window.location.href = '/diagnostic-test?course=ogemath';
           }
         }}
       >
