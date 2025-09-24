@@ -200,7 +200,7 @@ const VideoPlayerWithChat = ({ video, onClose }: VideoPlayerWithChatProps) => {
             <p className="text-sm text-muted-foreground">Ask questions about the video content</p>
           </div>
           
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background">
             <ChatMessages messages={messages} isTyping={isTyping} />
           </div>
           
