@@ -41,7 +41,7 @@ const ModuleNumbersCalculations = () => {
       exercises: 2,
       videoData: [
         {
-          videoId: "QUGmwPwtbpg",
+          videoId: "WxXZaP8Y8pI",
           title: "Натуральные и целые числа - Видео 1",
           description: "Изучение основ натуральных и целых чисел"
         },
