@@ -25,6 +25,13 @@ const OgemathPractice = () => {
       icon: RefreshCw,
       link: "/ogemath-revision",
       color: "bg-green-50 hover:bg-green-100 border-green-200"
+    },
+    {
+      title: "Пробный экзамен ОГЭ",
+      description: "Полный экзамен с таймером (3ч 55мин) - 25 вопросов",
+      icon: ClipboardList,
+      link: "/ogemath-mock",
+      color: "bg-red-50 hover:bg-red-100 border-red-200"
     }
   ];
 
@@ -49,7 +56,7 @@ const OgemathPractice = () => {
             <p className="text-lg text-gray-600">Выберите тип практики для изучения математики</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {questionTypes.map((type) => (
               <Link key={type.title} to={type.link}>
                 <Card className={`h-full transition-all duration-200 ${type.color} hover:shadow-lg hover:scale-105`}>
