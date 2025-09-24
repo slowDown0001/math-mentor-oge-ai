@@ -149,7 +149,7 @@ const VideoPlayerWithChat = ({ video, onClose }: VideoPlayerWithChatProps) => {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl w-full h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-7xl w-full h-[90vh] p-0 overflow-hidden fixed top-[5vh] left-1/2 transform -translate-x-1/2">
         <div className="flex h-full">
           {/* Video Section */}
           <div className="flex-1 p-6 overflow-y-auto">
@@ -191,17 +191,17 @@ const VideoPlayerWithChat = ({ video, onClose }: VideoPlayerWithChatProps) => {
           </div>
 
           {/* Chat Section */}
-          <div className="w-96 bg-background border-l flex flex-col min-h-0">
+          <div className="w-96 bg-background border-l flex flex-col h-full">
             <div className="p-4 border-b bg-muted/50 flex-shrink-0">
               <h3 className="font-semibold text-foreground">Video Assistant</h3>
               <p className="text-sm text-muted-foreground">Ask questions about the video content</p>
             </div>
             
-            <div className="flex-1 flex flex-col min-h-0">
-              <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 flex flex-col h-0">
+              <div className="flex-1 overflow-hidden">
                 <ChatMessages messages={messages} isTyping={isTyping} />
               </div>
-              <div className="flex-shrink-0 border-t">
+              <div className="flex-shrink-0 border-t p-4">
                 <ChatInput onSendMessage={handleSendMessage} isTyping={isTyping} />
               </div>
             </div>
