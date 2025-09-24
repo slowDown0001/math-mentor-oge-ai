@@ -832,6 +832,27 @@ export type Database = {
         }
         Relationships: []
       }
+      json_files: {
+        Row: {
+          content: Json | null
+          course_id: string | null
+          description: string | null
+          id: number
+        }
+        Insert: {
+          content?: Json | null
+          course_id?: string | null
+          description?: string | null
+          id?: number
+        }
+        Update: {
+          content?: Json | null
+          course_id?: string | null
+          description?: string | null
+          id?: number
+        }
+        Relationships: []
+      }
       marking: {
         Row: {
           id: number
@@ -2463,6 +2484,36 @@ export type Database = {
           problem_submission_id?: string
           telegram_upload_content?: string
           telegram_user_id?: number
+        }
+        Relationships: []
+      }
+      textbook_progress: {
+        Row: {
+          activity: string | null
+          activity_type: string | null
+          created_at: string
+          id: number
+          skills_involved: string | null
+          user_id: string | null
+          work_done: string | null
+        }
+        Insert: {
+          activity?: string | null
+          activity_type?: string | null
+          created_at?: string
+          id?: number
+          skills_involved?: string | null
+          user_id?: string | null
+          work_done?: string | null
+        }
+        Update: {
+          activity?: string | null
+          activity_type?: string | null
+          created_at?: string
+          id?: number
+          skills_involved?: string | null
+          user_id?: string | null
+          work_done?: string | null
         }
         Relationships: []
       }
