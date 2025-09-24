@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Play, MessageCircle, X } from "lucide-react";
 import ChatMessages from "../chat/ChatMessages";
 import ChatInput from "../chat/ChatInput";
@@ -147,85 +148,65 @@ const VideoPlayerWithChat = ({ video, onClose }: VideoPlayerWithChatProps) => {
   };
 
   return (
-    <div className="mb-12">
-      <Card className="max-w-6xl mx-auto">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Play className="w-6 h-6 text-red-600" />
-                {video.title}
-              </CardTitle>
-              <CardDescription>{video.description}</CardDescription>
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-7xl w-full h-[90vh] p-0">
+        <div className="flex h-full">
+          {/* Video Section */}
+          <div className="flex-1 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <Play className="w-6 h-6 text-red-600" />
+                  {video.title}
+                </h2>
+                <p className="text-sm text-muted-foreground">{video.description}</p>
+              </div>
             </div>
-            <Button variant="outline" onClick={onClose}>
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Video Player */}
-            <div className="lg:col-span-2">
-              <div className="aspect-video w-full bg-black rounded-lg overflow-hidden">
-                <div ref={playerRef} className="w-full h-full" />
+            
+            <div className="aspect-video w-full bg-black rounded-lg overflow-hidden mb-4">
+              <div ref={playerRef} className="w-full h-full" />
+            </div>
+            
+            {/* Video Controls */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="video-context"
+                  checked={useVideoContext}
+                  onCheckedChange={setUseVideoContext}
+                />
+                <Label htmlFor="video-context">Context from video</Label>
               </div>
-              
-              {/* Video Controls */}
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="video-context"
-                      checked={useVideoContext}
-                      onCheckedChange={setUseVideoContext}
-                    />
-                    <Label htmlFor="video-context">Context from video</Label>
-                  </div>
-                </div>
-                
-                <Button
-                  variant={showChat ? "default" : "outline"}
-                  onClick={() => setShowChat(!showChat)}
-                  className="lg:hidden"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  {showChat ? "Hide Chat" : "Show Chat"}
-                </Button>
-              </div>
-
-              {/* Subtitle Context Display */}
-              {subtitleContext && useVideoContext && (
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    <span className="font-medium">📺 Video context: </span>
-                    "{subtitleContext}"
-                  </p>
-                </div>
-              )}
             </div>
 
-            {/* Chat Section */}
-            <div className={`lg:block ${showChat ? 'block' : 'hidden'}`}>
-              <Card className="h-96 flex flex-col">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Video Assistant</CardTitle>
-                  <CardDescription>
-                    Ask questions about the video content
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 flex flex-col p-0">
-                  <div className="flex-1">
-                    <ChatMessages messages={messages} isTyping={isTyping} />
-                  </div>
-                  <ChatInput onSendMessage={handleSendMessage} isTyping={isTyping} />
-                </CardContent>
-              </Card>
+            {/* Subtitle Context Display */}
+            {subtitleContext && useVideoContext && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <span className="font-medium">📺 Video context: </span>
+                  "{subtitleContext}"
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Chat Section */}
+          <div className="w-96 bg-background border-l flex flex-col">
+            <div className="p-4 border-b bg-muted/50">
+              <h3 className="font-semibold text-foreground">Video Assistant</h3>
+              <p className="text-sm text-muted-foreground">Ask questions about the video content</p>
+            </div>
+            
+            <div className="flex-1 flex flex-col">
+              <div className="flex-1">
+                <ChatMessages messages={messages} isTyping={isTyping} />
+              </div>
+              <ChatInput onSendMessage={handleSendMessage} isTyping={isTyping} />
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
