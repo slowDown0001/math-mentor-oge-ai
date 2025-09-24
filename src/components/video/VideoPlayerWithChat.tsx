@@ -7,6 +7,7 @@ import ChatMessages from "../chat/ChatMessages";
 import ChatInput from "../chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
 import { sendVideoAwareChatMessage } from "@/services/videoAwareChatService";
+import { useTextbookProgress } from "@/hooks/useTextbookProgress";
 
 interface VideoPlayerWithChatProps {
   video: {
@@ -22,8 +23,11 @@ const VideoPlayerWithChat = ({ video, onClose }: VideoPlayerWithChatProps) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [subtitleContext, setSubtitleContext] = useState<string>("");
   const [useVideoContext, setUseVideoContext] = useState(true);
+  const [hasTrackedWatching, setHasTrackedWatching] = useState(false);
+  const [hasTrackedFinished, setHasTrackedFinished] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
   const { messages, isTyping, addMessage, resetChat } = useChatContext();
+  const { trackVideoProgress } = useTextbookProgress();
 
   // Load YouTube IFrame API
   useEffect(() => {
@@ -75,7 +79,21 @@ const VideoPlayerWithChat = ({ video, onClose }: VideoPlayerWithChatProps) => {
   const onPlayerStateChange = async (event: any) => {
     const playerState = event.data;
     const currentTimestamp = event.target.getCurrentTime();
+    const duration = event.target.getDuration();
     setCurrentTime(currentTimestamp);
+
+    // Track video watching (once when playing starts)
+    if (playerState === (window as any).YT.PlayerState.PLAYING && !hasTrackedWatching) {
+      trackVideoProgress(video.title, false);
+      setHasTrackedWatching(true);
+    }
+
+    // Track video finished (when near the end)
+    if (playerState === (window as any).YT.PlayerState.ENDED || 
+        (duration > 0 && currentTimestamp > duration * 0.9 && !hasTrackedFinished)) {
+      trackVideoProgress(video.title, true);
+      setHasTrackedFinished(true);
+    }
 
     // Detect pause event
     if (playerState === (window as any).YT.PlayerState.PAUSED) {

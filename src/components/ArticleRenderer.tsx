@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import MathRenderer from './MathRenderer';
+import { useTextbookProgress } from '@/hooks/useTextbookProgress';
 import '../styles/style_for_textbook.css';
 
 interface Article {
@@ -31,9 +32,23 @@ interface Article {
 interface ArticleRendererProps {
   text: string;
   article: Article;
+  skillTitle?: string;
 }
 
-const ArticleRenderer: React.FC<ArticleRendererProps> = ({ text, article }) => {
+const ArticleRenderer: React.FC<ArticleRendererProps> = ({ text, article, skillTitle }) => {
+  const { trackArticleRead } = useTextbookProgress();
+
+  // Track article read when component mounts
+  useEffect(() => {
+    if (skillTitle) {
+      // Use setTimeout to track after the article has been displayed for a moment
+      const timer = setTimeout(() => {
+        trackArticleRead(skillTitle);
+      }, 3000); // Track after 3 seconds of viewing
+
+      return () => clearTimeout(timer);
+    }
+  }, [skillTitle, trackArticleRead]);
   // Handle HTML content with proper CSS classes and math rendering
   const renderHtmlWithImages = (content: string) => {
     // First, replace <imgX> tags with actual images
