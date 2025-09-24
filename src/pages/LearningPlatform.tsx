@@ -1,7 +1,16 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Flag, Trophy, Medal, Calculator, BookOpen, Target, TrendingUp, LineChart, MapPin, Shapes, PieChart, Zap, Star, Info } from "lucide-react";
+import { Flag, Trophy, Medal, Calculator, BookOpen, Target, TrendingUp, LineChart, MapPin, Shapes, PieChart, Zap, Star, Info, Play, X } from "lucide-react";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Send } from "lucide-react";
+import ChatMessage from "@/components/chat/ChatMessage";
+import TypingIndicator from "@/components/chat/TypingIndicator";
+import { type Message } from "@/components/ChatSection";
+import { sendVideoAwareChatMessage } from "@/services/videoAwareChatService";
 
 interface UnitData {
   id: string;
@@ -20,6 +29,10 @@ interface UnitData {
 }
 
 const LearningPlatform = () => {
+  const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [userInput, setUserInput] = useState("");
   const units: UnitData[] = [
     {
       id: 'unit-1',
@@ -496,6 +509,127 @@ const LearningPlatform = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* Video Dialog */}
+      <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
+        <DialogContent className="max-w-7xl w-[95vw] h-[95vh] p-0 overflow-hidden">
+          <div className="flex h-full">
+            {/* Video Section */}
+            <div className="flex-1 bg-black flex items-center justify-center">
+              <iframe
+                src="https://vk.com/video_ext.php?oid=-232034222&id=456239025&hd=2&autoplay=1"
+                className="w-full h-full"
+                frameBorder="0"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                title="EGEChat Platform Demo Video"
+              />
+            </div>
+            
+            {/* Chat Section */}
+            <div className="w-96 bg-background border-l flex flex-col">
+              <div className="p-4 border-b bg-muted/50">
+                <h3 className="font-semibold text-foreground">Видео-ассистент</h3>
+                <p className="text-sm text-muted-foreground">Задавайте вопросы о платформе</p>
+              </div>
+              
+              <ScrollArea className="flex-1">
+                <div className="p-4 flex flex-col space-y-4">
+                  {messages.length === 0 && (
+                    <div className="text-center text-muted-foreground text-sm">
+                      Привет! Я помогу вам разобраться с платформой. Задавайте любые вопросы!
+                    </div>
+                  )}
+                  {messages.map(message => (
+                    <ChatMessage key={message.id} message={message} />
+                  ))}
+                  {isTyping && <TypingIndicator />}
+                </div>
+              </ScrollArea>
+              
+              <div className="p-4 border-t">
+                <div className="flex gap-2 items-center bg-muted/50 rounded-xl p-2">
+                  <Input 
+                    value={userInput} 
+                    onChange={e => setUserInput(e.target.value)} 
+                    onKeyDown={async (e) => {
+                      if (e.key === "Enter" && userInput.trim()) {
+                        const newMessage: Message = {
+                          id: messages.length + 1,
+                          text: userInput,
+                          isUser: true,
+                          timestamp: new Date()
+                        };
+                        
+                        setMessages(prev => [...prev, newMessage]);
+                        setUserInput("");
+                        setIsTyping(true);
+                        
+                        try {
+                          const response = await sendVideoAwareChatMessage(
+                            newMessage,
+                            messages,
+                            "Демо видео платформы подготовки к ОГЭ математика",
+                            "EGEChat Platform Demo"
+                          );
+                          setMessages(prev => [...prev, response]);
+                        } catch (error) {
+                          console.error('Error sending message:', error);
+                        } finally {
+                          setIsTyping(false);
+                        }
+                      }
+                    }}
+                    placeholder="Задайте вопрос о платформе..." 
+                    className="flex-1 border-0 bg-transparent focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0" 
+                    disabled={isTyping}
+                  />
+                  <Button 
+                    onClick={async () => {
+                      if (userInput.trim()) {
+                        const newMessage: Message = {
+                          id: messages.length + 1,
+                          text: userInput,
+                          isUser: true,
+                          timestamp: new Date()
+                        };
+                        
+                        setMessages(prev => [...prev, newMessage]);
+                        setUserInput("");
+                        setIsTyping(true);
+                        
+                        try {
+                          const response = await sendVideoAwareChatMessage(
+                            newMessage,
+                            messages,
+                            "Демо видео платформы подготовки к ОГЭ математика",
+                            "EGEChat Platform Demo"
+                          );
+                          setMessages(prev => [...prev, response]);
+                        } catch (error) {
+                          console.error('Error sending message:', error);
+                        } finally {
+                          setIsTyping(false);
+                        }
+                      }
+                    }}
+                    size="icon"
+                    className="bg-primary hover:bg-primary/90 rounded-full w-8 h-8 p-0" 
+                    disabled={!userInput.trim() || isTyping}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogClose className="absolute right-4 top-4 z-50 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
     </TooltipProvider>
   );
 };
