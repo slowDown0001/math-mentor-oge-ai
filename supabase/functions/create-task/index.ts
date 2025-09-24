@@ -29,6 +29,92 @@ function getDefaultSchoolGrade(course_id: number): number {
   return 4;
 }
 
+// Telegram notification function
+async function sendTelegramNotification(telegramUserId: number, message: string): Promise<boolean> {
+  try {
+    const telegramToken = Deno.env.get('TELEGRAM_TOKEN');
+    if (!telegramToken) {
+      console.warn('TELEGRAM_TOKEN not found in environment variables');
+      return false;
+    }
+
+    const telegramApiUrl = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
+    
+    const response = await fetch(telegramApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: telegramUserId,
+        text: message,
+        parse_mode: 'Markdown'
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error(`Telegram API error: ${response.status} - ${errorData}`);
+      return false;
+    }
+
+    const responseData = await response.json();
+    console.log(`Notification sent to Telegram user ${telegramUserId}: ${message}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send Telegram notification to user ${telegramUserId}:`, error);
+    return false;
+  }
+}
+
+// Background task to send notification
+async function sendNotificationBackground(supabase: any, userId: string) {
+  try {
+    console.log(`Starting background notification task for user: ${userId}`);
+    
+    // Query telegram_user_id from profiles table
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('telegram_user_id')
+      .eq('user_id', userId)
+      .single();
+
+    if (profileError) {
+      console.warn(`Error fetching profile for notification: ${profileError.message}`);
+      return;
+    }
+
+    if (!profileData?.telegram_user_id) {
+      console.log(`No telegram_user_id found for user ${userId}, skipping notification`);
+      return;
+    }
+
+    // Random notification messages (matching the Python version)
+    const notifications = [
+      "🆕 Новое задание создано! Заходи на платформу заниматься!",
+      "📚 Новое задание на платформе! Заходи!",
+      "✅ Задание добавлено! Время заниматься!"
+    ];
+
+    const randomMessage = notifications[Math.floor(Math.random() * notifications.length)];
+    
+    // Send the notification
+    const success = await sendTelegramNotification(profileData.telegram_user_id, randomMessage);
+    
+    if (success) {
+      console.log(`Telegram notification sent successfully to user ${userId}`);
+    } else {
+      console.warn(`Failed to send Telegram notification to user ${userId}`);
+    }
+
+    // Add a small delay as mentioned in the Python code
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+  } catch (error) {
+    console.error(`Background notification task failed for user ${userId}:`, error);
+  }
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -149,6 +235,17 @@ Deno.serve(async (req) => {
       
       insertData = newData;
       console.log('New task row created successfully');
+    }
+
+    // Start background notification task (non-blocking)
+    // Using EdgeRuntime.waitUntil to ensure the background task completes
+    if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
+      EdgeRuntime.waitUntil(sendNotificationBackground(supabase, user_id));
+    } else {
+      // Fallback for environments that don't support EdgeRuntime.waitUntil
+      sendNotificationBackground(supabase, user_id).catch(error => {
+        console.error('Background notification task error:', error);
+      });
     }
 
     return new Response(
