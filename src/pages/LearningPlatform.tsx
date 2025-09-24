@@ -512,17 +512,13 @@ const LearningPlatform = () => {
 
       {/* Video Dialog */}
       <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
-        <DialogContent className="max-w-7xl w-[95vw] h-[95vh] p-0 overflow-hidden border-none shadow-2xl">
-          <DialogClose className="absolute right-4 top-4 z-50 bg-black/50 text-white rounded-full p-2 opacity-90 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 transition-all">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
-          <div className="flex h-full">
+        <DialogContent className="max-w-7xl w-[95vw] h-[95vh] p-0 overflow-hidden rounded-lg">
+          <div className="flex h-full relative">
             {/* Video Section */}
-            <div className="flex-1 bg-black flex items-center justify-center">
+            <div className="flex-1 bg-black flex items-center justify-center rounded-l-lg">
               <iframe
                 src="https://vk.com/video_ext.php?oid=-232034222&id=456239025&hd=2&autoplay=1"
-                className="w-full h-full"
+                className="w-full h-full rounded-l-lg"
                 frameBorder="0"
                 allowFullScreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -531,7 +527,7 @@ const LearningPlatform = () => {
             </div>
             
             {/* Chat Section */}
-            <div className="w-96 bg-background border-l flex flex-col">
+            <div className="w-96 bg-background border-l flex flex-col rounded-r-lg">
               <div className="p-4 border-b bg-muted/50">
                 <h3 className="font-semibold text-foreground">Видео-ассистент</h3>
                 <p className="text-sm text-muted-foreground">Задавайте вопросы о платформе</p>
