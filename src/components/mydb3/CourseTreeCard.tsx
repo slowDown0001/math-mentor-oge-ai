@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Course, Topic } from '@/lib/courses.registry';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 // OGE Math Topics - 32 topics total
 const OGE_MATH_TOPICS = [
@@ -87,13 +89,13 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
   course, 
   onStart 
 }) => {
+  const { user } = useAuth();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoadingTopics, setIsLoadingTopics] = useState(true);
   const [topicsError, setTopicsError] = useState<string | null>(null);
   const [currentTopicIndex, setCurrentTopicIndex] = useState(10); // Current topic position
-
-  // Mock progress - should be calculated from real data
-  const progress = Math.floor(Math.random() * 80) + 10; // 10-90%
+  const [progress, setProgress] = useState(1); // General progress
+  const [topicProgress, setTopicProgress] = useState<{[key: string]: number}>({});
 
   // Use OGE topics if this is OGE course, otherwise fetch from API
   const useStaticTopics = course.id === 'oge-math';
@@ -109,7 +111,71 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
     }));
   };
 
+  // Course ID mapping
+  const getCourseId = (courseId: string) => {
+    switch (courseId) {
+      case 'oge-math': return '1';
+      case 'ege-basic': return '2';
+      case 'ege-advanced': return '3';
+      default: return '1';
+    }
+  };
+
+  // Load progress data from mastery_snapshots
+  const loadProgressData = async () => {
+    if (!user) return;
+
+    try {
+      const courseIdNum = getCourseId(course.id);
+      
+      const { data: snapshot, error } = await supabase
+        .from('mastery_snapshots')
+        .select('computed_summary')
+        .eq('user_id', user.id)
+        .eq('course_id', courseIdNum)
+        .order('run_timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !snapshot?.computed_summary) {
+        console.log('No snapshot found, using default 1% values');
+        setProgress(1);
+        return;
+      }
+
+      const computedSummary = snapshot.computed_summary as any[];
+      console.log('Loaded progress from snapshot:', computedSummary);
+
+      // Parse computed_summary data
+      let generalProgress = 1;
+      const topicProgressMap: {[key: string]: number} = {};
+
+      computedSummary.forEach((item: any) => {
+        if (item.general_progress !== undefined) {
+          generalProgress = Math.round(item.general_progress * 100);
+        } else if (item.topic && item.prob !== undefined) {
+          // Extract topic number from topic name like "1.1 Натуральные и целые числа"
+          const topicMatch = item.topic.match(/^(\d+\.\d+)/);
+          if (topicMatch) {
+            const topicNumber = topicMatch[1];
+            topicProgressMap[topicNumber] = Math.round(item.prob * 100);
+          }
+        }
+      });
+
+      setProgress(generalProgress);
+      setTopicProgress(topicProgressMap);
+    } catch (error) {
+      console.error('Error loading progress data:', error);
+      setProgress(1);
+    }
+  };
+
   useEffect(() => {
+    if (user) {
+      loadProgressData();
+    }
+    
     if (useStaticTopics) {
       // Use static OGE topics
       const topicsArray = OGE_MATH_TOPICS.map(item => ({
@@ -122,7 +188,7 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
     } else {
       fetchTopics();
     }
-  }, [course.topicsUrl, useStaticTopics]);
+  }, [course.topicsUrl, useStaticTopics, user]);
 
   const fetchTopics = async () => {
     setIsLoadingTopics(true);
@@ -189,6 +255,7 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
                     const IconComponent = getTopicIcon(index, topic.name);
                     const colorClass = getTopicColor(index);
                     const isCurrent = index === currentTopicIndex;
+                    const progress = topic.number ? topicProgress[topic.number] || 1 : 1;
                     
                     return (
                       <DropdownMenuItem
@@ -207,7 +274,13 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
                           }`}>
                             {topic.name}
                           </div>
-                          <div className="text-xs text-gray-500">{topic.number}</div>
+                          <div className="text-xs text-gray-500 mb-1">{topic.number}</div>
+                          <div className="w-full bg-gray-200 rounded-full h-1">
+                            <div 
+                              className="bg-blue-500 h-1 rounded-full transition-all duration-300" 
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
                         </div>
                         {isCurrent && (
                           <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
@@ -295,6 +368,17 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
                           }`}>
                             {topic.name}
                           </h4>
+                          {/* Topic progress bar */}
+                          {topic.number && topicProgress[topic.number] !== undefined && (
+                            <div className="mt-1">
+                              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                <div 
+                                  className="bg-blue-500 h-1.5 rounded-full transition-all duration-300" 
+                                  style={{ width: `${topicProgress[topic.number]}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
                           {/* Hidden topic number for data purposes */}
                           <span className="sr-only">{topic.number}</span>
                         </div>
