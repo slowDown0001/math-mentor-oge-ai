@@ -271,30 +271,30 @@ const ModuleNumbersCalculations = () => {
               const getExerciseData = (topicId: string, exerciseIndex: number) => {
                 if (topicId === "natural-integers") {
                   return exerciseIndex === 0 
-                    ? { title: "Упражнение 1", skills: [1, 2, 3] }
-                    : { title: "Упражнение 2", skills: [4, 5] };
+                    ? { title: "Основы натуральных и целых чисел", skills: [1, 2, 3] }
+                    : { title: "Работа с числами", skills: [4, 5] };
                 }
                 
                 if (topicId === "fractions-percentages") {
-                  if (exerciseIndex === 0) return { title: "Упражнение 1", skills: [6, 195] };
-                  if (exerciseIndex === 1) return { title: "Упражнение 2", skills: [7, 8, 9] };
-                  if (exerciseIndex === 2) return { title: "Упражнение 3", skills: [10], isAdvanced: true };
+                  if (exerciseIndex === 0) return { title: "Дроби", skills: [6, 195] };
+                  if (exerciseIndex === 1) return { title: "Проценты", skills: [7, 8, 9] };
+                  if (exerciseIndex === 2) return { title: "Сложные дроби", skills: [10], isAdvanced: true };
                 }
                 
                 if (topicId === "rational-numbers") {
-                  if (exerciseIndex === 0) return { title: "Упражнение 1", skills: [11, 12, 13] };
-                  if (exerciseIndex === 1) return { title: "Упражнение 2", skills: [14, 15, 16] };
-                  if (exerciseIndex === 2) return { title: "Упражнение 3", skills: [17, 180] };
+                  if (exerciseIndex === 0) return { title: "Рациональные числа", skills: [11, 12, 13] };
+                  if (exerciseIndex === 1) return { title: "Арифметические действия", skills: [14, 15, 16] };
+                  if (exerciseIndex === 2) return { title: "Операции с рациональными числами", skills: [17, 180] };
                 }
                 
                 if (topicId === "real-numbers") {
-                  if (exerciseIndex === 0) return { title: "Упражнение 1", skills: [18, 19] };
-                  if (exerciseIndex === 1) return { title: "Упражнение 2", skills: [20, 197] };
+                  if (exerciseIndex === 0) return { title: "Действительные числа", skills: [18, 19] };
+                  if (exerciseIndex === 1) return { title: "Операции с действительными числами", skills: [20, 197] };
                 }
                 
                 if (topicId === "approximations") {
-                  if (exerciseIndex === 0) return { title: "Упражнение 1", skills: [21, 22] };
-                  if (exerciseIndex === 1) return { title: "Упражнение 2", skills: [23] };
+                  if (exerciseIndex === 0) return { title: "Приближённые вычисления", skills: [21, 22] };
+                  if (exerciseIndex === 1) return { title: "Округление", skills: [23] };
                 }
                 
                 return { title: `${topic.title} (упражнение ${i + 1})`, skills: [] };
@@ -537,45 +537,45 @@ const ModuleNumbersCalculations = () => {
             {/* Topic 1: Натуральные и целые числа (2 exercises) */}
             <button 
               className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center transition-all hover:scale-110 hover:shadow-md relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 1", skills: [1, 2, 3] })}
+              onClick={() => setSelectedExercise({ title: "Основы натуральных и целых чисел", skills: [1, 2, 3] })}
             >
               <div className="w-4 h-4 bg-white rounded"></div>
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 1 • 4 вопроса
+                Основы натуральных и целых чисел • 4 вопроса
               </div>
             </button>
             <button 
               className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 2", skills: [4, 5] })}
+              onClick={() => setSelectedExercise({ title: "Работа с числами", skills: [4, 5] })}
             >
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 2 • 4 вопроса
+                Работа с числами • 4 вопроса
               </div>
             </button>
             
             {/* Topic 2: Дроби и проценты (3 exercises) */}
             <button 
               className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 1", skills: [6, 195] })}
+              onClick={() => setSelectedExercise({ title: "Дроби", skills: [6, 195] })}
             >
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 1 • 4 вопроса
+                Дроби • 4 вопроса
               </div>
             </button>
             <button 
               className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 2", skills: [7, 8, 9] })}
+              onClick={() => setSelectedExercise({ title: "Проценты", skills: [7, 8, 9] })}
             >
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 2 • 4 вопроса
+                Проценты • 4 вопроса
               </div>
             </button>
             <button 
               className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 3", skills: [10], isAdvanced: true })}
+              onClick={() => setSelectedExercise({ title: "Сложные дроби", skills: [10], isAdvanced: true })}
             >
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 3 • 4 вопроса • Не в программе ОГЭ
+                Сложные дроби • 4 вопроса • Не в программе ОГЭ
               </div>
             </button>
             
@@ -593,44 +593,44 @@ const ModuleNumbersCalculations = () => {
             {/* Topic 3: Рациональные числа и арифметические действия (3 exercises) */}
             <button 
               className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 1", skills: [11, 12, 13] })}
+              onClick={() => setSelectedExercise({ title: "Рациональные числа", skills: [11, 12, 13] })}
             >
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 1 • 4 вопроса
+                Рациональные числа • 4 вопроса
               </div>
             </button>
             <button 
               className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 2", skills: [14, 15, 16] })}
+              onClick={() => setSelectedExercise({ title: "Арифметические действия", skills: [14, 15, 16] })}
             >
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 2 • 4 вопроса
+                Арифметические действия • 4 вопроса
               </div>
             </button>
             <button 
               className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 3", skills: [17, 180] })}
+              onClick={() => setSelectedExercise({ title: "Операции с рациональными числами", skills: [17, 180] })}
             >
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 3 • 4 вопроса
+                Операции с рациональными числами • 4 вопроса
               </div>
             </button>
             
             {/* Topic 4: Действительные числа (2 exercises) */}
             <button 
               className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 1", skills: [18, 19] })}
+              onClick={() => setSelectedExercise({ title: "Действительные числа", skills: [18, 19] })}
             >
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 1 • 4 вопроса
+                Действительные числа • 4 вопроса
               </div>
             </button>
             <button 
               className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 2", skills: [20, 197] })}
+              onClick={() => setSelectedExercise({ title: "Операции с действительными числами", skills: [20, 197] })}
             >
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 2 • 4 вопроса
+                Операции с действительными числами • 4 вопроса
               </div>
             </button>
             
@@ -648,18 +648,18 @@ const ModuleNumbersCalculations = () => {
             {/* Topic 5: Приближённые вычисления (2 exercises) */}
             <button 
               className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 1", skills: [21, 22] })}
+              onClick={() => setSelectedExercise({ title: "Приближённые вычисления", skills: [21, 22] })}
             >
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 1 • 4 вопроса
+                Приближённые вычисления • 4 вопроса
               </div>
             </button>
             <button 
               className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
-              onClick={() => setSelectedExercise({ title: "Упражнение 2", skills: [23] })}
+              onClick={() => setSelectedExercise({ title: "Округление", skills: [23] })}
             >
               <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Упражнение 2 • 4 вопроса
+                Округление • 4 вопроса
               </div>
             </button>
             
