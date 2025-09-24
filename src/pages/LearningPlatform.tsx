@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import ChatMessage from "@/components/chat/ChatMessage";
 import TypingIndicator from "@/components/chat/TypingIndicator";
 import { type Message } from "@/components/ChatSection";
@@ -34,8 +35,8 @@ const LearningPlatform = () => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Inline video panel state
-  const [showVideoPanel, setShowVideoPanel] = useState(false);
+  // Video popup modal state
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<{ title: string; src: string } | null>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -47,11 +48,11 @@ const LearningPlatform = () => {
 
   function openVideo(v: { title: string; src: string }) {
     setSelectedVideo(v);
-    setShowVideoPanel(true);
+    setIsVideoModalOpen(true);
   }
 
   function closeVideo() {
-    setShowVideoPanel(false);
+    setIsVideoModalOpen(false);
     // ensure playback stops
     setTimeout(() => setSelectedVideo(null), 0);
   }
@@ -515,130 +516,6 @@ const LearningPlatform = () => {
             </div>
           </motion.div>
 
-        {/* Inline Video Panel */}
-        {showVideoPanel && selectedVideo && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 rounded-2xl overflow-hidden border bg-white shadow-xl"
-          >
-            <div className="flex items-center justify-between px-4 py-3 bg-muted/50 border-b">
-              <h3 className="font-semibold">{selectedVideo.title}</h3>
-              <Button
-                variant="ghost"
-                onClick={closeVideo}
-                className="h-8 w-8 p-0 rounded-full"
-                aria-label="Закрыть видео"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex h-[75vh]">
-              {/* Video */}
-              <div className="flex-1 bg-black">
-                <iframe
-                  key={selectedVideo.src}
-                  src={selectedVideo.src}
-                  className="w-full h-full"
-                  frameBorder="0"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  title={selectedVideo.title}
-                />
-              </div>
-
-              {/* Chat panel */}
-              <div className="w-96 bg-background border-l flex flex-col">
-                <div className="p-4 border-b bg-muted/50">
-                  <h4 className="font-semibold text-foreground">Видео-ассистент</h4>
-                  <p className="text-sm text-muted-foreground">Задавайте вопросы о платформе</p>
-                </div>
-
-                <ScrollArea className="flex-1" ref={scrollAreaRef}>
-                  <div className="p-4 flex flex-col space-y-4">
-                    {messages.length === 0 && (
-                      <div className="text-center text-muted-foreground text-sm">
-                        Привет! Я помогу вам разобраться с платформой. Задавайте любые вопросы!
-                      </div>
-                    )}
-                    {messages.map(message => (
-                      <ChatMessage key={message.id} message={message} />
-                    ))}
-                    {isTyping && <TypingIndicator />}
-                    <div ref={messagesEndRef} />
-                  </div>
-                </ScrollArea>
-
-                <div className="p-4 border-t">
-                  <div className="flex gap-2 items-center bg-muted/50 rounded-xl p-2">
-                    <Input
-                      value={userInput}
-                      onChange={e => setUserInput(e.target.value)}
-                      onKeyDown={async (e) => {
-                        if (e.key === "Enter" && userInput.trim()) {
-                          const newMessage: Message = {
-                            id: messages.length + 1,
-                            text: userInput,
-                            isUser: true,
-                            timestamp: new Date()
-                          };
-                          setMessages(prev => [...prev, newMessage]);
-                          setUserInput("");
-                          setIsTyping(true);
-                          try {
-                            const response = await sendVideoAwareChatMessage(
-                              newMessage,
-                              messages,
-                              selectedVideo?.title ?? "Видео",
-                              "Learning Platform Video"
-                            );
-                            setMessages(prev => [...prev, response]);
-                          } finally {
-                            setIsTyping(false);
-                          }
-                        }
-                      }}
-                      placeholder="Задайте вопрос о платформе..."
-                      className="flex-1 border-0 bg-transparent focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                      disabled={isTyping}
-                    />
-                    <Button
-                      onClick={async () => {
-                        if (!userInput.trim()) return;
-                        const newMessage: Message = {
-                          id: messages.length + 1,
-                          text: userInput,
-                          isUser: true,
-                          timestamp: new Date()
-                        };
-                        setMessages(prev => [...prev, newMessage]);
-                        setUserInput("");
-                        setIsTyping(true);
-                        try {
-                          const response = await sendVideoAwareChatMessage(
-                            newMessage,
-                            messages,
-                            selectedVideo?.title ?? "Видео",
-                            "Learning Platform Video"
-                          );
-                          setMessages(prev => [...prev, response]);
-                        } finally {
-                          setIsTyping(false);
-                        }
-                      }}
-                      size="icon"
-                      className="bg-primary hover:bg-primary/90 rounded-full w-8 h-8 p-0"
-                      disabled={!userInput.trim() || isTyping}
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
 
         {/* Sample Video Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
