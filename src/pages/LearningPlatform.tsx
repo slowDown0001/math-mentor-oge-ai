@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Flag, Trophy, Medal, Calculator, BookOpen, Target, TrendingUp, LineChart, MapPin, Shapes, PieChart, Zap, Star, Info, Play, X } from "lucide-react";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,12 +28,15 @@ interface UnitData {
 }
 
 const LearningPlatform = () => {
-  const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [userInput, setUserInput] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Inline video panel state
+  const [showVideoPanel, setShowVideoPanel] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<{ title: string; src: string } | null>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -42,6 +44,32 @@ const LearningPlatform = () => {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isTyping]);
+
+  function openVideo(v: { title: string; src: string }) {
+    setSelectedVideo(v);
+    setShowVideoPanel(true);
+  }
+
+  function closeVideo() {
+    setShowVideoPanel(false);
+    // ensure playback stops
+    setTimeout(() => setSelectedVideo(null), 0);
+  }
+  
+  // Sample videos array for demonstration
+  const sampleVideos = [
+    {
+      title: "Демо видео платформы подготовки к ОГЭ математика",
+      src: "https://vk.com/video_ext.php?oid=-232034222&id=456239025&hd=2&autoplay=1",
+      thumbnail: "/placeholder-video.jpg"
+    },
+    {
+      title: "Введение в числа и вычисления",
+      src: "https://vk.com/video_ext.php?oid=-232034222&id=456239026&hd=2&autoplay=1",
+      thumbnail: "/placeholder-video2.jpg"
+    }
+  ];
+
   const units: UnitData[] = [
     {
       id: 'unit-1',
@@ -430,15 +458,6 @@ const LearningPlatform = () => {
                 ОГЭ Математика 2025
               </h1>
               <div className="flex items-center gap-3">
-                <motion.button
-                  onClick={() => setIsVideoDialogOpen(true)}
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-teal-600 text-white font-semibold rounded-full hover:from-green-600 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Play className="h-5 w-5 mr-2" />
-                  Обзор платформы
-                </motion.button>
                 <motion.a
                   href="/textbook"
                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -496,7 +515,164 @@ const LearningPlatform = () => {
             </div>
           </motion.div>
 
-          {/* Units Grid */}
+        {/* Inline Video Panel */}
+        {showVideoPanel && selectedVideo && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 rounded-2xl overflow-hidden border bg-white shadow-xl"
+          >
+            <div className="flex items-center justify-between px-4 py-3 bg-muted/50 border-b">
+              <h3 className="font-semibold">{selectedVideo.title}</h3>
+              <Button
+                variant="ghost"
+                onClick={closeVideo}
+                className="h-8 w-8 p-0 rounded-full"
+                aria-label="Закрыть видео"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex h-[75vh]">
+              {/* Video */}
+              <div className="flex-1 bg-black">
+                <iframe
+                  key={selectedVideo.src}
+                  src={selectedVideo.src}
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  title={selectedVideo.title}
+                />
+              </div>
+
+              {/* Chat panel */}
+              <div className="w-96 bg-background border-l flex flex-col">
+                <div className="p-4 border-b bg-muted/50">
+                  <h4 className="font-semibold text-foreground">Видео-ассистент</h4>
+                  <p className="text-sm text-muted-foreground">Задавайте вопросы о платформе</p>
+                </div>
+
+                <ScrollArea className="flex-1" ref={scrollAreaRef}>
+                  <div className="p-4 flex flex-col space-y-4">
+                    {messages.length === 0 && (
+                      <div className="text-center text-muted-foreground text-sm">
+                        Привет! Я помогу вам разобраться с платформой. Задавайте любые вопросы!
+                      </div>
+                    )}
+                    {messages.map(message => (
+                      <ChatMessage key={message.id} message={message} />
+                    ))}
+                    {isTyping && <TypingIndicator />}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </ScrollArea>
+
+                <div className="p-4 border-t">
+                  <div className="flex gap-2 items-center bg-muted/50 rounded-xl p-2">
+                    <Input
+                      value={userInput}
+                      onChange={e => setUserInput(e.target.value)}
+                      onKeyDown={async (e) => {
+                        if (e.key === "Enter" && userInput.trim()) {
+                          const newMessage: Message = {
+                            id: messages.length + 1,
+                            text: userInput,
+                            isUser: true,
+                            timestamp: new Date()
+                          };
+                          setMessages(prev => [...prev, newMessage]);
+                          setUserInput("");
+                          setIsTyping(true);
+                          try {
+                            const response = await sendVideoAwareChatMessage(
+                              newMessage,
+                              messages,
+                              selectedVideo?.title ?? "Видео",
+                              "Learning Platform Video"
+                            );
+                            setMessages(prev => [...prev, response]);
+                          } finally {
+                            setIsTyping(false);
+                          }
+                        }
+                      }}
+                      placeholder="Задайте вопрос о платформе..."
+                      className="flex-1 border-0 bg-transparent focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      disabled={isTyping}
+                    />
+                    <Button
+                      onClick={async () => {
+                        if (!userInput.trim()) return;
+                        const newMessage: Message = {
+                          id: messages.length + 1,
+                          text: userInput,
+                          isUser: true,
+                          timestamp: new Date()
+                        };
+                        setMessages(prev => [...prev, newMessage]);
+                        setUserInput("");
+                        setIsTyping(true);
+                        try {
+                          const response = await sendVideoAwareChatMessage(
+                            newMessage,
+                            messages,
+                            selectedVideo?.title ?? "Видео",
+                            "Learning Platform Video"
+                          );
+                          setMessages(prev => [...prev, response]);
+                        } finally {
+                          setIsTyping(false);
+                        }
+                      }}
+                      size="icon"
+                      className="bg-primary hover:bg-primary/90 rounded-full w-8 h-8 p-0"
+                      disabled={!userInput.trim() || isTyping}
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Sample Video Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {sampleVideos.map((video, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white rounded-lg p-4 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+              onClick={() => openVideo(video)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openVideo(video);
+                }
+              }}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <Play className="h-6 w-6 text-blue-600" />
+                <h3 className="text-lg font-bold text-gray-800">
+                  {video.title}
+                </h3>
+              </div>
+              <p className="text-gray-600 text-sm">
+                Нажмите для просмотра видео с интерактивным чатом
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Units Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-6xl">
             {units.map((unit, index) => (
               <UnitRow key={unit.id} unit={unit} index={index} />
@@ -529,127 +705,6 @@ const LearningPlatform = () => {
           </motion.div>
         </div>
       </div>
-
-      {/* Video Dialog */}
-      <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
-        <DialogContent className="max-w-7xl w-[95vw] h-[95vh] p-0 overflow-hidden">
-          <DialogClose className="absolute right-4 top-4 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
-          <div className="flex h-full relative">
-            {/* Video Section */}
-            <div className="flex-1 bg-black flex items-center justify-center rounded-l-lg">
-              <iframe
-                src="https://vk.com/video_ext.php?oid=-232034222&id=456239025&hd=2&autoplay=1"
-                className="w-full h-full rounded-l-lg"
-                frameBorder="0"
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                title="EGEChat Platform Demo Video"
-              />
-            </div>
-            
-            {/* Chat Section */}
-            <div className="w-96 bg-background border-l flex flex-col rounded-r-lg">
-              <div className="p-4 border-b bg-muted/50">
-                <h3 className="font-semibold text-foreground">Видео-ассистент</h3>
-                <p className="text-sm text-muted-foreground">Задавайте вопросы о платформе</p>
-              </div>
-              
-              <ScrollArea className="flex-1" ref={scrollAreaRef}>
-                <div className="p-4 flex flex-col space-y-4">
-                  {messages.length === 0 && (
-                    <div className="text-center text-muted-foreground text-sm">
-                      Привет! Я помогу вам разобраться с платформой. Задавайте любые вопросы!
-                    </div>
-                  )}
-                  {messages.map(message => (
-                    <ChatMessage key={message.id} message={message} />
-                  ))}
-                  {isTyping && <TypingIndicator />}
-                  <div ref={messagesEndRef} />
-                </div>
-              </ScrollArea>
-              
-              <div className="p-4 border-t">
-                <div className="flex gap-2 items-center bg-muted/50 rounded-xl p-2">
-                  <Input 
-                    value={userInput} 
-                    onChange={e => setUserInput(e.target.value)} 
-                    onKeyDown={async (e) => {
-                      if (e.key === "Enter" && userInput.trim()) {
-                        const newMessage: Message = {
-                          id: messages.length + 1,
-                          text: userInput,
-                          isUser: true,
-                          timestamp: new Date()
-                        };
-                        
-                        setMessages(prev => [...prev, newMessage]);
-                        setUserInput("");
-                        setIsTyping(true);
-                        
-                        try {
-                          const response = await sendVideoAwareChatMessage(
-                            newMessage,
-                            messages,
-                            "Демо видео платформы подготовки к ОГЭ математика",
-                            "EGEChat Platform Demo"
-                          );
-                          setMessages(prev => [...prev, response]);
-                        } catch (error) {
-                          console.error('Error sending message:', error);
-                        } finally {
-                          setIsTyping(false);
-                        }
-                      }
-                    }}
-                    placeholder="Задайте вопрос о платформе..." 
-                    className="flex-1 border-0 bg-transparent focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0" 
-                    disabled={isTyping}
-                  />
-                  <Button 
-                    onClick={async () => {
-                      if (userInput.trim()) {
-                        const newMessage: Message = {
-                          id: messages.length + 1,
-                          text: userInput,
-                          isUser: true,
-                          timestamp: new Date()
-                        };
-                        
-                        setMessages(prev => [...prev, newMessage]);
-                        setUserInput("");
-                        setIsTyping(true);
-                        
-                        try {
-                          const response = await sendVideoAwareChatMessage(
-                            newMessage,
-                            messages,
-                            "Демо видео платформы подготовки к ОГЭ математика",
-                            "EGEChat Platform Demo"
-                          );
-                          setMessages(prev => [...prev, response]);
-                        } catch (error) {
-                          console.error('Error sending message:', error);
-                        } finally {
-                          setIsTyping(false);
-                        }
-                      }
-                    }}
-                    size="icon"
-                    className="bg-primary hover:bg-primary/90 rounded-full w-8 h-8 p-0" 
-                    disabled={!userInput.trim() || isTyping}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </TooltipProvider>
   );
 };
