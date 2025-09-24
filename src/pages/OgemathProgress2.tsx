@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { LayoutGrid, ListOrdered, ArrowLeft } from "lucide-react";
+import { LayoutGrid, ListOrdered, ArrowLeft, RefreshCw } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -425,6 +425,7 @@ function useOgemathProgressData() {
   const [problems, setProblems] = useState<ProblemItem[]>([]);
   const [skills, setSkills] = useState<SkillItem[]>([]);
   const [topicProgress, setTopicProgress] = useState<{[key: string]: number}>({});
+  const [refreshing, setRefreshing] = useState(false);
 
   const moduleDefinitions = [
     { id: 1, name: 'Числа и вычисления', topicCodes: ['1.1', '1.2', '1.3', '1.4', '1.5'] },
@@ -438,11 +439,103 @@ function useOgemathProgressData() {
     { id: 9, name: 'Применение математики к прикладным задачам', topicCodes: ['9.1', '9.2'] }
   ];
 
-  const fetchProgressData = async () => {
+  // Function to load from cached snapshots
+  const loadFromSnapshot = async () => {
+    if (!user) return false;
+
+    try {
+      const { data: snapshot, error } = await supabase
+        .from('mastery_snapshots')
+        .select('raw_data')
+        .eq('user_id', user.id)
+        .eq('course_id', '1')
+        .order('run_timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !snapshot?.raw_data) {
+        console.log('No snapshot found, using default 1% values');
+        return false;
+      }
+
+      const rawData = snapshot.raw_data as any[];
+      console.log('Loaded from snapshot:', rawData);
+
+      // Parse the snapshot data
+      const topicProgressMap: {[key: string]: number} = {};
+      const problemsData: ProblemItem[] = [];
+      const skillsData: SkillItem[] = [];
+
+      rawData.forEach((item: any) => {
+        if (item.topic && !item.topic.includes('задача ФИПИ') && !item.topic.includes('навык')) {
+          // Extract topic code from topic name like "1.1 Натуральные и целые числа"
+          const topicMatch = item.topic.match(/^(\d+\.\d+)/);
+          if (topicMatch) {
+            const topicCode = topicMatch[1];
+            topicProgressMap[topicCode] = Math.round(item.prob * 100);
+          }
+        } else if (item['задача ФИПИ']) {
+          // Problem types
+          problemsData.push({
+            key: item['задача ФИПИ'],
+            label: item['задача ФИПИ'],
+            progress: Math.round(item.prob * 100)
+          });
+        } else if (item['навык']) {
+          // Skills
+          skillsData.push({
+            id: item['навык'],
+            label: item['навык'],
+            progress: Math.round(item.prob * 100)
+          });
+        }
+      });
+
+      setTopicProgress(topicProgressMap);
+      
+      // Transform modules data based on topic progress
+      const modulesData: ModuleItem[] = moduleDefinitions.map(moduleDef => {
+        const moduleTopics = moduleDef.topicCodes;
+        let totalProgress = 0;
+        let validTopics = 0;
+        
+        moduleTopics.forEach(topicCode => {
+          if (topicProgressMap[topicCode] !== undefined) {
+            totalProgress += topicProgressMap[topicCode];
+            validTopics++;
+          }
+        });
+        
+        const progress = validTopics > 0 ? Math.round(totalProgress / validTopics) : 1;
+        const mastered = moduleTopics.filter(code => (topicProgressMap[code] || 0) >= 80).length;
+        const total = moduleTopics.length;
+
+        return {
+          id: moduleDef.id,
+          title: moduleDef.name,
+          progress,
+          mastered,
+          total
+        };
+      });
+
+      setProblems(problemsData.length > 0 ? problemsData : PLACEHOLDER_PROBLEMS.map(p => ({ ...p, progress: 1 })));
+      setModules(modulesData);
+      setSkills(skillsData.length > 0 ? skillsData : Array.from({ length: 20 }, (_, i) => ({ id: String(i + 1), label: String(i + 1), progress: 1 })));
+      
+      return true;
+    } catch (err) {
+      console.error('Error loading from snapshot:', err);
+      return false;
+    }
+  };
+
+  // Function to recalculate progress
+  const recalculateProgress = async () => {
     if (!user) return;
 
     try {
-      setLoading(true);
+      setRefreshing(true);
       setError(null);
 
       // Use the new unified student-progress-calculate function
@@ -458,7 +551,7 @@ function useOgemathProgressData() {
       }
 
       const progressData = response.data || [];
-      console.log('Progress data:', progressData);
+      console.log('Recalculated progress data:', progressData);
 
       // Parse the unified response
       const topicProgressMap: {[key: string]: number} = {};
@@ -522,7 +615,49 @@ function useOgemathProgressData() {
       setModules(modulesData);
       setSkills(skillsData);
     } catch (err) {
-      console.error('Error fetching progress data:', err);
+      console.error('Error recalculating progress data:', err);
+      setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке данных');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Load initial data
+  const loadInitialData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // First try to load from snapshot
+      const loadedFromSnapshot = await loadFromSnapshot();
+      
+      if (!loadedFromSnapshot) {
+        // If no snapshot, use 1% default values
+        const defaultTopicProgress: {[key: string]: number} = {};
+        moduleDefinitions.forEach(module => {
+          module.topicCodes.forEach(code => {
+            defaultTopicProgress[code] = 1;
+          });
+        });
+
+        setTopicProgress(defaultTopicProgress);
+        
+        const defaultModules = moduleDefinitions.map(moduleDef => ({
+          id: moduleDef.id,
+          title: moduleDef.name,
+          progress: 1,
+          mastered: 0,
+          total: moduleDef.topicCodes.length
+        }));
+
+        setModules(defaultModules);
+        setProblems(PLACEHOLDER_PROBLEMS.map(p => ({ ...p, progress: 1 })));
+        setSkills(Array.from({ length: 20 }, (_, i) => ({ id: String(i + 1), label: String(i + 1), progress: 1 })));
+      }
+    } catch (err) {
+      console.error('Error loading initial data:', err);
       setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке данных');
     } finally {
       setLoading(false);
@@ -531,18 +666,28 @@ function useOgemathProgressData() {
 
   useEffect(() => {
     if (user) {
-      fetchProgressData();
+      loadInitialData();
     }
   }, [user]);
 
-  return { modules, problems, skills, loading, error, refetch: fetchProgressData, topicProgress, moduleDefinitions };
+  return { 
+    modules, 
+    problems, 
+    skills, 
+    loading, 
+    error, 
+    refreshing,
+    recalculateProgress, 
+    topicProgress, 
+    moduleDefinitions 
+  };
 }
 
 // ---------- Page Shell ----------
 export default function OgemathProgress2() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"module" | "problem" | "skill">("module");
-  const { modules, problems, skills, loading, error, topicProgress, moduleDefinitions } = useOgemathProgressData();
+  const { modules, problems, skills, loading, error, refreshing, recalculateProgress, topicProgress, moduleDefinitions } = useOgemathProgressData();
 
   if (loading) {
     return (
@@ -586,7 +731,15 @@ export default function OgemathProgress2() {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={recalculateProgress}
+              disabled={refreshing}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>{refreshing ? 'Обновление...' : 'Обновить прогресс'}</span>
+            </button>
             <button
               onClick={() => navigate('/ogemath')}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
