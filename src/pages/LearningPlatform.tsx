@@ -420,15 +420,26 @@ const LearningPlatform = () => {
               <h1 className="text-3xl font-bold text-gray-800">
                 ОГЭ Математика 2025
               </h1>
-              <motion.a
-                href="/textbook"
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <BookOpen className="h-5 w-5 mr-2" />
-                Читать как книгу
-              </motion.a>
+              <div className="flex items-center gap-3">
+                <motion.button
+                  onClick={() => setIsVideoDialogOpen(true)}
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-teal-600 text-white font-semibold rounded-full hover:from-green-600 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Play className="h-5 w-5 mr-2" />
+                  Обзор платформы
+                </motion.button>
+                <motion.a
+                  href="/textbook"
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <BookOpen className="h-5 w-5 mr-2" />
+                  Читать как книгу
+                </motion.a>
+              </div>
             </div>
             
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
