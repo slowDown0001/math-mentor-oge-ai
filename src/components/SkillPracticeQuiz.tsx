@@ -7,9 +7,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStreakTracking } from '@/hooks/useStreakTracking';
-import { useTextbookProgress } from '@/hooks/useTextbookProgress';
 import MathRenderer from '@/components/MathRenderer';
 import { toast } from '@/hooks/use-toast';
+import { logTextbookActivity } from '@/utils/logTextbookActivity';
 
 interface Skill {
   id: number;
@@ -36,7 +36,6 @@ interface SkillPracticeQuizProps {
 const SkillPracticeQuiz: React.FC<SkillPracticeQuizProps> = ({ skill, onBackToArticle }) => {
   const { user } = useAuth();
   const { trackActivity } = useStreakTracking();
-  const { trackExerciseProgress } = useTextbookProgress();
   
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -52,7 +51,13 @@ const SkillPracticeQuiz: React.FC<SkillPracticeQuizProps> = ({ skill, onBackToAr
   useEffect(() => {
     loadQuestions();
     // Track exercise started
-    trackExerciseProgress(`${skill.title} Practice`, 0, 5);
+    logTextbookActivity({
+      activity_type: "exercise",
+      activity: `${skill.title} Practice`,
+      solved_count: 0,
+      total_questions: 5,
+      item_id: `skill-practice-${skill.id}`
+    });
   }, [skill.id]);
 
   const loadQuestions = async () => {
@@ -143,7 +148,13 @@ const SkillPracticeQuiz: React.FC<SkillPracticeQuizProps> = ({ skill, onBackToAr
     
     // Track progress after each answer
     const currentProgress = answers.length + 1;
-    trackExerciseProgress(`${skill.title} Practice`, currentProgress, 5);
+    logTextbookActivity({
+      activity_type: "exercise",
+      activity: `${skill.title} Practice`,
+      solved_count: currentProgress,
+      total_questions: 5,
+      item_id: `skill-practice-${skill.id}`
+    });
   };
 
   const handleNextQuestion = () => {

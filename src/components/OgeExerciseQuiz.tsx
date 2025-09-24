@@ -8,6 +8,7 @@ import { useStreakTracking } from '@/hooks/useStreakTracking';
 import MathRenderer from '@/components/MathRenderer';
 import { toast } from '@/hooks/use-toast';
 import { getQuestionsBySkills, OgeQuestion } from '@/services/ogeQuestionsService';
+import { logTextbookActivity } from '@/utils/logTextbookActivity';
 
 interface OgeExerciseQuizProps {
   title: string;
@@ -67,6 +68,17 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
     
     setAnswers(prev => [...prev, isCorrect]);
     setShowResult(true);
+
+    // Log exercise progress
+    const solvedCount = answers.length + 1;
+    logTextbookActivity({
+      activity_type: "exercise",
+      activity: title,
+      solved_count: solvedCount,
+      total_questions: questionCount,
+      skills_involved: skills.join(","),
+      item_id: `exercise-${skills.join("-")}`
+    });
 
     if (isCorrect) {
       trackActivity('problem', 2);

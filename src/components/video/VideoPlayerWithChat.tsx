@@ -7,7 +7,7 @@ import ChatMessages from "../chat/ChatMessages";
 import ChatInput from "../chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
 import { sendVideoAwareChatMessage } from "@/services/videoAwareChatService";
-import { useTextbookProgress } from "@/hooks/useTextbookProgress";
+import { logTextbookActivity } from "@/utils/logTextbookActivity";
 
 interface VideoPlayerWithChatProps {
   video: {
@@ -27,7 +27,6 @@ const VideoPlayerWithChat = ({ video, onClose }: VideoPlayerWithChatProps) => {
   const [hasTrackedFinished, setHasTrackedFinished] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
   const { messages, isTyping, addMessage, resetChat } = useChatContext();
-  const { trackVideoProgress } = useTextbookProgress();
 
   // Load YouTube IFrame API
   useEffect(() => {
@@ -84,14 +83,24 @@ const VideoPlayerWithChat = ({ video, onClose }: VideoPlayerWithChatProps) => {
 
     // Track video watching (once when playing starts)
     if (playerState === (window as any).YT.PlayerState.PLAYING && !hasTrackedWatching) {
-      trackVideoProgress(video.title, false);
+      logTextbookActivity({
+        activity_type: "video",
+        activity: video.title,
+        status: "started",
+        item_id: video.videoId
+      });
       setHasTrackedWatching(true);
     }
 
     // Track video finished (when near the end)
     if (playerState === (window as any).YT.PlayerState.ENDED || 
         (duration > 0 && currentTimestamp > duration * 0.9 && !hasTrackedFinished)) {
-      trackVideoProgress(video.title, true);
+      logTextbookActivity({
+        activity_type: "video",
+        activity: video.title,
+        status: "finished",
+        item_id: video.videoId
+      });
       setHasTrackedFinished(true);
     }
 

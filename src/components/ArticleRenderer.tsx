@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import MathRenderer from './MathRenderer';
-import { useTextbookProgress } from '@/hooks/useTextbookProgress';
+import { logTextbookActivity } from '@/utils/logTextbookActivity';
 import '../styles/style_for_textbook.css';
 
 interface Article {
@@ -36,19 +36,41 @@ interface ArticleRendererProps {
 }
 
 const ArticleRenderer: React.FC<ArticleRendererProps> = ({ text, article, skillTitle }) => {
-  const { trackArticleRead } = useTextbookProgress();
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Track article read when component mounts
+  // Track article opened when component mounts
   useEffect(() => {
     if (skillTitle) {
-      // Use setTimeout to track after the article has been displayed for a moment
-      const timer = setTimeout(() => {
-        trackArticleRead(skillTitle);
-      }, 3000); // Track after 3 seconds of viewing
-
-      return () => clearTimeout(timer);
+      logTextbookActivity({
+        activity_type: "article",
+        activity: skillTitle,
+        status: "opened",
+        item_id: `skill-${article.skill}`
+      });
     }
-  }, [skillTitle, trackArticleRead]);
+  }, [skillTitle, article.skill]);
+
+  // Track article read when user scrolls 90%
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !skillTitle) return;
+    
+    const onScroll = () => {
+      const p = (el.scrollTop + el.clientHeight) / el.scrollHeight;
+      if (p >= 0.9) {
+        logTextbookActivity({
+          activity_type: "article",
+          activity: skillTitle,
+          status: "read",
+          item_id: `skill-${article.skill}`
+        });
+        el.removeEventListener("scroll", onScroll);
+      }
+    };
+    
+    el.addEventListener("scroll", onScroll);
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [skillTitle, article.skill]);
   // Handle HTML content with proper CSS classes and math rendering
   const renderHtmlWithImages = (content: string) => {
     // First, replace <imgX> tags with actual images
@@ -69,7 +91,7 @@ const ArticleRenderer: React.FC<ArticleRendererProps> = ({ text, article, skillT
     processedContent = processedContent.replace(/!!(.*?)!!/g, '<a href="#" style="color: #10b981; text-decoration: underline;" onclick="event.preventDefault(); window.open(\'https://www.google.com/search?q=\' + encodeURIComponent(\'$1\'), \'_blank\');">$1</a>');
     
     return (
-      <div className="textbook-preview">
+      <div ref={containerRef} className="textbook-preview">
         <MathRenderer text={processedContent} compiler="mathjax" />
       </div>
     );
