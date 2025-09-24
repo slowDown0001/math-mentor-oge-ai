@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Flag, Trophy, Medal, Calculator, BookOpen, Target, TrendingUp, LineChart, MapPin, Shapes, PieChart, Zap, Star, Info, Play, X } from "lucide-react";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -33,6 +33,15 @@ const LearningPlatform = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [userInput, setUserInput] = useState("");
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isTyping]);
   const units: UnitData[] = [
     {
       id: 'unit-1',
@@ -548,7 +557,7 @@ const LearningPlatform = () => {
                 <p className="text-sm text-muted-foreground">Задавайте вопросы о платформе</p>
               </div>
               
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1" ref={scrollAreaRef}>
                 <div className="p-4 flex flex-col space-y-4">
                   {messages.length === 0 && (
                     <div className="text-center text-muted-foreground text-sm">
@@ -559,6 +568,7 @@ const LearningPlatform = () => {
                     <ChatMessage key={message.id} message={message} />
                   ))}
                   {isTyping && <TypingIndicator />}
+                  <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
               
