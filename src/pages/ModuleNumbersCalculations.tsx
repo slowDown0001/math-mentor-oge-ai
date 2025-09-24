@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
 import ArticleRenderer from "@/components/ArticleRenderer";
 import OgeExerciseQuiz from "@/components/OgeExerciseQuiz";
+import { StreakDisplay } from "@/components/streak/StreakDisplay";
 
 interface TopicContent {
   id: string;
@@ -474,7 +475,7 @@ const ModuleNumbersCalculations = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Назад к карте
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Модуль 1: Числа и вычисления
             </h1>
@@ -482,6 +483,7 @@ const ModuleNumbersCalculations = () => {
               5 тем • 10 видео • 5 статей • 12 упражнений
             </p>
           </div>
+          <StreakDisplay />
         </motion.div>
 
         {/* Module Statistics */}

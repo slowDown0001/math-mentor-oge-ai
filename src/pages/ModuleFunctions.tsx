@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Play, BookOpen, Target, Crown, Zap, Star, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { StreakDisplay } from "@/components/streak/StreakDisplay";
 
 interface TopicContent {
   id: string;
@@ -181,7 +182,7 @@ const ModuleFunctions = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Назад к карте
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Модуль 5: Функции
             </h1>
@@ -189,6 +190,7 @@ const ModuleFunctions = () => {
               1 тема • 3 видео • 1 статья • 3 упражнения
             </p>
           </div>
+          <StreakDisplay />
         </motion.div>
 
         {/* Module Statistics */}
