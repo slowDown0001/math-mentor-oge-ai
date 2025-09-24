@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 // ---------- Types ----------
 export type ModuleItem = { id: number; title: string; progress: number; mastered: number; total: number };
 export type ProblemItem = { key: string; label: string; progress: number };
+export type SkillItem = { id: string; label: string; progress: number };
 
 // Topic names mapping
 const TOPIC_NAMES: { [key: string]: string } = {
@@ -327,8 +328,61 @@ function ProblemView({ problems }: { problems: ProblemItem[] }) {
   );
 }
 
+// ---------- Skills View ----------
+function SkillView({ skills }: { skills: SkillItem[] }) {
+  const hasRealData = skills.some(s => s.progress > 0);
+  const [showOnlyNeedsWork, setShowOnlyNeedsWork] = useState(false);
+  const filtered = useMemo(() => (showOnlyNeedsWork ? skills.filter(s => s.progress < 80) : skills), [skills, showOnlyNeedsWork]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <button onClick={() => setShowOnlyNeedsWork(v => !v)} className="rounded-xl border px-3 py-1.5 text-[13px] hover:bg-gray-50">
+          {showOnlyNeedsWork ? "Показать все" : "Только < 80%"}
+        </button>
+        <div className="flex flex-wrap gap-4 text-gray-600">
+          <LegendItem label="< 40%" mid={20} />
+          <LegendItem label="40–79%" mid={60} />
+          <LegendItem label="80–99%" mid={90} />
+          <LegendItem label="100%" mid={100} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
+        {hasRealData
+          ? filtered.map((skill) => (
+              <div key={skill.id} className="rounded-xl border border-gray-200 bg-white/90 p-3 hover:border-gray-300 transition-colors">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="text-[12px] font-medium text-gray-800">Навык {skill.label}</span>
+                </div>
+                <div className="grid place-items-center mb-2">
+                  <Radial value={skill.progress} size={48} />
+                </div>
+                <div className="h-1 w-full overflow-hidden rounded-full bg-gray-200 mb-1">
+                  <div className="h-full rounded-full" style={{ width: `${skill.progress}%`, backgroundColor: `hsl(${hueForProgress(skill.progress)} 72% 44%)` }} />
+                </div>
+                <div className="text-center text-[10px] text-gray-500">{statusText(skill.progress)}</div>
+              </div>
+            ))
+          : Array.from({ length: 20 }, (_, i) => (
+              <div key={i} className="rounded-xl border border-gray-200 bg-white/90 p-3">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="text-[12px] font-medium text-gray-400">Навык {i + 1}</span>
+                </div>
+                <div className="grid place-items-center mb-2">
+                  <div className="h-12 w-12 animate-pulse rounded-full bg-gray-200" />
+                </div>
+                <SkeletonBar />
+                <div className="h-2 w-16 animate-pulse rounded bg-gray-200 mx-auto mt-1" />
+              </div>
+            ))}
+      </div>
+    </div>
+  );
+}
+
 // ---------- Sticky Tab Bar ----------
-function TabBar({ mode, setMode }: { mode: "module" | "problem"; setMode: (m: "module" | "problem") => void }) {
+function TabBar({ mode, setMode }: { mode: "module" | "problem" | "skill"; setMode: (m: "module" | "problem" | "skill") => void }) {
   return (
     <div className="sticky top-0 z-30 -mx-4 sm:mx-0 backdrop-blur supports-[backdrop-filter]:bg-white/70 bg-white/95 border-b">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -336,17 +390,24 @@ function TabBar({ mode, setMode }: { mode: "module" | "problem"; setMode: (m: "m
           <nav className="relative inline-flex rounded-xl border bg-white shadow-sm">
             <button
               onClick={() => setMode("module")}
-              className={`flex items-center gap-2 px-4 py-2 text-[13px] ${mode === "module" ? "bg-gray-900 text-white" : "text-gray-700 hover:bg-gray-50"}`}
+              className={`flex items-center gap-2 px-3 py-2 text-[13px] ${mode === "module" ? "bg-gray-900 text-white" : "text-gray-700 hover:bg-gray-50"}`}
               aria-pressed={mode === "module"}
             >
               <LayoutGrid className="h-4 w-4" /> Модули
             </button>
             <button
               onClick={() => setMode("problem")}
-              className={`flex items-center gap-2 px-4 py-2 text-[13px] ${mode === "problem" ? "bg-gray-900 text-white" : "text-gray-700 hover:bg-gray-50"}`}
+              className={`flex items-center gap-2 px-3 py-2 text-[13px] ${mode === "problem" ? "bg-gray-900 text-white" : "text-gray-700 hover:bg-gray-50"}`}
               aria-pressed={mode === "problem"}
             >
               <ListOrdered className="h-4 w-4" /> Задания
+            </button>
+            <button
+              onClick={() => setMode("skill")}
+              className={`flex items-center gap-2 px-3 py-2 text-[13px] ${mode === "skill" ? "bg-gray-900 text-white" : "text-gray-700 hover:bg-gray-50"}`}
+              aria-pressed={mode === "skill"}
+            >
+              <ListOrdered className="h-4 w-4" /> Навыки
             </button>
           </nav>
         </div>
@@ -362,6 +423,7 @@ function useOgemathProgressData() {
   const [error, setError] = useState<string | null>(null);
   const [modules, setModules] = useState<ModuleItem[]>([]);
   const [problems, setProblems] = useState<ProblemItem[]>([]);
+  const [skills, setSkills] = useState<SkillItem[]>([]);
   const [topicProgress, setTopicProgress] = useState<{[key: string]: number}>({});
 
   const moduleDefinitions = [
@@ -376,9 +438,6 @@ function useOgemathProgressData() {
     { id: 9, name: 'Применение математики к прикладным задачам', topicCodes: ['9.1', '9.2'] }
   ];
 
-  const topicCodes = ['1.1', '1.2','1.3', '1.4','1.5','2.1','2.2','2.3','2.4','2.5','3.1','3.2','3.3','4.1','4.2','5.1', '6.1','6.2','7.1','7.2','7.3','7.4','7.5','7.6','7.7','8.1','8.2','8.3','8.4','8.5','9.1','9.2'];
-  const problemNumberTypes = [1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25];
-
   const fetchProgressData = async () => {
     if (!user) return;
 
@@ -386,78 +445,69 @@ function useOgemathProgressData() {
       setLoading(true);
       setError(null);
 
-      // Fetch problem types progress
-      const problemTypesResponse = await supabase.functions.invoke('compute-problem-number-type-progress-bars', {
+      // Use the new unified student-progress-calculate function
+      const response = await supabase.functions.invoke('student-progress-calculate', {
         body: {
           user_id: user.id,
-          problem_number_types: problemNumberTypes,
-          course_id: '1'
+          course_id: '1' // OGE Math course
         }
       });
 
-      if (problemTypesResponse.error) {
-        throw new Error('Ошибка загрузки прогресса типов задач');
+      if (response.error) {
+        throw new Error('Ошибка загрузки прогресса');
       }
 
-      // Fetch topic mastery
-      const topicMasteryPromises = topicCodes.map(async (topicCode) => {
-        const response = await supabase.functions.invoke('compute-topic-mastery', {
-          body: {
-            user_id: user.id,
-            topic_code: topicCode,
-            course_id: '1'
+      const progressData = response.data || [];
+      console.log('Progress data:', progressData);
+
+      // Parse the unified response
+      const topicProgressMap: {[key: string]: number} = {};
+      const problemsData: ProblemItem[] = [];
+      const skillsData: SkillItem[] = [];
+
+      progressData.forEach((item: any) => {
+        if (item.topic && !item.topic.includes('задача ФИПИ') && !item.topic.includes('навык')) {
+          // Extract topic code from topic name like "1.1 Натуральные и целые числа"
+          const topicMatch = item.topic.match(/^(\d+\.\d+)/);
+          if (topicMatch) {
+            const topicCode = topicMatch[1];
+            topicProgressMap[topicCode] = Math.round(item.prob * 100);
+          }
+        } else if (item['задача ФИПИ']) {
+          // Problem types
+          problemsData.push({
+            key: item['задача ФИПИ'],
+            label: item['задача ФИПИ'],
+            progress: Math.round(item.prob * 100)
+          });
+        } else if (item['навык']) {
+          // Skills
+          skillsData.push({
+            id: item['навык'],
+            label: item['навык'],
+            progress: Math.round(item.prob * 100)
+          });
+        }
+      });
+
+      setTopicProgress(topicProgressMap);
+      
+      // Transform modules data based on topic progress
+      const modulesData: ModuleItem[] = moduleDefinitions.map(moduleDef => {
+        const moduleTopics = moduleDef.topicCodes;
+        let totalProgress = 0;
+        let validTopics = 0;
+        
+        moduleTopics.forEach(topicCode => {
+          if (topicProgressMap[topicCode] !== undefined) {
+            totalProgress += topicProgressMap[topicCode];
+            validTopics++;
           }
         });
         
-        if (response.error) {
-          console.error(`Error fetching mastery for topic ${topicCode}:`, response.error);
-          return { [topicCode]: 0 };
-        }
-        
-        const mastery = response.data?.data?.topic_mastery || 0;
-        return { [topicCode]: mastery };
-      });
-
-      const topicMasteryResults = await Promise.all(topicMasteryPromises);
-      
-      // Store topic progress for popup
-      const topicProgressMap: {[key: string]: number} = {};
-      topicMasteryResults.forEach(item => {
-        const topicCode = Object.keys(item)[0];
-        const mastery = Object.values(item)[0];
-        topicProgressMap[topicCode] = Math.round(mastery * 100);
-      });
-      setTopicProgress(topicProgressMap);
-      
-      // Transform problem types data
-      const problemsData: ProblemItem[] = (problemTypesResponse.data?.data?.progress_bars || []).map((item: ProgressData) => {
-        const key = Object.keys(item)[0];
-        const value = item[key];
-        return {
-          key,
-          label: key,
-          progress: Math.round(value * 100)
-        };
-      });
-
-      // Transform modules data
-      const modulesData: ModuleItem[] = moduleDefinitions.map(moduleDef => {
-        const moduleTopicMastery = topicMasteryResults.filter(item => {
-          const topicCode = Object.keys(item)[0];
-          return moduleDef.topicCodes.includes(topicCode);
-        });
-        
-        let progress = 0;
-        if (moduleTopicMastery.length > 0) {
-          const total = moduleTopicMastery.reduce((sum, item) => {
-            const value = Object.values(item)[0];
-            return sum + value;
-          }, 0);
-          progress = Math.round((total / moduleTopicMastery.length) * 100);
-        }
-
-        const mastered = moduleTopicMastery.filter(item => Object.values(item)[0] >= 0.8).length;
-        const total = moduleTopicMastery.length;
+        const progress = validTopics > 0 ? Math.round(totalProgress / validTopics) : 0;
+        const mastered = moduleTopics.filter(code => (topicProgressMap[code] || 0) >= 80).length;
+        const total = moduleTopics.length;
 
         return {
           id: moduleDef.id,
@@ -470,6 +520,7 @@ function useOgemathProgressData() {
 
       setProblems(problemsData);
       setModules(modulesData);
+      setSkills(skillsData);
     } catch (err) {
       console.error('Error fetching progress data:', err);
       setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке данных');
@@ -484,14 +535,14 @@ function useOgemathProgressData() {
     }
   }, [user]);
 
-  return { modules, problems, loading, error, refetch: fetchProgressData, topicProgress, moduleDefinitions };
+  return { modules, problems, skills, loading, error, refetch: fetchProgressData, topicProgress, moduleDefinitions };
 }
 
 // ---------- Page Shell ----------
 export default function OgemathProgress2() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"module" | "problem">("module");
-  const { modules, problems, loading, error, topicProgress, moduleDefinitions } = useOgemathProgressData();
+  const [mode, setMode] = useState<"module" | "problem" | "skill">("module");
+  const { modules, problems, skills, loading, error, topicProgress, moduleDefinitions } = useOgemathProgressData();
 
   if (loading) {
     return (
@@ -558,8 +609,10 @@ export default function OgemathProgress2() {
               topicProgress={topicProgress}
               moduleDefinitions={moduleDefinitions}
             />
-          ) : (
+          ) : mode === "problem" ? (
             <ProblemView problems={problems} />
+          ) : (
+            <SkillView skills={skills} />
           )}
         </main>
 
