@@ -1,11 +1,8 @@
-
 import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Play, MessageCircle, X } from "lucide-react";
+import { Play, X } from "lucide-react";
 import ChatMessages from "../chat/ChatMessages";
 import ChatInput from "../chat/ChatInput";
 import { useChatContext } from "@/contexts/ChatContext";
@@ -25,7 +22,6 @@ const VideoPlayerWithChat = ({ video, onClose }: VideoPlayerWithChatProps) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [subtitleContext, setSubtitleContext] = useState<string>("");
   const [useVideoContext, setUseVideoContext] = useState(true);
-  const [showChat, setShowChat] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
   const { messages, isTyping, addMessage, resetChat } = useChatContext();
 
@@ -148,67 +144,72 @@ const VideoPlayerWithChat = ({ video, onClose }: VideoPlayerWithChatProps) => {
   };
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl w-full h-[90vh] p-0 overflow-hidden fixed top-[5vh] left-1/2 transform -translate-x-1/2">
-        <div className="flex h-full">
-          {/* Video Section */}
-          <div className="flex-1 p-6 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-semibold flex items-center gap-2">
-                  <Play className="w-6 h-6 text-red-600" />
-                  {video.title}
-                </h2>
-                <p className="text-sm text-muted-foreground">{video.description}</p>
-              </div>
-            </div>
-            
-            <div className="aspect-video w-full bg-black rounded-lg overflow-hidden mb-4">
-              <div ref={playerRef} className="w-full h-full" />
-            </div>
-            
-            {/* Video Controls */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="video-context"
-                  checked={useVideoContext}
-                  onCheckedChange={setUseVideoContext}
-                />
-                <Label htmlFor="video-context">Context from video</Label>
-              </div>
-            </div>
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+      <div className="bg-background rounded-lg shadow-lg w-full max-w-7xl h-[90vh] flex overflow-hidden">
+        {/* Close Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 bg-background/80 hover:bg-background"
+        >
+          <X className="h-4 w-4" />
+        </Button>
 
-            {/* Subtitle Context Display */}
-            {subtitleContext && useVideoContext && (
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <span className="font-medium">📺 Video context: </span>
-                  "{subtitleContext}"
-                </p>
-              </div>
-            )}
+        {/* Video Section */}
+        <div className="flex-1 flex flex-col p-6">
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Play className="w-6 h-6 text-red-600" />
+              {video.title}
+            </h2>
+            <p className="text-sm text-muted-foreground">{video.description}</p>
+          </div>
+          
+          <div className="aspect-video w-full bg-black rounded-lg overflow-hidden mb-4 flex-shrink-0">
+            <div ref={playerRef} className="w-full h-full" />
+          </div>
+          
+          {/* Video Controls */}
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="video-context"
+                checked={useVideoContext}
+                onCheckedChange={setUseVideoContext}
+              />
+              <Label htmlFor="video-context">Context from video</Label>
+            </div>
           </div>
 
-          {/* Chat Section */}
-          <div className="w-96 bg-background border-l flex flex-col h-full">
-            <div className="p-4 border-b bg-muted/50 flex-shrink-0">
-              <h3 className="font-semibold text-foreground">Video Assistant</h3>
-              <p className="text-sm text-muted-foreground">Ask questions about the video content</p>
+          {/* Subtitle Context Display */}
+          {subtitleContext && useVideoContext && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <span className="font-medium">📺 Video context: </span>
+                "{subtitleContext}"
+              </p>
             </div>
-            
-            <div className="flex-1 flex flex-col h-0">
-              <div className="flex-1 overflow-hidden">
-                <ChatMessages messages={messages} isTyping={isTyping} />
-              </div>
-              <div className="flex-shrink-0 border-t p-4">
-                <ChatInput onSendMessage={handleSendMessage} isTyping={isTyping} />
-              </div>
-            </div>
+          )}
+        </div>
+
+        {/* Chat Section */}
+        <div className="w-96 bg-muted/30 border-l flex flex-col">
+          <div className="p-4 border-b bg-muted/50 flex-shrink-0">
+            <h3 className="font-semibold text-foreground">Video Assistant</h3>
+            <p className="text-sm text-muted-foreground">Ask questions about the video content</p>
+          </div>
+          
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <ChatMessages messages={messages} isTyping={isTyping} />
+          </div>
+          
+          <div className="p-4 border-t bg-background flex-shrink-0">
+            <ChatInput onSendMessage={handleSendMessage} isTyping={isTyping} />
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };
 
