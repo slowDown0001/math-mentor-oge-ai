@@ -1,9 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL!,
-  import.meta.env.VITE_SUPABASE_ANON_KEY!
-);
+import { supabase } from "@/integrations/supabase/client";
 
 type ActivityType = "exercise" | "test" | "exam" | "video" | "article";
 
@@ -23,7 +18,7 @@ export async function logTextbookActivity(payload: {
     if (!token) return { ok: false, error: "no-session" };
 
     const res = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/log-textbook-activity`,
+      `https://kbaazksvkvnafrwtmkcw.supabase.co/functions/v1/log-textbook-activity`,
       {
         method: "POST",
         headers: {
