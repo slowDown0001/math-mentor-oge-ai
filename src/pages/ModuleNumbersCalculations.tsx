@@ -7,8 +7,6 @@ import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
 import ArticleRenderer from "@/components/ArticleRenderer";
 import OgeExerciseQuiz from "@/components/OgeExerciseQuiz";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
-import { useTextbookProgress } from "@/hooks/useTextbookProgress";
-import { ProgressIndicator } from "@/components/ProgressIndicator";
 
 interface TopicContent {
   id: string;
@@ -31,7 +29,6 @@ interface QuizContent {
 
 const ModuleNumbersCalculations = () => {
   const navigate = useNavigate();
-  const { progressSummary, loading: progressLoading } = useTextbookProgress();
   const [selectedVideo, setSelectedVideo] = useState<{videoId: string; title: string; description: string} | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<{title: string; content: string} | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<{title: string; skills: number[]; questionCount?: number; isAdvanced?: boolean} | null>(null);
@@ -539,48 +536,7 @@ const ModuleNumbersCalculations = () => {
 
           {/* Progress Grid */}
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Exercise indicators */}
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((index) => {
-              const exerciseKey = `exercise-1-2-3`; // Use actual item_id from textbook_progress
-              const progress = progressSummary.exercises[exerciseKey];
-              return (
-                <ProgressIndicator
-                  key={exerciseKey}
-                  type="exercise"
-                  status={progress?.status || 'not-started'}
-                  solved={progress?.solved || 0}
-                  total={progress?.total || 4}
-                  index={index}
-                />
-              );
-            })}
-            
-            {/* Test indicators */}
-            {[0, 1].map((index) => {
-              const testKey = `test-${index}`;
-              const progress = progressSummary.tests[testKey];
-              return (
-                <ProgressIndicator
-                  key={testKey}
-                  type="test"
-                  status={progress?.status || 'not-started'}
-                  solved={progress?.solved || 0}
-                  total={progress?.total || 6}
-                  index={index}
-                />
-              );
-            })}
-            
-            {/* Exam indicator */}
-            <ProgressIndicator
-              type="exam"
-              status={progressSummary.exams['final-exam']?.status || 'not-started'}
-              solved={progressSummary.exams['final-exam']?.solved || 0}
-              total={progressSummary.exams['final-exam']?.total || 10}
-              index={0}
-            />
-            
-            {/* Legacy button for first exercise */}
+            {/* Topic 1: Натуральные и целые числа (2 exercises) */}
             <button 
               className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center transition-all hover:scale-110 hover:shadow-md relative group"
               onClick={() => setSelectedExercise({ title: "Основы натуральных и целых чисел", skills: [1, 2, 3] })}
