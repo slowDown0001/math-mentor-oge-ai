@@ -45,16 +45,22 @@ export const useModuleProgress = () => {
   const getProgressStatus = (itemId: string, activityType: 'exercise' | 'test' | 'exam') => {
     const item = progressData.find(p => p.item_id === itemId && p.activity_type === activityType);
     
+    console.log('getProgressStatus called with:', { itemId, activityType });
+    console.log('Found item:', item);
+    console.log('All progress data:', progressData);
+    
     if (!item) return 'not_started';
 
     const solved = parseInt(item.solved_count);
     const total = parseInt(item.total_questions);
+    
+    console.log('Parsed values:', { solved, total });
 
     if (activityType === 'exercise') {
-      if (solved === 1) return 'attempted'; // Попытался
-      if (solved === 2) return 'familiar'; // Знаком
-      if (solved === 3) return 'proficient'; // Владею
       if (solved === 4) return 'mastered'; // Освоено
+      if (solved === 3) return 'proficient'; // Владею
+      if (solved === 2) return 'familiar'; // Знаком
+      if (solved === 1) return 'attempted'; // Попытался
     } else if (activityType === 'test') {
       if (solved >= 5) return 'completed'; // 5/6 or 6/6
     } else if (activityType === 'exam') {
