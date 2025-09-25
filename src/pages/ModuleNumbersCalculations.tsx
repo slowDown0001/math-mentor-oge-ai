@@ -7,6 +7,8 @@ import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
 import ArticleRenderer from "@/components/ArticleRenderer";
 import OgeExerciseQuiz from "@/components/OgeExerciseQuiz";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
+import { useModuleProgress } from "@/hooks/useModuleProgress";
+import { ProgressButton } from "@/components/ProgressButton";
 
 interface TopicContent {
   id: string;
@@ -29,6 +31,7 @@ interface QuizContent {
 
 const ModuleNumbersCalculations = () => {
   const navigate = useNavigate();
+  const { getProgressStatus } = useModuleProgress();
   const [selectedVideo, setSelectedVideo] = useState<{videoId: string; title: string; description: string} | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<{title: string; content: string} | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<{title: string; skills: number[]; questionCount?: number; isAdvanced?: boolean} | null>(null);
@@ -537,144 +540,126 @@ const ModuleNumbersCalculations = () => {
           {/* Progress Grid */}
           <div className="flex items-center gap-2 flex-wrap">
             {/* Topic 1: Натуральные и целые числа (2 exercises) */}
-            <button 
-              className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center transition-all hover:scale-110 hover:shadow-md relative group"
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-1-2-3", "exercise")}
+              title="Основы натуральных и целых чисел"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Основы натуральных и целых чисел", skills: [1, 2, 3] })}
-            >
-              <div className="w-4 h-4 bg-white rounded"></div>
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Основы натуральных и целых чисел • 4 вопроса
-              </div>
-            </button>
-            <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
+            />
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-4-5", "exercise")}
+              title="Работа с числами"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Работа с числами", skills: [4, 5] })}
-            >
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Работа с числами • 4 вопроса
-              </div>
-            </button>
+            />
             
             {/* Topic 2: Дроби и проценты (3 exercises) */}
-            <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-6-195", "exercise")}
+              title="Дроби"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Дроби", skills: [6, 195] })}
-            >
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Дроби • 4 вопроса
-              </div>
-            </button>
-            <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
+            />
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-7-8-9", "exercise")}
+              title="Проценты"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Проценты", skills: [7, 8, 9] })}
-            >
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Проценты • 4 вопроса
-              </div>
-            </button>
-            <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
+            />
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-10", "exercise")}
+              title="Сложные дроби"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Сложные дроби", skills: [10], isAdvanced: true })}
-            >
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Сложные дроби • 4 вопроса • Не в программе ОГЭ
-              </div>
-            </button>
+              isAdvanced={true}
+            />
             
             {/* Quiz 1 */}
-            <button 
-              className="transition-all hover:scale-110 hover:shadow-md relative group"
+            <ProgressButton
+              type="test"
+              status={getProgressStatus("test-1", "test")}
+              title="Тест 1: Дроби и проценты"
+              questionCount={6}
               onClick={() => setSelectedExercise({ title: "Тест 1: Дроби и проценты", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 195], questionCount: 6 })}
-            >
-              <Zap className="h-6 w-6 text-blue-600 mx-1" />
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Тест 1: Дроби и проценты • 6 вопросов
-              </div>
-            </button>
+            />
             
             {/* Topic 3: Рациональные числа и арифметические действия (3 exercises) */}
-            <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-11-12-13", "exercise")}
+              title="Рациональные числа"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Рациональные числа", skills: [11, 12, 13] })}
-            >
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Рациональные числа • 4 вопроса
-              </div>
-            </button>
-            <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
+            />
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-14-15-16", "exercise")}
+              title="Арифметические действия"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Арифметические действия", skills: [14, 15, 16] })}
-            >
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Арифметические действия • 4 вопроса
-              </div>
-            </button>
-            <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
+            />
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-17-180", "exercise")}
+              title="Операции с рациональными числами"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Операции с рациональными числами", skills: [17, 180] })}
-            >
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Операции с рациональными числами • 4 вопроса
-              </div>
-            </button>
+            />
             
             {/* Topic 4: Действительные числа (2 exercises) */}
-            <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-18-19", "exercise")}
+              title="Действительные числа"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Действительные числа", skills: [18, 19] })}
-            >
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Действительные числа • 4 вопроса
-              </div>
-            </button>
-            <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
+            />
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-20-197", "exercise")}
+              title="Операции с действительными числами"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Операции с действительными числами", skills: [20, 197] })}
-            >
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Операции с действительными числами • 4 вопроса
-              </div>
-            </button>
+            />
             
             {/* Quiz 2 */}
-            <button 
-              className="transition-all hover:scale-110 hover:shadow-md relative group"
+            <ProgressButton
+              type="test"
+              status={getProgressStatus("test-2", "test")}
+              title="Тест 2: Рациональные и действительные числа"
+              questionCount={6}
               onClick={() => setSelectedExercise({ title: "Тест 2: Рациональные и действительные числа", skills: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 180, 197], questionCount: 6 })}
-            >
-              <Zap className="h-6 w-6 text-blue-600 mx-1" />
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Тест 2: Рациональные и действительные числа • 6 вопросов
-              </div>
-            </button>
+            />
             
             {/* Topic 5: Приближённые вычисления (2 exercises) */}
-            <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-21-22", "exercise")}
+              title="Приближённые вычисления"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Приближённые вычисления", skills: [21, 22] })}
-            >
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Приближённые вычисления • 4 вопроса
-              </div>
-            </button>
-            <button 
-              className="w-8 h-8 border-2 border-gray-300 rounded bg-white transition-all hover:scale-110 hover:shadow-md hover:border-orange-400 relative group"
+            />
+            <ProgressButton
+              type="exercise"
+              status={getProgressStatus("exercise-23", "exercise")}
+              title="Округление"
+              questionCount={4}
               onClick={() => setSelectedExercise({ title: "Округление", skills: [23] })}
-            >
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Округление • 4 вопроса
-              </div>
-            </button>
+            />
             
             {/* Final module test */}
-            <button 
-              className="transition-all hover:scale-110 hover:shadow-md relative group"
+            <ProgressButton
+              type="exam"
+              status={getProgressStatus("exam-module", "exam")}
+              title="Итоговый тест модуля"
+              questionCount={10}
               onClick={() => setSelectedExercise({ title: "Итоговый тест модуля", skills: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 180, 195, 197], questionCount: 10 })}
-            >
-              <Star className="h-6 w-6 text-yellow-600 mx-1" />
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                Итоговый тест модуля • 10 вопросов
-              </div>
-            </button>
+            />
           </div>
         </motion.div>
 
