@@ -1020,9 +1020,10 @@ const OgemathMock = () => {
           // For questions 20-25, raw_output contains JSON analysis
           try {
             const analysis = JSON.parse(output.raw_output);
-            isCorrect = analysis.isCorrect || false;
-            userAnswer = analysis.userAnswer || '';
-            correctAnswer = analysis.correctAnswer || '';
+            const score = analysis.score || 0;
+            isCorrect = score > 0;
+            userAnswer = output.raw_output; // Store the full JSON for marking display
+            correctAnswer = 'Развернутый ответ';
             
             if (isCorrect) {
               part2Correct++;
@@ -1315,7 +1316,18 @@ const OgemathMock = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="font-mono p-3 bg-gray-50 rounded">
-                    {reviewResult?.userAnswer || 'Не отвечено'}
+                    {(() => {
+                      // For FRQ questions 20-25, show parsed answer instead of raw JSON
+                      if (reviewQuestionIndex >= 19 && reviewQuestionIndex <= 24 && reviewResult?.userAnswer?.startsWith('{')) {
+                        try {
+                          const analysis = JSON.parse(reviewResult.userAnswer);
+                          return analysis.userAnswer || 'Развернутый ответ представлен';
+                        } catch {
+                          return reviewResult?.userAnswer || 'Не отвечено';
+                        }
+                      }
+                      return reviewResult?.userAnswer || 'Не отвечено';
+                    })()}
                   </div>
                   {reviewResult?.photoFeedback && (
                     <div className="mt-3">
@@ -1342,6 +1354,54 @@ const OgemathMock = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Marking section for FRQ questions 20-25 */}
+            {reviewQuestionIndex >= 19 && reviewQuestionIndex <= 24 && reviewResult?.attempted && (
+              (() => {
+                try {
+                  // Get the raw output directly from the reviewResult
+                  const rawOutput = reviewResult?.userAnswer;
+                  
+                  if (rawOutput && rawOutput !== 'false' && rawOutput.startsWith('{')) {
+                    const analysis = JSON.parse(rawOutput);
+                    const score = analysis.score || 0;
+                    const code = analysis.code || '';
+                    
+                    return (
+                      <Card className="mb-6">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            Оценивание
+                            <div className="ml-auto flex items-center gap-2">
+                              <span className="text-lg font-bold text-blue-600">
+                                {score}/2 баллов
+                              </span>
+                              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                score === 2 ? 'bg-green-100 text-green-800' :
+                                score === 1 ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {score === 2 ? 'Отлично' : score === 1 ? 'Частично' : 'Неверно'}
+                              </div>
+                            </div>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="p-4 bg-gray-50 rounded border">
+                            <div className="whitespace-pre-wrap text-sm font-mono">
+                              {code}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  }
+                } catch (error) {
+                  console.error('Error parsing marking data:', error);
+                }
+                return null;
+              })()
+            )}
 
             {reviewQuestion?.solution_text && (
               <Card>
