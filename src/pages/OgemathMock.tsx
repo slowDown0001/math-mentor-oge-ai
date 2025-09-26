@@ -247,56 +247,57 @@ const OgemathMock = () => {
     await generateQuestionSelection();
   };
 
+  // Helper function to check if answer is non-numeric
+  const isNonNumericAnswer = (answer: string): boolean => {
+    if (!answer) return false;
+    // Check if answer contains units (like кг, м, см, etc.)
+    if (/\p{L}/u.test(answer)) return true;
+    // Check if answer contains LaTeX expressions (contains backslashes)
+    if (answer.includes('\\')) return true;
+    // Check if answer contains mathematical expressions that aren't just numbers
+    if (/[а-яё]/i.test(answer)) return true;
+    return false;
+  };
+
+  // Helper function to check if a string is purely numeric
+  const isNumeric = (str: string): boolean => {
+    const cleaned = str.trim();
+    return /^-?\d+([.,]\d+)?$/.test(cleaned);
+  };
+
+  // Helper function to sanitize numeric input
+  const sanitizeNumericAnswer = (answer: string): string => {
+    return answer.trim().replace(/\s/g, '').replace(',', '.');
+  };
+
   const handleNextQuestion = async () => {
     if (!currentQuestion || !questionStartTime) return;
     
     const timeSpent = Math.floor((new Date().getTime() - questionStartTime.getTime()) / 1000);
     const problemNumber = currentQuestion.problem_number_type || currentQuestionIndex + 1;
     
-    // Save current question result
-    const result: ExamResult = {
-      questionIndex: currentQuestionIndex,
-      questionId: currentQuestion.question_id,
-      isCorrect: null, // Will be determined at the end
-      userAnswer: userAnswer.trim(),
-      correctAnswer: currentQuestion.answer,
-      problemText: currentQuestion.problem_text,
-      solutionText: currentQuestion.solution_text,
-      timeSpent,
-      photoFeedback,
-      photoScores,
-      problemNumber
-    };
+    // Check answer and process result
+    let isCorrect: boolean | null = null;
+    let analysisOutput = "";
+    let scores = 0;
     
-    setExamResults(prev => {
-      const newResults = [...prev];
-      const existingIndex = newResults.findIndex(r => r && r.questionIndex === currentQuestionIndex);
-      if (existingIndex >= 0) {
-        newResults[existingIndex] = result;
-      } else {
-        newResults.push(result);
-      }
-      return newResults;
-    });
-    
-    // Save to photo_analysis_outputs table
-    if (user && userAnswer.trim()) {
-      try {
-        // Get exam_id from profiles table
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('exam_id')
-          .eq('user_id', user.id)
-          .single();
-        
-        const currentExamId = profile?.exam_id || examId;
-        
-        // Determine analysis_type based on problem number
-        const analysisType = problemNumber >= 20 ? 'photo_solution' : 'solution';
-        
-        // For photo solutions (problems 20-25), call analyze-photo-solution function
-        if (problemNumber >= 20 && userAnswer.trim()) {
+    if (user) {
+      // Start attempt for this question
+      await startAttempt(currentQuestion.question_id, problemNumber, timeSpent);
+      
+      // Check if answer was provided
+      if (userAnswer.trim()) {
+        if (problemNumber >= 20) {
+          // For problems 20-25, use photo analysis
           try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('exam_id')
+              .eq('user_id', user.id)
+              .single();
+            
+            const currentExamId = profile?.exam_id || examId;
+            
             const { data: analysisResult, error: analysisError } = await supabase.functions.invoke('analyze-photo-solution', {
               body: {
                 student_solution: userAnswer.trim(),
@@ -311,56 +312,147 @@ const OgemathMock = () => {
             
             if (analysisError) {
               console.error('Error calling analyze-photo-solution:', analysisError);
+              analysisOutput = "Ошибка анализа";
+              scores = 0;
+              isCorrect = false;
             } else {
               console.log('Photo analysis completed:', analysisResult);
+              analysisOutput = analysisResult?.feedback || "Анализ завершен";
+              // Parse JSON to get scores if available
+              try {
+                const feedbackData = JSON.parse(analysisResult?.feedback || "{}");
+                scores = feedbackData.scores || 0;
+                isCorrect = scores >= 2;
+              } catch {
+                scores = 0;
+                isCorrect = false;
+              }
             }
           } catch (error) {
             console.error('Error with photo analysis function:', error);
+            analysisOutput = "Ошибка обработки";
+            scores = 0;
+            isCorrect = false;
           }
         } else {
-          // For regular solutions (problems 1-19), save directly to database
-          const { error: insertError } = await supabase
+          // For problems 1-19, check answer directly
+          const correctAnswer = currentQuestion.answer;
+          
+          if (isNumeric(correctAnswer)) {
+            // Simple numeric comparison
+            const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
+            const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
+            isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
+          } else {
+            // Use OpenRouter API for non-numeric answers
+            try {
+              const { data, error } = await supabase.functions.invoke('check-non-numeric-answer', {
+                body: {
+                  student_answer: userAnswer.trim(),
+                  correct_answer: correctAnswer,
+                  problem_text: currentQuestion.problem_text
+                }
+              });
+
+              if (error) {
+                console.error('Error checking non-numeric answer:', error);
+                isCorrect = false;
+              } else {
+                isCorrect = data?.is_correct || false;
+              }
+            } catch (error) {
+              console.error('Error with non-numeric answer check:', error);
+              isCorrect = false;
+            }
+          }
+          
+          // Save simple right/wrong result to photo_analysis_outputs
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('exam_id')
+              .eq('user_id', user.id)
+              .single();
+            
+            const currentExamId = profile?.exam_id || examId;
+            analysisOutput = isCorrect ? "Правильно" : "Неправильно";
+            
+            await supabase
+              .from('photo_analysis_outputs')
+              .insert({
+                user_id: user.id,
+                question_id: currentQuestion.question_id,
+                exam_id: currentExamId,
+                problem_number: problemNumber.toString(),
+                raw_output: analysisOutput,
+                analysis_type: 'solution'
+              });
+          } catch (error) {
+            console.error('Error saving solution result:', error);
+          }
+        }
+        
+        // Complete the attempt
+        await completeAttempt(isCorrect, scores);
+        
+        // Submit to handle-submission for mastery tracking
+        await submitToHandleSubmission(isCorrect, scores);
+      } else {
+        // Question was skipped - save 'False' to photo_analysis_outputs
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('exam_id')
+            .eq('user_id', user.id)
+            .single();
+          
+          const currentExamId = profile?.exam_id || examId;
+          
+          await supabase
             .from('photo_analysis_outputs')
             .insert({
               user_id: user.id,
               question_id: currentQuestion.question_id,
               exam_id: currentExamId,
               problem_number: problemNumber.toString(),
-              raw_output: userAnswer.trim(),
-              analysis_type: analysisType
+              raw_output: 'False',
+              analysis_type: problemNumber >= 20 ? 'photo_solution' : 'solution'
             });
-          
-          if (insertError) {
-            console.error('Error saving solution to database:', insertError);
-          }
+        } catch (error) {
+          console.error('Error saving skipped question:', error);
         }
         
-      } catch (error) {
-        console.error('Error saving question data:', error);
+        // Complete attempt as not finished
+        await completeAttempt(false, 0);
+        isCorrect = false;
       }
     }
     
-    // Log the attempt to supabase
-    if (user) {
-      try {
-        await supabase
-          .from('student_activity')
-          .insert({
-            user_id: user.id,
-            question_id: currentQuestion.question_id,
-            answer_time_start: questionStartTime.toISOString(),
-            finished_or_not: true,
-            problem_number_type: problemNumber,
-            is_correct: null, // Will be determined later
-            duration_answer: timeSpent,
-            scores_fipi: photoScores,
-            skills: [],
-            topics: []
-          });
-      } catch (error) {
-        console.error('Error logging attempt:', error);
+    // Save current question result
+    const result: ExamResult = {
+      questionIndex: currentQuestionIndex,
+      questionId: currentQuestion.question_id,
+      isCorrect,
+      userAnswer: userAnswer.trim(),
+      correctAnswer: currentQuestion.answer,
+      problemText: currentQuestion.problem_text,
+      solutionText: currentQuestion.solution_text,
+      timeSpent,
+      photoFeedback: analysisOutput,
+      photoScores: scores,
+      problemNumber
+    };
+    
+    setExamResults(prev => {
+      const newResults = [...prev];
+      const existingIndex = newResults.findIndex(r => r && r.questionIndex === currentQuestionIndex);
+      if (existingIndex >= 0) {
+        newResults[existingIndex] = result;
+      } else {
+        newResults.push(result);
       }
-    }
+      return newResults;
+    });
     
     // Move to next question or finish exam
     if (currentQuestionIndex < questions.length - 1) {
@@ -374,9 +466,158 @@ const OgemathMock = () => {
     }
   };
 
-  const handleFinishExam = () => {
+  // Start attempt logging when question is presented
+  const startAttempt = async (questionId: string, problemNumberType: number, timeSpent: number) => {
+    if (!user) return null;
+    
+    try {
+      // Fetch question details to populate skills and topics
+      let skillsArray: number[] = [];
+      let topicsArray: string[] = [];
+
+      try {
+        const { data: detailsResp, error: detailsErr } = await supabase.functions.invoke('get-question-details', {
+          body: { question_id: questionId, course_id: '1' }
+        });
+        if (detailsErr) {
+          console.warn('get-question-details error (will fallback):', detailsErr);
+        } else if (detailsResp?.data) {
+          skillsArray = Array.isArray(detailsResp.data.skills_list) ? detailsResp.data.skills_list : [];
+          topicsArray = Array.isArray(detailsResp.data.topics_list) ? detailsResp.data.topics_list : [];
+        }
+      } catch (e) {
+        console.warn('Failed to fetch question details, proceeding without skills/topics:', e);
+      }
+
+      // Insert into student_activity table with skills and topics
+      const { data, error } = await supabase
+        .from('student_activity')
+        .insert({
+          user_id: user.id,
+          question_id: questionId,
+          answer_time_start: questionStartTime?.toISOString() || new Date().toISOString(),
+          finished_or_not: false,
+          problem_number_type: problemNumberType,
+          is_correct: null,
+          duration_answer: null,
+          scores_fipi: null,
+          skills: skillsArray.length ? skillsArray : null,
+          topics: topicsArray.length ? topicsArray : null
+        })
+        .select('attempt_id')
+        .single();
+
+      if (error) {
+        console.error('Error starting attempt:', error);
+        return null;
+      }
+
+      if (data) {
+        console.log('Started attempt:', data.attempt_id);
+        return data.attempt_id;
+      }
+    } catch (error) {
+      console.error('Error starting attempt:', error);
+      return null;
+    }
+  };
+
+  // Complete attempt
+  const completeAttempt = async (isCorrect: boolean, scores: number) => {
+    if (!user) return;
+
+    try {
+      // Get the most recent attempt for this user and question
+      const { data: activityData, error: activityError } = await supabase
+        .from('student_activity')
+        .select('attempt_id')
+        .eq('user_id', user.id)
+        .eq('question_id', currentQuestion.question_id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (activityError || !activityData) {
+        console.error('Error getting attempt for completion:', activityError);
+        return;
+      }
+
+      // Calculate duration
+      const timeSpent = questionStartTime ? 
+        Math.floor((new Date().getTime() - questionStartTime.getTime()) / 1000) : 0;
+
+      // Complete the attempt using the complete-attempt function
+      const { error: completeError } = await supabase.functions.invoke('complete-attempt', {
+        body: {
+          attempt_id: activityData.attempt_id,
+          finished_or_not: true,
+          is_correct: isCorrect,
+          scores_fipi: scores
+        }
+      });
+
+      if (completeError) {
+        console.error('Error completing attempt:', completeError);
+      } else {
+        console.log(`Completed attempt: correct=${isCorrect}, scores=${scores}`);
+      }
+    } catch (error) {
+      console.error('Error in completeAttempt:', error);
+    }
+  };
+
+  // Submit to handle-submission for mastery tracking  
+  const submitToHandleSubmission = async (isCorrect: boolean, scores: number) => {
+    if (!user) return;
+
+    try {
+      // Get latest student_activity row for current user and question
+      const { data: activityData, error: activityError } = await supabase
+        .from('student_activity')
+        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
+        .eq('user_id', user.id)
+        .eq('question_id', currentQuestion.question_id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (activityError || !activityData) {
+        console.error('Error getting latest activity:', activityError);
+        return;
+      }
+
+      // Create submission_data dictionary
+      const submissionData = {
+        user_id: user.id,
+        question_id: activityData.question_id,
+        finished_or_not: true,
+        is_correct: isCorrect,
+        duration: activityData.duration_answer,
+        scores_fipi: scores
+      };
+
+      // Call handle_submission function
+      const { data, error } = await supabase.functions.invoke('handle-submission', {
+        body: { 
+          course_id: '1',
+          submission_data: submissionData
+        }
+      });
+
+      if (error) {
+        console.error('Error in handle-submission:', error);
+        return;
+      }
+
+      console.log('Handle submission completed:', data);
+    } catch (error) {
+      console.error('Error in submitToHandleSubmission:', error);
+    }
+  };
+
+  const handleFinishExam = async () => {
     setExamFinished(true);
-    checkAllAnswers();
+    await checkAllAnswers();
   };
 
   const checkAllAnswers = async () => {
@@ -384,38 +625,49 @@ const OgemathMock = () => {
     
     setLoading(true);
     try {
-      const updatedResults = [...examResults];
+      // Get exam_id from profiles table
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('exam_id')
+        .eq('user_id', user.id)
+        .single();
       
-      // Check answers for problems 1-19 (text/numeric answers)
-      for (let i = 0; i < updatedResults.length; i++) {
-        const result = updatedResults[i];
-        if (result.problemNumber < 20) {
-          // Simple text comparison for now
-          const isCorrect = result.userAnswer.trim().toLowerCase() === result.correctAnswer.trim().toLowerCase();
-          updatedResults[i] = { ...result, isCorrect };
-        }
+      const currentExamId = profile?.exam_id || examId;
+      
+      // Fetch all results from photo_analysis_outputs for this exam
+      const { data: analysisResults, error: analysisError } = await supabase
+        .from('photo_analysis_outputs')
+        .select('question_id, raw_output, problem_number, analysis_type')
+        .eq('user_id', user.id)
+        .eq('exam_id', currentExamId)
+        .order('created_at', { ascending: false });
+      
+      if (analysisError) {
+        console.error('Error fetching analysis results:', analysisError);
+        toast.error('Ошибка при получении результатов анализа');
+        setLoading(false);
+        return;
       }
       
-      // Fetch photo analysis results from database for problems 20-25
-      for (let i = 0; i < updatedResults.length; i++) {
-        const result = updatedResults[i];
-        if (result.problemNumber >= 20 && result.userAnswer) {
-          try {
-            // Try to fetch analysis results from database - using direct client method
-            const { data: analysisData, error }: { data: any; error: any } = await (supabase as any)
-              .from('photo_analysis_outputs')
-              .select('raw_output')
-              .eq('user_id', user.id)
-              .eq('question_id', result.questionId)
-              .eq('exam_id', examId)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
+      // Update exam results with fetched analysis data
+      const updatedResults = [...examResults];
+      
+      if (analysisResults) {
+        for (let i = 0; i < updatedResults.length; i++) {
+          const result = updatedResults[i];
+          
+          // Find corresponding analysis result
+          const analysisResult = analysisResults.find(ar => 
+            ar.question_id === result.questionId
+          );
+          
+          if (analysisResult) {
+            const problemNumber = parseInt(analysisResult.problem_number);
             
-            if (!error && analysisData?.raw_output) {
+            if (problemNumber >= 20) {
+              // For problems 20-25, parse photo analysis JSON
               try {
-                // Parse JSON response from database
-                const feedbackData = JSON.parse(analysisData.raw_output);
+                const feedbackData = JSON.parse(analysisResult.raw_output);
                 if (feedbackData.review && typeof feedbackData.scores === 'number') {
                   updatedResults[i] = {
                     ...result,
@@ -426,7 +678,7 @@ const OgemathMock = () => {
                 } else {
                   updatedResults[i] = {
                     ...result,
-                    photoFeedback: analysisData.raw_output,
+                    photoFeedback: analysisResult.raw_output,
                     photoScores: 0,
                     isCorrect: false
                   };
@@ -435,33 +687,40 @@ const OgemathMock = () => {
                 console.error('Error parsing stored analysis:', parseError);
                 updatedResults[i] = {
                   ...result,
-                  photoFeedback: analysisData.raw_output,
+                  photoFeedback: analysisResult.raw_output,
                   photoScores: 0,
-                  isCorrect: false
+                  isCorrect: analysisResult.raw_output !== 'False'
                 };
               }
             } else {
-              // If no analysis found in database, mark as not analyzed
+              // For problems 1-19, use simple text result
+              const isCorrect = analysisResult.raw_output === 'Правильно';
               updatedResults[i] = {
                 ...result,
-                photoFeedback: "Анализ фото решения не найден",
-                photoScores: 0,
-                isCorrect: false
+                isCorrect,
+                photoFeedback: analysisResult.raw_output
               };
             }
-          } catch (error) {
-            console.error('Error fetching photo analysis:', error);
+          } else {
+            // No analysis found - question was likely skipped
             updatedResults[i] = {
               ...result,
-              photoFeedback: "Ошибка при получении анализа",
-              photoScores: 0,
-              isCorrect: false
+              isCorrect: false,
+              photoFeedback: "Вопрос пропущен"
             };
           }
         }
       }
       
       setExamResults(updatedResults);
+      
+      // Calculate and display exam statistics
+      const correctAnswers = updatedResults.filter(r => r.isCorrect === true).length;
+      const totalQuestions = updatedResults.length;
+      const score = Math.round((correctAnswers / totalQuestions) * 100);
+      
+      toast.success(`Экзамен завершен! Результат: ${correctAnswers}/${totalQuestions} (${score}%)`);
+      
     } catch (error) {
       console.error('Error checking answers:', error);
     } finally {
