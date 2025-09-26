@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, ArrowRight, Home, ArrowLeft, Camera, Clock, BookOpen } from "lucide-react";
+import { CheckCircle, XCircle, ArrowRight, Home, ArrowLeft, Camera, Clock, BookOpen, Menu, Hash } from "lucide-react";
 import { Link } from "react-router-dom";
 import MathRenderer from "@/components/MathRenderer";
 import { toast } from "sonner";
@@ -66,6 +66,9 @@ const OgemathMock = () => {
   // Review mode states
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [reviewQuestionIndex, setReviewQuestionIndex] = useState<number | null>(null);
+  
+  // Question navigation menu state
+  const [showQuestionMenu, setShowQuestionMenu] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex];
   const isPhotoQuestion = currentQuestion?.problem_number_type && currentQuestion.problem_number_type >= 20;
@@ -446,6 +449,36 @@ const OgemathMock = () => {
     setReviewQuestionIndex(null);
   };
 
+  const handleNavigateToQuestion = (questionIndex: number) => {
+    // Save current answer before navigating
+    if (!isReviewMode) {
+      const currentTime = questionStartTime ? Date.now() - questionStartTime.getTime() : 0;
+      const newResult: ExamResult = {
+        questionIndex: currentQuestionIndex,
+        questionId: currentQuestion?.question_id || '',
+        isCorrect: null,
+        userAnswer,
+        correctAnswer: currentQuestion?.answer || '',
+        problemText: currentQuestion?.problem_text || '',
+        solutionText: currentQuestion?.solution_text || '',
+        timeSpent: Math.floor(currentTime / 1000),
+        problemNumber: currentQuestion?.problem_number_type || currentQuestionIndex + 1
+      };
+
+      setExamResults(prev => {
+        const updated = [...prev];
+        updated[currentQuestionIndex] = newResult;
+        return updated;
+      });
+    }
+
+    // Navigate to selected question
+    setCurrentQuestionIndex(questionIndex);
+    setUserAnswer(examResults[questionIndex]?.userAnswer || "");
+    setQuestionStartTime(new Date());
+    setShowQuestionMenu(false);
+  };
+
   const calculateStatistics = () => {
     const correctAnswers = examResults.filter(r => r.isCorrect === true).length;
     const totalAnswers = examResults.length;
@@ -753,6 +786,15 @@ const OgemathMock = () => {
               </div>
               
               <Button 
+                onClick={() => setShowQuestionMenu(true)}
+                variant="outline"
+                className="bg-blue-50 hover:bg-blue-100 border-blue-200"
+              >
+                <Menu className="w-4 h-4 mr-2" />
+                Вопросы
+              </Button>
+              
+              <Button 
                 onClick={handleFinishExam}
                 variant="outline"
                 className="text-red-600 border-red-300 hover:bg-red-50"
@@ -914,6 +956,61 @@ const OgemathMock = () => {
               >
                 {isProcessingPhoto ? 'Обработка...' : 'Да'}
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Question Navigation Menu */}
+      <Dialog open={showQuestionMenu} onOpenChange={setShowQuestionMenu}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Hash className="w-5 h-5" />
+              Навигация по вопросам
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="grid grid-cols-5 gap-3">
+              {questions.map((_, index) => {
+                const hasAnswer = examResults[index]?.userAnswer;
+                const isCurrent = index === currentQuestionIndex;
+                return (
+                  <Button
+                    key={index}
+                    variant={isCurrent ? "default" : "outline"}
+                    className={`h-14 ${
+                      isCurrent 
+                        ? 'bg-blue-600 hover:bg-blue-700' 
+                        : hasAnswer 
+                        ? 'bg-green-50 border-green-300 hover:bg-green-100' 
+                        : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => handleNavigateToQuestion(index)}
+                  >
+                    <div className="text-center">
+                      <div className="font-semibold">{index + 1}</div>
+                      <div className="text-xs mt-1">
+                        {hasAnswer ? '✓' : '○'}
+                      </div>
+                    </div>
+                  </Button>
+                );
+              })}
+            </div>
+            <div className="mt-4 text-sm text-gray-600 space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-600 rounded"></div>
+                <span>Текущий вопрос</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
+                <span>Отвечен</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 border border-gray-300 rounded"></div>
+                <span>Не отвечен</span>
+              </div>
             </div>
           </div>
         </DialogContent>
