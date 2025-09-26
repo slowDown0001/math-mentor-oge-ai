@@ -6,6 +6,7 @@ export interface ProgressItem {
   activity: string;
   activity_type: string;
   solved_count: string;
+  correct_count: string;
   total_questions: string;
   item_id: string | null;
 }
@@ -21,7 +22,7 @@ export const useModuleProgress = () => {
     try {
       const { data, error } = await supabase
         .from('textbook_progress')
-        .select('activity, activity_type, solved_count, total_questions, item_id')
+        .select('activity, activity_type, solved_count, correct_count, total_questions, item_id')
         .eq('user_id', user.id)
         .in('activity_type', ['exercise', 'test', 'exam']);
 
@@ -50,27 +51,29 @@ export const useModuleProgress = () => {
     
     if (matchingItems.length === 0) return 'not_started';
 
-    // Find the item with the highest solved_count
+    // Find the item with the highest correct_count
     const item = matchingItems.reduce((max, current) => {
-      const currentSolved = parseInt(current.solved_count);
-      const maxSolved = parseInt(max.solved_count);
-      return currentSolved > maxSolved ? current : max;
+      const currentCorrect = parseInt(current.correct_count || '0');
+      const maxCorrect = parseInt(max.correct_count || '0');
+      return currentCorrect > maxCorrect ? current : max;
     });
 
-    const solved = parseInt(item.solved_count);
+    const correctCount = parseInt(item.correct_count || '0');
     const total = parseInt(item.total_questions);
     
-    console.log('Using item with highest solved_count:', { item, solved, total });
+    console.log('Using item with highest correct_count:', { item, correct: correctCount, total });
 
     if (activityType === 'exercise') {
-      if (solved === 4) return 'mastered'; // Освоено
-      if (solved === 3) return 'proficient'; // Владею
-      if (solved === 2) return 'familiar'; // Знаком
-      if (solved === 1) return 'attempted'; // Попытался
+      if (correctCount === 4) return 'mastered'; // Освоено
+      if (correctCount === 3) return 'proficient'; // Владею
+      if (correctCount === 2) return 'familiar'; // Знаком
+      if (correctCount >= 1) return 'attempted'; // Попытался
     } else if (activityType === 'test') {
-      if (solved >= 5) return 'completed'; // 5/6 or 6/6
+      if (correctCount >= 5) return 'completed'; // 5/6 or 6/6
+      if (correctCount >= 1) return 'attempted'; // Started but not completed
     } else if (activityType === 'exam') {
-      if (solved >= 9) return 'completed'; // 9/10 or 10/10
+      if (correctCount >= 9) return 'completed'; // 9/10 or 10/10
+      if (correctCount >= 1) return 'attempted'; // Started but not completed
     }
 
     return 'not_started';
