@@ -123,7 +123,7 @@ const OgemathMock = () => {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Generate question selection logic - OPTIMIZED VERSION
+  // Generate question selection logic - OPTIMIZED VERSION WITH PRE-FETCHING
   const generateQuestionSelection = async () => {
     setLoading(true);
     try {
@@ -144,11 +144,14 @@ const OgemathMock = () => {
       
       // Process batch results for problems 6-25
       const selectedQuestions: any[] = [];
+      const allQuestionIds: string[] = [];
+      
       batchResults.forEach((result, index) => {
         const problemNum = index + 6;
         if (result.data && result.data.length > 0) {
           const randomQuestion = result.data[Math.floor(Math.random() * result.data.length)];
           selectedQuestions.push(randomQuestion);
+          allQuestionIds.push(randomQuestion.question_id);
         } else {
           console.warn(`No questions found for problem number ${problemNum}`);
         }
@@ -179,6 +182,7 @@ const OgemathMock = () => {
         contextResults.forEach((result, index) => {
           if (result.data && !result.error) {
             contextQuestions.push(result.data);
+            allQuestionIds.push(result.data.question_id);
           }
         });
       } else {
@@ -209,6 +213,7 @@ const OgemathMock = () => {
         contextResults.forEach((result, index) => {
           if (result.data && !result.error) {
             contextQuestions.push(result.data);
+            allQuestionIds.push(result.data.question_id);
           }
         });
       }
@@ -234,6 +239,7 @@ const OgemathMock = () => {
             if (result.data && result.data.length > 0) {
               const randomQuestion = result.data[Math.floor(Math.random() * result.data.length)];
               contextQuestions.push(randomQuestion);
+              allQuestionIds.push(randomQuestion.question_id);
             }
           });
         }
@@ -247,6 +253,30 @@ const OgemathMock = () => {
         toast.error('Не удалось загрузить все вопросы экзамена');
         return;
       }
+
+      // Step 4: PRE-FETCH all question details in parallel
+      console.log('Pre-fetching question details for all 25 questions...');
+      const questionDetailsPromises = allQuestionIds.slice(0, 25).map(questionId => 
+        supabase.functions.invoke('get-question-details', {
+          body: { question_id: questionId, course_id: '1' }
+        })
+      );
+
+      const questionDetailsResults = await Promise.all(questionDetailsPromises);
+      
+      // Store question details in a map for quick access
+      const questionDetailsCache = new Map();
+      questionDetailsResults.forEach((result, index) => {
+        if (result.data && !result.error) {
+          questionDetailsCache.set(allQuestionIds[index], result.data);
+        } else {
+          console.warn(`Failed to fetch details for question ${allQuestionIds[index]}`);
+        }
+      });
+
+      // Store the question details cache globally for use in startAttempt
+      (window as any).questionDetailsCache = questionDetailsCache;
+      console.log(`Cached details for ${questionDetailsCache.size} questions`);
       
       setQuestions(allQuestions.slice(0, 25));
       setCurrentQuestionIndex(0);
@@ -496,27 +526,23 @@ const OgemathMock = () => {
     }
   };
 
-  // Start attempt logging when question is presented
+  // Start attempt logging when question is presented - OPTIMIZED VERSION
   const startAttempt = async (questionId: string, problemNumberType: number, timeSpent: number) => {
     if (!user) return null;
     
     try {
-      // Fetch question details to populate skills and topics
+      // Use pre-fetched question details from cache
+      const questionDetailsCache = (window as any).questionDetailsCache;
       let skillsArray: number[] = [];
       let topicsArray: string[] = [];
 
-      try {
-        const { data: detailsResp, error: detailsErr } = await supabase.functions.invoke('get-question-details', {
-          body: { question_id: questionId, course_id: '1' }
-        });
-        if (detailsErr) {
-          console.warn('get-question-details error (will fallback):', detailsErr);
-        } else if (detailsResp?.data) {
-          skillsArray = Array.isArray(detailsResp.data.skills_list) ? detailsResp.data.skills_list : [];
-          topicsArray = Array.isArray(detailsResp.data.topics_list) ? detailsResp.data.topics_list : [];
-        }
-      } catch (e) {
-        console.warn('Failed to fetch question details, proceeding without skills/topics:', e);
+      if (questionDetailsCache && questionDetailsCache.has(questionId)) {
+        const questionDetails = questionDetailsCache.get(questionId);
+        skillsArray = Array.isArray(questionDetails.skills_list) ? questionDetails.skills_list : [];
+        topicsArray = Array.isArray(questionDetails.topics_list) ? questionDetails.topics_list : [];
+        console.log(`Using cached details for ${questionId}: ${skillsArray.length} skills, ${topicsArray.length} topics`);
+      } else {
+        console.warn(`No cached details found for question ${questionId}, proceeding without skills/topics`);
       }
 
       // Insert into student_activity table with skills and topics
