@@ -48,6 +48,16 @@ const OgemathMock = () => {
   const [examResults, setExamResults] = useState<ExamResult[]>([]);
   const [questionStartTime, setQuestionStartTime] = useState<Date | null>(null);
   const [examId, setExamId] = useState<string>("");
+  const [examStats, setExamStats] = useState<{
+    totalCorrect: number;
+    totalQuestions: number;
+    percentage: number;
+    part1Correct: number;
+    part1Total: number;
+    part2Correct: number;
+    part2Total: number;
+    totalTimeSpent: number;
+  } | null>(null);
   
   // Timer state
   const [examStartTime, setExamStartTime] = useState<Date | null>(null);
@@ -896,28 +906,112 @@ const OgemathMock = () => {
     setShowQuestionMenu(false);
   };
 
-  const calculateStatistics = () => {
-    const correctAnswers = examResults.filter(r => r.isCorrect === true).length;
-    const totalAnswers = examResults.length;
-    const percentage = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
-    
-    // Calculate by problem type
-    const part1Results = examResults.filter(r => r.problemNumber <= 19);
-    const part2Results = examResults.filter(r => r.problemNumber >= 20);
-    
-    const part1Correct = part1Results.filter(r => r.isCorrect === true).length;
-    const part2Correct = part2Results.filter(r => r.isCorrect === true).length;
-    
-    return {
-      totalCorrect: correctAnswers,
-      totalQuestions: totalAnswers,
-      percentage,
-      part1Correct,
-      part1Total: part1Results.length,
-      part2Correct,
-      part2Total: part2Results.length,
-      totalTimeSpent: examResults.reduce((sum, r) => sum + r.timeSpent, 0)
-    };
+  const calculateStatistics = async () => {
+    try {
+      // Get current user's exam_id from profiles
+      const { data: user } = await supabase.auth.getUser();
+      if (!user?.user) return null;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('exam_id')
+        .eq('user_id', user.user.id)
+        .single();
+
+      if (!profile?.exam_id) return null;
+
+      // Fetch all photo analysis outputs for this exam
+      const { data: outputs } = await supabase
+        .from('photo_analysis_outputs')
+        .select('problem_number, raw_output, question_id')
+        .eq('exam_id', profile.exam_id)
+        .eq('user_id', user.user.id);
+
+      if (!outputs) return null;
+
+      let totalCorrect = 0;
+      let part1Correct = 0;
+      let part2Correct = 0;
+      const totalQuestions = 25;
+      const part1Total = 19;
+      const part2Total = 6;
+
+      // Check each question
+      for (const output of outputs) {
+        const problemNum = parseInt(output.problem_number);
+        let isCorrect = false;
+
+        if (problemNum >= 1 && problemNum <= 19) {
+          // For questions 1-19, raw_output contains the user's answer
+          const userAnswer = output.raw_output;
+          
+          // Get correct answer from oge_math_fipi_bank
+          const { data: question } = await supabase
+            .from('oge_math_fipi_bank')
+            .select('answer')
+            .eq('question_id', output.question_id)
+            .single();
+
+          if (question) {
+            const correctAnswer = question.answer;
+            
+            // Check if answer is numeric or non-numeric
+            if (isNumeric(correctAnswer)) {
+              isCorrect = sanitizeNumericAnswer(userAnswer) === sanitizeNumericAnswer(correctAnswer);
+            } else {
+              // Use OpenRouter API for non-numeric validation
+              try {
+                const { data: validationResult } = await supabase.functions.invoke('check-non-numeric-answer', {
+                  body: {
+                    userAnswer,
+                    correctAnswer,
+                    questionId: output.question_id
+                  }
+                });
+                isCorrect = validationResult?.isCorrect || false;
+              } catch (error) {
+                console.error('Error validating non-numeric answer:', error);
+                isCorrect = false;
+              }
+            }
+          }
+
+          if (isCorrect) {
+            part1Correct++;
+            totalCorrect++;
+          }
+        } else if (problemNum >= 20 && problemNum <= 25) {
+          // For questions 20-25, raw_output contains JSON analysis
+          try {
+            const analysis = JSON.parse(output.raw_output);
+            isCorrect = analysis.isCorrect || false;
+            
+            if (isCorrect) {
+              part2Correct++;
+              totalCorrect++;
+            }
+          } catch (error) {
+            console.error('Error parsing JSON for problem', problemNum, error);
+          }
+        }
+      }
+
+      const percentage = Math.round((totalCorrect / totalQuestions) * 100);
+
+      return {
+        totalCorrect,
+        totalQuestions,
+        percentage,
+        part1Correct,
+        part1Total,
+        part2Correct,
+        part2Total,
+        totalTimeSpent: elapsedTime
+      };
+    } catch (error) {
+      console.error('Error calculating statistics:', error);
+      return null;
+    }
   };
 
   if (!examStarted) {
@@ -979,8 +1073,28 @@ const OgemathMock = () => {
     );
   }
 
+  // Load statistics when exam finishes
+  useEffect(() => {
+    if (examFinished && !examStats) {
+      calculateStatistics().then(stats => {
+        if (stats) {
+          setExamStats(stats);
+        }
+      });
+    }
+  }, [examFinished, examStats]);
+
   if (examFinished && !isReviewMode) {
-    const stats = calculateStatistics();
+    if (!examStats) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-lg text-gray-600">Обрабатываем результаты...</p>
+          </div>
+        </div>
+      );
+    }
     
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -1004,12 +1118,12 @@ const OgemathMock = () => {
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-4">Результаты экзамена</h1>
               <div className="text-6xl font-bold mb-4">
-                <span className={stats.percentage >= 60 ? 'text-green-600' : 'text-red-600'}>
-                  {stats.percentage}%
+                <span className={examStats.percentage >= 60 ? 'text-green-600' : 'text-red-600'}>
+                  {examStats.percentage}%
                 </span>
               </div>
               <p className="text-lg text-gray-600">
-                {stats.totalCorrect} из {stats.totalQuestions} правильных ответов
+                {examStats.totalCorrect} из {examStats.totalQuestions} правильных ответов
               </p>
             </div>
 
@@ -1020,7 +1134,7 @@ const OgemathMock = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-blue-600">
-                    {stats.part1Correct}/{stats.part1Total}
+                    {examStats.part1Correct}/{examStats.part1Total}
                   </div>
                   <p className="text-gray-600">Базовый уровень</p>
                 </CardContent>
@@ -1032,7 +1146,7 @@ const OgemathMock = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-purple-600">
-                    {stats.part2Correct}/{stats.part2Total}
+                    {examStats.part2Correct}/{examStats.part2Total}
                   </div>
                   <p className="text-gray-600">Повышенный уровень</p>
                 </CardContent>
@@ -1044,7 +1158,7 @@ const OgemathMock = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-gray-600">
-                    {formatTime(stats.totalTimeSpent)}
+                    {formatTime(examStats.totalTimeSpent)}
                   </div>
                   <p className="text-gray-600">Общее время</p>
                 </CardContent>
