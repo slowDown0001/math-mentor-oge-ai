@@ -318,8 +318,8 @@ const OgemathMock = () => {
         const result = updatedResults[i];
         if (result.problemNumber >= 20 && result.userAnswer) {
           try {
-            // Try to fetch analysis results from database
-            const { data: analysisData, error } = await supabase
+            // Try to fetch analysis results from database - using direct client method
+            const { data: analysisData, error }: { data: any; error: any } = await (supabase as any)
               .from('photo_analysis_outputs')
               .select('raw_output')
               .eq('user_id', user.id)

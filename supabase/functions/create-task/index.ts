@@ -153,8 +153,8 @@ Deno.serve(async (req) => {
     }
 
     // Use profile data if available, otherwise use sensible defaults
-    const target_score = profileData[targetScoreColumn] || getDefaultTargetScore(course_id);
-    const school_grade = profileData[schoolGradeColumn] || getDefaultSchoolGrade(course_id);
+    const target_score = (profileData as any)[targetScoreColumn] || getDefaultTargetScore(course_id);
+    const school_grade = (profileData as any)[schoolGradeColumn] || getDefaultSchoolGrade(course_id);
 
     console.log(`Target score: ${target_score}, School grade: ${school_grade}`);
 
@@ -238,15 +238,9 @@ Deno.serve(async (req) => {
     }
 
     // Start background notification task (non-blocking)
-    // Using EdgeRuntime.waitUntil to ensure the background task completes
-    if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
-      EdgeRuntime.waitUntil(sendNotificationBackground(supabase, user_id));
-    } else {
-      // Fallback for environments that don't support EdgeRuntime.waitUntil
-      sendNotificationBackground(supabase, user_id).catch(error => {
-        console.error('Background notification task error:', error);
-      });
-    }
+    sendNotificationBackground(supabase, user_id).catch(error => {
+      console.error('Background notification task error:', error);
+    });
 
     return new Response(
       JSON.stringify({ 
@@ -262,11 +256,12 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error in create-task function:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message 
+        error: errorMessage 
       }),
       {
         status: 500,
