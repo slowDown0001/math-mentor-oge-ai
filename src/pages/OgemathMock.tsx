@@ -33,6 +33,7 @@ interface ExamResult {
   solutionText: string;
   timeSpent: number;
   photoFeedback?: string;
+  attempted?: boolean;
   photoScores?: number;
   problemNumber: number;
 }
@@ -947,18 +948,36 @@ const OgemathMock = () => {
       const part1Total = 19;
       const part2Total = 6;
 
-      // Initialize results array
+      // Initialize results array for all 25 questions
       const newExamResults = Array(25).fill(undefined);
 
-      // Check each question
-      for (const output of outputs) {
-        const problemNum = parseInt(output.problem_number);
-        const arrayIndex = problemNum - 1; // Convert to 0-based index
+      // Check all 25 questions (1-25)
+      for (let questionNum = 1; questionNum <= 25; questionNum++) {
+        const arrayIndex = questionNum - 1;
+        
+        // Find if this question has an entry in photo_analysis_outputs
+        const output = outputs.find(o => parseInt(o.problem_number) === questionNum);
+        
+        if (!output || output.raw_output === 'false') {
+          // Question not attempted - mark as grey
+          newExamResults[arrayIndex] = {
+            isCorrect: false,
+            userAnswer: '',
+            correctAnswer: '',
+            problemNumber: questionNum,
+            photoFeedback: '',
+            photoScores: 0,
+            timeSpent: 0,
+            attempted: false
+          };
+          continue;
+        }
+
         let isCorrect = false;
         let userAnswer = '';
         let correctAnswer = '';
 
-        if (problemNum >= 1 && problemNum <= 19) {
+        if (questionNum >= 1 && questionNum <= 19) {
           // For questions 1-19, raw_output contains the user's answer
           userAnswer = output.raw_output;
           
@@ -997,7 +1016,7 @@ const OgemathMock = () => {
             part1Correct++;
             totalCorrect++;
           }
-        } else if (problemNum >= 20 && problemNum <= 25) {
+        } else if (questionNum >= 20 && questionNum <= 25) {
           // For questions 20-25, raw_output contains JSON analysis
           try {
             const analysis = JSON.parse(output.raw_output);
@@ -1010,7 +1029,7 @@ const OgemathMock = () => {
               totalCorrect++;
             }
           } catch (error) {
-            console.error('Error parsing JSON for problem', problemNum, error);
+            console.error('Error parsing JSON for problem', questionNum, error);
           }
         }
 
@@ -1019,10 +1038,11 @@ const OgemathMock = () => {
           isCorrect,
           userAnswer,
           correctAnswer,
-          problemNumber: problemNum,
+          problemNumber: questionNum,
           photoFeedback: '',
           photoScores: 0,
-          timeSpent: 0
+          timeSpent: 0,
+          attempted: true
         };
       }
 
@@ -1209,8 +1229,8 @@ const OgemathMock = () => {
                 <div className="grid grid-cols-5 gap-2">
                   {Array.from({ length: 25 }, (_, index) => {
                     const result = examResults[index];
-                    const isAttempted = result !== undefined;
-                    const isCorrect = isAttempted ? result.isCorrect : null;
+                    const isAttempted = result?.attempted !== false;
+                    const isCorrect = isAttempted ? result?.isCorrect : null;
                     
                     return (
                       <Button
