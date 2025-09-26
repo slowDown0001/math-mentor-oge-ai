@@ -123,104 +123,132 @@ const OgemathMock = () => {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Generate question selection logic
+  // Generate question selection logic - OPTIMIZED VERSION
   const generateQuestionSelection = async () => {
     setLoading(true);
     try {
-      const selectedQuestions: Question[] = [];
+      // Step 1: Create batch queries for problems 6-25 (most time-consuming part)
+      const batchPromises = [];
+      for (let problemNum = 6; problemNum <= 25; problemNum++) {
+        batchPromises.push(
+          supabase
+            .from('oge_math_fipi_bank')
+            .select('*')
+            .eq('problem_number_type', problemNum)
+            .limit(20) // Limit for faster query
+        );
+      }
       
-      // Step 1: Select problems 1-5
+      // Step 2: Execute all problem 6-25 queries in parallel
+      const batchResults = await Promise.all(batchPromises);
+      
+      // Process batch results for problems 6-25
+      const selectedQuestions: any[] = [];
+      batchResults.forEach((result, index) => {
+        const problemNum = index + 6;
+        if (result.data && result.data.length > 0) {
+          const randomQuestion = result.data[Math.floor(Math.random() * result.data.length)];
+          selectedQuestions.push(randomQuestion);
+        } else {
+          console.warn(`No questions found for problem number ${problemNum}`);
+        }
+      });
+      
+      // Step 3: Handle problems 1-5 with optimized approach
       const contextTypes = ['uchastki', 'pechi', 'bumaga', 'shini', 'dorogi', 'kvartiri', 'internet'];
       const selectedContext = contextTypes[Math.floor(Math.random() * contextTypes.length)];
       
-      let contextQuestions: Question[] = [];
+      const contextQuestions: any[] = [];
       
       if (selectedContext === 'internet') {
         const Y = Math.floor(Math.random() * 26) + 1;
+        const contextPromises = [];
+        
         for (let i = 0; i < 5; i++) {
           const questionId = `OGE_SHinternet_1_1_${Y + i}`;
-          const { data, error } = await supabase
-            .from('oge_math_fipi_bank')
-            .select('*')
-            .eq('question_id', questionId)
-            .single();
-          
-          if (data && !error) {
-            contextQuestions.push(data);
-          } else {
-            // Retry with different Y if question not found
-            console.warn(`Question ${questionId} not found, retrying...`);
-            const retryY = Math.floor(Math.random() * 26) + 1;
-            const retryQuestionId = `OGE_SHinternet_1_1_${retryY + i}`;
-            const { data: retryData } = await supabase
+          contextPromises.push(
+            supabase
               .from('oge_math_fipi_bank')
               .select('*')
-              .eq('question_id', retryQuestionId)
-              .single();
-            if (retryData) contextQuestions.push(retryData);
-          }
+              .eq('question_id', questionId)
+              .single()
+          );
         }
+        
+        const contextResults = await Promise.all(contextPromises);
+        contextResults.forEach((result, index) => {
+          if (result.data && !result.error) {
+            contextQuestions.push(result.data);
+          }
+        });
       } else {
         const ranges = {
           'bumaga': 3,
           'dorogi': 10,
           'kvartiri': 5,
           'pechi': 5,
-          'shini': 4,
+          'shiny': 4,
           'uchastki': 4
         };
         
         const X = Math.floor(Math.random() * ranges[selectedContext as keyof typeof ranges]) + 1;
+        const contextPromises = [];
         
         for (let i = 1; i <= 5; i++) {
           const questionId = `OGE_SH${selectedContext}_1_${X}_${i}`;
-          const { data, error } = await supabase
-            .from('oge_math_fipi_bank')
-            .select('*')
-            .eq('question_id', questionId)
-            .single();
-          
-          if (data && !error) {
-            contextQuestions.push(data);
-          } else {
-            // Retry with different X if question not found
-            console.warn(`Question ${questionId} not found, retrying...`);
-            const retryX = Math.floor(Math.random() * ranges[selectedContext as keyof typeof ranges]) + 1;
-            const retryQuestionId = `OGE_SH${selectedContext}_1_${retryX}_${i}`;
-            const { data: retryData } = await supabase
+          contextPromises.push(
+            supabase
               .from('oge_math_fipi_bank')
               .select('*')
-              .eq('question_id', retryQuestionId)
-              .single();
-            if (retryData) contextQuestions.push(retryData);
+              .eq('question_id', questionId)
+              .single()
+          );
+        }
+        
+        const contextResults = await Promise.all(contextPromises);
+        contextResults.forEach((result, index) => {
+          if (result.data && !result.error) {
+            contextQuestions.push(result.data);
+          }
+        });
+      }
+      
+      // If we didn't get all 5 context questions, get fallback questions
+      if (contextQuestions.length < 5) {
+        const fallbackPromises = [];
+        for (let problemNum = 1; problemNum <= 5; problemNum++) {
+          if (contextQuestions.length < problemNum) {
+            fallbackPromises.push(
+              supabase
+                .from('oge_math_fipi_bank')
+                .select('*')
+                .eq('problem_number_type', problemNum)
+                .limit(10)
+            );
           }
         }
-      }
-      
-      selectedQuestions.push(...contextQuestions);
-      
-      // Step 2: Select problems 6-25
-      for (let problemNum = 6; problemNum <= 25; problemNum++) {
-        const { data, error } = await supabase
-          .from('oge_math_fipi_bank')
-          .select('*')
-          .eq('problem_number_type', problemNum);
         
-        if (data && data.length > 0) {
-          const randomQuestion = data[Math.floor(Math.random() * data.length)];
-          selectedQuestions.push(randomQuestion);
-        } else {
-          console.warn(`No questions found for problem number ${problemNum}`);
+        if (fallbackPromises.length > 0) {
+          const fallbackResults = await Promise.all(fallbackPromises);
+          fallbackResults.forEach((result) => {
+            if (result.data && result.data.length > 0) {
+              const randomQuestion = result.data[Math.floor(Math.random() * result.data.length)];
+              contextQuestions.push(randomQuestion);
+            }
+          });
         }
       }
       
+      // Combine all questions: context (1-5) + problems (6-25)
+      const allQuestions = [...contextQuestions.slice(0, 5), ...selectedQuestions];
+      
       // Ensure we have exactly 25 questions
-      if (selectedQuestions.length < 25) {
+      if (allQuestions.length < 25) {
         toast.error('Не удалось загрузить все вопросы экзамена');
         return;
       }
       
-      setQuestions(selectedQuestions.slice(0, 25));
+      setQuestions(allQuestions.slice(0, 25));
       setCurrentQuestionIndex(0);
       setUserAnswer("");
       setQuestionStartTime(new Date());
