@@ -47,6 +47,7 @@ const OgemathMock = () => {
   const [loading, setLoading] = useState(false);
   const [examResults, setExamResults] = useState<ExamResult[]>([]);
   const [questionStartTime, setQuestionStartTime] = useState<Date | null>(null);
+  const [examId, setExamId] = useState<string>("");
   
   // Timer state
   const [examStartTime, setExamStartTime] = useState<Date | null>(null);
@@ -216,6 +217,10 @@ const OgemathMock = () => {
       return;
     }
     
+    // Generate unique exam ID
+    const newExamId = `exam_${user.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setExamId(newExamId);
+    
     setExamStarted(true);
     setExamStartTime(new Date());
     await generateQuestionSelection();
@@ -308,55 +313,67 @@ const OgemathMock = () => {
         }
       }
       
-      // Check answers for problems 20-25 using photo analysis
+      // Fetch photo analysis results from database for problems 20-25
       for (let i = 0; i < updatedResults.length; i++) {
         const result = updatedResults[i];
         if (result.problemNumber >= 20 && result.userAnswer) {
           try {
-            const questionToAnalyze = questions.find(q => q.question_id === result.questionId);
-            if (questionToAnalyze) {
-              const { data, error } = await supabase.functions.invoke('check-photo-solution', {
-                body: {
-                  student_solution: result.userAnswer,
-                  problem_text: questionToAnalyze.problem_text,
-                  solution_text: questionToAnalyze.solution_text,
-                  user_id: user.id,
-                  question_id: result.questionId
-                }
-              });
-              
-              if (!error && data?.feedback) {
-                try {
-                  // Parse JSON response
-                  const feedbackData = JSON.parse(data.feedback);
-                  if (feedbackData.review && typeof feedbackData.scores === 'number') {
-                    updatedResults[i] = {
-                      ...result,
-                      photoFeedback: feedbackData.review,
-                      photoScores: feedbackData.scores,
-                      isCorrect: feedbackData.scores >= 2
-                    };
-                  } else {
-                    updatedResults[i] = {
-                      ...result,
-                      photoFeedback: data.feedback,
-                      photoScores: 0,
-                      isCorrect: false
-                    };
-                  }
-                } catch (parseError) {
-                  console.error('Error parsing API response:', parseError);
+            // Try to fetch analysis results from database
+            const { data: analysisData, error } = await supabase
+              .from('photo_analysis_outputs')
+              .select('raw_output')
+              .eq('user_id', user.id)
+              .eq('question_id', result.questionId)
+              .eq('exam_id', examId)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            
+            if (!error && analysisData?.raw_output) {
+              try {
+                // Parse JSON response from database
+                const feedbackData = JSON.parse(analysisData.raw_output);
+                if (feedbackData.review && typeof feedbackData.scores === 'number') {
                   updatedResults[i] = {
                     ...result,
-                    photoFeedback: data.feedback,
+                    photoFeedback: feedbackData.review,
+                    photoScores: feedbackData.scores,
+                    isCorrect: feedbackData.scores >= 2
+                  };
+                } else {
+                  updatedResults[i] = {
+                    ...result,
+                    photoFeedback: analysisData.raw_output,
                     photoScores: 0,
                     isCorrect: false
                   };
                 }
+              } catch (parseError) {
+                console.error('Error parsing stored analysis:', parseError);
+                updatedResults[i] = {
+                  ...result,
+                  photoFeedback: analysisData.raw_output,
+                  photoScores: 0,
+                  isCorrect: false
+                };
               }
+            } else {
+              // If no analysis found in database, mark as not analyzed
+              updatedResults[i] = {
+                ...result,
+                photoFeedback: "Анализ фото решения не найден",
+                photoScores: 0,
+                isCorrect: false
+              };
             }
           } catch (error) {
-            console.error('Error checking photo solution:', error);
+            console.error('Error fetching photo analysis:', error);
+            updatedResults[i] = {
+              ...result,
+              photoFeedback: "Ошибка при получении анализа",
+              photoScores: 0,
+              isCorrect: false
+            };
           }
         }
       }
@@ -427,10 +444,25 @@ const OgemathMock = () => {
         return;
       }
 
-      // Store the photo solution for analysis at the end
+      // Store the photo solution and trigger analysis immediately (fire and forget)
       setUserAnswer(profile.telegram_input);
       setShowUploadPrompt(false);
-      toast.success('Фото решения сохранено для анализа в конце экзамена');
+      
+      // Fire and forget: analyze photo immediately and save to database
+      supabase.functions.invoke('check-photo-solution', {
+        body: {
+          student_solution: profile.telegram_input,
+          problem_text: currentQuestion.problem_text,
+          solution_text: currentQuestion.solution_text,
+          user_id: user.id,
+          question_id: currentQuestion.question_id,
+          exam_id: examId
+        }
+      }).catch(error => {
+        console.error('Background photo analysis error:', error);
+      });
+      
+      toast.success('Фото решения сохранено и отправлено на анализ');
     } catch (error) {
       console.error('Error in handlePhotoCheck:', error);
       toast.error('Произошла ошибка при обработке решения');

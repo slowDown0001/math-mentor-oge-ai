@@ -21,7 +21,7 @@ serve(async (req)=>{
     if (!openRouterApiKey) {
       throw new Error('OPENROUTER_API_KEY is not configured');
     }
-    const { student_solution, problem_text, solution_text, user_id, question_id } = await req.json();
+    const { student_solution, problem_text, solution_text, user_id, question_id, exam_id } = await req.json();
     if (!student_solution || !problem_text || !solution_text) {
       return new Response(JSON.stringify({
         error: 'Missing required parameters'
@@ -120,6 +120,7 @@ Your task: Return the SAME JSON, but ensure review is perfectly compilable MathJ
       const { error: insertError } = await supabase.from('photo_analysis_outputs').insert({
         user_id: user_id,
         question_id: question_id || null,
+        exam_id: exam_id || null,
         raw_output: finalFeedback,
         analysis_type: 'photo_solution'
       });
