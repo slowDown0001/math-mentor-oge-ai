@@ -38,7 +38,7 @@ export const ProgressButton: React.FC<ProgressButtonProps> = ({
       case 'proficient':
         return 'w-8 h-8 bg-purple-500 rounded';
       case 'familiar':
-        return 'w-8 h-8 bg-orange-500 rounded';
+        return 'w-8 h-8 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded';
       case 'attempted':
         return 'w-8 h-8 border-2 border-orange-400 rounded bg-white';
       default:

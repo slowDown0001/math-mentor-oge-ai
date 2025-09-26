@@ -230,7 +230,7 @@ const ModuleAppliedMath = () => {
               <span className="text-sm text-gray-700 dark:text-gray-300">Владею</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-orange-500 rounded"></div>
+              <div className="w-4 h-4 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded"></div>
               <span className="text-sm text-gray-700 dark:text-gray-300">Знаком</span>
             </div>
             <div className="flex items-center gap-2">
