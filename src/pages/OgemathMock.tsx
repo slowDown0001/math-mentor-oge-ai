@@ -217,9 +217,30 @@ const OgemathMock = () => {
       return;
     }
     
-    // Generate unique exam ID
-    const newExamId = `exam_${user.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Generate unique exam ID (UUID format)
+    const crypto = window.crypto || (window as any).msCrypto;
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    const newExamId = `${array[0].toString(16).padStart(2, '0')}${array[1].toString(16).padStart(2, '0')}${array[2].toString(16).padStart(2, '0')}${array[3].toString(16).padStart(2, '0')}-${array[4].toString(16).padStart(2, '0')}${array[5].toString(16).padStart(2, '0')}-${array[6].toString(16).padStart(2, '0')}${array[7].toString(16).padStart(2, '0')}-${array[8].toString(16).padStart(2, '0')}${array[9].toString(16).padStart(2, '0')}-${array[10].toString(16).padStart(2, '0')}${array[11].toString(16).padStart(2, '0')}${array[12].toString(16).padStart(2, '0')}${array[13].toString(16).padStart(2, '0')}${array[14].toString(16).padStart(2, '0')}${array[15].toString(16).padStart(2, '0')}`;
     setExamId(newExamId);
+    
+    // Save exam_id to profiles table
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ exam_id: newExamId })
+        .eq('user_id', user.id);
+      
+      if (error) {
+        console.error('Error saving exam_id to profiles:', error);
+        toast.error('Ошибка при сохранении идентификатора экзамена');
+        return;
+      }
+    } catch (error) {
+      console.error('Error updating profile with exam_id:', error);
+      toast.error('Ошибка при подготовке экзамена');
+      return;
+    }
     
     setExamStarted(true);
     setExamStartTime(new Date());
