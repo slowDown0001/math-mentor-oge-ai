@@ -270,7 +270,7 @@ const OgemathMock = () => {
     
     setExamResults(prev => {
       const newResults = [...prev];
-      const existingIndex = newResults.findIndex(r => r.questionIndex === currentQuestionIndex);
+      const existingIndex = newResults.findIndex(r => r && r.questionIndex === currentQuestionIndex);
       if (existingIndex >= 0) {
         newResults[existingIndex] = result;
       } else {
