@@ -1615,7 +1615,9 @@ export type Database = {
         Row: {
           analysis_type: string | null
           created_at: string
+          exam_id: string | null
           id: string
+          problem_number: string | null
           question_id: string | null
           raw_output: string
           user_id: string
@@ -1623,7 +1625,9 @@ export type Database = {
         Insert: {
           analysis_type?: string | null
           created_at?: string
+          exam_id?: string | null
           id?: string
+          problem_number?: string | null
           question_id?: string | null
           raw_output: string
           user_id: string
@@ -1631,7 +1635,9 @@ export type Database = {
         Update: {
           analysis_type?: string | null
           created_at?: string
+          exam_id?: string | null
           id?: string
+          problem_number?: string | null
           question_id?: string | null
           raw_output?: string
           user_id?: string
@@ -1647,6 +1653,7 @@ export type Database = {
           course_3_goal: string | null
           courses: number[] | null
           created_at: string
+          exam_id: string | null
           full_name: string | null
           id: string
           image_proccessing_command: string | null
@@ -1674,6 +1681,7 @@ export type Database = {
           course_3_goal?: string | null
           courses?: number[] | null
           created_at?: string
+          exam_id?: string | null
           full_name?: string | null
           id?: string
           image_proccessing_command?: string | null
@@ -1701,6 +1709,7 @@ export type Database = {
           course_3_goal?: string | null
           courses?: number[] | null
           created_at?: string
+          exam_id?: string | null
           full_name?: string | null
           id?: string
           image_proccessing_command?: string | null
@@ -1748,6 +1757,7 @@ export type Database = {
       }
       stories_and_telegram: {
         Row: {
+          course_id: string | null
           created_at: string | null
           hardcode_task: string | null
           problem_submission_id: string | null
@@ -1759,6 +1769,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          course_id?: string | null
           created_at?: string | null
           hardcode_task?: string | null
           problem_submission_id?: string | null
@@ -1770,6 +1781,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          course_id?: string | null
           created_at?: string | null
           hardcode_task?: string | null
           problem_submission_id?: string | null
@@ -2491,27 +2503,42 @@ export type Database = {
         Row: {
           activity: string | null
           activity_type: string | null
+          correct_count: string | null
           created_at: string
           id: number
+          item_id: string | null
+          module_id: string | null
           skills_involved: string | null
+          solved_count: string | null
+          total_questions: string | null
           user_id: string | null
           work_done: string | null
         }
         Insert: {
           activity?: string | null
           activity_type?: string | null
+          correct_count?: string | null
           created_at?: string
           id?: number
+          item_id?: string | null
+          module_id?: string | null
           skills_involved?: string | null
+          solved_count?: string | null
+          total_questions?: string | null
           user_id?: string | null
           work_done?: string | null
         }
         Update: {
           activity?: string | null
           activity_type?: string | null
+          correct_count?: string | null
           created_at?: string
           id?: number
+          item_id?: string | null
+          module_id?: string | null
           skills_involved?: string | null
+          solved_count?: string | null
+          total_questions?: string | null
           user_id?: string | null
           work_done?: string | null
         }

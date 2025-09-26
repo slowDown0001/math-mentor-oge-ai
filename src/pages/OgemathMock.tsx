@@ -251,6 +251,7 @@ const OgemathMock = () => {
     if (!currentQuestion || !questionStartTime) return;
     
     const timeSpent = Math.floor((new Date().getTime() - questionStartTime.getTime()) / 1000);
+    const problemNumber = currentQuestion.problem_number_type || currentQuestionIndex + 1;
     
     // Save current question result
     const result: ExamResult = {
@@ -264,7 +265,7 @@ const OgemathMock = () => {
       timeSpent,
       photoFeedback,
       photoScores,
-      problemNumber: currentQuestion.problem_number_type || currentQuestionIndex + 1
+      problemNumber
     };
     
     setExamResults(prev => {
@@ -278,6 +279,67 @@ const OgemathMock = () => {
       return newResults;
     });
     
+    // Save to photo_analysis_outputs table
+    if (user && userAnswer.trim()) {
+      try {
+        // Get exam_id from profiles table
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('exam_id')
+          .eq('user_id', user.id)
+          .single();
+        
+        const currentExamId = profile?.exam_id || examId;
+        
+        // Determine analysis_type based on problem number
+        const analysisType = problemNumber >= 20 ? 'photo_solution' : 'solution';
+        
+        // For photo solutions (problems 20-25), call analyze-photo-solution function
+        if (problemNumber >= 20 && userAnswer.trim()) {
+          try {
+            const { data: analysisResult, error: analysisError } = await supabase.functions.invoke('analyze-photo-solution', {
+              body: {
+                student_solution: userAnswer.trim(),
+                problem_text: currentQuestion.problem_text,
+                solution_text: currentQuestion.solution_text,
+                user_id: user.id,
+                question_id: currentQuestion.question_id,
+                exam_id: currentExamId,
+                problem_number: problemNumber
+              }
+            });
+            
+            if (analysisError) {
+              console.error('Error calling analyze-photo-solution:', analysisError);
+            } else {
+              console.log('Photo analysis completed:', analysisResult);
+            }
+          } catch (error) {
+            console.error('Error with photo analysis function:', error);
+          }
+        } else {
+          // For regular solutions (problems 1-19), save directly to database
+          const { error: insertError } = await supabase
+            .from('photo_analysis_outputs')
+            .insert({
+              user_id: user.id,
+              question_id: currentQuestion.question_id,
+              exam_id: currentExamId,
+              problem_number: problemNumber.toString(),
+              raw_output: userAnswer.trim(),
+              analysis_type: analysisType
+            });
+          
+          if (insertError) {
+            console.error('Error saving solution to database:', insertError);
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error saving question data:', error);
+      }
+    }
+    
     // Log the attempt to supabase
     if (user) {
       try {
@@ -288,7 +350,7 @@ const OgemathMock = () => {
             question_id: currentQuestion.question_id,
             answer_time_start: questionStartTime.toISOString(),
             finished_or_not: true,
-            problem_number_type: currentQuestion.problem_number_type || currentQuestionIndex + 1,
+            problem_number_type: problemNumber,
             is_correct: null, // Will be determined later
             duration_answer: timeSpent,
             scores_fipi: photoScores,
