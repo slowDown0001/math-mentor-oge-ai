@@ -1247,9 +1247,9 @@ const OgemathMock = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   Вопрос {reviewQuestionIndex + 1}
-                  {reviewResult.isCorrect === true ? (
+                  {reviewResult?.isCorrect === true ? (
                     <CheckCircle className="w-6 h-6 text-green-600" />
-                  ) : reviewResult.isCorrect === false ? (
+                  ) : reviewResult?.isCorrect === false ? (
                     <XCircle className="w-6 h-6 text-red-600" />
                   ) : null}
                 </CardTitle>
@@ -1273,9 +1273,9 @@ const OgemathMock = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="font-mono p-3 bg-gray-50 rounded">
-                    {reviewResult.userAnswer || 'Не отвечено'}
+                    {reviewResult?.userAnswer || 'Не отвечено'}
                   </div>
-                  {reviewResult.photoFeedback && (
+                  {reviewResult?.photoFeedback && (
                     <div className="mt-3">
                       <strong>Оценка:</strong>
                       <div className="mt-1 p-3 bg-blue-50 rounded text-sm">
@@ -1295,7 +1295,7 @@ const OgemathMock = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="font-mono p-3 bg-green-50 rounded">
-                    {reviewResult.correctAnswer}
+                    {reviewResult?.correctAnswer || 'Неизвестно'}
                   </div>
                 </CardContent>
               </Card>
