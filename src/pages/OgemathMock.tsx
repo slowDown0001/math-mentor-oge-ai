@@ -1392,6 +1392,14 @@ const OgemathMock = () => {
                               {code}
                             </div>
                           </div>
+                          {analysis.review && (
+                            <div className="mt-4 p-4 bg-blue-50 rounded border">
+                              <h4 className="font-semibold text-blue-800 mb-2">Обзор решения:</h4>
+                              <div className="whitespace-pre-wrap text-sm">
+                                {analysis.review}
+                              </div>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     );
