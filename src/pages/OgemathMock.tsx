@@ -306,7 +306,7 @@ const OgemathMock = () => {
                 user_id: user.id,
                 question_id: currentQuestion.question_id,
                 exam_id: currentExamId,
-                problem_number: problemNumber
+                problem_number: problemNumber.toString()
               }
             });
             
@@ -618,6 +618,35 @@ const OgemathMock = () => {
   const handleFinishExam = async () => {
     setExamFinished(true);
     await checkAllAnswers();
+    
+    // Fetch exam results from photo_analysis_outputs
+    if (user) {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('exam_id')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile?.exam_id) {
+          const { data: photoResults, error } = await supabase
+            .from('photo_analysis_outputs')
+            .select('*')
+            .eq('exam_id', profile.exam_id)
+            .eq('user_id', user.id);
+          
+          if (error) {
+            console.error('Error fetching exam results:', error);
+          } else {
+            console.log('Exam results from photo_analysis_outputs:', photoResults);
+            // Store results for use in review mode
+            setPhotoFeedback(JSON.stringify(photoResults));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching exam results:', error);
+      }
+    }
   };
 
   const checkAllAnswers = async () => {
