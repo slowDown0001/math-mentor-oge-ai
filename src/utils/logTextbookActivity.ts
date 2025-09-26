@@ -7,6 +7,7 @@ export async function logTextbookActivity(payload: {
   activity: string;
   status?: "started" | "finished" | "opened" | "read";
   solved_count?: number;
+  correct_count?: number;
   total_questions?: number; // default: 4/6/10 handled server-side
   skills_involved?: string;
   module_id?: string;

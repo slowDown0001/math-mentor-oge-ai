@@ -11,6 +11,7 @@ interface LogActivityPayload {
   activity: string
   status?: 'started' | 'finished' | 'opened' | 'read'
   solved_count?: number
+  correct_count?: number
   total_questions?: number
   skills_involved?: string
   module_id?: string
@@ -83,6 +84,7 @@ Deno.serve(async (req) => {
         activity: payload.activity,
         work_done: work_done,
         solved_count: payload.solved_count,
+        correct_count: payload.correct_count,
         total_questions: payload.total_questions,
         skills_involved: payload.skills_involved,
         module_id: payload.module_id,
