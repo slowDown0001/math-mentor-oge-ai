@@ -1168,30 +1168,50 @@ const OgemathMock = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Подробные результаты</CardTitle>
+                <p className="text-sm text-gray-600 mt-2">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="w-3 h-3 bg-green-500 rounded"></span>
+                    Правильно
+                  </span>
+                  <span className="inline-flex items-center gap-2 ml-4">
+                    <span className="w-3 h-3 bg-red-500 rounded"></span>
+                    Неправильно
+                  </span>
+                  <span className="inline-flex items-center gap-2 ml-4">
+                    <span className="w-3 h-3 bg-gray-400 rounded"></span>
+                    Не отвечено
+                  </span>
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-5 gap-2">
-                  {examResults.map((result, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className={`h-12 ${
-                        result.isCorrect === true 
-                          ? 'bg-green-100 border-green-300 hover:bg-green-200' 
-                          : result.isCorrect === false 
-                          ? 'bg-red-100 border-red-300 hover:bg-red-200'
-                          : 'bg-gray-100 border-gray-300 hover:bg-gray-200'
-                      }`}
-                      onClick={() => handleGoToQuestion(index)}
-                    >
-                      <div className="text-center">
-                        <div className="font-semibold">{index + 1}</div>
-                        <div className="text-xs">
-                          {result.isCorrect === true ? '✓' : result.isCorrect === false ? '✗' : '?'}
+                  {Array.from({ length: 25 }, (_, index) => {
+                    const result = examResults[index];
+                    const isAttempted = result !== undefined;
+                    const isCorrect = isAttempted ? result.isCorrect : null;
+                    
+                    return (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        className={`h-12 ${
+                          isCorrect === true 
+                            ? 'bg-green-100 border-green-500 hover:bg-green-200 text-green-800' 
+                            : isCorrect === false 
+                            ? 'bg-red-100 border-red-500 hover:bg-red-200 text-red-800'
+                            : 'bg-gray-100 border-gray-400 hover:bg-gray-200 text-gray-600'
+                        }`}
+                        onClick={() => handleGoToQuestion(index)}
+                      >
+                        <div className="text-center">
+                          <div className="font-semibold">{index + 1}</div>
+                          <div className="text-xs">
+                            {isCorrect === true ? '✓' : isCorrect === false ? '✗' : '—'}
+                          </div>
                         </div>
-                      </div>
-                    </Button>
-                  ))}
+                      </Button>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
