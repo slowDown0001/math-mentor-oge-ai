@@ -54,6 +54,7 @@ const OgemathMock = () => {
   const [isTimeUp, setIsTimeUp] = useState(false);
   
   // Photo upload states for problems 20-25
+  const [showTelegramNotConnected, setShowTelegramNotConnected] = useState(false);
   const [showUploadPrompt, setShowUploadPrompt] = useState(false);
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [photoFeedback, setPhotoFeedback] = useState<string>("");
@@ -309,21 +310,47 @@ const OgemathMock = () => {
         const result = updatedResults[i];
         if (result.problemNumber >= 20 && result.userAnswer) {
           try {
-            const { data, error } = await supabase.functions.invoke('check-photo-solution', {
-              body: {
-                user_id: user.id,
-                question_id: result.questionId,
-                analysis_text: result.userAnswer
+            const questionToAnalyze = questions.find(q => q.question_id === result.questionId);
+            if (questionToAnalyze) {
+              const { data, error } = await supabase.functions.invoke('check-photo-solution', {
+                body: {
+                  student_solution: result.userAnswer,
+                  problem_text: questionToAnalyze.problem_text,
+                  solution_text: questionToAnalyze.solution_text,
+                  user_id: user.id,
+                  question_id: result.questionId
+                }
+              });
+              
+              if (!error && data?.feedback) {
+                try {
+                  // Parse JSON response
+                  const feedbackData = JSON.parse(data.feedback);
+                  if (feedbackData.review && typeof feedbackData.scores === 'number') {
+                    updatedResults[i] = {
+                      ...result,
+                      photoFeedback: feedbackData.review,
+                      photoScores: feedbackData.scores,
+                      isCorrect: feedbackData.scores >= 2
+                    };
+                  } else {
+                    updatedResults[i] = {
+                      ...result,
+                      photoFeedback: data.feedback,
+                      photoScores: 0,
+                      isCorrect: false
+                    };
+                  }
+                } catch (parseError) {
+                  console.error('Error parsing API response:', parseError);
+                  updatedResults[i] = {
+                    ...result,
+                    photoFeedback: data.feedback,
+                    photoScores: 0,
+                    isCorrect: false
+                  };
+                }
               }
-            });
-            
-            if (!error && data) {
-              updatedResults[i] = {
-                ...result,
-                photoFeedback: data.feedback || '',
-                photoScores: data.scores || 0,
-                isCorrect: (data.scores || 0) >= 2
-              };
             }
           } catch (error) {
             console.error('Error checking photo solution:', error);
@@ -339,13 +366,74 @@ const OgemathMock = () => {
     }
   };
 
-  const handlePhotoUpload = () => {
-    setShowUploadPrompt(true);
+  // Photo attachment functionality
+  const handlePhotoAttachment = async () => {
+    if (!user) {
+      toast.error('Войдите в систему для прохождения экзамена');
+      return;
+    }
+
+    try {
+      // Check if user has telegram_user_id
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('telegram_user_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking telegram connection:', error);
+        toast.error('Ошибка при проверке подключения Telegram');
+        return;
+      }
+
+      if (!profile?.telegram_user_id) {
+        setShowTelegramNotConnected(true);
+      } else {
+        setShowUploadPrompt(true);
+      }
+    } catch (error) {
+      console.error('Error in handlePhotoAttachment:', error);
+      toast.error('Ошибка при проверке подключения Telegram');
+    }
   };
 
-  const handlePhotoAnalysis = async (analysisText: string) => {
-    setUserAnswer(analysisText);
-    setShowUploadPrompt(false);
+  const handlePhotoCheck = async () => {
+    if (!user || !currentQuestion) return;
+
+    setIsProcessingPhoto(true);
+    
+    try {
+      // Check telegram_input for data
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('telegram_input')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error getting telegram input:', profileError);
+        toast.error('Ошибка при получении данных');
+        setIsProcessingPhoto(false);
+        return;
+      }
+
+      if (!profile?.telegram_input) {
+        toast.error('Фото не загружено.');
+        setIsProcessingPhoto(false);
+        return;
+      }
+
+      // Store the photo solution for analysis at the end
+      setUserAnswer(profile.telegram_input);
+      setShowUploadPrompt(false);
+      toast.success('Фото решения сохранено для анализа в конце экзамена');
+    } catch (error) {
+      console.error('Error in handlePhotoCheck:', error);
+      toast.error('Произошла ошибка при обработке решения');
+    } finally {
+      setIsProcessingPhoto(false);
+    }
   };
 
   const handleGoToQuestion = (questionIndex: number) => {
@@ -741,13 +829,13 @@ const OgemathMock = () => {
                   </div>
 
                   {isPhotoQuestion && (
-                    <div className="flex gap-3">
-                      <Button 
-                        onClick={handlePhotoUpload}
+                    <div className="flex justify-center">
+                      <Button
                         variant="outline"
-                        className="flex items-center gap-2"
+                        onClick={handlePhotoAttachment}
+                        className="bg-blue-50 hover:bg-blue-100 border-blue-200"
                       >
-                        <Camera className="w-4 h-4" />
+                        <Camera className="w-4 h-4 mr-2" />
                         Прикрепить фото
                       </Button>
                     </div>
@@ -784,26 +872,49 @@ const OgemathMock = () => {
         </div>
       </div>
 
-      {/* Photo upload dialog */}
+      {/* Telegram Not Connected Dialog */}
+      <Dialog open={showTelegramNotConnected} onOpenChange={setShowTelegramNotConnected}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <XCircle className="w-5 h-5 text-red-500" />
+              Telegram не подключен
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-gray-700">
+              Зайдите в Дашборд и потвердите Telegram код.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <Button onClick={() => setShowTelegramNotConnected(false)}>
+              Понятно
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Prompt Dialog */}
       <Dialog open={showUploadPrompt} onOpenChange={setShowUploadPrompt}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Загрузка фото решения</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p>Для задач 20-25 необходимо загрузить фото вашего решения.</p>
-            <p className="text-sm text-gray-600">
-              Сфотографируйте ваше письменное решение и вставьте текст решения в поле ответа.
-            </p>
-            <Button 
-              onClick={() => {
-                setUserAnswer("Решение загружено в виде фото");
-                setShowUploadPrompt(false);
-              }}
-              className="w-full"
-            >
-              Продолжить
-            </Button>
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-blue-800">
+                Загрузите фото в телеграм бот egechat_bot. Уже загрузили? Нажмите кнопку 'Да'
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <Button 
+                onClick={handlePhotoCheck}
+                disabled={isProcessingPhoto}
+                className="min-w-24"
+              >
+                {isProcessingPhoto ? 'Обработка...' : 'Да'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
