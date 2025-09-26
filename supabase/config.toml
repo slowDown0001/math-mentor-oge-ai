@@ -21,3 +21,7 @@ timeout = 600
 
 [functions.log-textbook-activity]
 timeout = 60
+
+[functions.check-photo-solution]
+verify_jwt = false
+timeout = 120
