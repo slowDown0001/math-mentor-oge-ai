@@ -1395,8 +1395,8 @@ const OgemathMock = () => {
                           {analysis.review && (
                             <div className="mt-4 p-4 bg-blue-50 rounded border">
                               <h4 className="font-semibold text-blue-800 mb-2">Обзор решения:</h4>
-                              <div className="whitespace-pre-wrap text-sm">
-                                {analysis.review}
+                              <div className="text-sm">
+                                <MathRenderer text={analysis.review} />
                               </div>
                             </div>
                           )}
