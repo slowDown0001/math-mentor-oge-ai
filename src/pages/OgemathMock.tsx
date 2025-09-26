@@ -102,6 +102,17 @@ const OgemathMock = () => {
     
     return () => clearInterval(interval);
   }, [examStartTime, examFinished]);
+
+  // Load statistics when exam finishes
+  useEffect(() => {
+    if (examFinished && !examStats) {
+      calculateStatistics().then(stats => {
+        if (stats) {
+          setExamStats(stats);
+        }
+      });
+    }
+  }, [examFinished, examStats]);
   
   // Format timer display
   const formatTime = (seconds: number) => {
@@ -1072,17 +1083,6 @@ const OgemathMock = () => {
       </div>
     );
   }
-
-  // Load statistics when exam finishes
-  useEffect(() => {
-    if (examFinished && !examStats) {
-      calculateStatistics().then(stats => {
-        if (stats) {
-          setExamStats(stats);
-        }
-      });
-    }
-  }, [examFinished, examStats]);
 
   if (examFinished && !isReviewMode) {
     if (!examStats) {
