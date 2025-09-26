@@ -335,38 +335,7 @@ const OgemathMock = () => {
             isCorrect = false;
           }
         } else {
-          // For problems 1-19, check answer directly
-          const correctAnswer = currentQuestion.answer;
-          
-          if (isNumeric(correctAnswer)) {
-            // Simple numeric comparison
-            const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
-            const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
-            isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
-          } else {
-            // Use OpenRouter API for non-numeric answers
-            try {
-              const { data, error } = await supabase.functions.invoke('check-non-numeric-answer', {
-                body: {
-                  student_answer: userAnswer.trim(),
-                  correct_answer: correctAnswer,
-                  problem_text: currentQuestion.problem_text
-                }
-              });
-
-              if (error) {
-                console.error('Error checking non-numeric answer:', error);
-                isCorrect = false;
-              } else {
-                isCorrect = data?.is_correct || false;
-              }
-            } catch (error) {
-              console.error('Error with non-numeric answer check:', error);
-              isCorrect = false;
-            }
-          }
-          
-          // Save simple right/wrong result to photo_analysis_outputs
+          // For problems 1-19, save user's answer to photo_analysis_outputs
           try {
             const { data: profile } = await supabase
               .from('profiles')
@@ -375,7 +344,6 @@ const OgemathMock = () => {
               .single();
             
             const currentExamId = profile?.exam_id || examId;
-            analysisOutput = isCorrect ? "Правильно" : "Неправильно";
             
             await supabase
               .from('photo_analysis_outputs')
@@ -384,11 +352,23 @@ const OgemathMock = () => {
                 question_id: currentQuestion.question_id,
                 exam_id: currentExamId,
                 problem_number: problemNumber.toString(),
-                raw_output: analysisOutput,
+                raw_output: userAnswer.trim(),
                 analysis_type: 'solution'
               });
           } catch (error) {
-            console.error('Error saving solution result:', error);
+            console.error('Error saving user answer:', error);
+          }
+          
+          // Quick client-side check for immediate feedback
+          const correctAnswer = currentQuestion.answer;
+          if (isNumeric(correctAnswer)) {
+            const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
+            const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
+            isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
+          } else {
+            // For non-numeric, we'll do a basic comparison for now
+            // Full validation will happen at exam completion
+            isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
           }
         }
         
@@ -678,64 +658,98 @@ const OgemathMock = () => {
         return;
       }
       
-      // Update exam results with fetched analysis data
+      // Create a map of question answers for easy lookup
+      const questionAnswers = new Map();
+      questions.forEach((q, index) => {
+        questionAnswers.set(q.question_id, { answer: q.answer, problemText: q.problem_text, index });
+      });
+      
+      // Update exam results with proper answer checking
       const updatedResults = [...examResults];
       
       if (analysisResults) {
-        for (let i = 0; i < updatedResults.length; i++) {
-          const result = updatedResults[i];
+        for (const analysisResult of analysisResults) {
+          const problemNumber = parseInt(analysisResult.problem_number);
+          const questionData = questionAnswers.get(analysisResult.question_id);
           
-          // Find corresponding analysis result
-          const analysisResult = analysisResults.find(ar => 
-            ar.question_id === result.questionId
-          );
+          if (!questionData) continue;
           
-          if (analysisResult) {
-            const problemNumber = parseInt(analysisResult.problem_number);
-            
-            if (problemNumber >= 20) {
-              // For problems 20-25, parse photo analysis JSON
-              try {
-                const feedbackData = JSON.parse(analysisResult.raw_output);
-                if (feedbackData.review && typeof feedbackData.scores === 'number') {
-                  updatedResults[i] = {
-                    ...result,
-                    photoFeedback: feedbackData.review,
-                    photoScores: feedbackData.scores,
-                    isCorrect: feedbackData.scores >= 2
-                  };
-                } else {
-                  updatedResults[i] = {
-                    ...result,
-                    photoFeedback: analysisResult.raw_output,
-                    photoScores: 0,
-                    isCorrect: false
-                  };
-                }
-              } catch (parseError) {
-                console.error('Error parsing stored analysis:', parseError);
-                updatedResults[i] = {
-                  ...result,
-                  photoFeedback: analysisResult.raw_output,
-                  photoScores: 0,
-                  isCorrect: analysisResult.raw_output !== 'False'
-                };
+          let isCorrect = false;
+          let feedback = "";
+          let scores = 0;
+          
+          if (problemNumber >= 20) {
+            // For problems 20-25, parse photo analysis JSON
+            try {
+              const feedbackData = JSON.parse(analysisResult.raw_output);
+              if (feedbackData.review && typeof feedbackData.scores === 'number') {
+                feedback = feedbackData.review;
+                scores = feedbackData.scores;
+                isCorrect = feedbackData.scores >= 2;
+              } else {
+                feedback = analysisResult.raw_output;
+                scores = 0;
+                isCorrect = false;
               }
-            } else {
-              // For problems 1-19, use simple text result
-              const isCorrect = analysisResult.raw_output === 'Правильно';
-              updatedResults[i] = {
-                ...result,
-                isCorrect,
-                photoFeedback: analysisResult.raw_output
-              };
+            } catch (parseError) {
+              console.error('Error parsing stored analysis:', parseError);
+              feedback = analysisResult.raw_output;
+              scores = 0;
+              isCorrect = analysisResult.raw_output !== 'False';
             }
           } else {
-            // No analysis found - question was likely skipped
-            updatedResults[i] = {
-              ...result,
-              isCorrect: false,
-              photoFeedback: "Вопрос пропущен"
+            // For problems 1-19, check the stored user answer against correct answer
+            const userAnswer = analysisResult.raw_output;
+            const correctAnswer = questionData.answer;
+            
+            if (userAnswer === 'False') {
+              // Question was skipped
+              isCorrect = false;
+              feedback = "Вопрос пропущен";
+            } else {
+              // Check if answer is correct
+              if (isNumeric(correctAnswer)) {
+                // Numeric comparison
+                const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
+                const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
+                isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
+                feedback = isCorrect ? "Правильно" : "Неправильно";
+              } else {
+                // Non-numeric answer - use OpenRouter API for validation
+                try {
+                  const { data, error } = await supabase.functions.invoke('check-non-numeric-answer', {
+                    body: {
+                      student_answer: userAnswer,
+                      correct_answer: correctAnswer,
+                      problem_text: questionData.problemText
+                    }
+                  });
+
+                  if (error) {
+                    console.error('Error checking non-numeric answer:', error);
+                    isCorrect = false;
+                    feedback = "Ошибка проверки";
+                  } else {
+                    isCorrect = data?.is_correct || false;
+                    feedback = isCorrect ? "Правильно" : "Неправильно";
+                  }
+                } catch (error) {
+                  console.error('Error with non-numeric answer check:', error);
+                  isCorrect = false;
+                  feedback = "Ошибка проверки";
+                }
+              }
+            }
+          }
+          
+          // Update the corresponding result
+          const resultIndex = updatedResults.findIndex(r => r.questionId === analysisResult.question_id);
+          if (resultIndex >= 0) {
+            updatedResults[resultIndex] = {
+              ...updatedResults[resultIndex],
+              isCorrect,
+              photoFeedback: feedback,
+              photoScores: scores
             };
           }
         }
