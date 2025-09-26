@@ -947,14 +947,20 @@ const OgemathMock = () => {
       const part1Total = 19;
       const part2Total = 6;
 
+      // Initialize results array
+      const newExamResults = Array(25).fill(undefined);
+
       // Check each question
       for (const output of outputs) {
         const problemNum = parseInt(output.problem_number);
+        const arrayIndex = problemNum - 1; // Convert to 0-based index
         let isCorrect = false;
+        let userAnswer = '';
+        let correctAnswer = '';
 
         if (problemNum >= 1 && problemNum <= 19) {
           // For questions 1-19, raw_output contains the user's answer
-          const userAnswer = output.raw_output;
+          userAnswer = output.raw_output;
           
           // Get correct answer from oge_math_fipi_bank
           const { data: question } = await supabase
@@ -964,7 +970,7 @@ const OgemathMock = () => {
             .single();
 
           if (question) {
-            const correctAnswer = question.answer;
+            correctAnswer = question.answer;
             
             // Check if answer is numeric or non-numeric
             if (isNumeric(correctAnswer)) {
@@ -996,6 +1002,8 @@ const OgemathMock = () => {
           try {
             const analysis = JSON.parse(output.raw_output);
             isCorrect = analysis.isCorrect || false;
+            userAnswer = analysis.userAnswer || '';
+            correctAnswer = analysis.correctAnswer || '';
             
             if (isCorrect) {
               part2Correct++;
@@ -1005,7 +1013,21 @@ const OgemathMock = () => {
             console.error('Error parsing JSON for problem', problemNum, error);
           }
         }
+
+        // Store result in the array
+        newExamResults[arrayIndex] = {
+          isCorrect,
+          userAnswer,
+          correctAnswer,
+          problemNumber: problemNum,
+          photoFeedback: '',
+          photoScores: 0,
+          timeSpent: 0
+        };
       }
+
+      // Update examResults state
+      setExamResults(newExamResults);
 
       const percentage = Math.round((totalCorrect / totalQuestions) * 100);
 
