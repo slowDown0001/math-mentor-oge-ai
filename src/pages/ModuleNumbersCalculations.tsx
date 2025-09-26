@@ -31,7 +31,7 @@ interface QuizContent {
 
 const ModuleNumbersCalculations = () => {
   const navigate = useNavigate();
-  const { getProgressStatus } = useModuleProgress();
+  const { getProgressStatus, refetch } = useModuleProgress();
   const [selectedVideo, setSelectedVideo] = useState<{videoId: string; title: string; description: string} | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<{title: string; content: string} | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<{title: string; skills: number[]; questionCount?: number; isAdvanced?: boolean} | null>(null);
@@ -456,7 +456,10 @@ const ModuleNumbersCalculations = () => {
               title={selectedExercise.title}
               skills={selectedExercise.skills}
               questionCount={selectedExercise.questionCount}
-              onBack={() => setSelectedExercise(null)}
+              onBack={() => {
+                setSelectedExercise(null);
+                refetch();
+              }}
             />
           </div>
         </div>
