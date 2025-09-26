@@ -31,7 +31,7 @@ const ModuleAlgebraicExpressions = () => {
       title: "Буквенные выражения",
       videos: 3,
       articles: 1,
-      exercises: 3
+      exercises: 2
     },
     {
       id: "powers",
@@ -433,11 +433,10 @@ const ModuleAlgebraicExpressions = () => {
                 <OgeExerciseQuiz
                   skills={selectedExercise.skills}
                   title={selectedExercise.title}
-                  onComplete={() => {
+                  onBack={() => {
                     setSelectedExercise(null);
                     refetch();
                   }}
-                  activityType={selectedExercise.isExam ? "exam" : selectedExercise.isTest ? "test" : "exercise"}
                   questionCount={selectedExercise.questionCount || 4}
                 />
               </div>
