@@ -43,18 +43,24 @@ export const useModuleProgress = () => {
   }, [user?.id]);
 
   const getProgressStatus = (itemId: string, activityType: 'exercise' | 'test' | 'exam') => {
-    const item = progressData.find(p => p.item_id === itemId && p.activity_type === activityType);
+    const matchingItems = progressData.filter(p => p.item_id === itemId && p.activity_type === activityType);
     
     console.log('getProgressStatus called with:', { itemId, activityType });
-    console.log('Found item:', item);
-    console.log('All progress data:', progressData);
+    console.log('Found matching items:', matchingItems);
     
-    if (!item) return 'not_started';
+    if (matchingItems.length === 0) return 'not_started';
+
+    // Find the item with the highest solved_count
+    const item = matchingItems.reduce((max, current) => {
+      const currentSolved = parseInt(current.solved_count);
+      const maxSolved = parseInt(max.solved_count);
+      return currentSolved > maxSolved ? current : max;
+    });
 
     const solved = parseInt(item.solved_count);
     const total = parseInt(item.total_questions);
     
-    console.log('Parsed values:', { solved, total });
+    console.log('Using item with highest solved_count:', { item, solved, total });
 
     if (activityType === 'exercise') {
       if (solved === 4) return 'mastered'; // Освоено
