@@ -7,12 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ChevronRight, Calculator, BookOpen, Brain, PenTool, Check, X } from "lucide-react";
+import { ChevronRight, Calculator, BookOpen, Brain, PenTool, Check, X, Trophy } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import MathRenderer from "@/components/MathRenderer";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { logTextbookActivity } from "@/utils/logTextbookActivity";
+import { toast } from "sonner";
 
 // Import the topic mapping data - use relative path
 import topicMapping from "../../documentation/topic_skill_mapping_with_names.json";
@@ -50,6 +53,7 @@ interface SubTopic {
 type QuestionType = "frq" | "mcq";
 
 const PracticeExercise = () => {
+  const { user } = useAuth();
   const [frqProblems, setFrqProblems] = useState<FRQProblem[]>([]);
   const [mcqProblems, setMcqProblems] = useState<MCQProblem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +62,8 @@ const PracticeExercise = () => {
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [checkedAnswers, setCheckedAnswers] = useState<Record<string, boolean>>({});
   const [selectedMCQAnswers, setSelectedMCQAnswers] = useState<Record<string, string>>({});
+  const [testStarted, setTestStarted] = useState(false);
+  const [testCompleted, setTestCompleted] = useState(false);
 
   // Main topics from topics.md
   const mainTopics = [
@@ -154,7 +160,64 @@ const PracticeExercise = () => {
   const handleQuestionTypeChange = (value: string | undefined) => {
     if (value && (value === "frq" || value === "mcq")) {
       setQuestionType(value as QuestionType);
+      // Reset test state when switching question types
+      setTestStarted(false);
+      setTestCompleted(false);
+      setUserAnswers({});
+      setCheckedAnswers({});
+      setSelectedMCQAnswers({});
     }
+  };
+
+  const startTest = async () => {
+    if (!user || !selectedSubtopic) return;
+    
+    setTestStarted(true);
+    setTestCompleted(false);
+    
+    // Log test start
+    await logTextbookActivity({
+      activity_type: "test",
+      activity: `${selectedSubtopic.topic} - ${selectedSubtopic.name}`,
+      status: "started",
+      solved_count: 0,
+      total_questions: questionType === "frq" ? getFilteredFRQProblems().length : getFilteredMCQProblems().length,
+      item_id: selectedSubtopic.topic
+    });
+  };
+
+  const finishTest = async () => {
+    if (!user || !selectedSubtopic) return;
+    
+    const totalQuestions = questionType === "frq" ? getFilteredFRQProblems().length : getFilteredMCQProblems().length;
+    const correctAnswers = Object.values(checkedAnswers).filter(Boolean).length;
+    
+    setTestCompleted(true);
+    
+    // Log test completion
+    await logTextbookActivity({
+      activity_type: "test",
+      activity: `${selectedSubtopic.topic} - ${selectedSubtopic.name}`,
+      status: "finished",
+      solved_count: correctAnswers,
+      total_questions: totalQuestions,
+      item_id: selectedSubtopic.topic
+    });
+
+    toast.success(`Тест завершён! Правильных ответов: ${correctAnswers}/${totalQuestions}`);
+  };
+
+  const getTestProgress = () => {
+    const totalQuestions = questionType === "frq" ? getFilteredFRQProblems().length : getFilteredMCQProblems().length;
+    const answeredQuestions = Object.keys(checkedAnswers).length;
+    const correctAnswers = Object.values(checkedAnswers).filter(Boolean).length;
+    
+    return {
+      total: totalQuestions,
+      answered: answeredQuestions,
+      correct: correctAnswers,
+      progress: totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0
+    };
   };
 
   if (loading) {
@@ -271,12 +334,65 @@ const PracticeExercise = () => {
                       </ToggleGroupItem>
                     </ToggleGroup>
                   </div>
+
+                  {/* Test Progress and Controls */}
+                  {(testStarted || testCompleted) && (
+                    <div className="bg-white/10 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">Прогресс теста</span>
+                        <span className="text-sm">
+                          {getTestProgress().answered}/{getTestProgress().total} ответов
+                        </span>
+                      </div>
+                      <div className="w-full bg-white/20 rounded-full h-2 mb-3">
+                        <div 
+                          className="bg-white h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${getTestProgress().progress}%` }}
+                        />
+                      </div>
+                      {testCompleted && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Trophy className="h-4 w-4" />
+                          <span>Тест завершён! Правильных ответов: {getTestProgress().correct}/{getTestProgress().total}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 
                 <CardContent className="p-6">
-                  <div className="space-y-6">
-                    {/* FRQ Questions */}
-                    {questionType === "frq" && (
+                  {/* Test Controls */}
+                  {!testStarted && !testCompleted && (
+                    <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                      <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                        Готовы начать тест?
+                      </h3>
+                      <p className="text-gray-500 mb-4">
+                        Доступно {questionType === "frq" ? getFilteredFRQProblems().length : getFilteredMCQProblems().length} заданий
+                      </p>
+                      <Button onClick={startTest} size="lg">
+                        Начать тест
+                      </Button>
+                    </div>
+                  )}
+
+                  {(testStarted || testCompleted) && (
+                    <div className="space-y-6">
+                      {/* Finish Test Button */}
+                      {testStarted && !testCompleted && getTestProgress().answered > 0 && (
+                        <div className="text-center py-4">
+                          <Button 
+                            onClick={finishTest}
+                            variant="outline"
+                            size="lg"
+                          >
+                            Завершить тест ({getTestProgress().answered}/{getTestProgress().total})
+                          </Button>
+                        </div>
+                      )}
+                      {/* FRQ Questions */}
+                      {questionType === "frq" && (testStarted || testCompleted) && (
                       <div>
                         {getFilteredFRQProblems().length > 0 && (
                           <div className="mb-6">
@@ -397,8 +513,8 @@ const PracticeExercise = () => {
                       </div>
                     )}
 
-                    {/* MCQ Questions */}
-                    {questionType === "mcq" && (
+                      {/* MCQ Questions */}
+                      {questionType === "mcq" && (testStarted || testCompleted) && (
                       <div>
                         {getFilteredMCQProblems().length > 0 && (
                           <div>
@@ -504,20 +620,61 @@ const PracticeExercise = () => {
                       </div>
                     )}
 
-                    {/* No questions found */}
-                    {((questionType === "frq" && getFilteredFRQProblems().length === 0) ||
-                      (questionType === "mcq" && getFilteredMCQProblems().length === 0)) && (
-                      <div className="text-center py-12">
-                        <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                          Задачи не найдены
-                        </h3>
-                        <p className="text-gray-500">
-                          Для выбранной подтемы пока нет доступных задач
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                      {/* No questions found */}
+                      {((questionType === "frq" && getFilteredFRQProblems().length === 0) ||
+                        (questionType === "mcq" && getFilteredMCQProblems().length === 0)) && (testStarted || testCompleted) && (
+                        <div className="text-center py-12">
+                          <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                          <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                            Задачи не найдены
+                          </h3>
+                          <p className="text-gray-500">
+                            Для выбранной подтемы пока нет доступных задач
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Test Summary */}
+                      {testCompleted && (
+                        <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+                          <div className="flex items-center gap-3 mb-4">
+                            <Trophy className="h-6 w-6 text-green-600" />
+                            <h3 className="text-lg font-semibold text-green-800">Тест завершён!</h3>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 text-center">
+                            <div className="bg-white rounded-lg p-3">
+                              <div className="text-2xl font-bold text-blue-600">{getTestProgress().total}</div>
+                              <div className="text-sm text-gray-600">Всего заданий</div>
+                            </div>
+                            <div className="bg-white rounded-lg p-3">
+                              <div className="text-2xl font-bold text-green-600">{getTestProgress().correct}</div>
+                              <div className="text-sm text-gray-600">Правильно</div>
+                            </div>
+                            <div className="bg-white rounded-lg p-3">
+                              <div className="text-2xl font-bold text-orange-600">
+                                {Math.round((getTestProgress().correct / getTestProgress().total) * 100)}%
+                              </div>
+                              <div className="text-sm text-gray-600">Точность</div>
+                            </div>
+                          </div>
+                          <div className="mt-4 text-center">
+                            <Button 
+                              onClick={() => {
+                                setTestStarted(false);
+                                setTestCompleted(false);
+                                setUserAnswers({});
+                                setCheckedAnswers({});
+                                setSelectedMCQAnswers({});
+                              }}
+                              variant="outline"
+                            >
+                              Начать заново
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ) : (
