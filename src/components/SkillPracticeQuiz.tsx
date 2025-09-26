@@ -55,6 +55,7 @@ const SkillPracticeQuiz: React.FC<SkillPracticeQuizProps> = ({ skill, onBackToAr
       activity_type: "exercise",
       activity: `${skill.title} Practice`,
       solved_count: 0,
+      correct_count: 0,
       total_questions: 5,
       item_id: `skill-practice-${skill.id}`
     });
@@ -148,10 +149,12 @@ const SkillPracticeQuiz: React.FC<SkillPracticeQuizProps> = ({ skill, onBackToAr
     
     // Track progress after each answer
     const currentProgress = answers.length + 1;
+    const correctAnswers = [...answers, isCorrect].filter(Boolean).length;
     logTextbookActivity({
       activity_type: "exercise",
       activity: `${skill.title} Practice`,
       solved_count: currentProgress,
+      correct_count: correctAnswers,
       total_questions: 5,
       item_id: `skill-practice-${skill.id}`
     });

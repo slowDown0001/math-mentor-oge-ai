@@ -181,6 +181,7 @@ const PracticeExercise = () => {
       activity: `${selectedSubtopic.topic} - ${selectedSubtopic.name}`,
       status: "started",
       solved_count: 0,
+      correct_count: 0,
       total_questions: questionType === "frq" ? getFilteredFRQProblems().length : getFilteredMCQProblems().length,
       item_id: selectedSubtopic.topic
     });
@@ -199,7 +200,8 @@ const PracticeExercise = () => {
       activity_type: "test",
       activity: `${selectedSubtopic.topic} - ${selectedSubtopic.name}`,
       status: "finished",
-      solved_count: correctAnswers,
+      solved_count: totalQuestions,
+      correct_count: correctAnswers,
       total_questions: totalQuestions,
       item_id: selectedSubtopic.topic
     });

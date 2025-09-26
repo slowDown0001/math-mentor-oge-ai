@@ -71,10 +71,12 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
 
     // Log exercise progress
     const solvedCount = answers.length + 1;
+    const correctCount = [...answers, isCorrect].filter(Boolean).length;
     logTextbookActivity({
       activity_type: "exercise",
       activity: title,
       solved_count: solvedCount,
+      correct_count: correctCount,
       total_questions: questionCount,
       skills_involved: skills.join(","),
       item_id: `exercise-${skills.join("-")}`
