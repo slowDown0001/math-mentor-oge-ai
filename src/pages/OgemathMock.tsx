@@ -455,8 +455,10 @@ const OgemathMock = () => {
         // Complete the attempt
         await completeAttempt(isCorrect, scores);
         
-        // Submit to handle-submission for mastery tracking
-        await submitToHandleSubmission(isCorrect, scores);
+        // Submit to handle-submission for mastery tracking (fire-and-forget)
+        submitToHandleSubmission(isCorrect, scores).catch(error => 
+          console.error('Background mastery tracking failed:', error)
+        );
       } else {
         // Question was skipped - save 'False' to photo_analysis_outputs
         try {
