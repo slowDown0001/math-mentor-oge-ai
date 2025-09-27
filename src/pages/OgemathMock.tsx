@@ -723,6 +723,12 @@ const OgemathMock = () => {
       
       if (analysisResults) {
         for (const analysisResult of analysisResults) {
+          // Check if analysisResult has required properties
+          if (!analysisResult.question_id || !analysisResult.problem_number) {
+            console.warn('Skipping invalid analysis result:', analysisResult);
+            continue;
+          }
+          
           const problemNumber = parseInt(analysisResult.problem_number);
           const questionData = questionAnswers.get(analysisResult.question_id);
           
@@ -789,7 +795,7 @@ const OgemathMock = () => {
           }
           
           // Update the corresponding result with attempted flag set to true
-          const resultIndex = updatedResults.findIndex(r => r.questionId === analysisResult.question_id);
+          const resultIndex = updatedResults.findIndex(r => r && r.questionId === analysisResult.question_id);
           if (resultIndex >= 0) {
             updatedResults[resultIndex] = {
               ...updatedResults[resultIndex],
