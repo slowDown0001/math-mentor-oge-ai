@@ -384,7 +384,8 @@ const OgemathMock = () => {
             
             const currentExamId = profile?.exam_id || examId;
             
-            const { data: analysisResult, error: analysisError } = await supabase.functions.invoke('analyze-photo-solution', {
+            // Start photo analysis in background without awaiting
+            supabase.functions.invoke('analyze-photo-solution', {
               body: {
                 student_solution: userAnswer.trim(),
                 problem_text: currentQuestion.problem_text,
@@ -394,26 +395,16 @@ const OgemathMock = () => {
                 exam_id: currentExamId,
                 problem_number: problemNumber.toString()
               }
+            }).catch(error => {
+              console.error('Background photo analysis error:', error);
+              // Don't show error to user since this is background operation
             });
-            
-            if (analysisError) {
-              console.error('Error calling analyze-photo-solution:', analysisError);
-              analysisOutput = "Ошибка анализа";
-              scores = 0;
-              isCorrect = false;
-            } else {
-              console.log('Photo analysis completed:', analysisResult);
-              analysisOutput = analysisResult?.feedback || "Анализ завершен";
-              // Parse JSON to get scores if available
-              try {
-                const feedbackData = JSON.parse(analysisResult?.feedback || "{}");
-                scores = feedbackData.scores || 0;
-                isCorrect = scores >= 2;
-              } catch {
-                scores = 0;
-                isCorrect = false;
-              }
-            }
+
+            console.log('Photo analysis started in background for question', problemNumber);
+            // Set temporary values for immediate UI update
+            analysisOutput = "Решение отправлено на проверку";
+            scores = 1; // Assume partial credit for immediate feedback
+            isCorrect = true; // Mark as attempted
           } catch (error) {
             console.error('Error with photo analysis function:', error);
             analysisOutput = "Ошибка обработки";
