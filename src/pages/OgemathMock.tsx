@@ -774,29 +774,11 @@ const OgemathMock = () => {
                 isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
                 feedback = isCorrect ? "Правильно" : "Неправильно";
               } else {
-                // Non-numeric answer - use OpenRouter API for validation
-                try {
-                  const { data, error } = await supabase.functions.invoke('check-non-numeric-answer', {
-                    body: {
-                      student_answer: userAnswer,
-                      correct_answer: correctAnswer,
-                      problem_text: questionData.problemText
-                    }
-                  });
-
-                  if (error) {
-                    console.error('Error checking non-numeric answer:', error);
-                    isCorrect = false;
-                    feedback = "Ошибка проверки";
-                  } else {
-                    isCorrect = data?.is_correct || false;
-                    feedback = isCorrect ? "Правильно" : "Неправильно";
-                  }
-                } catch (error) {
-                  console.error('Error with non-numeric answer check:', error);
-                  isCorrect = false;
-                  feedback = "Ошибка проверки";
-                }
+                // Non-numeric answer - simple string comparison for speed
+                const userAnswerLower = userAnswer.toString().toLowerCase().trim();
+                const correctAnswerLower = correctAnswer.toString().toLowerCase().trim();
+                isCorrect = userAnswerLower === correctAnswerLower;
+                feedback = isCorrect ? "Правильно" : "Неправильно";
               }
             }
             
