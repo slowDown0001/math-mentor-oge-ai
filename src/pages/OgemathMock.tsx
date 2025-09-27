@@ -269,6 +269,22 @@ const OgemathMock = () => {
       console.log(`Cached details for ${questionDetailsCache.size} questions`);
       
       setQuestions(allQuestions.slice(0, 25));
+      
+      // Initialize complete examResults array with all 25 questions
+      const initialExamResults: ExamResult[] = allQuestions.slice(0, 25).map((question, index) => ({
+        questionIndex: index,
+        questionId: question.question_id,
+        isCorrect: null,
+        userAnswer: "",
+        correctAnswer: question.answer || "",
+        problemText: question.problem_text || "",
+        solutionText: question.solution_text || "",
+        timeSpent: 0,
+        attempted: false,
+        problemNumber: question.problem_number_type || (index + 1)
+      }));
+      
+      setExamResults(initialExamResults);
       setCurrentQuestionIndex(0);
       setUserAnswer("");
       setQuestionStartTime(new Date());
@@ -497,12 +513,12 @@ const OgemathMock = () => {
     
     setExamResults(prev => {
       const newResults = [...prev];
-      const existingIndex = newResults.findIndex(r => r && r.questionIndex === currentQuestionIndex);
-      if (existingIndex >= 0) {
-        newResults[existingIndex] = result;
-      } else {
-        newResults.push(result);
-      }
+      // Update the existing entry at the current question index
+      newResults[currentQuestionIndex] = {
+        ...newResults[currentQuestionIndex],
+        ...result,
+        attempted: true
+      };
       return newResults;
     });
     
@@ -946,7 +962,12 @@ const OgemathMock = () => {
 
       setExamResults(prev => {
         const updated = [...prev];
-        updated[currentQuestionIndex] = newResult;
+        // Update the existing entry in the pre-populated array
+        updated[currentQuestionIndex] = {
+          ...updated[currentQuestionIndex],
+          ...newResult,
+          attempted: userAnswer.trim() !== ""
+        };
         return updated;
       });
     }
@@ -1525,7 +1546,7 @@ const OgemathMock = () => {
           <div className="py-4">
             <div className="grid grid-cols-5 gap-3">
               {questions.map((_, index) => {
-                const hasAnswer = examResults[index]?.userAnswer;
+                const hasAnswer = examResults[index]?.attempted || examResults[index]?.userAnswer;
                 const isCurrent = index === currentQuestionIndex;
                 return (
                   <Button
