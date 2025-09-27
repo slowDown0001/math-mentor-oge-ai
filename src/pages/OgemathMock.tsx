@@ -104,16 +104,6 @@ const OgemathMock = () => {
     return () => clearInterval(interval);
   }, [examStartTime, examFinished]);
 
-  // Load statistics when exam finishes
-  useEffect(() => {
-    if (examFinished && !examStats) {
-      calculateStatistics().then(stats => {
-        if (stats) {
-          setExamStats(stats);
-        }
-      });
-    }
-  }, [examFinished, examStats]);
   
   // Format timer display
   const formatTime = (seconds: number) => {
@@ -675,40 +665,15 @@ const OgemathMock = () => {
 
   const handleFinishExam = async () => {
     setExamFinished(true);
-    await checkAllAnswers();
+    const stats = await processExamResults();
     
-    // Fetch exam results from photo_analysis_outputs
-    if (user) {
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('exam_id')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (profile?.exam_id) {
-          const { data: photoResults, error } = await supabase
-            .from('photo_analysis_outputs')
-            .select('*')
-            .eq('exam_id', profile.exam_id)
-            .eq('user_id', user.id);
-          
-          if (error) {
-            console.error('Error fetching exam results:', error);
-          } else {
-            console.log('Exam results from photo_analysis_outputs:', photoResults);
-            // Store results for use in review mode
-            setPhotoFeedback(JSON.stringify(photoResults));
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching exam results:', error);
-      }
+    if (stats) {
+      setExamStats(stats);
     }
   };
 
-  const checkAllAnswers = async () => {
-    if (!user) return;
+  const processExamResults = async () => {
+    if (!user) return null;
     
     setLoading(true);
     try {
@@ -733,7 +698,12 @@ const OgemathMock = () => {
         console.error('Error fetching analysis results:', analysisError);
         toast.error('Ошибка при получении результатов анализа');
         setLoading(false);
-        return;
+        return null;
+      }
+
+      // Store results for use in review mode
+      if (analysisResults) {
+        setPhotoFeedback(JSON.stringify(analysisResults));
       }
       
       // Create a map of question answers for easy lookup
@@ -742,8 +712,14 @@ const OgemathMock = () => {
         questionAnswers.set(q.question_id, { answer: q.answer, problemText: q.problem_text, index });
       });
       
-      // Update exam results with proper answer checking
+      // Initialize results array
       const updatedResults = [...examResults];
+      let totalCorrect = 0;
+      let part1Correct = 0;
+      let part2Correct = 0;
+      const part1Total = 19;
+      const part2Total = 6;
+      const totalQuestions = 25;
       
       if (analysisResults) {
         for (const analysisResult of analysisResults) {
@@ -774,6 +750,11 @@ const OgemathMock = () => {
               feedback = analysisResult.raw_output;
               scores = 0;
               isCorrect = analysisResult.raw_output !== 'False';
+            }
+            
+            if (isCorrect) {
+              part2Correct++;
+              totalCorrect++;
             }
           } else {
             // For problems 1-19, check the stored user answer against correct answer
@@ -818,16 +799,22 @@ const OgemathMock = () => {
                 }
               }
             }
+            
+            if (isCorrect) {
+              part1Correct++;
+              totalCorrect++;
+            }
           }
           
-          // Update the corresponding result
+          // Update the corresponding result with attempted flag set to true
           const resultIndex = updatedResults.findIndex(r => r.questionId === analysisResult.question_id);
           if (resultIndex >= 0) {
             updatedResults[resultIndex] = {
               ...updatedResults[resultIndex],
               isCorrect,
               photoFeedback: feedback,
-              photoScores: scores
+              photoScores: scores,
+              attempted: true // Set attempted to true for questions with records
             };
           }
         }
@@ -835,15 +822,24 @@ const OgemathMock = () => {
       
       setExamResults(updatedResults);
       
-      // Calculate and display exam statistics
-      const correctAnswers = updatedResults.filter(r => r.isCorrect === true).length;
-      const totalQuestions = updatedResults.length;
-      const score = Math.round((correctAnswers / totalQuestions) * 100);
+      const percentage = Math.round((totalCorrect / totalQuestions) * 100);
       
-      toast.success(`Экзамен завершен! Результат: ${correctAnswers}/${totalQuestions} (${score}%)`);
+      toast.success(`Экзамен завершен! Результат: ${totalCorrect}/${totalQuestions} (${percentage}%)`);
+      
+      return {
+        totalCorrect,
+        totalQuestions,
+        percentage,
+        part1Correct,
+        part1Total,
+        part2Correct,
+        part2Total,
+        totalTimeSpent: elapsedTime
+      };
       
     } catch (error) {
-      console.error('Error checking answers:', error);
+      console.error('Error processing exam results:', error);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -974,155 +970,6 @@ const OgemathMock = () => {
     setShowQuestionMenu(false);
   };
 
-  const calculateStatistics = async () => {
-    try {
-      // Get current user's exam_id from profiles
-      const { data: user } = await supabase.auth.getUser();
-      if (!user?.user) return null;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('exam_id')
-        .eq('user_id', user.user.id)
-        .single();
-
-      if (!profile?.exam_id) return null;
-
-      // Fetch all photo analysis outputs for this exam
-      const { data: outputs } = await supabase
-        .from('photo_analysis_outputs')
-        .select('problem_number, raw_output, question_id')
-        .eq('exam_id', profile.exam_id)
-        .eq('user_id', user.user.id);
-
-      if (!outputs) return null;
-
-      let totalCorrect = 0;
-      let part1Correct = 0;
-      let part2Correct = 0;
-      const totalQuestions = 25;
-      const part1Total = 19;
-      const part2Total = 6;
-
-      // Initialize results array for all 25 questions
-      const newExamResults = Array(25).fill(undefined);
-
-      // Check all 25 questions (1-25)
-      for (let questionNum = 1; questionNum <= 25; questionNum++) {
-        const arrayIndex = questionNum - 1;
-        
-        // Find if this question has an entry in photo_analysis_outputs
-        const output = outputs.find(o => parseInt(o.problem_number) === questionNum);
-        
-        if (!output || output.raw_output === 'false') {
-          // Question not attempted - mark as grey
-          newExamResults[arrayIndex] = {
-            isCorrect: false,
-            userAnswer: '',
-            correctAnswer: '',
-            problemNumber: questionNum,
-            photoFeedback: '',
-            photoScores: 0,
-            timeSpent: 0,
-            attempted: false
-          };
-          continue;
-        }
-
-        let isCorrect = false;
-        let userAnswer = '';
-        let correctAnswer = '';
-
-        if (questionNum >= 1 && questionNum <= 19) {
-          // For questions 1-19, raw_output contains the user's answer
-          userAnswer = output.raw_output;
-          
-          // Get correct answer from oge_math_fipi_bank
-          const { data: question } = await supabase
-            .from('oge_math_fipi_bank')
-            .select('answer')
-            .eq('question_id', output.question_id)
-            .single();
-
-          if (question) {
-            correctAnswer = question.answer;
-            
-            // Check if answer is numeric or non-numeric
-            if (isNumeric(correctAnswer)) {
-              isCorrect = sanitizeNumericAnswer(userAnswer) === sanitizeNumericAnswer(correctAnswer);
-            } else {
-              // Use OpenRouter API for non-numeric validation
-              try {
-                const { data: validationResult } = await supabase.functions.invoke('check-non-numeric-answer', {
-                  body: {
-                    userAnswer,
-                    correctAnswer,
-                    questionId: output.question_id
-                  }
-                });
-                isCorrect = validationResult?.isCorrect || false;
-              } catch (error) {
-                console.error('Error validating non-numeric answer:', error);
-                isCorrect = false;
-              }
-            }
-          }
-
-          if (isCorrect) {
-            part1Correct++;
-            totalCorrect++;
-          }
-        } else if (questionNum >= 20 && questionNum <= 25) {
-          // For questions 20-25, raw_output contains JSON analysis
-          try {
-            const analysis = JSON.parse(output.raw_output);
-            const score = analysis.score || 0;
-            isCorrect = score > 0;
-            userAnswer = output.raw_output; // Store the full JSON for marking display
-            correctAnswer = 'Развернутый ответ';
-            
-            if (isCorrect) {
-              part2Correct++;
-              totalCorrect++;
-            }
-          } catch (error) {
-            console.error('Error parsing JSON for problem', questionNum, error);
-          }
-        }
-
-        // Store result in the array
-        newExamResults[arrayIndex] = {
-          isCorrect,
-          userAnswer,
-          correctAnswer,
-          problemNumber: questionNum,
-          photoFeedback: '',
-          photoScores: 0,
-          timeSpent: 0,
-          attempted: true
-        };
-      }
-
-      // Update examResults state
-      setExamResults(newExamResults);
-
-      const percentage = Math.round((totalCorrect / totalQuestions) * 100);
-
-      return {
-        totalCorrect,
-        totalQuestions,
-        percentage,
-        part1Correct,
-        part1Total,
-        part2Correct,
-        part2Total,
-        totalTimeSpent: elapsedTime
-      };
-    } catch (error) {
-      console.error('Error calculating statistics:', error);
-      return null;
-    }
-  };
 
   if (!examStarted) {
     return (
