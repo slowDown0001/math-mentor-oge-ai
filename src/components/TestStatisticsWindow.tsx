@@ -93,24 +93,39 @@ const TestStatisticsWindow = ({
                 </div>
               </div>
 
-              {/* Answers Comparison */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold text-gray-700 mb-2">Ваш ответ:</h3>
-                  <div className={`p-3 rounded-lg border-2 ${
-                    question.isAnswered 
-                      ? (question.isCorrect 
-                          ? "bg-green-50 border-green-200 text-green-800" 
-                          : "bg-red-50 border-red-200 text-red-800")
-                      : "bg-gray-50 border-gray-200 text-gray-600"
-                  }`}>
-                    {question.isAnswered ? question.userAnswer : "Не отвечено"}
+              {/* Student Answer */}
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">Ваш ответ</h3>
+                <div className={`p-4 rounded-lg border-2 ${
+                  question.isAnswered 
+                    ? (question.isCorrect 
+                        ? "bg-green-50 border-green-200 text-green-800" 
+                        : "bg-red-50 border-red-200 text-red-800")
+                    : "bg-gray-50 border-gray-200 text-gray-600"
+                }`}>
+                  {question.isAnswered ? (
+                    <MathRenderer text={question.userAnswer} compiler="mathjax" />
+                  ) : (
+                    "Не отвечено"
+                  )}
+                </div>
+              </div>
+
+              {/* Score and Correct Answer Row */}
+              <div className="flex items-start gap-6">
+                {/* Score Display - More Prominent */}
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 rounded-lg shadow-lg">
+                  <div className="text-sm font-medium opacity-90">Баллы</div>
+                  <div className="text-2xl font-bold">
+                    {question.isCorrect ? '2' : (question.isAnswered ? '1' : '0')}/2
                   </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-700 mb-2">Правильный ответ:</h3>
-                  <div className="p-3 rounded-lg bg-blue-50 border-2 border-blue-200 text-blue-800">
-                    {question.correctAnswer}
+
+                {/* Correct Answer - Compact */}
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-700 mb-2 text-sm">Правильный ответ</h3>
+                  <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-sm">
+                    <MathRenderer text={question.correctAnswer} compiler="mathjax" />
                   </div>
                 </div>
               </div>
