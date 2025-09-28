@@ -1218,7 +1218,7 @@ const OgemathMock = () => {
                   <div className="flex justify-between items-center">
                     <CardTitle>Ваш ответ</CardTitle>
                     <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-3 py-1 rounded text-sm font-bold">
-                      {(() => {
+                      Баллы: {(() => {
                         const maxPoints = reviewQuestionIndex >= 19 ? 2 : 1;
                         let earnedPoints = 0;
                         
