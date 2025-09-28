@@ -203,10 +203,12 @@ const Homework = () => {
       return;
     }
 
-    // For now, show that FIPI is not available
-    toast({
-      title: "Скоро будет доступно",
-      description: "ФИПИ вопросы находятся в разработке",
+    // Navigate to FIPI bank with homework questions
+    navigate('/fipi-bank', { 
+      state: { 
+        homeworkQuestions: homeworkData.fipi_questions,
+        isHomework: true 
+      } 
     });
   };
 
@@ -433,16 +435,27 @@ const Homework = () => {
 
                 <Button
                   onClick={handleStartFIPI}
-                  className="w-full relative"
-                  variant="outline"
-                  disabled
+                  className="w-full"
+                  variant={totalFIPI === 0 ? "outline" : "default"}
+                  disabled={totalFIPI === 0}
                 >
-                  <Lock className="w-4 h-4 mr-2" />
-                  Скоро будет доступно
+                  {totalFIPI === 0 ? (
+                    <>
+                      <Lock className="w-4 h-4 mr-2" />
+                      Нет заданий ФИПИ
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 mr-2" />
+                      {progress.fipi_completed === totalFIPI ? 'Повторить ФИПИ' : 'Начать ФИПИ'}
+                    </>
+                  )}
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  ФИПИ задания находятся в разработке
-                </p>
+                {totalFIPI === 0 && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    ФИПИ задания не назначены
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
