@@ -515,20 +515,32 @@ const Homework = () => {
                       </Button>
                     </>
                   ) : (
-                    <Button
-                      onClick={handleNextQuestion}
-                      className="bg-purple-600 hover:bg-purple-700"
-                    >
-                      {currentQuestionIndex < currentQuestions.length - 1 || 
-                       (questionType === 'mcq' && totalFRQ > 0) ? (
-                        <>
-                          Следующий вопрос
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </>
-                      ) : (
-                        'Завершить'
+                    <>
+                      <Button
+                        onClick={handleNextQuestion}
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        {currentQuestionIndex < currentQuestions.length - 1 || 
+                         (questionType === 'mcq' && totalFRQ > 0) ? (
+                          <>
+                            Следующий вопрос
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </>
+                        ) : (
+                          'Завершить'
+                        )}
+                      </Button>
+                      {!showSolution && (
+                        <Button
+                          onClick={handleShowSolution}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Показать решение
+                        </Button>
                       )}
-                    </Button>
+                    </>
                   )}
                 </div>
               </CardContent>
