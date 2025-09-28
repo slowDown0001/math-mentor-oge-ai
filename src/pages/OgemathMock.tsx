@@ -1280,8 +1280,8 @@ const OgemathMock = () => {
                 </CardContent>
               </Card>
               
-              <div className="p-3 bg-green-50 rounded border border-green-200">
-                <div className="text-sm font-medium text-green-800 mb-2">Правильный ответ:</div>
+              <div className="p-3 bg-gray-50 rounded border">
+                <div className="text-sm font-medium text-gray-700 mb-2">Правильный ответ:</div>
                 <MathRenderer 
                   text={reviewResult?.correctAnswer || 'Неизвестно'}
                   compiler="mathjax"
