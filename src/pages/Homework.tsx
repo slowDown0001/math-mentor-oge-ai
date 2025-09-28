@@ -121,7 +121,7 @@ const Homework = () => {
 
     try {
       const { data: mcqData, error } = await supabase
-        .from('mcq_with_options')
+        .from('oge_math_skills_questions')
         .select('*')
         .in('question_id', homeworkData.mcq_questions);
 
@@ -140,7 +140,7 @@ const Homework = () => {
         text: q.problem_text || '',
         options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
         correct_answer: q.answer || '',
-        problem_number: index + 1
+        problem_number: typeof q.problem_number_type === 'string' ? parseInt(q.problem_number_type) || index + 1 : q.problem_number_type || index + 1
       })) || [];
 
       setCurrentQuestions(mcqQuestions);
