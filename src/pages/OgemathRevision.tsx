@@ -61,6 +61,13 @@ const OgemathRevision = () => {
     if (location.state?.isHomework && location.state?.homeworkQuestions) {
       setIsHomeworkMode(true);
       setHomeworkQuestions(location.state.homeworkQuestions);
+      
+      // Set total questions to match homework questions count
+      setSession(prev => ({
+        ...prev,
+        totalQuestions: location.state.homeworkQuestions.length
+      }));
+      
       loadHomeworkQuestion(location.state.homeworkQuestions);
     } else if (user) {
       loadSkillsForRevision();
