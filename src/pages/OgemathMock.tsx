@@ -1212,44 +1212,37 @@ const OgemathMock = () => {
               </CardContent>
             </Card>
 
-            {/* Score Display - Visible but Toned Down */}
-            <div className="flex justify-center mb-6">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-4 rounded-lg shadow-lg border-2 border-blue-200">
-                <div className="text-center">
-                  <div className="text-xl font-bold opacity-90 mb-2">БАЛЛЫ</div>
-                  <div className="text-5xl font-black">
-                    {(() => {
-                      const maxPoints = reviewQuestionIndex >= 19 ? 2 : 1;
-                      let earnedPoints = 0;
-                      
-                      if (reviewQuestionIndex >= 19 && reviewQuestionIndex <= 24) {
-                        // For FRQ questions, check photo scores or parsed analysis
-                        if (reviewResult?.photoScores !== undefined) {
-                          earnedPoints = reviewResult.photoScores;
-                        } else if (reviewResult?.userAnswer?.startsWith('{')) {
-                          try {
-                            const analysis = JSON.parse(reviewResult.userAnswer);
-                            earnedPoints = analysis.score || 0;
-                          } catch {
-                            earnedPoints = 0;
-                          }
-                        }
-                      } else {
-                        // For MCQ questions
-                        earnedPoints = reviewResult?.isCorrect ? 1 : 0;
-                      }
-                      
-                      return `${earnedPoints}/${maxPoints}`;
-                    })()}
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <div className="space-y-4 mb-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Ваш ответ</CardTitle>
+                  <div className="flex justify-between items-center">
+                    <CardTitle>Ваш ответ</CardTitle>
+                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-3 py-1 rounded text-sm font-bold">
+                      {(() => {
+                        const maxPoints = reviewQuestionIndex >= 19 ? 2 : 1;
+                        let earnedPoints = 0;
+                        
+                        if (reviewQuestionIndex >= 19 && reviewQuestionIndex <= 24) {
+                          // For FRQ questions, check photo scores or parsed analysis
+                          if (reviewResult?.photoScores !== undefined) {
+                            earnedPoints = reviewResult.photoScores;
+                          } else if (reviewResult?.userAnswer?.startsWith('{')) {
+                            try {
+                              const analysis = JSON.parse(reviewResult.userAnswer);
+                              earnedPoints = analysis.score || 0;
+                            } catch {
+                              earnedPoints = 0;
+                            }
+                          }
+                        } else {
+                          // For MCQ questions
+                          earnedPoints = reviewResult?.isCorrect ? 1 : 0;
+                        }
+                        
+                        return `${earnedPoints}/${maxPoints}`;
+                      })()}
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="p-3 bg-gray-50 rounded border">
