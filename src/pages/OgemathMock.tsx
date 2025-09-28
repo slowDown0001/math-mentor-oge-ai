@@ -1246,7 +1246,7 @@ const OgemathMock = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="space-y-4 mb-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Ваш ответ</CardTitle>
@@ -1280,19 +1280,13 @@ const OgemathMock = () => {
                 </CardContent>
               </Card>
               
-              <Card className="md:max-w-md">
-                <CardHeader>
-                  <CardTitle className="text-sm">Правильный ответ</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="p-2 bg-green-50 rounded border border-green-200 text-sm">
-                    <MathRenderer 
-                      text={reviewResult?.correctAnswer || 'Неизвестно'}
-                      compiler="mathjax"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="p-3 bg-green-50 rounded border border-green-200">
+                <div className="text-sm font-medium text-green-800 mb-2">Правильный ответ:</div>
+                <MathRenderer 
+                  text={reviewResult?.correctAnswer || 'Неизвестно'}
+                  compiler="mathjax"
+                />
+              </div>
             </div>
 
             {/* Marking section for FRQ questions 20-25 */}
