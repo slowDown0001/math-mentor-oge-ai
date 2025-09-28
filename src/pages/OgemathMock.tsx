@@ -1212,9 +1212,9 @@ const OgemathMock = () => {
               </CardContent>
             </Card>
 
-            {/* Score Display - Very Prominent and Separate */}
-            <div className="flex justify-center mb-8">
-              <div className="bg-gradient-to-r from-emerald-500 to-blue-600 text-white px-10 py-8 rounded-2xl shadow-2xl border-4 border-white">
+            {/* Score Display - Visible but Toned Down */}
+            <div className="flex justify-center mb-6">
+              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-4 rounded-lg shadow-lg border-2 border-blue-200">
                 <div className="text-center">
                   <div className="text-xl font-bold opacity-90 mb-2">БАЛЛЫ</div>
                   <div className="text-5xl font-black">
