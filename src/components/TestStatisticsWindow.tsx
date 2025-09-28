@@ -111,22 +111,27 @@ const TestStatisticsWindow = ({
                 </div>
               </div>
 
-              {/* Score and Correct Answer Row */}
-              <div className="flex items-start gap-6">
-                {/* Score Display - More Prominent */}
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 rounded-lg shadow-lg">
-                  <div className="text-sm font-medium opacity-90">Баллы</div>
-                  <div className="text-2xl font-bold">
-                    {question.isCorrect ? '2' : (question.isAnswered ? '1' : '0')}/2
+              {/* Score Display - Very Prominent and Separate */}
+              <div className="flex justify-center mb-6">
+                <div className="bg-gradient-to-r from-emerald-500 to-blue-600 text-white px-8 py-6 rounded-xl shadow-2xl border-4 border-white">
+                  <div className="text-center">
+                    <div className="text-lg font-bold opacity-90 mb-1">БАЛЛЫ</div>
+                    <div className="text-4xl font-black">
+                      {(() => {
+                        const maxPoints = question.questionIndex >= 19 ? 2 : 1;
+                        const earnedPoints = question.isCorrect ? maxPoints : (question.isAnswered ? (maxPoints === 2 ? 1 : 0) : 0);
+                        return `${earnedPoints}/${maxPoints}`;
+                      })()}
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Correct Answer - Compact */}
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-700 mb-2 text-sm">Правильный ответ</h3>
-                  <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-sm">
-                    <MathRenderer text={question.correctAnswer} compiler="mathjax" />
-                  </div>
+              {/* Correct Answer - Compact */}
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2 text-sm">Правильный ответ</h3>
+                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-sm">
+                  <MathRenderer text={question.correctAnswer} compiler="mathjax" />
                 </div>
               </div>
 
