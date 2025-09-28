@@ -377,16 +377,47 @@ const Homework = () => {
             className="bg-white rounded-lg p-8 text-center max-w-md mx-4"
           >
             <Trophy className="w-16 h-16 mx-auto text-yellow-500 mb-4" />
-            <h2 className="text-2xl font-bold text-purple-800 mb-2">Поздравляем!</h2>
+            <h2 className="text-2xl font-bold text-purple-800 mb-4">Поздравляем!</h2>
             <p className="text-gray-600 mb-6">
-              Вы успешно выполнили всё домашнее задание! Отличная работа! 🎉
+              Вы успешно выполнили всё домашнее задание! 🎉
             </p>
-            <Button 
-              onClick={() => setShowCongrats(false)}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              Продолжить
-            </Button>
+            
+            {/* Statistics */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <h3 className="font-bold text-gray-800 mb-3">Результаты:</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">{completedQuestions.size}</div>
+                  <div className="text-gray-600">Выполнено</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{correctAnswers.size}</div>
+                  <div className="text-gray-600">Правильно</div>
+                </div>
+                <div className="text-center col-span-2">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {completedQuestions.size > 0 ? Math.round((correctAnswers.size / completedQuestions.size) * 100) : 0}%
+                  </div>
+                  <div className="text-gray-600">Точность</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Button 
+                onClick={() => navigate('/ogemath')}
+                className="bg-purple-600 hover:bg-purple-700 w-full"
+              >
+                Перейти к ИИ учителю
+              </Button>
+              <Button 
+                onClick={() => setShowCongrats(false)}
+                variant="outline"
+                className="w-full"
+              >
+                Закрыть
+              </Button>
+            </div>
           </motion.div>
         </motion.div>
       )}
