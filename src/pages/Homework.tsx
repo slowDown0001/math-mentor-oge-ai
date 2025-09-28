@@ -203,8 +203,8 @@ const Homework = () => {
       return;
     }
 
-    // Navigate to FIPI bank with homework questions
-    navigate('/fipi-bank', { 
+    // Navigate to test mode with homework questions
+    navigate('/ogemath-mock', { 
       state: { 
         homeworkQuestions: homeworkData.fipi_questions,
         isHomework: true 
