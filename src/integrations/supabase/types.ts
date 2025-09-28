@@ -832,6 +832,90 @@ export type Database = {
         }
         Relationships: []
       }
+      homework_progress: {
+        Row: {
+          accuracy_percentage: number | null
+          attempt_number: number | null
+          completed_at: string | null
+          completion_status: string | null
+          confidence_level: number | null
+          correct_answer: string | null
+          created_at: string
+          difficulty_level: number | null
+          homework_date: string | null
+          homework_task: string | null
+          id: number
+          is_correct: boolean | null
+          problem_number: number | null
+          question_id: string | null
+          question_type: string | null
+          questions_completed: number | null
+          questions_correct: number | null
+          response_time_seconds: number | null
+          session_id: string | null
+          showed_solution: boolean | null
+          skill_ids: number[] | null
+          started_at: string | null
+          total_questions: number | null
+          user_answer: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accuracy_percentage?: number | null
+          attempt_number?: number | null
+          completed_at?: string | null
+          completion_status?: string | null
+          confidence_level?: number | null
+          correct_answer?: string | null
+          created_at?: string
+          difficulty_level?: number | null
+          homework_date?: string | null
+          homework_task?: string | null
+          id?: number
+          is_correct?: boolean | null
+          problem_number?: number | null
+          question_id?: string | null
+          question_type?: string | null
+          questions_completed?: number | null
+          questions_correct?: number | null
+          response_time_seconds?: number | null
+          session_id?: string | null
+          showed_solution?: boolean | null
+          skill_ids?: number[] | null
+          started_at?: string | null
+          total_questions?: number | null
+          user_answer?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accuracy_percentage?: number | null
+          attempt_number?: number | null
+          completed_at?: string | null
+          completion_status?: string | null
+          confidence_level?: number | null
+          correct_answer?: string | null
+          created_at?: string
+          difficulty_level?: number | null
+          homework_date?: string | null
+          homework_task?: string | null
+          id?: number
+          is_correct?: boolean | null
+          problem_number?: number | null
+          question_id?: string | null
+          question_type?: string | null
+          questions_completed?: number | null
+          questions_correct?: number | null
+          response_time_seconds?: number | null
+          session_id?: string | null
+          showed_solution?: boolean | null
+          skill_ids?: number[] | null
+          started_at?: string | null
+          total_questions?: number | null
+          user_answer?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       json_files: {
         Row: {
           content: Json | null
@@ -1655,6 +1739,7 @@ export type Database = {
           created_at: string
           exam_id: string | null
           full_name: string | null
+          homework: string | null
           id: string
           image_proccessing_command: string | null
           schoolmark1: number | null
@@ -1683,6 +1768,7 @@ export type Database = {
           created_at?: string
           exam_id?: string | null
           full_name?: string | null
+          homework?: string | null
           id?: string
           image_proccessing_command?: string | null
           schoolmark1?: number | null
@@ -1711,6 +1797,7 @@ export type Database = {
           created_at?: string
           exam_id?: string | null
           full_name?: string | null
+          homework?: string | null
           id?: string
           image_proccessing_command?: string | null
           schoolmark1?: number | null

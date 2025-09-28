@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye } from 'lucide-react';
+import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import MathRenderer from '@/components/MathRenderer';
@@ -27,11 +27,22 @@ interface Question {
   correct_answer?: string;
   problem_number?: number;
   solution_text?: string;
+  difficulty?: number;
+  skills?: number;
+}
+
+interface ProgressStats {
+  totalTime: number;
+  avgTime: number;
+  showedSolutionCount: number;
+  skillsWorkedOn: number[];
+  difficultyBreakdown: Record<string, number>;
 }
 
 const Homework = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [homeworkData, setHomeworkData] = useState<HomeworkData | null>(null);
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -46,6 +57,9 @@ const Homework = () => {
   const [questionType, setQuestionType] = useState<'mcq' | 'frq'>('mcq');
   const [showCongrats, setShowCongrats] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
+  const [sessionId] = useState<string>(() => crypto.randomUUID());
+  const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
+  const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -58,6 +72,36 @@ const Homework = () => {
       loadQuestions();
     }
   }, [homeworkData]);
+
+  useEffect(() => {
+    if (currentQuestions.length > 0) {
+      setQuestionStartTime(Date.now());
+    }
+  }, [currentQuestionIndex, currentQuestions]);
+
+  useEffect(() => {
+    if (user?.id && currentQuestions.length > 0) {
+      recordSessionStart();
+    }
+  }, [user?.id, currentQuestions.length]);
+
+  const recordSessionStart = async () => {
+    if (!user?.id) return;
+    
+    try {
+      await supabase.from('homework_progress').insert({
+        user_id: user.id,
+        session_id: sessionId,
+        homework_task: `Homework ${new Date().toLocaleDateString()} - Session Start`,
+        total_questions: currentQuestions.length,
+        questions_completed: 0,
+        questions_correct: 0,
+        completion_status: 'in_progress'
+      });
+    } catch (error) {
+      console.error('Error recording session start:', error);
+    }
+  };
 
   const loadHomeworkData = async () => {
     if (!user) return;
@@ -144,7 +188,9 @@ const Homework = () => {
         options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
         correct_answer: q.answer || '',
         solution_text: q.solution_text || '',
-        problem_number: typeof q.problem_number_type === 'string' ? parseInt(q.problem_number_type) || index + 1 : q.problem_number_type || index + 1
+        problem_number: typeof q.problem_number_type === 'string' ? parseInt(q.problem_number_type) || index + 1 : q.problem_number_type || index + 1,
+        difficulty: q.difficulty || null,
+        skills: q.skills || null
       })) || [];
 
       setCurrentQuestions(mcqQuestions);
@@ -184,7 +230,8 @@ const Homework = () => {
         text: q.problem_text || '',
         correct_answer: q.answer || '',
         solution_text: q.solution_text || '',
-        problem_number: q.problem_number_type || index + 1
+        problem_number: q.problem_number_type || index + 1,
+        difficulty: q.difficulty || null
       })) || [];
 
       setCurrentQuestions(frqQuestions);
@@ -197,6 +244,72 @@ const Homework = () => {
         description: "Произошла ошибка при загрузке задач",
         variant: "destructive"
       });
+    }
+  };
+
+  const recordQuestionProgress = async (
+    questionId: string, 
+    userAnswer: string, 
+    correctAnswer: string, 
+    isCorrect: boolean, 
+    responseTime: number, 
+    showedSolution: boolean
+  ) => {
+    if (!user?.id) return;
+
+    try {
+      const currentQuestion = currentQuestions.find(q => q.id === questionId);
+      const questionType = homeworkData?.mcq_questions?.includes(questionId) ? 'mcq' : 'fipi';
+      
+      await supabase.from('homework_progress').insert({
+        user_id: user.id,
+        session_id: sessionId,
+        homework_task: `Homework ${new Date().toLocaleDateString()}`,
+        question_id: questionId,
+        question_type: questionType,
+        user_answer: userAnswer,
+        correct_answer: correctAnswer,
+        is_correct: isCorrect,
+        showed_solution: showedSolution,
+        response_time_seconds: responseTime,
+        difficulty_level: currentQuestion?.difficulty || null,
+        skill_ids: currentQuestion?.skills ? [currentQuestion.skills] : null,
+        problem_number: currentQuestion?.problem_number || null
+      });
+    } catch (error) {
+      console.error('Error recording progress:', error);
+    }
+  };
+
+  const loadProgressStats = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('homework_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('session_id', sessionId)
+        .not('question_id', 'is', null);
+
+      if (error) throw error;
+
+      if (data) {
+        const stats: ProgressStats = {
+          totalTime: data.reduce((sum, record) => sum + (record.response_time_seconds || 0), 0),
+          avgTime: data.length > 0 ? Math.round(data.reduce((sum, record) => sum + (record.response_time_seconds || 0), 0) / data.length) : 0,
+          showedSolutionCount: data.filter(record => record.showed_solution).length,
+          skillsWorkedOn: [...new Set(data.flatMap(record => record.skill_ids || []))],
+          difficultyBreakdown: data.reduce((acc, record) => {
+            const level = record.difficulty_level || 'unknown';
+            acc[level] = (acc[level] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>)
+        };
+        setProgressStats(stats);
+      }
+    } catch (error) {
+      console.error('Error loading progress stats:', error);
     }
   };
 
@@ -215,6 +328,8 @@ const Homework = () => {
     }
 
     const correct = answer === currentQuestion.correct_answer;
+    const responseTime = Math.floor((Date.now() - questionStartTime) / 1000);
+    
     setIsCorrect(correct);
     setShowAnswer(true);
 
@@ -222,13 +337,25 @@ const Homework = () => {
     if (correct) {
       setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
     }
+
+    // Record progress in database
+    await recordQuestionProgress(currentQuestion.id, answer, currentQuestion.correct_answer || '', correct, responseTime, false);
   };
 
-  const handleShowSolution = () => {
+  const handleShowSolution = async () => {
+    const currentQuestion = currentQuestions[currentQuestionIndex];
+    if (!currentQuestion) return;
+
+    const responseTime = Math.floor((Date.now() - questionStartTime) / 1000);
+    
     setShowSolution(true);
     setIsCorrect(false);
     setShowAnswer(true);
-    setCompletedQuestions(prev => new Set([...prev, currentQuestions[currentQuestionIndex].id]));
+    setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
+
+    // Record that solution was shown
+    const answer = questionType === 'mcq' ? selectedOption : userAnswer;
+    await recordQuestionProgress(currentQuestion.id, answer || '', currentQuestion.correct_answer || '', false, responseTime, true);
   };
 
   const handleNextQuestion = () => {
@@ -237,6 +364,7 @@ const Homework = () => {
     setUserAnswer('');
     setSelectedOption(null);
     setShowSolution(false);
+    setQuestionStartTime(Date.now()); // Reset timer for new question
 
     if (currentQuestionIndex < currentQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -246,19 +374,50 @@ const Homework = () => {
         loadFRQQuestions();
       } else {
         // All questions completed
-        triggerCongrats();
+        completeHomework();
       }
     }
   };
 
-  const triggerCongrats = () => {
-    setShowCongrats(true);
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
-    setTimeout(() => setShowCongrats(false), 5000);
+  const completeHomework = async () => {
+    if (!user?.id) return;
+
+    const totalQuestions = currentQuestions.length;
+    const completedCount = completedQuestions.size;
+    const correctCount = correctAnswers.size;
+    const accuracy = completedCount > 0 ? (correctCount / completedCount) * 100 : 0;
+
+    try {
+      // Record completion summary
+      await supabase.from('homework_progress').insert({
+        user_id: user.id,
+        session_id: sessionId,
+        homework_task: `Homework ${new Date().toLocaleDateString()} - Summary`,
+        completed_at: new Date().toISOString(),
+        total_questions: totalQuestions,
+        questions_completed: completedCount,
+        questions_correct: correctCount,
+        accuracy_percentage: accuracy,
+        completion_status: 'completed'
+      });
+
+      // Get detailed progress stats
+      await loadProgressStats();
+      
+      setShowCongrats(true);
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    } catch (error) {
+      console.error('Error completing homework:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save homework completion",
+        variant: "destructive"
+      });
+    }
   };
 
   if (!user) {
@@ -382,10 +541,13 @@ const Homework = () => {
               Вы успешно выполнили всё домашнее задание! 🎉
             </p>
             
-            {/* Statistics */}
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h3 className="font-bold text-gray-800 mb-3">Результаты:</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+            {/* Main Statistics */}
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
+              <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Результаты работы:
+              </h3>
+              <div className="grid grid-cols-3 gap-4 text-sm mb-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-purple-600">{completedQuestions.size}</div>
                   <div className="text-gray-600">Выполнено</div>
@@ -394,12 +556,66 @@ const Homework = () => {
                   <div className="text-2xl font-bold text-green-600">{correctAnswers.size}</div>
                   <div className="text-gray-600">Правильно</div>
                 </div>
-                <div className="text-center col-span-2">
+                <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
                     {completedQuestions.size > 0 ? Math.round((correctAnswers.size / completedQuestions.size) * 100) : 0}%
                   </div>
                   <div className="text-gray-600">Точность</div>
                 </div>
+              </div>
+
+              {/* Detailed Analytics */}
+              {progressStats && (
+                <div className="border-t pt-4 space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Общее время:</span>
+                    <span className="font-semibold">{Math.floor(progressStats.totalTime / 60)} мин {progressStats.totalTime % 60} сек</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Среднее время на задачу:</span>
+                    <span className="font-semibold">{progressStats.avgTime} сек</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Просмотрено решений:</span>
+                    <span className="font-semibold">{progressStats.showedSolutionCount}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Навыков отработано:</span>
+                    <span className="font-semibold">{progressStats.skillsWorkedOn.length}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Performance Feedback */}
+            <div className="bg-white border rounded-lg p-4 mb-6">
+              <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Обратная связь:
+              </h4>
+              <div className="text-sm text-gray-700 space-y-2">
+                {(() => {
+                  const accuracy = completedQuestions.size > 0 ? (correctAnswers.size / completedQuestions.size) * 100 : 0;
+                  const avgTime = progressStats?.avgTime || 0;
+                  
+                  if (accuracy >= 90) {
+                    return <p className="text-green-700">🎉 Отличная работа! Высокая точность показывает глубокое понимание материала.</p>;
+                  } else if (accuracy >= 70) {
+                    return <p className="text-blue-700">👍 Хорошие результаты! Продолжайте в том же духе, есть небольшие области для улучшения.</p>;
+                  } else if (accuracy >= 50) {
+                    return <p className="text-yellow-700">⚠️ Средние результаты. Рекомендуем повторить теорию и больше практиковаться.</p>;
+                  } else {
+                    return <p className="text-red-700">📚 Требуется дополнительная работа. Обратитесь к ИИ учителю за помощью.</p>;
+                  }
+                })()}
+                
+                {progressStats?.showedSolutionCount && progressStats.showedSolutionCount > completedQuestions.size / 2 && (
+                  <p className="text-blue-600">💡 Попробуйте решать задачи самостоятельно перед просмотром решений.</p>
+                )}
+                
+                {progressStats?.avgTime && progressStats.avgTime > 180 && (
+                  <p className="text-orange-600">⏰ Работайте над скоростью решения - попробуйте ограничить время на задачу.</p>
+                )}
               </div>
             </div>
 
