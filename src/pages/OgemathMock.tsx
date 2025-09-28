@@ -1274,7 +1274,7 @@ const OgemathMock = () => {
               </Card>
               
               <div className="p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md animate-fade-in">
-                <div className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <div className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2 border-b border-gray-200 pb-2">
                   <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                   Правильный ответ:
                 </div>
