@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Check, X, ArrowRight, Trophy, Target, RefreshCw, Heart } from 'lucide-react';
+import { Check, X, ArrowRight, Trophy, Target, RefreshCw, Heart, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStreakTracking } from '@/hooks/useStreakTracking';
@@ -35,6 +35,7 @@ const OgemathRevision = () => {
   const { user } = useAuth();
   const { trackActivity } = useStreakTracking();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string>('');
@@ -50,14 +51,21 @@ const OgemathRevision = () => {
     totalQuestions: 5
   });
   const [showSummary, setShowSummary] = useState(false);
+  const [isHomeworkMode, setIsHomeworkMode] = useState(false);
+  const [homeworkQuestions, setHomeworkQuestions] = useState<string[]>([]);
 
   const options = ['А', 'Б', 'В', 'Г'];
 
   useEffect(() => {
-    if (user) {
+    // Check if we're in homework mode
+    if (location.state?.isHomework && location.state?.homeworkQuestions) {
+      setIsHomeworkMode(true);
+      setHomeworkQuestions(location.state.homeworkQuestions);
+      loadHomeworkQuestion(location.state.homeworkQuestions);
+    } else if (user) {
       loadSkillsForRevision();
     }
-  }, [user]);
+  }, [user, location.state]);
 
   const loadSkillsForRevision = async () => {
     try {
@@ -214,7 +222,11 @@ const OgemathRevision = () => {
     if (session.questionsAttempted >= session.totalQuestions) {
       setShowSummary(true);
     } else {
-      loadNextQuestion();
+      if (isHomeworkMode) {
+        loadHomeworkQuestion(homeworkQuestions);
+      } else {
+        loadNextQuestion();
+      }
     }
   };
 
@@ -227,11 +239,66 @@ const OgemathRevision = () => {
       totalQuestions: 5
     });
     setShowSummary(false);
-    loadSkillsForRevision();
+    if (isHomeworkMode) {
+      loadHomeworkQuestion(homeworkQuestions);
+    } else {
+      loadSkillsForRevision();
+    }
   };
 
   const handleBackToMain = () => {
-    navigate('/ogemath-practice');
+    if (isHomeworkMode) {
+      navigate('/homework');
+    } else {
+      navigate('/ogemath-practice');
+    }
+  };
+
+  const loadHomeworkQuestion = async (questionIds: string[]) => {
+    if (questionIds.length === 0) return;
+
+    try {
+      setLoading(true);
+      
+      // Select random question from homework list
+      const randomQuestionId = questionIds[Math.floor(Math.random() * questionIds.length)];
+
+      // Get the specific homework question
+      const { data, error } = await supabase
+        .from('oge_math_skills_questions')
+        .select('question_id, problem_text, answer, option1, option2, option3, option4, skills, difficulty')
+        .eq('question_id', randomQuestionId)
+        .single();
+
+      if (error) {
+        console.error('Error loading homework question:', error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось загрузить вопрос из домашнего задания",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (data) {
+        setCurrentQuestion(data);
+        setSelectedAnswer('');
+        setShowResult(false);
+        toast({
+          title: "Домашнее задание",
+          description: "Загружен вопрос из вашего домашнего задания",
+        });
+      }
+    } catch (error) {
+      console.error('Error loading homework question:', error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при загрузке домашнего задания",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getOptionContent = (optionIndex: number) => {
@@ -373,7 +440,9 @@ const OgemathRevision = () => {
                 ← Назад
               </Button>
               <div className="text-center">
-                <h1 className="text-2xl font-bold text-green-800">Повторение навыков</h1>
+                <h1 className="text-2xl font-bold text-green-800">
+                  {isHomeworkMode ? 'Домашнее задание' : 'Повторение навыков'}
+                </h1>
                 <p className="text-sm text-green-600">Вопрос {session.questionsAttempted + 1} из {session.totalQuestions}</p>
               </div>
               <div className="flex items-center space-x-4">
@@ -398,8 +467,17 @@ const OgemathRevision = () => {
               <Card className="h-full">
                 <CardHeader>
                   <CardTitle className="text-lg text-center flex items-center justify-center gap-2">
-                    <RefreshCw className="w-5 h-5 text-green-600" />
-                    Повторение - супер полезно для вас!
+                    {isHomeworkMode ? (
+                      <>
+                        <BookOpen className="w-5 h-5 text-purple-600" />
+                        Домашнее задание от ИИ помощника
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-5 h-5 text-green-600" />
+                        Повторение - супер полезно для вас!
+                      </>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">

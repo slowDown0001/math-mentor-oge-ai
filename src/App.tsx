@@ -70,6 +70,7 @@ const ModuleProbabilityStatistics = lazy(() => import("./pages/ModuleProbability
 const ModuleAppliedMath = lazy(() => import("./pages/ModuleAppliedMath"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const MyDb3 = lazy(() => import("./pages/MyDb3"));
+const Homework = lazy(() => import("./pages/Homework"));
 
 const queryClient = new QueryClient();
 
@@ -106,6 +107,7 @@ const App = () => (
                 <Route path="/ogemath-practice" element={<OgemathPractice />} />
                 <Route path="/ogemath-mock" element={<OgemathMock />} />
                 <Route path="/ogemath-revision" element={<OgemathRevision />} />
+                <Route path="/homework" element={<Homework />} />
                 <Route path="/ogemath-progress" element={<OgemathProgress />} />
                 <Route path="/ogemath-progress2" element={<OgemathProgress2 />} />
                 <Route path="/egemathbasic-progress" element={<EgemathbasicProgress />} />

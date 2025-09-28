@@ -27,6 +27,13 @@ const OgemathPractice = () => {
       color: "bg-green-50 hover:bg-green-100 border-green-200"
     },
     {
+      title: "Домашнее задание",
+      description: "Персональные задания от ИИ помощника - MCQ и ФИПИ",
+      icon: ClipboardList,
+      link: "/homework",
+      color: "bg-purple-50 hover:bg-purple-100 border-purple-200"
+    },
+    {
       title: "Пробный экзамен ОГЭ",
       description: "Полный экзамен с таймером (3ч 55мин) - 25 вопросов",
       icon: ClipboardList,
