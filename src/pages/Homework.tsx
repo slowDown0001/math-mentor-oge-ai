@@ -5,12 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X } from 'lucide-react';
+import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import MathRenderer from '@/components/MathRenderer';
 
 interface HomeworkData {
   mcq_questions: string[];
@@ -25,6 +26,7 @@ interface Question {
   options?: string[];
   correct_answer?: string;
   problem_number?: number;
+  solution_text?: string;
 }
 
 const Homework = () => {
@@ -43,6 +45,7 @@ const Homework = () => {
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [questionType, setQuestionType] = useState<'mcq' | 'frq'>('mcq');
   const [showCongrats, setShowCongrats] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -140,6 +143,7 @@ const Homework = () => {
         text: q.problem_text || '',
         options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
         correct_answer: q.answer || '',
+        solution_text: q.solution_text || '',
         problem_number: typeof q.problem_number_type === 'string' ? parseInt(q.problem_number_type) || index + 1 : q.problem_number_type || index + 1
       })) || [];
 
@@ -179,6 +183,7 @@ const Homework = () => {
         id: q.question_id,
         text: q.problem_text || '',
         correct_answer: q.answer || '',
+        solution_text: q.solution_text || '',
         problem_number: q.problem_number_type || index + 1
       })) || [];
 
@@ -219,11 +224,19 @@ const Homework = () => {
     }
   };
 
+  const handleShowSolution = () => {
+    setShowSolution(true);
+    setIsCorrect(false);
+    setShowAnswer(true);
+    setCompletedQuestions(prev => new Set([...prev, currentQuestions[currentQuestionIndex].id]));
+  };
+
   const handleNextQuestion = () => {
     setShowAnswer(false);
     setIsCorrect(null);
     setUserAnswer('');
     setSelectedOption(null);
+    setShowSolution(false);
 
     if (currentQuestionIndex < currentQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -414,25 +427,30 @@ const Homework = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div 
+                 <MathRenderer 
+                  text={currentQuestion.text}
                   className="text-lg leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: currentQuestion.text }}
+                  compiler="mathjax"
                 />
 
                 {questionType === 'mcq' && currentQuestion.options ? (
                   <div className="space-y-2">
-                    {currentQuestion.options.map((option, index) => (
-                      <Button
-                        key={index}
-                        variant={selectedOption === option ? "default" : "outline"}
-                        className="w-full text-left justify-start h-auto p-4"
-                        onClick={() => setSelectedOption(option)}
-                        disabled={showAnswer}
-                      >
-                        <span className="font-bold mr-2">{String.fromCharCode(65 + index)})</span>
-                        <span dangerouslySetInnerHTML={{ __html: option }} />
-                      </Button>
-                    ))}
+                    {currentQuestion.options.map((option, index) => {
+                      const cyrillicLetters = ['А', 'Б', 'В', 'Г'];
+                      const cyrillicAnswer = cyrillicLetters[index];
+                      return (
+                        <Button
+                          key={index}
+                          variant={selectedOption === cyrillicAnswer ? "default" : "outline"}
+                          className="w-full text-left justify-start h-auto p-4"
+                          onClick={() => setSelectedOption(cyrillicAnswer)}
+                          disabled={showAnswer}
+                        >
+                          <span className="font-bold mr-2">{cyrillicAnswer})</span>
+                          <MathRenderer text={option} className="inline-block" compiler="mathjax" />
+                        </Button>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -460,26 +478,42 @@ const Homework = () => {
                         <X className="w-5 h-5 text-red-600" />
                       )}
                       <span className={`font-bold ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
-                        {isCorrect ? 'Правильно!' : 'Неправильно'}
+                        {isCorrect ? 'Правильно!' : showSolution ? 'Показано решение' : 'Неправильно'}
                       </span>
                     </div>
-                    {!isCorrect && (
+                    {!isCorrect && !showSolution && (
                       <p className="text-gray-700">
                         Правильный ответ: <span className="font-bold">{currentQuestion.correct_answer}</span>
                       </p>
+                    )}
+                    {showSolution && currentQuestion.solution_text && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                        <h4 className="font-bold text-blue-800 mb-2">Решение:</h4>
+                        <MathRenderer text={currentQuestion.solution_text} compiler="mathjax" />
+                      </div>
                     )}
                   </motion.div>
                 )}
 
                 <div className="flex gap-2">
                   {!showAnswer ? (
-                    <Button
-                      onClick={handleSubmitAnswer}
-                      className="bg-purple-600 hover:bg-purple-700"
-                      disabled={questionType === 'mcq' ? !selectedOption : !userAnswer}
-                    >
-                      Проверить ответ
-                    </Button>
+                    <>
+                      <Button
+                        onClick={handleSubmitAnswer}
+                        className="bg-purple-600 hover:bg-purple-700"
+                        disabled={questionType === 'mcq' ? !selectedOption : !userAnswer}
+                      >
+                        Проверить ответ
+                      </Button>
+                      <Button
+                        onClick={handleShowSolution}
+                        variant="outline"
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Показать решение
+                      </Button>
+                    </>
                   ) : (
                     <Button
                       onClick={handleNextQuestion}
