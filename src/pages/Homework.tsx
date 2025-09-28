@@ -119,34 +119,80 @@ const Homework = () => {
   const loadMCQQuestions = async () => {
     if (!homeworkData?.mcq_questions?.length) return;
 
-    // Create mock questions for demo - replace with actual database queries
-    const mockMCQs: Question[] = homeworkData.mcq_questions.map((id, index) => ({
-      id,
-      text: `Вопрос MCQ ${index + 1}: Решите уравнение x² - 5x + 6 = 0`,
-      options: ['x = 2, x = 3', 'x = 1, x = 6', 'x = -2, x = -3', 'x = 0, x = 5'],
-      correct_answer: 'x = 2, x = 3',
-      problem_number: index + 1
-    }));
+    try {
+      const { data: mcqData, error } = await supabase
+        .from('mcq_with_options')
+        .select('*')
+        .in('question_id', homeworkData.mcq_questions);
 
-    setCurrentQuestions(mockMCQs);
-    setQuestionType('mcq');
-    setCurrentQuestionIndex(0);
+      if (error) {
+        console.error('Error loading MCQ questions:', error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось загрузить вопросы MCQ",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const mcqQuestions: Question[] = mcqData?.map((q, index) => ({
+        id: q.question_id,
+        text: q.problem_text || '',
+        options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
+        correct_answer: q.answer || '',
+        problem_number: index + 1
+      })) || [];
+
+      setCurrentQuestions(mcqQuestions);
+      setQuestionType('mcq');
+      setCurrentQuestionIndex(0);
+    } catch (error) {
+      console.error('Error loading MCQ questions:', error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при загрузке вопросов",
+        variant: "destructive"
+      });
+    }
   };
 
   const loadFRQQuestions = async () => {
     if (!homeworkData?.fipi_questions?.length) return;
 
-    // Create mock questions for demo - replace with actual database queries
-    const mockFRQs: Question[] = homeworkData.fipi_questions.map((id, index) => ({
-      id,
-      text: `Задача ФИПИ ${index + 1}: Найдите значение выражения 3x + 2y при x = 4, y = 5`,
-      correct_answer: '22',
-      problem_number: index + 1
-    }));
+    try {
+      const { data: frqData, error } = await supabase
+        .from('oge_math_fipi_bank')
+        .select('*')
+        .in('question_id', homeworkData.fipi_questions);
 
-    setCurrentQuestions(mockFRQs);
-    setQuestionType('frq');
-    setCurrentQuestionIndex(0);
+      if (error) {
+        console.error('Error loading FRQ questions:', error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось загрузить задачи ФИПИ",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const frqQuestions: Question[] = frqData?.map((q, index) => ({
+        id: q.question_id,
+        text: q.problem_text || '',
+        correct_answer: q.answer || '',
+        problem_number: q.problem_number_type || index + 1
+      })) || [];
+
+      setCurrentQuestions(frqQuestions);
+      setQuestionType('frq');
+      setCurrentQuestionIndex(0);
+    } catch (error) {
+      console.error('Error loading FRQ questions:', error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при загрузке задач",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSubmitAnswer = async () => {
