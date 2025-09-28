@@ -1212,25 +1212,62 @@ const OgemathMock = () => {
               </CardContent>
             </Card>
 
+            {/* Score Display - Very Prominent and Separate */}
+            <div className="flex justify-center mb-8">
+              <div className="bg-gradient-to-r from-emerald-500 to-blue-600 text-white px-10 py-8 rounded-2xl shadow-2xl border-4 border-white">
+                <div className="text-center">
+                  <div className="text-xl font-bold opacity-90 mb-2">БАЛЛЫ</div>
+                  <div className="text-5xl font-black">
+                    {(() => {
+                      const maxPoints = reviewQuestionIndex >= 19 ? 2 : 1;
+                      let earnedPoints = 0;
+                      
+                      if (reviewQuestionIndex >= 19 && reviewQuestionIndex <= 24) {
+                        // For FRQ questions, check photo scores or parsed analysis
+                        if (reviewResult?.photoScores !== undefined) {
+                          earnedPoints = reviewResult.photoScores;
+                        } else if (reviewResult?.userAnswer?.startsWith('{')) {
+                          try {
+                            const analysis = JSON.parse(reviewResult.userAnswer);
+                            earnedPoints = analysis.score || 0;
+                          } catch {
+                            earnedPoints = 0;
+                          }
+                        }
+                      } else {
+                        // For MCQ questions
+                        earnedPoints = reviewResult?.isCorrect ? 1 : 0;
+                      }
+                      
+                      return `${earnedPoints}/${maxPoints}`;
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Ваш ответ</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="font-mono p-3 bg-gray-50 rounded">
-                    {(() => {
-                      // For FRQ questions 20-25, show parsed answer instead of raw JSON
-                      if (reviewQuestionIndex >= 19 && reviewQuestionIndex <= 24 && reviewResult?.userAnswer?.startsWith('{')) {
-                        try {
-                          const analysis = JSON.parse(reviewResult.userAnswer);
-                          return analysis.userAnswer || 'Развернутый ответ представлен';
-                        } catch {
-                          return reviewResult?.userAnswer || 'Не отвечено';
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <MathRenderer 
+                      text={(() => {
+                        // For FRQ questions 20-25, show parsed answer instead of raw JSON
+                        if (reviewQuestionIndex >= 19 && reviewQuestionIndex <= 24 && reviewResult?.userAnswer?.startsWith('{')) {
+                          try {
+                            const analysis = JSON.parse(reviewResult.userAnswer);
+                            return analysis.userAnswer || 'Развернутый ответ представлен';
+                          } catch {
+                            return reviewResult?.userAnswer || 'Не отвечено';
+                          }
                         }
-                      }
-                      return reviewResult?.userAnswer || 'Не отвечено';
-                    })()}
+                        return reviewResult?.userAnswer || 'Не отвечено';
+                      })()}
+                      compiler="mathjax"
+                    />
                   </div>
                   {reviewResult?.photoFeedback && (
                     <div className="mt-3">
@@ -1238,21 +1275,21 @@ const OgemathMock = () => {
                       <div className="mt-1 p-3 bg-blue-50 rounded text-sm">
                         {reviewResult.photoFeedback}
                       </div>
-                      <div className="mt-2">
-                        <strong>Баллы:</strong> {reviewResult.photoScores || 0}
-                      </div>
                     </div>
                   )}
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="md:max-w-md">
                 <CardHeader>
-                  <CardTitle>Правильный ответ</CardTitle>
+                  <CardTitle className="text-sm">Правильный ответ</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="font-mono p-3 bg-green-50 rounded">
-                    {reviewResult?.correctAnswer || 'Неизвестно'}
+                  <div className="p-2 bg-green-50 rounded border border-green-200 text-sm">
+                    <MathRenderer 
+                      text={reviewResult?.correctAnswer || 'Неизвестно'}
+                      compiler="mathjax"
+                    />
                   </div>
                 </CardContent>
               </Card>
