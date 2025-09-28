@@ -621,7 +621,20 @@ const Homework = () => {
 
             <div className="flex flex-col gap-2">
               <Button 
-                onClick={() => navigate('/ogemath')}
+                onClick={() => {
+                  // Store homework completion data for AI teacher feedback
+                  const completionData = {
+                    sessionId,
+                    totalQuestions: completedQuestions.size,
+                    questionsCompleted: completedQuestions.size,
+                    questionsCorrect: correctAnswers.size,
+                    accuracy: completedQuestions.size > 0 ? (correctAnswers.size / completedQuestions.size) * 100 : 0,
+                    progressStats,
+                    completedAt: new Date().toISOString()
+                  };
+                  localStorage.setItem('homeworkCompletionData', JSON.stringify(completionData));
+                  navigate('/ogemath');
+                }}
                 className="bg-purple-600 hover:bg-purple-700 w-full"
               >
                 Перейти к ИИ учителю

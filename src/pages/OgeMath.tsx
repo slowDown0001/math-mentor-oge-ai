@@ -12,6 +12,7 @@ import { StreakDisplay } from "@/components/streak/StreakDisplay";
 import { DailyTaskStory } from "@/components/DailyTaskStory";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { generateHomeworkFeedback, createHomeworkStatsFromData } from "@/services/homeworkFeedbackService";
 
 const OgeMath = () => {
   const navigate = useNavigate();
@@ -33,51 +34,113 @@ const OgeMath = () => {
   useEffect(() => {
     const loadInitialHistory = async () => {
       if (user && !isHistoryLoaded) {
+        // Check for homework completion data
+        const homeworkData = localStorage.getItem('homeworkCompletionData');
+        let shouldGenerateHomeworkFeedback = false;
+        let homeworkFeedbackMessage = '';
+
+        if (homeworkData) {
+          try {
+            const completionData = JSON.parse(homeworkData);
+            // Get detailed homework session data from database
+            const { data: sessionData, error } = await supabase
+              .from('homework_progress')
+              .select('*')
+              .eq('user_id', user.id)
+              .eq('session_id', completionData.sessionId)
+              .order('created_at', { ascending: true });
+
+            if (!error && sessionData && sessionData.length > 0) {
+              const homeworkStats = createHomeworkStatsFromData(sessionData);
+              homeworkFeedbackMessage = generateHomeworkFeedback(homeworkStats);
+              shouldGenerateHomeworkFeedback = true;
+              
+              // Clear the stored data to avoid repeated feedback
+              localStorage.removeItem('homeworkCompletionData');
+            }
+          } catch (error) {
+            console.error('Error processing homework completion data:', error);
+            localStorage.removeItem('homeworkCompletionData');
+          }
+        }
+
         try {
           const history = await loadChatHistory('1', 3, 0);
+          let initialMessages = [];
+
+          if (shouldGenerateHomeworkFeedback) {
+            // Add homework feedback as the first message
+            initialMessages = [
+              {
+                id: 1,
+                text: homeworkFeedbackMessage,
+                isUser: false,
+                timestamp: new Date()
+              }
+            ];
+
+            // Save the homework feedback to chat logs
+            await saveChatLog('Домашнее задание завершено', homeworkFeedbackMessage, '1');
+          }
+
           if (history.length > 0) {
             // Convert chat logs to messages format and reverse to show chronologically
             const historyMessages = history.reverse().flatMap((log, index) => [
               {
-                id: index * 2 + 1,
+                id: (index + initialMessages.length) * 2 + 1,
                 text: log.user_message,
                 isUser: true,
                 timestamp: new Date(log.time_of_user_message)
               },
               {
-                id: index * 2 + 2,
+                id: (index + initialMessages.length) * 2 + 2,
                 text: log.response,
                 isUser: false,
                 timestamp: new Date(log.time_of_response)
               }
             ]);
             
-            setMessages(historyMessages);
+            setMessages([...initialMessages, ...historyMessages]);
             setHistoryOffset(3);
             setHasMoreHistory(history.length === 3);
           } else {
             // Set welcome messages if no history
-            setMessages([
+            const welcomeMessages = [
               {
-                id: 1,
+                id: initialMessages.length + 1,
                 text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
                 isUser: false,
                 timestamp: new Date()
               },
               {
-                id: 2,
+                id: initialMessages.length + 2,
                 text: "Хочешь пройти тренировочные задания или разобрать конкретную тему?",
                 isUser: false,
                 timestamp: new Date()
               }
-            ]);
+            ];
+            
+            setMessages([...initialMessages, ...welcomeMessages]);
             setHasMoreHistory(false);
           }
           setIsHistoryLoaded(true);
         } catch (error) {
           console.error('Error loading chat history:', error);
           // Fallback to welcome messages
-          setMessages([
+          const fallbackMessages = shouldGenerateHomeworkFeedback ? [
+            {
+              id: 1,
+              text: homeworkFeedbackMessage,
+              isUser: false,
+              timestamp: new Date()
+            },
+            {
+              id: 2,
+              text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
+              isUser: false,
+              timestamp: new Date()
+            }
+          ] : [
             {
               id: 1,
               text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
@@ -90,7 +153,9 @@ const OgeMath = () => {
               isUser: false,
               timestamp: new Date()
             }
-          ]);
+          ];
+          
+          setMessages(fallbackMessages);
           setIsHistoryLoaded(true);
           setHasMoreHistory(false);
         }
