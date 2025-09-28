@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Play, Lock, Trophy, Target, Clock, Star } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -18,38 +19,47 @@ interface HomeworkData {
   due_date?: string;
 }
 
-interface HomeworkProgress {
-  mcq_completed: number;
-  fipi_completed: number;
-  mcq_correct: number;
-  fipi_correct: number;
+interface Question {
+  id: string;
+  text: string;
+  options?: string[];
+  correct_answer?: string;
+  problem_number?: number;
 }
 
 const Homework = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [homeworkData, setHomeworkData] = useState<HomeworkData | null>(null);
-  const [progress, setProgress] = useState<HomeworkProgress>({
-    mcq_completed: 0,
-    fipi_completed: 0,
-    mcq_correct: 0,
-    fipi_correct: 0
-  });
+  const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [completedQuestions, setCompletedQuestions] = useState<Set<string>>(new Set());
+  const [correctAnswers, setCorrectAnswers] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const [questionType, setQuestionType] = useState<'mcq' | 'frq'>('mcq');
   const [showCongrats, setShowCongrats] = useState(false);
 
   useEffect(() => {
     if (user) {
       loadHomeworkData();
-      loadProgress();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (homeworkData) {
+      loadQuestions();
+    }
+  }, [homeworkData]);
 
   const loadHomeworkData = async () => {
     if (!user) return;
 
     try {
-      // Use generic select to bypass TypeScript strict typing
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -58,20 +68,14 @@ const Homework = () => {
 
       if (error) {
         console.error('Error loading homework:', error);
-        toast({
-          title: "Ошибка",
-          description: "Не удалось загрузить домашнее задание",
-          variant: "destructive"
-        });
+        setLoading(false);
         return;
       }
 
       if (data && (data as any).homework) {
         try {
           const parsedHomework = JSON.parse((data as any).homework);
-          console.log('Parsed homework data:', parsedHomework);
           
-          // Transform the data structure if needed (handle uppercase format)
           const transformedHomework = {
             mcq_questions: parsedHomework.MCQ || parsedHomework.mcq_questions || [],
             fipi_questions: parsedHomework.FIPI || parsedHomework.fipi_questions || [],
@@ -79,7 +83,6 @@ const Homework = () => {
             due_date: parsedHomework.due_date
           };
           
-          console.log('Transformed homework data:', transformedHomework);
           setHomeworkData(transformedHomework);
         } catch (parseError) {
           console.error('Error parsing homework JSON:', parseError);
@@ -97,119 +100,106 @@ const Homework = () => {
     }
   };
 
-  const loadProgress = async () => {
-    if (!user || !homeworkData) return;
+  const loadQuestions = async () => {
+    if (!homeworkData) return;
+    
+    setLoadingQuestions(true);
+    
+    // Start with MCQ questions
+    if (homeworkData.mcq_questions?.length > 0) {
+      await loadMCQQuestions();
+    } else if (homeworkData.fipi_questions?.length > 0) {
+      setQuestionType('frq');
+      await loadFRQQuestions();
+    }
+    
+    setLoadingQuestions(false);
+  };
 
-    try {
-      // Get MCQ progress
-      if (homeworkData.mcq_questions?.length > 0) {
-        const { data: mcqData } = await supabase
-          .from('student_activity')
-          .select('question_id, is_correct, finished_or_not')
-          .eq('user_id', user.id)
-          .in('question_id', homeworkData.mcq_questions);
+  const loadMCQQuestions = async () => {
+    if (!homeworkData?.mcq_questions?.length) return;
 
-        if (mcqData) {
-          const completed = mcqData.filter(item => item.finished_or_not).length;
-          const correct = mcqData.filter(item => item.is_correct).length;
-          setProgress(prev => ({
-            ...prev,
-            mcq_completed: completed,
-            mcq_correct: correct
-          }));
-        }
-      }
+    // Create mock questions for demo - replace with actual database queries
+    const mockMCQs: Question[] = homeworkData.mcq_questions.map((id, index) => ({
+      id,
+      text: `Вопрос MCQ ${index + 1}: Решите уравнение x² - 5x + 6 = 0`,
+      options: ['x = 2, x = 3', 'x = 1, x = 6', 'x = -2, x = -3', 'x = 0, x = 5'],
+      correct_answer: 'x = 2, x = 3',
+      problem_number: index + 1
+    }));
 
-      // Get FIPI progress
-      if (homeworkData.fipi_questions?.length > 0) {
-        const { data: fipiData } = await supabase
-          .from('student_activity')
-          .select('question_id, is_correct, finished_or_not')
-          .eq('user_id', user.id)
-          .in('question_id', homeworkData.fipi_questions);
+    setCurrentQuestions(mockMCQs);
+    setQuestionType('mcq');
+    setCurrentQuestionIndex(0);
+  };
 
-        if (fipiData) {
-          const completed = fipiData.filter(item => item.finished_or_not).length;
-          const correct = fipiData.filter(item => item.is_correct).length;
-          setProgress(prev => ({
-            ...prev,
-            fipi_completed: completed,
-            fipi_correct: correct
-          }));
-        }
-      }
-    } catch (error) {
-      console.error('Error loading progress:', error);
+  const loadFRQQuestions = async () => {
+    if (!homeworkData?.fipi_questions?.length) return;
+
+    // Create mock questions for demo - replace with actual database queries
+    const mockFRQs: Question[] = homeworkData.fipi_questions.map((id, index) => ({
+      id,
+      text: `Задача ФИПИ ${index + 1}: Найдите значение выражения 3x + 2y при x = 4, y = 5`,
+      correct_answer: '22',
+      problem_number: index + 1
+    }));
+
+    setCurrentQuestions(mockFRQs);
+    setQuestionType('frq');
+    setCurrentQuestionIndex(0);
+  };
+
+  const handleSubmitAnswer = async () => {
+    const currentQuestion = currentQuestions[currentQuestionIndex];
+    if (!currentQuestion || !user) return;
+
+    const answer = questionType === 'mcq' ? selectedOption : userAnswer;
+    if (!answer) {
+      toast({
+        title: "Ответ не выбран",
+        description: "Пожалуйста, выберите или введите ответ",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const correct = answer === currentQuestion.correct_answer;
+    setIsCorrect(correct);
+    setShowAnswer(true);
+
+    setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
+    if (correct) {
+      setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
     }
   };
 
-  useEffect(() => {
-    if (homeworkData) {
-      loadProgress();
-    }
-  }, [homeworkData]);
+  const handleNextQuestion = () => {
+    setShowAnswer(false);
+    setIsCorrect(null);
+    setUserAnswer('');
+    setSelectedOption(null);
 
-  useEffect(() => {
-    // Check if homework is completed
-    if (homeworkData && 
-        progress.mcq_completed === homeworkData.mcq_questions?.length &&
-        progress.fipi_completed === homeworkData.fipi_questions?.length &&
-        homeworkData.mcq_questions?.length > 0 &&
-        homeworkData.fipi_questions?.length > 0) {
-      triggerCongrats();
+    if (currentQuestionIndex < currentQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      // Move to next question type or show completion
+      if (questionType === 'mcq' && homeworkData?.fipi_questions?.length > 0) {
+        loadFRQQuestions();
+      } else {
+        // All questions completed
+        triggerCongrats();
+      }
     }
-  }, [progress, homeworkData]);
+  };
 
   const triggerCongrats = () => {
     setShowCongrats(true);
-    
-    // Trigger confetti animation
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 }
     });
-
-    // Auto-hide after 5 seconds
     setTimeout(() => setShowCongrats(false), 5000);
-  };
-
-  const handleStartMCQ = () => {
-    if (!homeworkData?.mcq_questions?.length) {
-      toast({
-        title: "Нет вопросов",
-        description: "MCQ вопросы не назначены",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Navigate to revision page with homework questions
-    navigate('/ogemath-revision', { 
-      state: { 
-        homeworkQuestions: homeworkData.mcq_questions,
-        isHomework: true 
-      } 
-    });
-  };
-
-  const handleStartFIPI = () => {
-    if (!homeworkData?.fipi_questions?.length) {
-      toast({
-        title: "Нет вопросов",
-        description: "ФИПИ вопросы не назначены",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Navigate to homework FIPI practice page
-    navigate('/homework-fipi-practice', { 
-      state: { 
-        homeworkQuestions: homeworkData.fipi_questions,
-        isHomework: true 
-      } 
-    });
   };
 
   if (!user) {
@@ -237,10 +227,9 @@ const Homework = () => {
     );
   }
 
-  if (!homeworkData) {
+  if (!homeworkData || (!homeworkData.mcq_questions?.length && !homeworkData.fipi_questions?.length)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-        {/* Navigation Bar */}
         <div className="bg-white shadow-sm border-b">
           <div className="container mx-auto px-4 py-3">
             <div className="flex justify-start">
@@ -279,11 +268,23 @@ const Homework = () => {
     );
   }
 
+  if (loadingQuestions) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
+        <div className="pt-20 px-4">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-lg text-muted-foreground">Загрузка вопросов...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentQuestion = currentQuestions[currentQuestionIndex];
   const totalMCQ = homeworkData.mcq_questions?.length || 0;
-  const totalFIPI = homeworkData.fipi_questions?.length || 0;
-  const mcqProgress = totalMCQ > 0 ? (progress.mcq_completed / totalMCQ) * 100 : 0;
-  const fipiProgress = totalFIPI > 0 ? (progress.fipi_completed / totalFIPI) * 100 : 0;
-  const overallProgress = (progress.mcq_completed + progress.fipi_completed) / (totalMCQ + totalFIPI) * 100;
+  const totalFRQ = homeworkData.fipi_questions?.length || 0;
+  const currentProgress = ((completedQuestions.size) / (totalMCQ + totalFRQ)) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
@@ -298,207 +299,199 @@ const Homework = () => {
               Назад
             </Button>
             <h1 className="text-xl font-bold text-purple-800">Домашнее задание</h1>
-            <div className="w-24"></div> {/* Spacer for centering */}
+            <div className="w-24"></div>
           </div>
         </div>
       </div>
 
+      {/* Congratulations Modal */}
+      {showCongrats && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <motion.div
+            initial={{ y: -50 }}
+            animate={{ y: 0 }}
+            className="bg-white rounded-lg p-8 text-center max-w-md mx-4"
+          >
+            <Trophy className="w-16 h-16 mx-auto text-yellow-500 mb-4" />
+            <h2 className="text-2xl font-bold text-purple-800 mb-2">Поздравляем!</h2>
+            <p className="text-gray-600 mb-6">
+              Вы успешно выполнили всё домашнее задание! Отличная работа! 🎉
+            </p>
+            <Button 
+              onClick={() => setShowCongrats(false)}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              Продолжить
+            </Button>
+          </motion.div>
+        </motion.div>
+      )}
+
       <div className="pt-8 px-4 pb-8">
         <div className="max-w-4xl mx-auto">
-          {/* Congratulations Modal */}
-          {showCongrats && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-            >
-              <motion.div
-                initial={{ y: -50 }}
-                animate={{ y: 0 }}
-                className="bg-white rounded-lg p-8 text-center max-w-md mx-4"
-              >
-                <Trophy className="w-16 h-16 mx-auto text-yellow-500 mb-4" />
-                <h2 className="text-2xl font-bold text-purple-800 mb-2">Поздравляем!</h2>
-                <p className="text-gray-600 mb-6">
-                  Вы успешно выполнили всё домашнее задание! Отличная работа! 🎉
-                </p>
-                <Button 
-                  onClick={() => setShowCongrats(false)}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  Продолжить
-                </Button>
-              </motion.div>
-            </motion.div>
-          )}
-
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-purple-900 mb-4">
-              Домашнее задание от ИИ
-            </h1>
-            <p className="text-lg text-purple-600">
-              Персональные задания для улучшения ваших навыков
-            </p>
-          </div>
-
-          {/* Overall Progress */}
+          {/* Progress Header */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="w-5 h-5 text-purple-600" />
-                Общий прогресс
+                Прогресс выполнения
+                <Badge variant="secondary" className={questionType === 'mcq' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
+                  {questionType === 'mcq' ? 'MCQ' : 'ФИПИ'}
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <Progress value={overallProgress} className="h-3" />
-                <div className="text-center">
-                  <span className="text-2xl font-bold text-purple-800">
-                    {Math.round(overallProgress)}%
-                  </span>
-                  <p className="text-sm text-muted-foreground">
-                    {progress.mcq_completed + progress.fipi_completed} из {totalMCQ + totalFIPI} заданий выполнено
-                  </p>
-                </div>
+              <Progress value={currentProgress} className="h-3 mb-2" />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Вопрос {currentQuestionIndex + 1} из {currentQuestions.length}</span>
+                <span>{completedQuestions.size} из {totalMCQ + totalFRQ} выполнено</span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Assignment Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* MCQ Card */}
-            <Card className="relative overflow-hidden">
-              <div className="absolute top-4 right-4">
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  MCQ
-                </Badge>
-              </div>
+          {/* Question Card */}
+          {currentQuestion && (
+            <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <BookOpen className="w-6 h-6 text-green-600" />
-                  Вопросы с выбором ответа
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Прогресс:</span>
-                  <span className="font-bold text-green-600">
-                    {progress.mcq_completed}/{totalMCQ}
-                  </span>
-                </div>
-                <Progress value={mcqProgress} className="h-2" />
-                
-                <div className="flex justify-between text-sm">
-                  <span>Правильно: {progress.mcq_correct}</span>
-                  <span>Точность: {totalMCQ > 0 ? Math.round((progress.mcq_correct / totalMCQ) * 100) : 0}%</span>
-                </div>
-
-                <Button
-                  onClick={handleStartMCQ}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  disabled={totalMCQ === 0}
-                >
-                  <Play className="w-4 h-4 mr-2" />
-                  {progress.mcq_completed === totalMCQ ? 'Повторить MCQ' : 'Начать MCQ'}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* FIPI Card */}
-            <Card className="relative overflow-hidden">
-              <div className="absolute top-4 right-4">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  ФИПИ
-                </Badge>
-              </div>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <Star className="w-6 h-6 text-blue-600" />
-                  Банк заданий ФИПИ
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Прогресс:</span>
-                  <span className="font-bold text-blue-600">
-                    {progress.fipi_completed}/{totalFIPI}
-                  </span>
-                </div>
-                <Progress value={fipiProgress} className="h-2" />
-                
-                <div className="flex justify-between text-sm">
-                  <span>Правильно: {progress.fipi_correct}</span>
-                  <span>Точность: {totalFIPI > 0 ? Math.round((progress.fipi_correct / totalFIPI) * 100) : 0}%</span>
-                </div>
-
-                <Button
-                  onClick={handleStartFIPI}
-                  className="w-full"
-                  variant={totalFIPI === 0 ? "outline" : "default"}
-                  disabled={totalFIPI === 0}
-                >
-                  {totalFIPI === 0 ? (
-                    <>
-                      <Lock className="w-4 h-4 mr-2" />
-                      Нет заданий ФИПИ
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4 mr-2" />
-                      {progress.fipi_completed === totalFIPI ? 'Повторить ФИПИ' : 'Начать ФИПИ'}
-                    </>
+                <CardTitle className="text-lg">
+                  {questionType === 'mcq' ? 'Вопрос с выбором ответа' : 'Задача ФИПИ'}
+                  {currentQuestion.problem_number && (
+                    <Badge variant="outline" className="ml-2">
+                      №{currentQuestion.problem_number}
+                    </Badge>
                   )}
-                </Button>
-                {totalFIPI === 0 && (
-                  <p className="text-xs text-muted-foreground text-center">
-                    ФИПИ задания не назначены
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Stats Summary */}
-          {(progress.mcq_completed > 0 || progress.fipi_completed > 0) && (
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-purple-600" />
-                  Статистика выполнения
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div className="p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">
-                      {progress.mcq_completed + progress.fipi_completed}
-                    </div>
-                    <div className="text-sm text-purple-700">Заданий решено</div>
+              <CardContent className="space-y-4">
+                <div 
+                  className="text-lg leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: currentQuestion.text }}
+                />
+
+                {questionType === 'mcq' && currentQuestion.options ? (
+                  <div className="space-y-2">
+                    {currentQuestion.options.map((option, index) => (
+                      <Button
+                        key={index}
+                        variant={selectedOption === option ? "default" : "outline"}
+                        className="w-full text-left justify-start h-auto p-4"
+                        onClick={() => setSelectedOption(option)}
+                        disabled={showAnswer}
+                      >
+                        <span className="font-bold mr-2">{String.fromCharCode(65 + index)})</span>
+                        <span dangerouslySetInnerHTML={{ __html: option }} />
+                      </Button>
+                    ))}
                   </div>
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {progress.mcq_correct + progress.fipi_correct}
-                    </div>
-                    <div className="text-sm text-green-700">Правильных ответов</div>
+                ) : (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Ваш ответ:</label>
+                    <Input
+                      value={userAnswer}
+                      onChange={(e) => setUserAnswer(e.target.value)}
+                      placeholder="Введите ответ..."
+                      disabled={showAnswer}
+                      className="text-lg"
+                    />
                   </div>
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {Math.round(((progress.mcq_correct + progress.fipi_correct) / Math.max(1, progress.mcq_completed + progress.fipi_completed)) * 100)}%
+                )}
+
+                {showAnswer && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-4 rounded-lg border-2 ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      {isCorrect ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <X className="w-5 h-5 text-red-600" />
+                      )}
+                      <span className={`font-bold ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
+                        {isCorrect ? 'Правильно!' : 'Неправильно'}
+                      </span>
                     </div>
-                    <div className="text-sm text-blue-700">Общая точность</div>
-                  </div>
-                  <div className="p-4 bg-orange-50 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600">
-                      {totalMCQ + totalFIPI - progress.mcq_completed - progress.fipi_completed}
-                    </div>
-                    <div className="text-sm text-orange-700">Осталось</div>
-                  </div>
+                    {!isCorrect && (
+                      <p className="text-gray-700">
+                        Правильный ответ: <span className="font-bold">{currentQuestion.correct_answer}</span>
+                      </p>
+                    )}
+                  </motion.div>
+                )}
+
+                <div className="flex gap-2">
+                  {!showAnswer ? (
+                    <Button
+                      onClick={handleSubmitAnswer}
+                      className="bg-purple-600 hover:bg-purple-700"
+                      disabled={questionType === 'mcq' ? !selectedOption : !userAnswer}
+                    >
+                      Проверить ответ
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleNextQuestion}
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      {currentQuestionIndex < currentQuestions.length - 1 || 
+                       (questionType === 'mcq' && totalFRQ > 0) ? (
+                        <>
+                          Следующий вопрос
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                      ) : (
+                        'Завершить'
+                      )}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
           )}
+
+          {/* Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-purple-600" />
+                Статистика
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div className="p-4 bg-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {completedQuestions.size}
+                  </div>
+                  <div className="text-sm text-purple-700">Выполнено</div>
+                </div>
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">
+                    {correctAnswers.size}
+                  </div>
+                  <div className="text-sm text-green-700">Правильно</div>
+                </div>
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {completedQuestions.size > 0 ? Math.round((correctAnswers.size / completedQuestions.size) * 100) : 0}%
+                  </div>
+                  <div className="text-sm text-blue-700">Точность</div>
+                </div>
+                <div className="p-4 bg-orange-50 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {totalMCQ + totalFRQ - completedQuestions.size}
+                  </div>
+                  <div className="text-sm text-orange-700">Осталось</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
