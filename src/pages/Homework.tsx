@@ -69,7 +69,18 @@ const Homework = () => {
       if (data && (data as any).homework) {
         try {
           const parsedHomework = JSON.parse((data as any).homework);
-          setHomeworkData(parsedHomework);
+          console.log('Parsed homework data:', parsedHomework);
+          
+          // Transform the data structure if needed (handle uppercase format)
+          const transformedHomework = {
+            mcq_questions: parsedHomework.MCQ || parsedHomework.mcq_questions || [],
+            fipi_questions: parsedHomework.FIPI || parsedHomework.fipi_questions || [],
+            assigned_date: parsedHomework.assigned_date,
+            due_date: parsedHomework.due_date
+          };
+          
+          console.log('Transformed homework data:', transformedHomework);
+          setHomeworkData(transformedHomework);
         } catch (parseError) {
           console.error('Error parsing homework JSON:', parseError);
           toast({
