@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
         data: {
           outcomes,
           total_attempts: outcomes.length,
-          success_rate: outcomes.length > 0 ? outcomes.reduce((a, b) => a + b, 0) / outcomes.length : 0
+          success_rate: outcomes.length > 0 ? outcomes.reduce((a: number, b: number) => a + b, 0) / outcomes.length : 0
         }
       }),
       { 
