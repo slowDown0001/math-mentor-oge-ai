@@ -58,7 +58,6 @@ const Homework = () => {
   const [showCongrats, setShowCongrats] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
-  const [sessionNumber, setSessionNumber] = useState<number | null>(null);
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
   const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
   const [existingProgress, setExistingProgress] = useState<any>(null);
@@ -70,10 +69,10 @@ const Homework = () => {
   }, [user]);
 
   useEffect(() => {
-    if (homeworkData && user && sessionNumber !== null) {
+    if (homeworkData && user) {
       checkExistingProgress();
     }
-  }, [homeworkData, user, sessionNumber]);
+  }, [homeworkData, user]);
 
   useEffect(() => {
     if (currentQuestions.length > 0) {
@@ -82,21 +81,23 @@ const Homework = () => {
   }, [currentQuestionIndex, currentQuestions]);
 
   useEffect(() => {
-    if (user?.id && currentQuestions.length > 0 && sessionId && sessionNumber !== null && !existingProgress) {
+    if (user?.id && currentQuestions.length > 0 && sessionId && !existingProgress) {
       recordSessionStart();
     }
-  }, [user?.id, currentQuestions.length, sessionId, sessionNumber, existingProgress]);
+  }, [user?.id, currentQuestions.length, sessionId, existingProgress]);
 
   const checkExistingProgress = async () => {
-    if (!user?.id || !homeworkData || sessionNumber === null) return;
+    if (!user?.id || !homeworkData) return;
+
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
     try {
-      // Check for existing homework progress for this session
+      // Check for existing homework progress for today
       const { data: existingSessions, error } = await supabase
         .from('homework_progress')
         .select('*')
         .eq('user_id', user.id)
-        .eq('session_number', sessionNumber)
+        .eq('homework_date', today)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -171,14 +172,13 @@ const Homework = () => {
   };
 
   const recordSessionStart = async () => {
-    if (!user?.id || !sessionId || sessionNumber === null) return;
+    if (!user?.id || !sessionId) return;
     
     try {
       await supabase.from('homework_progress').insert({
         user_id: user.id,
         session_id: sessionId,
-        session_number: sessionNumber,
-        homework_task: `Homework Session ${sessionNumber} - Session Start`,
+        homework_task: `Homework ${new Date().toLocaleDateString()} - Session Start`,
         total_questions: currentQuestions.length,
         questions_completed: 0,
         questions_correct: 0,
@@ -216,8 +216,6 @@ const Homework = () => {
             due_date: parsedHomework.due_date
           };
           
-          // Extract session_number from the homework JSON
-          setSessionNumber(parsedHomework.session_number || null);
           setHomeworkData(transformedHomework);
         } catch (parseError) {
           console.error('Error parsing homework JSON:', parseError);
@@ -366,8 +364,7 @@ const Homework = () => {
       await supabase.from('homework_progress').insert({
         user_id: user.id,
         session_id: sessionId,
-        session_number: sessionNumber,
-        homework_task: `Homework Session ${sessionNumber}`,
+        homework_task: `Homework ${new Date().toLocaleDateString()}`,
         question_id: questionId,
         question_type: questionType,
         user_answer: userAnswer,
@@ -499,8 +496,7 @@ const Homework = () => {
       await supabase.from('homework_progress').insert({
         user_id: user.id,
         session_id: sessionId,
-        session_number: sessionNumber,
-        homework_task: `Homework Session ${sessionNumber} - Summary`,
+        homework_task: `Homework ${new Date().toLocaleDateString()} - Summary`,
         completed_at: new Date().toISOString(),
         total_questions: totalQuestions,
         questions_completed: completedCount,

@@ -1,6 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
-import { getErrorMessage } from '../_shared/error-utils.ts'
 
 interface RequestBody {
   question_id: string
@@ -238,7 +237,7 @@ if (originOverride && typeof originOverride === 'string') {
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error', 
-        details: getErrorMessage(error)
+        details: error.message 
       }),
       { 
         status: 500, 

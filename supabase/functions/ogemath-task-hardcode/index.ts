@@ -3,8 +3,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-import { getErrorMessage } from '../_shared/error-utils.ts'
-
 interface RequestBody {
   goal: string;
   hours_per_week: number;
@@ -576,7 +574,7 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error in ogemath-task-hardcode:', error);
-    return new Response(JSON.stringify({ error: getErrorMessage(error) }), {
+    return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     });

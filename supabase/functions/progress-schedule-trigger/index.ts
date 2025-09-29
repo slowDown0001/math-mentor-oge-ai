@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from '../_shared/cors.ts';
-import { getErrorMessage } from '../_shared/error-utils.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -85,7 +88,7 @@ serve(async (req) => {
             
           } catch (error) {
             console.error(`Error processing user ${user_id}, course ${courseIdString}:`, error);
-            results.push({ user_id, course_id: courseIdString, status: 'error', error: getErrorMessage(error) });
+            results.push({ user_id, course_id: courseIdString, status: 'error', error: error.message });
           }
         } else {
           console.log(`User ${user_id}, course ${courseIdString} not eligible, skipping`);
@@ -107,7 +110,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in progress-schedule-trigger:', error);
-    return new Response(JSON.stringify({ error: getErrorMessage(error) }), {
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

@@ -1,7 +1,10 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
-import { getErrorMessage } from '../_shared/error-utils.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
+};
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -15,14 +18,6 @@ Deno.serve(async (req) => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
-    if (!supabaseUrl || !supabaseServiceKey) {
-      return new Response(
-        JSON.stringify({ error: 'Missing Supabase configuration' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Get OpenRouter API key from Supabase secrets
@@ -65,7 +60,7 @@ Deno.serve(async (req) => {
         }
       } catch (error) {
         console.error('Exception while fetching student progress:', error);
-        console.log('Error details:', getErrorMessage(error));
+        console.log('Error details:', error.name, error.message);
         console.log('Using fallback for student progress due to exception');
         studentProgress = '[]'; // Use empty array as fallback
       }
@@ -98,7 +93,7 @@ Deno.serve(async (req) => {
           progressData = [];
         }
         console.log('Using progress ', `Array with ${progressData.length} items`);
-        const { data: taskData, error: taskError } = await supabase.functions.invoke('ogemath-task-hardcode', {
+        const { taskData, error: taskError } = await supabase.functions.invoke('ogemath-task-hardcode', {
           body: {
             goal: target_score,
             hours_per_week: weekly_hours,
@@ -295,7 +290,7 @@ Deno.serve(async (req) => {
     if (studentProgress && course_id === 1) {
       try {
         const progressArray = JSON.parse(studentProgress);
-        const filteredProgress = progressArray.filter((item: any) => !item.hasOwnProperty('навык'));
+        const filteredProgress = progressArray.filter((item) => !item.hasOwnProperty('навык'));
         filteredStudentProgress = JSON.stringify(filteredProgress, null, 2);
       } catch (error) {
         console.error('Error filtering student progress:', error);
@@ -416,7 +411,7 @@ ${filteredStudentProgress}
     console.error('Error in openrouter-task-call function:', error);
     return new Response(JSON.stringify({
       response: "Какие-то неполадки в сети. Попробуй позже 👀",
-      error: getErrorMessage(error)
+      error: error.message
     }), {
       status: 500,
       headers: {

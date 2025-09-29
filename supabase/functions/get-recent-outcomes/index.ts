@@ -1,6 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
-import { getErrorMessage } from '../_shared/error-utils.ts'
 
 interface RequestBody {
   user_id: string
@@ -133,7 +132,7 @@ Deno.serve(async (req) => {
         data: {
           outcomes,
           total_attempts: outcomes.length,
-          success_rate: outcomes.length > 0 ? outcomes.reduce((a: number, b: number) => a + b, 0) / outcomes.length : 0
+          success_rate: outcomes.length > 0 ? outcomes.reduce((a, b) => a + b, 0) / outcomes.length : 0
         }
       }),
       { 
@@ -146,7 +145,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error', 
-        details: getErrorMessage(error) 
+        details: error.message 
       }),
       { 
         status: 500, 
