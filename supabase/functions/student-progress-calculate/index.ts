@@ -1,9 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
-};
+import { corsHeaders } from '../_shared/cors.ts';
+import { getErrorMessage } from '../_shared/error-utils.ts';
 Deno.serve(async (req)=>{
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -13,6 +11,14 @@ Deno.serve(async (req)=>{
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return new Response(
+        JSON.stringify({ error: 'Missing Supabase configuration' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     let { user_id, course_id = '1' } = await req.json();
     course_id = String(course_id);
@@ -132,8 +138,8 @@ Deno.serve(async (req)=>{
         });
       } else {
         const progressBars = problemData?.data?.progress_bars || [];
-        const progressMap = {};
-        progressBars.forEach((item)=>{
+        const progressMap: Record<string, number> = {};
+        progressBars.forEach((item: any)=>{
           const problemType = Object.keys(item)[0];
           const probability = item[problemType];
           progressMap[problemType] = probability;
@@ -175,7 +181,7 @@ Deno.serve(async (req)=>{
         length: 200
       }, (_, i)=>i + 1);
     }
-    let skillProgressMap = {}; // Store skill probabilities for topic calculation
+    let skillProgressMap: Record<string, number> = {}; // Store skill probabilities for topic calculation
     try {
       const { data: skillData, error: skillError } = await supabase.functions.invoke('compute-skills-progress-bars', {
         body: {
@@ -196,7 +202,7 @@ Deno.serve(async (req)=>{
         });
       } else {
         const progressBars = skillData?.data?.progress_bars || [];
-        progressBars.forEach((item)=>{
+        progressBars.forEach((item: any)=>{
           const skillId = Object.keys(item)[0];
           const probability = item[skillId];
           skillProgressMap[skillId] = probability;
@@ -267,11 +273,11 @@ Deno.serve(async (req)=>{
         const fullTopicLabel = `${topicNumber} ${topicName}`;
         let topicProbability = 0.02; // Default
         // Check if we have skill mappings for this topic
-        if (topicSkillMappings[topicNumber]) {
-          const skillIdsForTopic = topicSkillMappings[topicNumber];
-          const validProbabilities = [];
+        if (topicSkillMappings[topicNumber.toString()]) {
+          const skillIdsForTopic = topicSkillMappings[topicNumber.toString()];
+          const validProbabilities: number[] = [];
           // Collect probabilities for all skills in this topic
-          skillIdsForTopic.forEach((skillId)=>{
+          skillIdsForTopic.forEach((skillId: number)=>{
             const skillProb = skillProgressMap[skillId.toString()];
             if (skillProb !== undefined && skillProb !== null) {
               validProbabilities.push(skillProb);
@@ -312,7 +318,7 @@ Deno.serve(async (req)=>{
     console.error('Error in student-progress-calculate function:', error);
     return new Response(JSON.stringify({
       error: 'Internal server error',
-      details: error.message
+      details: getErrorMessage(error)
     }), {
       status: 500,
       headers: {

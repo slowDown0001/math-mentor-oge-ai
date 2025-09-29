@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { getErrorMessage } from '../_shared/error-utils.ts'
 
 interface RequestBody {
   user_id: string
@@ -138,7 +139,7 @@ Deno.serve(async (req) => {
 
       } catch (error) {
         console.error(`Unexpected error processing skill ${skill_id}:`, error)
-        errors.push(`Unexpected error processing skill ${skill_id}: ${error.message}`)
+        errors.push(`Unexpected error processing skill ${skill_id}: ${getErrorMessage(error)}`)
       }
     }
 
@@ -424,7 +425,7 @@ Deno.serve(async (req) => {
 
     } catch (error) {
       console.error('Unexpected error processing problem type:', error)
-      errors.push(`Unexpected error processing problem type: ${error.message}`)
+      errors.push(`Unexpected error processing problem type: ${getErrorMessage(error)}`)
     }
 
     // Step 3: Update topic mastery
@@ -461,7 +462,7 @@ Deno.serve(async (req) => {
 
       } catch (error) {
         console.error(`Unexpected error processing topic ${topic_code}:`, error)
-        errors.push(`Unexpected error processing topic ${topic_code}: ${error.message}`)
+        errors.push(`Unexpected error processing topic ${topic_code}: ${getErrorMessage(error)}`)
       }
     }
 
@@ -493,7 +494,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error', 
-        details: error.message 
+        details: getErrorMessage(error) 
       }),
       { 
         status: 500, 
