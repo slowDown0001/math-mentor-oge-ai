@@ -178,29 +178,44 @@ const OgeMath = () => {
           event: 'INSERT',
           schema: 'public',
           table: 'chat_logs',
-          filter: `user_id=eq.${user.id}`
+          filter: `user_id=eq.${user.id}&course_id=eq.1`
         },
         (payload) => {
           console.log('New chat log received:', payload);
           const newLog = payload.new as any;
           
-          // Add the new messages to the chat immediately
-          addMessage({
-            id: Date.now() * 2 + 1,
-            text: newLog.user_message,
-            isUser: true,
-            timestamp: new Date(newLog.time_of_user_message)
-          });
+          // Check if this is a homework feedback message (generic completion message)
+          const isHomeworkFeedback = newLog.user_message === 'Домашнее задание завершено - автоматический анализ ИИ учителя';
           
-          addMessage({
-            id: Date.now() * 2 + 2,
-            text: newLog.response,
-            isUser: false,
-            timestamp: new Date(newLog.time_of_response)
-          });
+          if (isHomeworkFeedback) {
+            // For homework feedback, only add the AI response
+            addMessage({
+              id: Date.now(),
+              text: newLog.response,
+              isUser: false,
+              timestamp: new Date(newLog.time_of_response)
+            });
+          } else {
+            // For regular chat messages, add both user and AI messages
+            addMessage({
+              id: Date.now() * 2 + 1,
+              text: newLog.user_message,
+              isUser: true,
+              timestamp: new Date(newLog.time_of_user_message)
+            });
+            
+            addMessage({
+              id: Date.now() * 2 + 2,
+              text: newLog.response,
+              isUser: false,
+              timestamp: new Date(newLog.time_of_response)
+            });
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Chat realtime subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
