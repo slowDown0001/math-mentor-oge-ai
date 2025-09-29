@@ -1,4 +1,4 @@
-interface HomeworkStats {
+export interface HomeworkStats {
   totalQuestions: number;
   questionsCompleted: number;
   questionsCorrect: number;

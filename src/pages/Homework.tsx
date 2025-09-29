@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3, TrendingUp } from 'lucide-react';
+import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3, TrendingUp, Bot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import MathRenderer from '@/components/MathRenderer';
+import { generateHomeworkFeedback, type HomeworkStats } from '@/services/homeworkFeedbackService';
 
 interface HomeworkData {
   mcq_questions: string[];
@@ -587,35 +588,35 @@ const Homework = () => {
               )}
             </div>
 
-            {/* Performance Feedback */}
-            <div className="bg-white border rounded-lg p-4 mb-6">
-              <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Обратная связь:
+            {/* AI Assistant Feedback */}
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-6">
+              <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <Bot className="w-5 h-5 text-purple-600" />
+                ИИ Учитель - Анализ вашей работы:
               </h4>
-              <div className="text-sm text-gray-700 space-y-2">
-                {(() => {
-                  const accuracy = completedQuestions.size > 0 ? (correctAnswers.size / completedQuestions.size) * 100 : 0;
-                  const avgTime = progressStats?.avgTime || 0;
-                  
-                  if (accuracy >= 90) {
-                    return <p className="text-green-700">🎉 Отличная работа! Высокая точность показывает глубокое понимание материала.</p>;
-                  } else if (accuracy >= 70) {
-                    return <p className="text-blue-700">👍 Хорошие результаты! Продолжайте в том же духе, есть небольшие области для улучшения.</p>;
-                  } else if (accuracy >= 50) {
-                    return <p className="text-yellow-700">⚠️ Средние результаты. Рекомендуем повторить теорию и больше практиковаться.</p>;
-                  } else {
-                    return <p className="text-red-700">📚 Требуется дополнительная работа. Обратитесь к ИИ учителю за помощью.</p>;
-                  }
-                })()}
-                
-                {progressStats?.showedSolutionCount && progressStats.showedSolutionCount > completedQuestions.size / 2 && (
-                  <p className="text-blue-600">💡 Попробуйте решать задачи самостоятельно перед просмотром решений.</p>
-                )}
-                
-                {progressStats?.avgTime && progressStats.avgTime > 180 && (
-                  <p className="text-orange-600">⏰ Работайте над скоростью решения - попробуйте ограничить время на задачу.</p>
-                )}
+              <div className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="text-sm text-gray-700 whitespace-pre-line">
+                  {(() => {
+                    // Convert current progress data to HomeworkStats format
+                    const accuracy = completedQuestions.size > 0 ? (correctAnswers.size / completedQuestions.size) * 100 : 0;
+                    const totalTime = progressStats?.totalTime || 0;
+                    const avgTime = progressStats?.avgTime || 0;
+                    
+                    const homeworkStats: HomeworkStats = {
+                      totalQuestions: completedQuestions.size,
+                      questionsCompleted: completedQuestions.size,
+                      questionsCorrect: correctAnswers.size,
+                      accuracy,
+                      totalTime,
+                      avgTime,
+                      showedSolutionCount: progressStats?.showedSolutionCount || 0,
+                      skillsWorkedOn: progressStats?.skillsWorkedOn || [],
+                      difficultyBreakdown: progressStats?.difficultyBreakdown || {}
+                    };
+                    
+                    return generateHomeworkFeedback(homeworkStats);
+                  })()}
+                </div>
               </div>
             </div>
 
