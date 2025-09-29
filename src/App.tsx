@@ -72,6 +72,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const MyDb3 = lazy(() => import("./pages/MyDb3"));
 const Homework = lazy(() => import("./pages/Homework"));
 const HomeworkFipiPractice = lazy(() => import("./pages/HomeworkFipiPractice"));
+const Test = lazy(() => import("./pages/Test"));
 
 const queryClient = new QueryClient();
 
@@ -102,6 +103,7 @@ const App = () => (
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/test" element={<Test />} />
                 <Route path="/egemathprof" element={<EgeMathProf />} />
                 <Route path="/egemathbasic" element={<EgeMathBasic />} />
                 <Route path="/ogemath" element={<OgeMath />} />
