@@ -46,7 +46,7 @@ class KaTeXManager {
     }
 
     // Safety check: ensure element is still in the DOM
-    if (!element.isConnected) {
+    if (!element.isConnected || !element.parentNode) {
       return;
     }
 
@@ -56,6 +56,11 @@ class KaTeXManager {
     }
 
     try {
+      // Double-check element is still connected right before rendering
+      if (!element.isConnected || !element.parentNode) {
+        return;
+      }
+      
       window.renderMathInElement(element, {
         delimiters: [
           { left: "$$", right: "$$", display: true },
@@ -65,16 +70,30 @@ class KaTeXManager {
         ],
         throwOnError: false
       });
+      
+      // Final check after rendering completes
+      if (!element.isConnected) {
+        return;
+      }
     } catch (error) {
+      // Silently ignore errors if element was removed during rendering
+      if (error instanceof DOMException && error.name === 'NotFoundError') {
+        return;
+      }
       console.error('KaTeX auto-render error:', error);
       // Fallback: try manual rendering for simple cases
-      if (element.isConnected) {
+      if (element.isConnected && element.parentNode) {
         this.fallbackManualRender(element);
       }
     }
   }
 
   private fallbackManualRender(element: HTMLElement): void {
+    // Check if element is still safe to manipulate
+    if (!element.isConnected || !element.parentNode) {
+      return;
+    }
+    
     const textContent = element.textContent || '';
     
     // Simple regex-based fallback for basic math delimiters
@@ -92,21 +111,33 @@ class KaTeXManager {
       }
     });
 
-    if (hasMatches) {
-      let html = element.innerHTML;
-      mathPatterns.forEach(pattern => {
-        html = html.replace(pattern.regex, (match, latex) => {
-          try {
-            return katex.renderToString(latex, { 
-              displayMode: pattern.display,
-              throwOnError: false 
-            });
-          } catch {
-            return match; // Return original if rendering fails
-          }
+    if (hasMatches && element.isConnected && element.parentNode) {
+      try {
+        let html = element.innerHTML;
+        mathPatterns.forEach(pattern => {
+          html = html.replace(pattern.regex, (match, latex) => {
+            try {
+              return katex.renderToString(latex, { 
+                displayMode: pattern.display,
+                throwOnError: false 
+              });
+            } catch {
+              return match; // Return original if rendering fails
+            }
+          });
         });
-      });
-      element.innerHTML = html;
+        
+        // Final check before modifying DOM
+        if (element.isConnected && element.parentNode) {
+          element.innerHTML = html;
+        }
+      } catch (error) {
+        // Silently ignore DOM manipulation errors
+        if (error instanceof DOMException && error.name === 'NotFoundError') {
+          return;
+        }
+        console.error('Fallback render error:', error);
+      }
     }
   }
 
@@ -115,8 +146,9 @@ class KaTeXManager {
     requestAnimationFrame(() => {
       const messageElements = document.querySelectorAll('[data-message]');
       messageElements.forEach((element) => {
-        if (element.isConnected) {
-          this.renderMath(element as HTMLElement);
+        const htmlElement = element as HTMLElement;
+        if (htmlElement.isConnected && htmlElement.parentNode) {
+          this.renderMath(htmlElement);
         }
       });
     });
@@ -126,13 +158,14 @@ class KaTeXManager {
     requestAnimationFrame(() => {
       const messageElements = document.querySelectorAll('[data-message]');
       messageElements.forEach((element) => {
-        if (!element.isConnected) return;
+        const htmlElement = element as HTMLElement;
+        if (!htmlElement.isConnected || !htmlElement.parentNode) return;
         
-        const rect = element.getBoundingClientRect();
+        const rect = htmlElement.getBoundingClientRect();
         const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
         
-        if (isVisible) {
-          this.renderMath(element as HTMLElement);
+        if (isVisible && htmlElement.isConnected && htmlElement.parentNode) {
+          this.renderMath(htmlElement);
         }
       });
     });

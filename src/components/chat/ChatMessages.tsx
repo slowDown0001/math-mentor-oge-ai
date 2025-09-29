@@ -21,8 +21,12 @@ const ChatMessages = ({ messages, isTyping }: ChatMessagesProps) => {
       if (scrollContainer) {
         // Use requestAnimationFrame to wait for React's DOM updates
         requestAnimationFrame(() => {
-          // Re-render all KaTeX content when messages change
-          kaTeXManager.renderAll();
+          try {
+            // Re-render all KaTeX content when messages change
+            kaTeXManager.renderAll();
+          } catch (error) {
+            // Silently ignore rendering errors during DOM updates
+          }
           // Scroll to bottom after a brief delay to ensure rendering is complete
           requestAnimationFrame(() => {
             scrollContainer.scrollTop = scrollContainer.scrollHeight;

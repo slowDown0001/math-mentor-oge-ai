@@ -114,8 +114,13 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
         // Process KaTeX for visible messages first, then scroll
         const visibleMessages = containerRef.current?.querySelectorAll('[data-message]');
         visibleMessages?.forEach(msg => {
-          if (msg.isConnected) {
-            kaTeXManager.renderMath(msg as HTMLElement);
+          const htmlMsg = msg as HTMLElement;
+          if (htmlMsg.isConnected && htmlMsg.parentNode) {
+            try {
+              kaTeXManager.renderMath(htmlMsg);
+            } catch (error) {
+              // Silently ignore rendering errors during DOM updates
+            }
           }
         });
         
