@@ -5,7 +5,7 @@ import CourseChatMessages from "@/components/chat/CourseChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useKaTeXInitializer } from "@/hooks/useMathJaxInitializer";
 import { loadChatHistory, saveChatLog, type ChatLog } from "@/services/chatLogsService";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
@@ -166,6 +166,10 @@ const OgeMath = () => {
     loadInitialHistory();
   }, [user, userName, setMessages, isHistoryLoaded]);
 
+  // Create a ref to store the addMessage function to avoid subscription recreation
+  const addMessageRef = useRef(addMessage);
+  addMessageRef.current = addMessage;
+
   // Set up real-time subscription for new chat messages
   useEffect(() => {
     if (!user) return;
@@ -189,7 +193,7 @@ const OgeMath = () => {
           
           if (isHomeworkFeedback) {
             // For homework feedback, only add the AI response
-            addMessage({
+            addMessageRef.current({
               id: Date.now(),
               text: newLog.response,
               isUser: false,
@@ -197,14 +201,14 @@ const OgeMath = () => {
             });
           } else {
             // For regular chat messages, add both user and AI messages
-            addMessage({
+            addMessageRef.current({
               id: Date.now() * 2 + 1,
               text: newLog.user_message,
               isUser: true,
               timestamp: new Date(newLog.time_of_user_message)
             });
             
-            addMessage({
+            addMessageRef.current({
               id: Date.now() * 2 + 2,
               text: newLog.response,
               isUser: false,
@@ -220,7 +224,7 @@ const OgeMath = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, addMessage]);
+  }, [user]);
 
   const loadMoreHistory = async () => {
     if (!hasMoreHistory || isLoadingHistory) return;
