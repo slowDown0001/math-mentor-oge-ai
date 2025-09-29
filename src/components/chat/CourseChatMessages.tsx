@@ -109,23 +109,28 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
     lastMessageCountRef.current = messages.length;
 
     if (containerRef.current && shouldAutoScroll) {
-      // Process KaTeX for visible messages first, then scroll
-      const visibleMessages = containerRef.current.querySelectorAll('[data-message]');
-      visibleMessages.forEach(msg => {
-        kaTeXManager.renderMath(msg as HTMLElement);
+      // Use requestAnimationFrame to wait for React's DOM updates to complete
+      requestAnimationFrame(() => {
+        // Process KaTeX for visible messages first, then scroll
+        const visibleMessages = containerRef.current?.querySelectorAll('[data-message]');
+        visibleMessages?.forEach(msg => {
+          if (msg.isConnected) {
+            kaTeXManager.renderMath(msg as HTMLElement);
+          }
+        });
+        
+        // Scroll to show user's last message at top for new messages
+        if (hasNewMessage) {
+          setTimeout(() => {
+            scrollToUserMessage();
+          }, 50);
+        } else if (isTyping) {
+          // For typing indicator, scroll to bottom
+          setTimeout(() => {
+            scrollToBottom();
+          }, 50);
+        }
       });
-      
-      // Scroll to show user's last message at top for new messages
-      if (hasNewMessage) {
-        setTimeout(() => {
-          scrollToUserMessage();
-        }, 50);
-      } else if (isTyping) {
-        // For typing indicator, scroll to bottom
-        setTimeout(() => {
-          scrollToBottom();
-        }, 50);
-      }
     }
   }, [messages, isTyping, shouldAutoScroll]);
 

@@ -19,10 +19,15 @@ const ChatMessages = ({ messages, isTyping }: ChatMessagesProps) => {
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollContainer) {
-        // Re-render all KaTeX content when messages change
-        kaTeXManager.renderAll();
-        // Scroll to bottom immediately since KaTeX renders synchronously
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        // Use requestAnimationFrame to wait for React's DOM updates
+        requestAnimationFrame(() => {
+          // Re-render all KaTeX content when messages change
+          kaTeXManager.renderAll();
+          // Scroll to bottom after a brief delay to ensure rendering is complete
+          requestAnimationFrame(() => {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+          });
+        });
       }
     }
   }, [messages, isTyping]);

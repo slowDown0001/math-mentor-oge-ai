@@ -45,6 +45,11 @@ class KaTeXManager {
       return;
     }
 
+    // Safety check: ensure element is still in the DOM
+    if (!element.isConnected) {
+      return;
+    }
+
     // Ensure katex is available globally before rendering
     if (!window.katex) {
       (window as any).katex = katex;
@@ -63,7 +68,9 @@ class KaTeXManager {
     } catch (error) {
       console.error('KaTeX auto-render error:', error);
       // Fallback: try manual rendering for simple cases
-      this.fallbackManualRender(element);
+      if (element.isConnected) {
+        this.fallbackManualRender(element);
+      }
     }
   }
 
@@ -104,21 +111,30 @@ class KaTeXManager {
   }
 
   renderAll(): void {
-    const messageElements = document.querySelectorAll('[data-message]');
-    messageElements.forEach((element) => {
-      this.renderMath(element as HTMLElement);
+    // Use requestAnimationFrame to defer rendering until after React's DOM updates
+    requestAnimationFrame(() => {
+      const messageElements = document.querySelectorAll('[data-message]');
+      messageElements.forEach((element) => {
+        if (element.isConnected) {
+          this.renderMath(element as HTMLElement);
+        }
+      });
     });
   }
 
   processVisibleMessages(): void {
-    const messageElements = document.querySelectorAll('[data-message]');
-    messageElements.forEach((element) => {
-      const rect = element.getBoundingClientRect();
-      const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-      
-      if (isVisible) {
-        this.renderMath(element as HTMLElement);
-      }
+    requestAnimationFrame(() => {
+      const messageElements = document.querySelectorAll('[data-message]');
+      messageElements.forEach((element) => {
+        if (!element.isConnected) return;
+        
+        const rect = element.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+        
+        if (isVisible) {
+          this.renderMath(element as HTMLElement);
+        }
+      });
     });
   }
 
@@ -208,18 +224,8 @@ export const useKaTeXInitializer = (): boolean => {
           }
         };
         
-        // Initialize immediately and set up observer for dynamic initialization
+        // Initialize immediately
         initializeChatContainers();
-        
-        // Set up mutation observer to handle dynamically added chat windows
-        const observer = new MutationObserver(() => {
-          initializeChatContainers();
-        });
-        
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true
-        });
         
       } else {
         setTimeout(checkReady, 100);
