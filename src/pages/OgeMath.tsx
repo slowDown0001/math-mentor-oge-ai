@@ -69,18 +69,18 @@ const OgeMath = () => {
           let initialMessages = [];
 
           if (shouldGenerateHomeworkFeedback) {
-            // Add homework feedback as the first message
+            // Add homework feedback as the first message with special formatting
             initialMessages = [
               {
                 id: 1,
-                text: homeworkFeedbackMessage,
+                text: `🎯 **Автоматический анализ домашнего задания**\n\n${homeworkFeedbackMessage}`,
                 isUser: false,
                 timestamp: new Date()
               }
             ];
 
-            // Save the homework feedback to chat logs
-            await saveChatLog('Домашнее задание завершено', homeworkFeedbackMessage, '1');
+            // Save the homework feedback to chat logs with context
+            await saveChatLog('Домашнее задание завершено - автоматический анализ ИИ учителя', `🎯 **Автоматический анализ домашнего задания**\n\n${homeworkFeedbackMessage}`, '1');
           }
 
           if (history.length > 0) {

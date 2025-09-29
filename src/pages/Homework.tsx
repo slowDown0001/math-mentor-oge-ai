@@ -631,9 +631,18 @@ const Homework = () => {
                     questionsCorrect: correctAnswers.size,
                     accuracy: completedQuestions.size > 0 ? (correctAnswers.size / completedQuestions.size) * 100 : 0,
                     progressStats,
-                    completedAt: new Date().toISOString()
+                    completedAt: new Date().toISOString(),
+                    timestamp: Date.now() // Add timestamp to ensure uniqueness
                   };
                   localStorage.setItem('homeworkCompletionData', JSON.stringify(completionData));
+                  
+                  // Show toast to confirm data is being sent to AI teacher
+                  toast({
+                    title: "Данные отправлены ИИ учителю! 🤖",
+                    description: "Ваши результаты будут проанализированы автоматически",
+                    duration: 2000
+                  });
+                  
                   navigate('/ogemath');
                 }}
                 className="bg-purple-600 hover:bg-purple-700 w-full"
