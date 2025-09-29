@@ -13,6 +13,7 @@ import { DailyTaskStory } from "@/components/DailyTaskStory";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { generateHomeworkFeedback, createHomeworkStatsFromData } from "@/services/homeworkFeedbackService";
+import { type Message } from "@/contexts/ChatContext";
 
 const OgeMath = () => {
   const navigate = useNavigate();
@@ -164,6 +165,47 @@ const OgeMath = () => {
 
     loadInitialHistory();
   }, [user, userName, setMessages, isHistoryLoaded]);
+
+  // Set up real-time subscription for new chat messages
+  useEffect(() => {
+    if (!user) return;
+    
+    const channel = supabase
+      .channel('chat_logs_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_logs',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('New chat log received:', payload);
+          const newLog = payload.new as any;
+          
+          // Add the new messages to the chat immediately
+          addMessage({
+            id: Date.now() * 2 + 1,
+            text: newLog.user_message,
+            isUser: true,
+            timestamp: new Date(newLog.time_of_user_message)
+          });
+          
+          addMessage({
+            id: Date.now() * 2 + 2,
+            text: newLog.response,
+            isUser: false,
+            timestamp: new Date(newLog.time_of_response)
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, addMessage]);
 
   const loadMoreHistory = async () => {
     if (!hasMoreHistory || isLoadingHistory) return;
