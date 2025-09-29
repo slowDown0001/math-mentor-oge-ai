@@ -1,4 +1,5 @@
 import { corsHeaders } from '../_shared/cors.ts'
+import { getErrorMessage } from '../_shared/error-utils.ts'
 
 interface RequestBody {
   outcomes: number[]
@@ -110,7 +111,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error', 
-        details: error.message 
+        details: getErrorMessage(error) 
       }),
       { 
         status: 500, 
