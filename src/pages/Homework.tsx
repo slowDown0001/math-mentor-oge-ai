@@ -5,14 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3, TrendingUp, Bot } from 'lucide-react';
+import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import MathRenderer from '@/components/MathRenderer';
-import { generateHomeworkFeedback, type HomeworkStats } from '@/services/homeworkFeedbackService';
 
 interface HomeworkData {
   mcq_questions: string[];
@@ -586,38 +585,6 @@ const Homework = () => {
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* AI Assistant Feedback */}
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-6">
-              <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <Bot className="w-5 h-5 text-purple-600" />
-                ИИ Учитель - Анализ вашей работы:
-              </h4>
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <div className="text-sm text-gray-700 whitespace-pre-line">
-                  {(() => {
-                    // Convert current progress data to HomeworkStats format
-                    const accuracy = completedQuestions.size > 0 ? (correctAnswers.size / completedQuestions.size) * 100 : 0;
-                    const totalTime = progressStats?.totalTime || 0;
-                    const avgTime = progressStats?.avgTime || 0;
-                    
-                    const homeworkStats: HomeworkStats = {
-                      totalQuestions: completedQuestions.size,
-                      questionsCompleted: completedQuestions.size,
-                      questionsCorrect: correctAnswers.size,
-                      accuracy,
-                      totalTime,
-                      avgTime,
-                      showedSolutionCount: progressStats?.showedSolutionCount || 0,
-                      skillsWorkedOn: progressStats?.skillsWorkedOn || [],
-                      difficultyBreakdown: progressStats?.difficultyBreakdown || {}
-                    };
-                    
-                    return generateHomeworkFeedback(homeworkStats);
-                  })()}
-                </div>
-              </div>
             </div>
 
             <div className="flex flex-col gap-2">
