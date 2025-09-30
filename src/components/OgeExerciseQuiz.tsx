@@ -178,9 +178,26 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
   };
 
   const handleShowSolution = () => {
-    // Track if solution was viewed before answering
+    // If viewing solution before answering, immediately mark as wrong
     if (!showResult && !viewedSolutionBeforeAnswer) {
       setViewedSolutionBeforeAnswer(true);
+      
+      // Auto-submit as incorrect
+      setAnswers(prev => [...prev, false]);
+      setShowResult(true);
+      
+      // Log exercise progress
+      const solvedCount = answers.length + 1;
+      const correctCount = answers.filter(Boolean).length; // Don't count this one as correct
+      logTextbookActivity({
+        activity_type: "exercise",
+        activity: title,
+        solved_count: solvedCount,
+        correct_count: correctCount,
+        total_questions: questionCount,
+        skills_involved: skills.join(","),
+        item_id: `exercise-${skills.join("-")}`
+      });
     }
     
     setShowSolution(!showSolution);
