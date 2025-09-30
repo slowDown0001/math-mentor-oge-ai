@@ -9,8 +9,6 @@ import MathRenderer from '@/components/MathRenderer';
 import { toast } from '@/hooks/use-toast';
 import { getQuestionsBySkills, OgeQuestion } from '@/services/ogeQuestionsService';
 import { logTextbookActivity } from '@/utils/logTextbookActivity';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface OgeExerciseQuizProps {
   title: string;
@@ -21,7 +19,6 @@ interface OgeExerciseQuizProps {
 
 const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack, questionCount = 4 }) => {
   const { trackActivity } = useStreakTracking();
-  const { user } = useAuth();
   
   const [questions, setQuestions] = useState<OgeQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -93,7 +90,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
     }
   };
 
-  const handleNextQuestion = async () => {
+  const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setSelectedAnswer('');
@@ -101,39 +98,6 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
       setShowSolution(false); // Reset solution visibility
     } else {
       setShowFinalResults(true);
-      
-      // Check if this is the module final test and user passed with 8+/10
-      const isModuleFinalTest = title === "Итоговый тест модуля";
-      const correctCount = answers.filter(Boolean).length;
-      const totalQuestions = questions.length;
-      
-      if (isModuleFinalTest && correctCount >= 8 && totalQuestions === 10 && user?.id) {
-        try {
-          console.log('User passed module test with 8+/10, updating low-mastery skills...');
-          
-          const { data, error } = await supabase.functions.invoke('update-module-completion-mastery', {
-            body: {
-              user_id: user.id,
-              course_id: '1',
-              topics: ['1.1', '1.2', '1.3', '1.4', '1.5']
-            }
-          });
-          
-          if (error) {
-            console.error('Error updating module completion mastery:', error);
-          } else {
-            console.log('Module completion mastery update result:', data);
-            if (data.updated_count > 0) {
-              toast({
-                title: "Навыки обновлены! 🎉",
-                description: `Обновлено ${data.updated_count} навыков с низким уровнем освоения.`,
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Error calling update-module-completion-mastery:', error);
-        }
-      }
     }
   };
 
