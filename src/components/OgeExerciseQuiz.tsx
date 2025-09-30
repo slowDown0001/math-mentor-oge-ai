@@ -47,12 +47,22 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
   const [viewedSolutionBeforeAnswer, setViewedSolutionBeforeAnswer] = useState(false);
   const [boostingSkills, setBoostingSkills] = useState(false);
   const solutionRef = useRef<HTMLDivElement>(null);
+  
+  // Track question start time for duration calculation
+  const [questionStartTime, setQuestionStartTime] = useState<Date | null>(null);
 
   const options = ['А', 'Б', 'В', 'Г'];
 
   useEffect(() => {
     loadQuestions();
   }, [skills]);
+
+  // Start timing when question changes
+  useEffect(() => {
+    if (questions.length > 0 && !showResult) {
+      setQuestionStartTime(new Date());
+    }
+  }, [currentQuestionIndex, questions, showResult]);
 
   const loadQuestions = async () => {
     try {
@@ -78,7 +88,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
     setSelectedAnswer(answerLetter);
   };
 
-  const handleSubmitAnswer = () => {
+  const handleSubmitAnswer = async () => {
     if (!selectedAnswer || showResult) return;
 
     const currentQuestion = questions[currentQuestionIndex];
@@ -87,6 +97,11 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
     
     setAnswers(prev => [...prev, isCorrect]);
     setShowResult(true);
+
+    // Calculate duration in seconds
+    const duration = questionStartTime 
+      ? Math.floor((new Date().getTime() - questionStartTime.getTime()) / 1000)
+      : 0;
 
     // Log exercise progress
     const solvedCount = answers.length + 1;
@@ -107,6 +122,32 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
         (window as any).triggerEnergyPointsAnimation(10);
       }
     }
+
+    // Record to database if user is logged in
+    if (user && currentQuestion.skills) {
+      try {
+        const { error } = await supabase.functions.invoke('process-mcq-skill-attempt', {
+          body: {
+            user_id: user.id,
+            question_id: currentQuestion.question_id,
+            skill_id: currentQuestion.skills,
+            finished_or_not: true,
+            is_correct: isCorrect,
+            difficulty: currentQuestion.difficulty || 2,
+            duration: duration,
+            course_id: courseId
+          }
+        });
+
+        if (error) {
+          console.error('Error recording MCQ skill attempt:', error);
+        } else {
+          console.log('Successfully recorded MCQ skill attempt');
+        }
+      } catch (error) {
+        console.error('Error calling process-mcq-skill-attempt:', error);
+      }
+    }
   };
 
   const handleNextQuestion = async () => {
@@ -116,6 +157,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
       setShowResult(false);
       setShowSolution(false);
       setViewedSolutionBeforeAnswer(false); // Reset for next question
+      setQuestionStartTime(new Date()); // Start timing for next question
     } else {
       setShowFinalResults(true);
       
@@ -161,6 +203,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
     setShowResult(false);
     setShowSolution(false);
     setViewedSolutionBeforeAnswer(false);
+    setQuestionStartTime(new Date()); // Start timing for first question
     loadQuestions();
   };
 
