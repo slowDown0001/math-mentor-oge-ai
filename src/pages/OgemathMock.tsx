@@ -85,6 +85,14 @@ const OgemathMock = () => {
   const currentQuestion = questions[currentQuestionIndex];
   const isPhotoQuestion = currentQuestion?.problem_number_type && currentQuestion.problem_number_type >= 20;
   
+  // Start attempt when a new question is displayed
+  useEffect(() => {
+    if (!examStarted || examFinished || !currentQuestion || !user) return;
+    
+    const problemNumberType = currentQuestion.problem_number_type || (currentQuestionIndex + 1);
+    startAttempt(currentQuestion.question_id, problemNumberType, 0);
+  }, [currentQuestionIndex, examStarted, examFinished, currentQuestion, user]);
+  
   // Timer effect - counts up to 3 hours 55 minutes (235 minutes)
   useEffect(() => {
     if (!examStartTime || examFinished) return;
@@ -368,9 +376,6 @@ const OgemathMock = () => {
     let scores = 0;
     
     if (user) {
-      // Start attempt for this question
-      await startAttempt(currentQuestion.question_id, problemNumber, timeSpent);
-      
       // Check if answer was provided
       if (userAnswer.trim()) {
         if (problemNumber >= 20) {
