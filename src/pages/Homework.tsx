@@ -198,16 +198,18 @@ const Homework = () => {
     if (!user?.id || !sessionId) return;
     
     try {
-      // Get homework name from profiles
+      // Get homework name from user profile
       let homeworkName = 'Homework';
-      if (homeworkData) {
+      if (userProfile?.homework) {
         try {
-          const homeworkJson = homeworkData as any;
+          const homeworkJson = typeof userProfile.homework === 'string' 
+            ? JSON.parse(userProfile.homework) 
+            : userProfile.homework;
           if (homeworkJson.homework_name) {
             homeworkName = homeworkJson.homework_name;
           }
         } catch (error) {
-          console.error('Error parsing homework name:', error);
+          console.error('Error parsing homework JSON:', error);
         }
       }
 
