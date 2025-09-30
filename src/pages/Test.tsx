@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
-// @ts-ignore
 import p5 from 'p5';
 
 const Test = () => {
