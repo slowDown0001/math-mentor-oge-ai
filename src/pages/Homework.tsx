@@ -62,6 +62,10 @@ const Homework = () => {
   const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
   const [existingProgress, setExistingProgress] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  
+  // Mastery tracking states (for FIPI questions)
+  const [currentAttemptId, setCurrentAttemptId] = useState<number | null>(null);
+  const [attemptStartTime, setAttemptStartTime] = useState<Date | null>(null);
 
   const loadUserProfile = async () => {
     if (!user?.id) return;
@@ -84,6 +88,66 @@ const Homework = () => {
     }
   };
 
+  // Start attempt for FIPI questions (create student_activity record)
+  const startFIPIAttempt = async (questionId: string) => {
+    if (!user) return;
+    
+    try {
+      // Fetch question details to populate skills and topics
+      let skillsArray: number[] = [];
+      let topicsArray: string[] = [];
+      let problemNumberType = 1;
+
+      try {
+        const { data: detailsResp, error: detailsErr } = await supabase.functions.invoke('get-question-details', {
+          body: { question_id: questionId, course_id: '1' }
+        });
+        if (detailsErr) {
+          console.warn('get-question-details error (will fallback):', detailsErr);
+        } else if (detailsResp?.data) {
+          skillsArray = Array.isArray(detailsResp.data.skills_list) ? detailsResp.data.skills_list : [];
+          topicsArray = Array.isArray(detailsResp.data.topics_list) ? detailsResp.data.topics_list : [];
+          if (detailsResp.data.problem_number_type) {
+            problemNumberType = parseInt(detailsResp.data.problem_number_type.toString(), 10);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to fetch question details, proceeding without skills/topics:', e);
+      }
+
+      // Insert into student_activity table
+      const { data, error } = await supabase
+        .from('student_activity')
+        .insert({
+          user_id: user.id,
+          question_id: questionId,
+          answer_time_start: new Date().toISOString(),
+          finished_or_not: false,
+          problem_number_type: problemNumberType,
+          is_correct: null,
+          duration_answer: null,
+          scores_fipi: null,
+          skills: skillsArray.length ? skillsArray : null,
+          topics: topicsArray.length ? topicsArray : null
+        })
+        .select('attempt_id')
+        .single();
+
+      if (error) {
+        console.error('Error starting FIPI attempt:', error);
+        return;
+      }
+
+      if (data) {
+        setCurrentAttemptId(data.attempt_id);
+        setAttemptStartTime(new Date());
+        console.log('Started FIPI attempt:', data.attempt_id);
+      }
+    } catch (error) {
+      console.error('Error starting FIPI attempt:', error);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       loadHomeworkData();
@@ -100,6 +164,12 @@ const Homework = () => {
   useEffect(() => {
     if (currentQuestions.length > 0) {
       setQuestionStartTime(Date.now());
+      
+      // Start attempt for FIPI questions when shown
+      const currentQuestion = currentQuestions[currentQuestionIndex];
+      if (currentQuestion && questionType === 'frq' && user) {
+        startFIPIAttempt(currentQuestion.id);
+      }
     }
   }, [currentQuestionIndex, currentQuestions]);
 
@@ -495,6 +565,121 @@ const Homework = () => {
 
     // Record progress in database
     await recordQuestionProgress(currentQuestion.id, answer, currentQuestion.correct_answer || '', correct, responseTime, false);
+
+    // Update mastery tracking
+    if (questionType === 'mcq' && currentQuestion.skills) {
+      // For MCQ questions, call process-mcq-skill-attempt
+      await processMCQSkillAttempt(currentQuestion, correct, responseTime);
+    } else if (questionType === 'frq') {
+      // For FIPI questions, update student_activity and call handle-submission
+      await updateFIPIActivity(correct, 0);
+      await submitToHandleSubmission(correct);
+    }
+  };
+
+  // Process MCQ skill attempt for mastery tracking
+  const processMCQSkillAttempt = async (question: Question, isCorrect: boolean, duration: number) => {
+    if (!user || !question.skills) return;
+
+    try {
+      const { error } = await supabase.functions.invoke('process-mcq-skill-attempt', {
+        body: {
+          user_id: user.id,
+          question_id: question.id,
+          skill_id: question.skills,
+          finished_or_not: true,
+          is_correct: isCorrect,
+          difficulty: question.difficulty || 2,
+          duration: duration,
+          course_id: '1'
+        }
+      });
+
+      if (error) {
+        console.error('Error recording MCQ skill attempt:', error);
+      } else {
+        console.log('Successfully recorded MCQ skill attempt');
+      }
+    } catch (error) {
+      console.error('Error calling process-mcq-skill-attempt:', error);
+    }
+  };
+
+  // Update student_activity for FIPI questions
+  const updateFIPIActivity = async (isCorrect: boolean, scores: number) => {
+    if (!user || !currentAttemptId) return;
+
+    try {
+      const now = new Date();
+      const startTime = attemptStartTime || new Date();
+      const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
+
+      const { error: updateError } = await supabase
+        .from('student_activity')
+        .update({ 
+          duration_answer: durationInSeconds,
+          is_correct: isCorrect,
+          scores_fipi: scores,
+          finished_or_not: true
+        })
+        .eq('user_id', user.id)
+        .eq('attempt_id', currentAttemptId);
+
+      if (updateError) {
+        console.error('Error updating student_activity:', updateError);
+        return;
+      }
+
+      console.log(`Updated student_activity: correct=${isCorrect}, scores=${scores}, duration=${durationInSeconds}s`);
+    } catch (error) {
+      console.error('Error in updateFIPIActivity:', error);
+    }
+  };
+
+  // Submit to handle-submission for FIPI question mastery tracking
+  const submitToHandleSubmission = async (isCorrect: boolean) => {
+    if (!user) return;
+
+    try {
+      const { data: activityData, error: activityError } = await supabase
+        .from('student_activity')
+        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (activityError || !activityData) {
+        console.error('Error getting latest activity:', activityError);
+        return;
+      }
+
+      const submissionData = {
+        user_id: user.id,
+        question_id: activityData.question_id,
+        attempt_id: activityData.attempt_id,
+        finished_or_not: activityData.finished_or_not,
+        is_correct: isCorrect,
+        duration: activityData.duration_answer,
+        scores_fipi: activityData.scores_fipi
+      };
+
+      const { data, error } = await supabase.functions.invoke('handle-submission', {
+        body: { 
+          course_id: '1',
+          submission_data: submissionData
+        }
+      });
+
+      if (error) {
+        console.error('Error in handle-submission:', error);
+        return;
+      }
+
+      console.log('Handle submission completed:', data);
+    } catch (error) {
+      console.error('Error in submitToHandleSubmission:', error);
+    }
   };
 
   const handleShowSolution = async () => {
@@ -511,6 +696,16 @@ const Homework = () => {
     // Record that solution was shown
     const answer = questionType === 'mcq' ? selectedOption : userAnswer;
     await recordQuestionProgress(currentQuestion.id, answer || '', currentQuestion.correct_answer || '', false, responseTime, true);
+
+    // Mark as wrong in mastery tracking (solution viewed before answering)
+    if (questionType === 'mcq' && currentQuestion.skills) {
+      // For MCQ questions, call process-mcq-skill-attempt with is_correct=false
+      await processMCQSkillAttempt(currentQuestion, false, responseTime);
+    } else if (questionType === 'frq') {
+      // For FIPI questions, update student_activity and call handle-submission
+      await updateFIPIActivity(false, 0);
+      await submitToHandleSubmission(false);
+    }
   };
 
   const handleNextQuestion = () => {
@@ -520,6 +715,10 @@ const Homework = () => {
     setSelectedOption(null);
     setShowSolution(false);
     setQuestionStartTime(Date.now()); // Reset timer for new question
+    
+    // Reset FIPI attempt tracking
+    setCurrentAttemptId(null);
+    setAttemptStartTime(null);
 
     if (currentQuestionIndex < currentQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
