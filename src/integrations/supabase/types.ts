@@ -843,6 +843,7 @@ export type Database = {
           created_at: string
           difficulty_level: number | null
           homework_date: string | null
+          homework_name: string | null
           homework_task: string | null
           id: number
           is_correct: boolean | null
@@ -853,6 +854,7 @@ export type Database = {
           questions_correct: number | null
           response_time_seconds: number | null
           session_id: string | null
+          session_number: number | null
           showed_solution: boolean | null
           skill_ids: number[] | null
           started_at: string | null
@@ -870,6 +872,7 @@ export type Database = {
           created_at?: string
           difficulty_level?: number | null
           homework_date?: string | null
+          homework_name?: string | null
           homework_task?: string | null
           id?: number
           is_correct?: boolean | null
@@ -880,6 +883,7 @@ export type Database = {
           questions_correct?: number | null
           response_time_seconds?: number | null
           session_id?: string | null
+          session_number?: number | null
           showed_solution?: boolean | null
           skill_ids?: number[] | null
           started_at?: string | null
@@ -897,6 +901,7 @@ export type Database = {
           created_at?: string
           difficulty_level?: number | null
           homework_date?: string | null
+          homework_name?: string | null
           homework_task?: string | null
           id?: number
           is_correct?: boolean | null
@@ -907,6 +912,7 @@ export type Database = {
           questions_correct?: number | null
           response_time_seconds?: number | null
           session_id?: string | null
+          session_number?: number | null
           showed_solution?: boolean | null
           skill_ids?: number[] | null
           started_at?: string | null
@@ -1739,7 +1745,7 @@ export type Database = {
           created_at: string
           exam_id: string | null
           full_name: string | null
-          homework: string | null
+          homework_1: string | null
           id: string
           image_proccessing_command: string | null
           schoolmark1: number | null
@@ -1768,7 +1774,7 @@ export type Database = {
           created_at?: string
           exam_id?: string | null
           full_name?: string | null
-          homework?: string | null
+          homework_1?: string | null
           id?: string
           image_proccessing_command?: string | null
           schoolmark1?: number | null
@@ -1797,7 +1803,7 @@ export type Database = {
           created_at?: string
           exam_id?: string | null
           full_name?: string | null
-          homework?: string | null
+          homework_1?: string | null
           id?: string
           image_proccessing_command?: string | null
           schoolmark1?: number | null
