@@ -175,10 +175,24 @@ const Homework = () => {
     if (!user?.id || !sessionId) return;
     
     try {
+      // Get homework name from profiles
+      let homeworkName = 'Homework';
+      if (homeworkData) {
+        try {
+          const homeworkJson = homeworkData as any;
+          if (homeworkJson.homework_name) {
+            homeworkName = homeworkJson.homework_name;
+          }
+        } catch (error) {
+          console.error('Error parsing homework name:', error);
+        }
+      }
+
       await supabase.from('homework_progress').insert({
         user_id: user.id,
         session_id: sessionId,
         homework_task: `Homework ${new Date().toLocaleDateString()} - Session Start`,
+        homework_name: homeworkName,
         total_questions: currentQuestions.length,
         questions_completed: 0,
         questions_correct: 0,
@@ -361,10 +375,24 @@ const Homework = () => {
       const currentQuestion = currentQuestions.find(q => q.id === questionId);
       const questionType = homeworkData?.mcq_questions?.includes(questionId) ? 'mcq' : 'fipi';
       
+      // Get homework name from profiles
+      let homeworkName = 'Homework';
+      if (homeworkData) {
+        try {
+          const homeworkJson = homeworkData as any;
+          if (homeworkJson.homework_name) {
+            homeworkName = homeworkJson.homework_name;
+          }
+        } catch (error) {
+          console.error('Error parsing homework name:', error);
+        }
+      }
+      
       await supabase.from('homework_progress').insert({
         user_id: user.id,
         session_id: sessionId,
         homework_task: `Homework ${new Date().toLocaleDateString()}`,
+        homework_name: homeworkName,
         question_id: questionId,
         question_type: questionType,
         user_answer: userAnswer,
@@ -492,11 +520,25 @@ const Homework = () => {
     const accuracy = completedCount > 0 ? (correctCount / completedCount) * 100 : 0;
 
     try {
+      // Get homework name from profiles
+      let homeworkName = 'Homework';
+      if (homeworkData) {
+        try {
+          const homeworkJson = homeworkData as any;
+          if (homeworkJson.homework_name) {
+            homeworkName = homeworkJson.homework_name;
+          }
+        } catch (error) {
+          console.error('Error parsing homework name:', error);
+        }
+      }
+
       // Record completion summary
       await supabase.from('homework_progress').insert({
         user_id: user.id,
         session_id: sessionId,
         homework_task: `Homework ${new Date().toLocaleDateString()} - Summary`,
+        homework_name: homeworkName,
         completed_at: new Date().toISOString(),
         total_questions: totalQuestions,
         questions_completed: completedCount,
