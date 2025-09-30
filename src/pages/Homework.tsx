@@ -69,7 +69,7 @@ const Homework = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('homework_1')
+        .select('homework')
         .eq('user_id', user.id)
         .maybeSingle();
       
@@ -200,11 +200,11 @@ const Homework = () => {
     try {
       // Get homework name from user profile
       let homeworkName = 'Homework';
-      if (userProfile?.homework_1) {
+      if (userProfile?.homework) {
         try {
-          const homeworkJson = typeof userProfile.homework_1 === 'string' 
-            ? JSON.parse(userProfile.homework_1) 
-            : userProfile.homework_1;
+          const homeworkJson = typeof userProfile.homework === 'string' 
+            ? JSON.parse(userProfile.homework) 
+            : userProfile.homework;
           if (homeworkJson.homework_name) {
             homeworkName = homeworkJson.homework_name;
           }
@@ -402,11 +402,11 @@ const Homework = () => {
       
       // Get homework name from user profile
       let homeworkName = 'Homework';
-      if (userProfile?.homework_1) {
+      if (userProfile?.homework) {
         try {
-          const homeworkJson = typeof userProfile.homework_1 === 'string' 
-            ? JSON.parse(userProfile.homework_1) 
-            : userProfile.homework_1;
+          const homeworkJson = typeof userProfile.homework === 'string' 
+            ? JSON.parse(userProfile.homework) 
+            : userProfile.homework;
           if (homeworkJson.homework_name) {
             homeworkName = homeworkJson.homework_name;
           }
@@ -549,11 +549,11 @@ const Homework = () => {
     try {
       // Get homework name from user profile
       let homeworkName = 'Homework';
-      if (userProfile?.homework_1) {
+      if (userProfile?.homework) {
         try {
-          const homeworkJson = typeof userProfile.homework_1 === 'string' 
-            ? JSON.parse(userProfile.homework_1) 
-            : userProfile.homework_1;
+          const homeworkJson = typeof userProfile.homework === 'string' 
+            ? JSON.parse(userProfile.homework) 
+            : userProfile.homework;
           if (homeworkJson.homework_name) {
             homeworkName = homeworkJson.homework_name;
           }
