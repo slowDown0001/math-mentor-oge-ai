@@ -385,6 +385,108 @@ ${filteredStudentProgress}
       } else {
         console.log('Hardcode task saved successfully');
       }
+      
+      // NEW FEATURES: Generate homework questions from topics and problem types
+      try {
+        const hardcodeTaskJson = JSON.parse(student_hardcoded_task);
+        
+        // Feature 1: Get MCQ questions from topics
+        const topicsToStudy = hardcodeTaskJson['темы для изучения'] || [];
+        let mcq_list: string[] = [];
+        
+        if (topicsToStudy.length > 0) {
+          console.log('Fetching topic->skills mapping from json_files...');
+          const { data: jsonFileData, error: jsonError } = await supabase
+            .from('json_files')
+            .select('content')
+            .eq('id', 1)
+            .eq('course_id', '1')
+            .single();
+          
+          if (!jsonError && jsonFileData?.content) {
+            const topicSkillsMapping = jsonFileData.content;
+            
+            // For each topic, get 2 random questions
+            for (const topicId of topicsToStudy) {
+              const skillsForTopic = topicSkillsMapping[topicId] || [];
+              
+              if (skillsForTopic.length > 0) {
+                console.log(`Getting 2 MCQ questions for topic ${topicId} with skills:`, skillsForTopic);
+                const { data: mcqQuestions, error: mcqError } = await supabase
+                  .from('oge_math_skills_questions')
+                  .select('question_id')
+                  .in('skills', skillsForTopic)
+                  .limit(100); // Get more to randomize from
+                
+                if (!mcqError && mcqQuestions && mcqQuestions.length > 0) {
+                  // Shuffle and take 2
+                  const shuffled = mcqQuestions.sort(() => Math.random() - 0.5);
+                  const selected = shuffled.slice(0, 2).map(q => q.question_id);
+                  mcq_list.push(...selected);
+                }
+              }
+            }
+            
+            // Deduplicate mcq_list
+            mcq_list = [...new Set(mcq_list)];
+            console.log(`Generated MCQ list with ${mcq_list.length} unique questions`);
+          }
+        }
+        
+        // Feature 2: Get FIPI questions from problem types
+        const fipiProblems = hardcodeTaskJson['Задачи ФИПИ для тренировки'] || [];
+        let fipi_list: string[] = [];
+        
+        if (fipiProblems.length > 0) {
+          console.log('Fetching FIPI questions for problem types:', fipiProblems);
+          
+          // For each problem_number_type, get 2 random questions
+          for (const problemType of fipiProblems) {
+            const { data: fipiQuestions, error: fipiError } = await supabase
+              .from('oge_math_fipi_bank')
+              .select('question_id')
+              .eq('problem_number_type', problemType)
+              .limit(100); // Get more to randomize from
+            
+            if (!fipiError && fipiQuestions && fipiQuestions.length > 0) {
+              // Shuffle and take 2
+              const shuffled = fipiQuestions.sort(() => Math.random() - 0.5);
+              const selected = shuffled.slice(0, 2).map(q => q.question_id);
+              fipi_list.push(...selected);
+            }
+          }
+          
+          // Deduplicate fipi_list
+          fipi_list = [...new Set(fipi_list)];
+          console.log(`Generated FIPI list with ${fipi_list.length} unique questions`);
+        }
+        
+        // Create homework JSON
+        const homeworkJson = {
+          homework_name: crypto.randomUUID(),
+          MCQ: mcq_list,
+          FIPI: fipi_list
+        };
+        
+        // Determine column name based on course_id
+        const columnName = course_id === '1' || course_id === 1 ? 'homework' : `homework_${course_id}`;
+        
+        console.log(`Updating profiles table, column: ${columnName}`);
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ [columnName]: JSON.stringify(homeworkJson) })
+          .eq('user_id', user_id);
+        
+        if (updateError) {
+          console.error('Error updating profiles with homework:', updateError);
+        } else {
+          console.log('Successfully saved homework to profiles table');
+        }
+        
+      } catch (homeworkError) {
+        console.error('Error generating homework questions:', homeworkError);
+        // Skip this feature on error as requested
+      }
     }
     
     return new Response(JSON.stringify({
