@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import NewTextbookNavigation from "@/components/NewTextbookNavigation";
 import NewTextbookArticle from "@/components/NewTextbookArticle";
@@ -46,7 +46,8 @@ interface Article {
 }
 
 const NewTextbook = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
   const [currentArticle, setCurrentArticle] = useState<Article | null>(null);
@@ -84,13 +85,26 @@ const NewTextbook = () => {
 
   // Handle URL parameters for direct navigation
   useEffect(() => {
+    const topicParam = searchParams.get('topic');
     const skillParam = searchParams.get('skill');
+
+    // Priority: skill > topic (if both are present, skill wins)
     if (skillParam) {
       const skillId = parseInt(skillParam);
       const skill = findSkillById(skillId);
       if (skill) {
-        handleSkillSelect(skill);
+        handleSkillSelectInternal(skill);
       }
+    } else if (topicParam) {
+      const topic = findTopicByCode(topicParam);
+      if (topic) {
+        handleTopicSelectInternal(topic);
+      }
+    } else {
+      // No params = show syllabus
+      setSelectedTopic(null);
+      setSelectedSkill(null);
+      setCurrentArticle(null);
     }
   }, [searchParams]);
 
@@ -104,21 +118,25 @@ const NewTextbook = () => {
     return null;
   };
 
-  const handleTopicSelect = (topic: Topic) => {
+  const findTopicByCode = (topicCode: string): Topic | null => {
+    for (const unit of units) {
+      const topic = unit.Topics.find(t => t.code === topicCode);
+      if (topic) return topic;
+    }
+    return null;
+  };
+
+  // Internal handlers (without URL update) for use by useEffect
+  const handleTopicSelectInternal = (topic: Topic) => {
     setSelectedTopic(topic);
     setSelectedSkill(null);
     setCurrentArticle(null);
   };
 
-  const handleBackToSyllabus = () => {
-    setSelectedTopic(null);
-    setSelectedSkill(null);
-    setCurrentArticle(null);
-  };
-  const handleSkillSelect = async (skill: Skill) => {
+  const handleSkillSelectInternal = async (skill: Skill) => {
     setLoadingArticle(true);
     setSelectedSkill(skill);
-    setSelectedTopic(null); // Clear topic selection when skill is selected
+    setSelectedTopic(null);
 
     try {
       const { data, error } = await supabase
@@ -131,7 +149,6 @@ const NewTextbook = () => {
         console.error('Error fetching article:', error);
         setCurrentArticle(null);
       } else if (data) {
-        // Map the data to match our Article interface
         const mappedArticle: Article = {
           id: data.ID,
           article_text: data.article_text || '',
@@ -152,6 +169,19 @@ const NewTextbook = () => {
     } finally {
       setLoadingArticle(false);
     }
+  };
+
+  // Public handlers (with URL update) for use by UI components
+  const handleTopicSelect = (topic: Topic) => {
+    setSearchParams({ topic: topic.code });
+  };
+
+  const handleBackToSyllabus = () => {
+    setSearchParams({});
+  };
+
+  const handleSkillSelect = async (skill: Skill) => {
+    setSearchParams({ skill: skill.id.toString() });
   };
 
   const handleMarkAsRead = async (skillId: number) => {
