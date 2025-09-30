@@ -29,7 +29,7 @@ Deno.serve(async (req)=>{
     }
     console.log(`Calculating progress for user: ${user_id}, course: ${course_id}`);
     const result = [];
-    // Define problem types based on course_id
+    // ------------------ Problem Types ------------------
     let problemTypes;
     if (course_id === '1') {
       problemTypes = [
@@ -112,7 +112,6 @@ Deno.serve(async (req)=>{
         }
       });
     }
-    // Calculate problem type progress FIRST
     console.log('Calculating problem type progress...');
     try {
       const { data: problemData, error: problemError } = await supabase.functions.invoke('compute-problem-number-type-progress-bars', {
@@ -155,101 +154,57 @@ Deno.serve(async (req)=>{
         });
       });
     }
-    // Calculate skill mastery SECOND
-    console.log('Calculating skill mastery...');
-    let allSkills;
-    if (course_id === '1') {
-      allSkills = Array.from({
-        length: 200
-      }, (_, i)=>i + 1);
-    } else if (course_id === '2') {
-      allSkills = Array.from({
-        length: 550
-      }, (_, i)=>i + 1);
-    } else if (course_id === '3') {
-      allSkills = Array.from({
-        length: 550
-      }, (_, i)=>i + 1);
-    } else {
-      allSkills = Array.from({
-        length: 200
-      }, (_, i)=>i + 1);
+    // ------------------ Skills ------------------
+    console.log('Calculating skill mastery (from student_mastery)...');
+    let numSkills = course_id === '1' ? 200 : 550;
+    const { data: skillsData, error: skillsError } = await supabase.from('student_mastery').select('entity_id, alpha, beta').eq('user_id', user_id).eq('course_id', course_id).eq('entity_type', 'skill').in('entity_id', Array.from({
+      length: numSkills
+    }, (_, i)=>i + 1));
+    if (skillsError) {
+      console.error('Error fetching skills from student_mastery:', skillsError);
     }
-    let skillProgressMap = {}; // Store skill probabilities for topic calculation
-    try {
-      const { data: skillData, error: skillError } = await supabase.functions.invoke('compute-skills-progress-bars', {
-        body: {
-          user_id,
-          skill_ids: allSkills,
-          course_id: course_id // Add course_id here
+    const skillMap = {};
+    if (skillsData) {
+      for (const row of skillsData){
+        const { entity_id, alpha, beta } = row;
+        const a = typeof alpha === 'number' ? alpha : 0;
+        const b = typeof beta === 'number' ? beta : 0;
+        let prob = 0.02;
+        if (a + b > 0) {
+          prob = a / (a + b);
         }
-      });
-      if (skillError) {
-        console.error('Error computing skill progress:', skillError);
-        allSkills.forEach((skillId)=>{
-          const probability = 0.02;
-          skillProgressMap[skillId.toString()] = probability;
-          result.push({
-            "навык": skillId.toString(),
-            prob: probability
-          });
-        });
-      } else {
-        const progressBars = skillData?.data?.progress_bars || [];
-        progressBars.forEach((item)=>{
-          const skillId = Object.keys(item)[0];
-          const probability = item[skillId];
-          skillProgressMap[skillId] = probability;
-        });
-        allSkills.forEach((skillId)=>{
-          const probability = skillProgressMap[skillId.toString()] || 0.02;
-          result.push({
-            "навык": skillId.toString(),
-            prob: Math.round(probability * 100) / 100
-          });
-        });
+        skillMap[entity_id.toString()] = Math.round(prob * 100) / 100;
       }
-    } catch (error) {
-      console.error('Error processing skills:', error);
-      allSkills.forEach((skillId)=>{
-        const probability = 0.02;
-        skillProgressMap[skillId.toString()] = probability;
-        result.push({
-          "навык": skillId.toString(),
-          prob: probability
-        });
+    }
+    for(let skillId = 1; skillId <= numSkills; skillId++){
+      const probability = skillMap[skillId.toString()] ?? 0.02;
+      result.push({
+        "навык": skillId.toString(),
+        prob: probability
       });
     }
-    // Calculate topic mastery LAST (using pre-computed skill probabilities)
+    // ------------------ Topics ------------------
     console.log('Calculating topic mastery from skill probabilities...');
-    // Fetch topic-skill mappings from json_files table (id=1 for course_id=1)
     let topicSkillMappings = {};
     try {
       const { data, error } = await supabase.from('json_files').select('content').eq('id', 1).eq('course_id', course_id).single();
       if (error) {
         console.error('Error fetching topic-skill mappings:', error);
-        throw new Error(`Failed to fetch topic mappings: ${error.message}`);
+        throw error;
       }
       if (data?.content) {
         topicSkillMappings = data.content;
         console.log(`Loaded topic-skill mappings for ${Object.keys(topicSkillMappings).length} topics`);
-      } else {
-        throw new Error('No topic-skill mappings found');
       }
     } catch (error) {
       console.error('Error loading topic-skill mappings:', error);
-    // Continue without topic mastery - we'll use the topic names file as fallback
     }
-    // Fetch topic names for display
+    // Fetch topic names
     let topicMappings = [];
     let fileId;
-    if (course_id === '1') {
-      fileId = 2;
-    } else if (course_id === '2') {
-      fileId = 4;
-    } else if (course_id === '3') {
-      fileId = 6;
-    }
+    if (course_id === '1') fileId = 2;
+    else if (course_id === '2') fileId = 4;
+    else if (course_id === '3') fileId = 6;
     try {
       const { data, error } = await supabase.from('json_files').select('content').eq('id', fileId).eq('course_id', course_id).single();
       if (!error && data?.content) {
@@ -259,38 +214,31 @@ Deno.serve(async (req)=>{
     } catch (error) {
       console.error('Error loading topic names:', error);
     }
-    // Calculate topic mastery by averaging skill probabilities
+    // Calculate topic probabilities
     for (const topicMapping of topicMappings){
       try {
         const topicNumber = topicMapping.topic_number;
         const topicName = topicMapping.topic_name;
         const fullTopicLabel = `${topicNumber} ${topicName}`;
-        let topicProbability = 0.02; // Default
-        // Check if we have skill mappings for this topic
+        let topicProbability = 0.02;
         if (topicSkillMappings[topicNumber]) {
           const skillIdsForTopic = topicSkillMappings[topicNumber];
           const validProbabilities = [];
-          // Collect probabilities for all skills in this topic
           skillIdsForTopic.forEach((skillId)=>{
-            const skillProb = skillProgressMap[skillId.toString()];
-            if (skillProb !== undefined && skillProb !== null) {
+            const skillProb = skillMap[skillId.toString()] ?? 0.02;
+            if (typeof skillProb === 'number' && !isNaN(skillProb)) {
               validProbabilities.push(skillProb);
             }
           });
-          // Calculate average if we have valid probabilities
           if (validProbabilities.length > 0) {
             const sum = validProbabilities.reduce((a, b)=>a + b, 0);
             topicProbability = sum / validProbabilities.length;
-            console.log(`Topic ${topicNumber} (${validProbabilities.length}/${skillIdsForTopic.length} skills): ${topicProbability}`);
-          } else {
-            console.log(`Topic ${topicNumber}: No valid skill probabilities found`);
+            topicProbability = Math.round(topicProbability * 100) / 100;
           }
-        } else {
-          console.log(`Topic ${topicNumber}: No skill mapping found`);
         }
         result.push({
           topic: fullTopicLabel,
-          prob: Math.round(topicProbability * 100) / 100
+          prob: topicProbability
         });
       } catch (error) {
         console.error(`Error processing topic ${topicMapping.topic_number}:`, error);
