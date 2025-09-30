@@ -29,3 +29,7 @@ verify_jwt = false
 [functions.check-photo-solution]
 verify_jwt = false
 timeout = 120
+
+[functions.boost-low-mastery-skills]
+verify_jwt = true
+timeout = 60

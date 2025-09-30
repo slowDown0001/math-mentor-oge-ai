@@ -9,16 +9,30 @@ import MathRenderer from '@/components/MathRenderer';
 import { toast } from '@/hooks/use-toast';
 import { getQuestionsBySkills, OgeQuestion } from '@/services/ogeQuestionsService';
 import { logTextbookActivity } from '@/utils/logTextbookActivity';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface OgeExerciseQuizProps {
   title: string;
   skills: number[];
   onBack: () => void;
   questionCount?: number;
+  isModuleTest?: boolean;
+  moduleTopics?: string[];
+  courseId?: string;
 }
 
-const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack, questionCount = 4 }) => {
+const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ 
+  title, 
+  skills, 
+  onBack, 
+  questionCount = 4,
+  isModuleTest = false,
+  moduleTopics = [],
+  courseId = "1"
+}) => {
   const { trackActivity } = useStreakTracking();
+  const { user } = useAuth();
   
   const [questions, setQuestions] = useState<OgeQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -28,6 +42,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
   const [showFinalResults, setShowFinalResults] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showSolution, setShowSolution] = useState(false);
+  const [boostingSkills, setBoostingSkills] = useState(false);
   const solutionRef = useRef<HTMLDivElement>(null);
 
   const options = ['А', 'Б', 'В', 'Г'];
@@ -90,7 +105,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
     }
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = async () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
       setSelectedAnswer('');
@@ -98,6 +113,38 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ title, skills, onBack
       setShowSolution(false); // Reset solution visibility
     } else {
       setShowFinalResults(true);
+      
+      // If this is a module test and user passed (8+ correct answers), boost low mastery skills
+      const correctCount = answers.filter(Boolean).length;
+      if (isModuleTest && correctCount >= 8 && moduleTopics.length > 0 && user) {
+        setBoostingSkills(true);
+        try {
+          console.log('Calling boost-low-mastery-skills function...');
+          const { data, error } = await supabase.functions.invoke('boost-low-mastery-skills', {
+            body: {
+              user_id: user.id,
+              topics: moduleTopics,
+              course_id: courseId
+            }
+          });
+
+          if (error) {
+            console.error('Error boosting skills:', error);
+          } else {
+            console.log('Skills boost result:', data);
+            if (data?.boosted_skills && data.boosted_skills.length > 0) {
+              toast({
+                title: "Прогресс обновлен! 🎉",
+                description: `Улучшено понимание для ${data.boosted_skills.length} навыков!`,
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error calling boost function:', error);
+        } finally {
+          setBoostingSkills(false);
+        }
+      }
     }
   };
 
