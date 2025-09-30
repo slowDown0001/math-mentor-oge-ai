@@ -369,7 +369,14 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
               <CardTitle className="text-base font-bold text-purple-900">
                 {title}
               </CardTitle>
-              <p className="text-purple-600 text-xs mt-0.5">вопрос {currentQuestionIndex + 1} из {questions.length}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-purple-600 text-xs mt-0.5">вопрос {currentQuestionIndex + 1} из {questions.length}</p>
+                {questions[currentQuestionIndex]?.skills && (
+                  <span className="text-[10px] text-muted-foreground/40 font-mono">
+                    #{questions[currentQuestionIndex].skills}
+                  </span>
+                )}
+              </div>
             </div>
             <Button onClick={onBack} size="sm" variant="ghost" className="text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-lg px-3 py-1.5 text-sm">
               <ArrowLeft className="w-3 h-3 mr-1" />
