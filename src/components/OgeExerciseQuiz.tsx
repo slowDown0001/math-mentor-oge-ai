@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -33,6 +34,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 }) => {
   const { trackActivity } = useStreakTracking();
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   const [questions, setQuestions] = useState<OgeQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -42,6 +44,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
   const [showFinalResults, setShowFinalResults] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showSolution, setShowSolution] = useState(false);
+  const [viewedSolutionBeforeAnswer, setViewedSolutionBeforeAnswer] = useState(false);
   const [boostingSkills, setBoostingSkills] = useState(false);
   const solutionRef = useRef<HTMLDivElement>(null);
 
@@ -79,7 +82,8 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
     if (!selectedAnswer || showResult) return;
 
     const currentQuestion = questions[currentQuestionIndex];
-    const isCorrect = selectedAnswer === currentQuestion.answer?.toUpperCase();
+    // If user viewed solution before answering, mark as incorrect
+    const isCorrect = viewedSolutionBeforeAnswer ? false : selectedAnswer === currentQuestion.answer?.toUpperCase();
     
     setAnswers(prev => [...prev, isCorrect]);
     setShowResult(true);
@@ -110,7 +114,8 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
       setCurrentQuestionIndex(prev => prev + 1);
       setSelectedAnswer('');
       setShowResult(false);
-      setShowSolution(false); // Reset solution visibility
+      setShowSolution(false);
+      setViewedSolutionBeforeAnswer(false); // Reset for next question
     } else {
       setShowFinalResults(true);
       
@@ -155,6 +160,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
     setSelectedAnswer('');
     setShowResult(false);
     setShowSolution(false);
+    setViewedSolutionBeforeAnswer(false);
     loadQuestions();
   };
 
@@ -172,6 +178,11 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
   };
 
   const handleShowSolution = () => {
+    // Track if solution was viewed before answering
+    if (!showResult && !viewedSolutionBeforeAnswer) {
+      setViewedSolutionBeforeAnswer(true);
+    }
+    
     setShowSolution(!showSolution);
     // Scroll to bottom of modal after state update
     if (!showSolution) {
@@ -184,6 +195,13 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
           });
         }
       }, 100);
+    }
+  };
+
+  const handleReadArticle = () => {
+    const currentQuestion = questions[currentQuestionIndex];
+    if (currentQuestion?.skills) {
+      navigate(`/textbook?skill=${currentQuestion.skills}`);
     }
   };
 
@@ -389,6 +407,11 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                         <BookOpen className="w-6 h-6 text-purple-700" />
                         <h4 className="font-black text-purple-900 text-lg">💡 Решение:</h4>
                       </div>
+                      {viewedSolutionBeforeAnswer && !showResult && (
+                        <div className="mb-3 p-3 bg-orange-100 border-2 border-orange-400 rounded-xl">
+                          <p className="text-orange-700 font-bold text-sm">⚠️ Внимание: просмотр решения до ответа засчитается как неверный ответ</p>
+                        </div>
+                      )}
                       <div className="space-y-3 bg-white/50 backdrop-blur-sm rounded-xl p-4">
                         {questions[currentQuestionIndex].solution_text.split('\\n').map((line: string, index: number) => (
                           <div key={index} className="text-left">
@@ -406,20 +429,34 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
               )}
 
               {/* Action Buttons - Side by Side */}
-              <div className="flex justify-between items-center space-x-4 pt-2">
-                {/* Solution Button - Left Side */}
-                {questions[currentQuestionIndex]?.solution_text && showResult && (
-                  <Button
-                    onClick={handleShowSolution}
-                    className="bg-gradient-to-r from-purple-400 to-blue-400 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-full px-6 py-3 shadow-lg hover:scale-105 transition-transform border-3 border-white"
-                  >
-                    <Eye className="w-5 h-5 mr-2" />
-                    {showSolution ? '👀 скрыть' : '💡 решение'}
-                  </Button>
-                )}
+              <div className="flex justify-between items-center space-x-3 pt-2">
+                {/* Left Side Buttons */}
+                <div className="flex gap-3">
+                  {/* Solution Button - Always visible if solution exists */}
+                  {questions[currentQuestionIndex]?.solution_text && (
+                    <Button
+                      onClick={handleShowSolution}
+                      className="bg-gradient-to-r from-purple-400 to-blue-400 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-full px-4 py-3 shadow-lg hover:scale-105 transition-transform border-3 border-white"
+                    >
+                      <Eye className="w-5 h-5 mr-2" />
+                      {showSolution ? '👀 скрыть' : '💡 решение'}
+                    </Button>
+                  )}
+                  
+                  {/* Read Article Button */}
+                  {questions[currentQuestionIndex]?.skills && (
+                    <Button
+                      onClick={handleReadArticle}
+                      className="bg-gradient-to-r from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-full px-4 py-3 shadow-lg hover:scale-105 transition-transform border-3 border-white"
+                    >
+                      <BookOpen className="w-5 h-5 mr-2" />
+                      📖 читать статью
+                    </Button>
+                  )}
+                </div>
                 
-                {/* Empty div to push Next button to the right when no solution button */}
-                {(!questions[currentQuestionIndex]?.solution_text || !showResult) && <div />}
+                {/* Empty div to push Submit/Next button to the right */}
+                <div />
                 
                 {/* Submit/Next Button - Right Side */}
                 {!showResult ? (
