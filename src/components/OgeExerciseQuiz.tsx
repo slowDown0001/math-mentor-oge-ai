@@ -192,8 +192,8 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
     
     if (!showResult) {
       return selectedAnswer === options[optionIndex] 
-        ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 shadow-lg transform scale-105' 
-        : 'border-gray-200 hover:border-blue-400 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:shadow-md';
+        ? 'border-purple-500 bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 text-purple-900 shadow-2xl transform scale-105 border-4' 
+        : 'border-purple-300 hover:border-pink-400 hover:bg-gradient-to-br hover:from-pink-100 hover:to-purple-100 hover:shadow-xl hover:scale-102 border-3';
     }
     
     const answerLetter = options[optionIndex];
@@ -201,14 +201,14 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
     const isCorrectAnswer = answerLetter === currentQuestion?.answer?.toUpperCase();
     
     if (isCorrectAnswer) {
-      return 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 shadow-lg';
+      return 'border-green-500 bg-gradient-to-br from-green-200 via-emerald-200 to-lime-200 text-green-900 shadow-2xl border-4 animate-pulse';
     }
     
     if (isSelected && !isCorrectAnswer) {
-      return 'border-red-500 bg-gradient-to-r from-red-50 to-pink-50 text-red-700 shadow-lg';
+      return 'border-red-500 bg-gradient-to-br from-red-200 via-pink-200 to-orange-200 text-red-900 shadow-2xl border-4';
     }
     
-    return 'border-gray-200 opacity-60 bg-gray-50';
+    return 'border-gray-300 opacity-50 bg-gray-100';
   };
 
   const correctAnswers = answers.filter(Boolean).length;
@@ -248,14 +248,14 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
   if (loading) {
     return (
-      <Card className="shadow-2xl border-0 bg-white backdrop-blur-lg mx-auto">
+      <Card className="shadow-2xl border-4 border-purple-400 bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 backdrop-blur-lg mx-auto rounded-3xl">
         <CardContent className="p-8 text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
-            <Sparkles className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-blue-600" />
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-300 border-t-purple-600 mx-auto mb-4"></div>
+            <Sparkles className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-purple-600 animate-pulse" />
           </div>
-          <p className="text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Загружаем вопросы...
+          <p className="text-lg font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-pulse">
+            ✨ загружаем вопросы...
           </p>
         </CardContent>
       </Card>
@@ -264,18 +264,18 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
   if (questions.length === 0) {
     return (
-      <Card className="shadow-2xl border-0 bg-white backdrop-blur-lg mx-auto">
+      <Card className="shadow-2xl border-4 border-orange-400 bg-gradient-to-br from-yellow-100 via-orange-100 to-red-100 backdrop-blur-lg mx-auto rounded-3xl">
         <CardContent className="p-8 text-center">
-          <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Вопросы не найдены
+          <Target className="w-16 h-16 text-orange-500 mx-auto mb-4 animate-bounce" />
+          <h2 className="text-2xl font-black text-orange-600 mb-2">
+            😅 упс! вопросы не найдены
           </h2>
-          <p className="text-gray-600 mb-4 text-sm">
-            К сожалению, для этого упражнения пока нет доступных вопросов.
+          <p className="text-orange-700 mb-4 text-base font-medium">
+            для этого упражнения пока нет доступных вопросов
           </p>
-          <Button onClick={onBack} variant="outline" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Назад
+          <Button onClick={onBack} className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-full px-6 py-3 shadow-lg hover:scale-105 transition-transform">
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            назад
           </Button>
         </CardContent>
       </Card>
@@ -284,63 +284,65 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
   return (
     <>
-      <Card className="shadow-2xl border-0 bg-white backdrop-blur-lg overflow-hidden mx-auto">
-        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-1">
-          <div className="bg-white rounded-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4">
-              <div className="flex items-center justify-between">
+      <Card className="shadow-2xl border-4 border-purple-400 bg-white backdrop-blur-lg overflow-hidden mx-auto rounded-3xl">
+        <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 p-1.5">
+          <div className="bg-white rounded-2xl">
+            <CardHeader className="bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between mb-3">
                 <div>
-                  <CardTitle className="text-lg sm:text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    🎯 {title}
+                  <CardTitle className="text-xl sm:text-2xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    🔥 {title}
                   </CardTitle>
-                  <p className="text-gray-600 font-medium text-sm">Вопрос {currentQuestionIndex + 1} из {questions.length}</p>
+                  <p className="text-purple-700 font-bold text-base mt-1">вопрос {currentQuestionIndex + 1} из {questions.length} 💪</p>
                 </div>
-                <Button onClick={onBack} variant="outline" size="sm" className="hover:bg-purple-50">
+                <Button onClick={onBack} className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold rounded-full px-4 py-2 shadow-lg hover:scale-105 transition-transform">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Назад
+                  назад
                 </Button>
               </div>
-              <Progress value={(currentQuestionIndex / questions.length) * 100} className="w-full h-2 bg-gray-200">
-                <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" 
-                     style={{width: `${(currentQuestionIndex / questions.length) * 100}%`}} />
-              </Progress>
+              <div className="relative">
+                <div className="h-3 bg-purple-200 rounded-full overflow-hidden shadow-inner">
+                  <div className="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full transition-all duration-500 shadow-lg" 
+                       style={{width: `${(currentQuestionIndex / questions.length) * 100}%`}} />
+                </div>
+              </div>
             </CardHeader>
             
-            <CardContent className="space-y-4 p-4">
+            <CardContent className="space-y-5 p-6">
               {/* Question */}
-              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+              <div className="p-5 bg-gradient-to-br from-yellow-100 via-pink-100 to-purple-100 rounded-2xl border-4 border-purple-300 shadow-lg">
                 <MathRenderer 
                   text={questions[currentQuestionIndex]?.problem_text || ''} 
-                  className="text-base font-medium"
+                  className="text-lg font-bold text-purple-900"
                   compiler="mathjax"
                 />
               </div>
 
               {/* Answer Options */}
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-4">
                 {options.map((letter, index) => (
                   <div
                     key={letter}
-                    className={`p-3 border-2 rounded-lg cursor-pointer transition-all duration-300 ${getOptionStyle(index)}`}
+                    className={`p-4 rounded-2xl cursor-pointer transition-all duration-300 ${getOptionStyle(index)}`}
                     onClick={() => handleAnswerSelect(index)}
                   >
-                    <div className="flex items-start space-x-3">
+                    <div className="flex items-start space-x-4">
                       <div className={`
-                        w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0
+                        w-10 h-10 rounded-full flex items-center justify-center font-black text-base flex-shrink-0 shadow-lg
                         ${!showResult && selectedAnswer === letter 
-                          ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md' 
+                          ? 'bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500 text-white' 
                           : showResult && letter === questions[currentQuestionIndex]?.answer?.toUpperCase()
-                          ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md'
+                          ? 'bg-gradient-to-br from-green-400 to-lime-400 text-white animate-bounce'
                           : showResult && selectedAnswer === letter && letter !== questions[currentQuestionIndex]?.answer?.toUpperCase()
-                          ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-md'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-gradient-to-br from-red-500 to-orange-500 text-white'
+                          : 'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
                         }
                       `}>
                         {letter}
                       </div>
                       <MathRenderer 
                         text={getOptionContent(index)} 
-                        className="flex-1 text-sm font-medium"
+                        className="flex-1 text-base font-bold"
                         compiler="mathjax"
                       />
                     </div>
@@ -350,28 +352,28 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
               {/* Result */}
               {showResult && (
-                <div className="text-center py-4">
+                <div className="text-center py-6">
                   {selectedAnswer === questions[currentQuestionIndex]?.answer?.toUpperCase() ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
-                          <Check className="w-4 h-4 text-white" />
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center space-x-3 bg-gradient-to-r from-green-200 to-lime-200 rounded-2xl p-4 border-4 border-green-400 shadow-lg">
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-lime-400 rounded-full flex items-center justify-center animate-bounce shadow-xl">
+                          <Check className="w-6 h-6 text-white" strokeWidth={4} />
                         </div>
                         <div>
-                          <p className="text-lg font-bold text-green-600">Правильно!</p>
-                          <p className="text-green-500 text-sm">Отличная работа! 🎉</p>
+                          <p className="text-2xl font-black text-green-700">ПРАВИЛЬНО! 🎉</p>
+                          <p className="text-green-600 text-lg font-bold">ты огонь! 🔥</p>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center">
-                          <X className="w-4 h-4 text-white" />
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center space-x-3 bg-gradient-to-r from-red-200 to-orange-200 rounded-2xl p-4 border-4 border-red-400 shadow-lg">
+                        <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-orange-400 rounded-full flex items-center justify-center shadow-xl">
+                          <X className="w-6 h-6 text-white" strokeWidth={4} />
                         </div>
                         <div>
-                          <p className="text-lg font-bold text-red-600">Неправильно</p>
-                          <p className="text-red-500 text-sm">Не расстраивайтесь! 💪</p>
+                          <p className="text-2xl font-black text-red-700">упс! 😅</p>
+                          <p className="text-red-600 text-lg font-bold">не переживай, попробуй еще! 💪</p>
                         </div>
                       </div>
                     </div>
@@ -381,18 +383,18 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                   {showSolution && questions[currentQuestionIndex]?.solution_text && (
                     <div 
                       ref={solutionRef}
-                      className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200"
+                      className="mt-4 p-5 bg-gradient-to-br from-purple-200 via-blue-200 to-pink-200 rounded-2xl border-4 border-purple-400 shadow-xl"
                     >
-                      <div className="flex items-center gap-2 mb-3">
-                        <BookOpen className="w-4 w-4 text-purple-600" />
-                        <h4 className="font-bold text-purple-700 text-sm">Решение:</h4>
+                      <div className="flex items-center gap-3 mb-4">
+                        <BookOpen className="w-6 h-6 text-purple-700" />
+                        <h4 className="font-black text-purple-900 text-lg">💡 Решение:</h4>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-3 bg-white/50 backdrop-blur-sm rounded-xl p-4">
                         {questions[currentQuestionIndex].solution_text.split('\\n').map((line: string, index: number) => (
                           <div key={index} className="text-left">
                             <MathRenderer 
                               text={line.trim()} 
-                              className="text-gray-700 text-sm leading-relaxed"
+                              className="text-purple-900 text-base leading-relaxed font-semibold"
                               compiler="mathjax"
                             />
                           </div>
@@ -404,17 +406,15 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
               )}
 
               {/* Action Buttons - Side by Side */}
-              <div className="flex justify-between items-center space-x-3">
+              <div className="flex justify-between items-center space-x-4 pt-2">
                 {/* Solution Button - Left Side */}
                 {questions[currentQuestionIndex]?.solution_text && showResult && (
                   <Button
                     onClick={handleShowSolution}
-                    variant="outline"
-                    size="sm"
-                    className="bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200"
+                    className="bg-gradient-to-r from-purple-400 to-blue-400 hover:from-purple-500 hover:to-blue-500 text-white font-bold rounded-full px-6 py-3 shadow-lg hover:scale-105 transition-transform border-3 border-white"
                   >
-                    <Eye className="w-4 h-4 mr-2" />
-                    {showSolution ? 'Скрыть' : 'Решение'}
+                    <Eye className="w-5 h-5 mr-2" />
+                    {showSolution ? '👀 скрыть' : '💡 решение'}
                   </Button>
                 )}
                 
@@ -426,16 +426,16 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                   <Button
                     onClick={handleSubmitAnswer}
                     disabled={!selectedAnswer}
-                    className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-lg shadow-md transform hover:scale-105 transition-all duration-200"
+                    className="px-8 py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white font-black text-lg rounded-full shadow-2xl transform hover:scale-110 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-4 border-white"
                   >
-                    ✨ Ответить
+                    ✨ ответить
                   </Button>
                 ) : (
                   <Button 
                     onClick={handleNextQuestion} 
-                    className="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-md transform hover:scale-105 transition-all duration-200"
+                    className="px-8 py-4 bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 hover:from-green-500 hover:to-purple-500 text-white font-black text-lg rounded-full shadow-2xl transform hover:scale-110 transition-all duration-200 border-4 border-white"
                   >
-                    {currentQuestionIndex < questions.length - 1 ? '➡️ Далее' : '🏁 Завершить'}
+                    {currentQuestionIndex < questions.length - 1 ? '➡️ дальше' : '🏁 финиш'}
                   </Button>
                 )}
               </div>
@@ -446,44 +446,49 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
       {/* Final Results Dialog */}
       <AlertDialog open={showFinalResults} onOpenChange={setShowFinalResults}>
-        <AlertDialogContent className="sm:max-w-md">
+        <AlertDialogContent className="sm:max-w-md border-4 border-purple-400 rounded-3xl bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
           <AlertDialogHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              {getResultMessage().icon}
+            <div className="flex justify-center mb-6 animate-bounce">
+              <div className="w-20 h-20 bg-gradient-to-br from-pink-400 via-purple-400 to-blue-400 rounded-full flex items-center justify-center shadow-2xl">
+                {getResultMessage().icon}
+              </div>
             </div>
-            <AlertDialogTitle className={`text-2xl ${getResultMessage().color}`}>
+            <AlertDialogTitle className={`text-3xl font-black ${getResultMessage().color}`}>
               {getResultMessage().title}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-base">
+            <AlertDialogDescription className="text-lg font-bold text-purple-700">
               {getResultMessage().message}
             </AlertDialogDescription>
           </AlertDialogHeader>
           
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 my-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{correctAnswers}</div>
-                <div className="text-sm text-blue-700">из {questions.length}</div>
+              <div className="p-5 bg-gradient-to-br from-blue-200 to-cyan-200 rounded-2xl border-4 border-blue-400 shadow-lg">
+                <div className="text-4xl font-black text-blue-700">{correctAnswers}</div>
+                <div className="text-base font-bold text-blue-800">из {questions.length} 🎯</div>
               </div>
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">{score}%</div>
-                <div className="text-sm text-purple-700">точность</div>
+              <div className="p-5 bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl border-4 border-purple-400 shadow-lg">
+                <div className="text-4xl font-black text-purple-700">{score}%</div>
+                <div className="text-base font-bold text-purple-800">точность 💯</div>
               </div>
             </div>
           </div>
 
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+          <AlertDialogFooter className="flex-col sm:flex-row gap-3">
             {correctAnswers < 3 && (
               <AlertDialogAction
                 onClick={handleRetry}
-                className="bg-orange-600 hover:bg-orange-700"
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-full px-6 py-3 shadow-lg hover:scale-105 transition-transform"
               >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Попробовать еще раз
+                <RotateCcw className="w-5 h-5 mr-2" />
+                🔄 попробовать еще раз
               </AlertDialogAction>
             )}
-            <AlertDialogAction onClick={onBack}>
-              Назад к модулю
+            <AlertDialogAction 
+              onClick={onBack}
+              className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold rounded-full px-6 py-3 shadow-lg hover:scale-105 transition-transform"
+            >
+              ← назад к модулю
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
