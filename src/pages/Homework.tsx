@@ -567,22 +567,40 @@ const Homework = () => {
     await recordQuestionProgress(currentQuestion.id, answer, currentQuestion.correct_answer || '', correct, responseTime, false);
 
     // Update mastery tracking
+    console.log('About to update mastery tracking, questionType:', questionType, 'skills:', currentQuestion.skills);
     if (questionType === 'mcq' && currentQuestion.skills) {
       // For MCQ questions, call process-mcq-skill-attempt
+      console.log('Calling processMCQSkillAttempt for MCQ question');
       await processMCQSkillAttempt(currentQuestion, correct, responseTime);
     } else if (questionType === 'frq') {
       // For FIPI questions, update student_activity and call handle-submission
+      console.log('Processing FIPI question');
       await updateFIPIActivity(correct, 0);
       await submitToHandleSubmission(correct);
+    } else {
+      console.log('Skipping mastery tracking - no matching condition');
     }
   };
 
   // Process MCQ skill attempt for mastery tracking
   const processMCQSkillAttempt = async (question: Question, isCorrect: boolean, duration: number) => {
-    if (!user || !question.skills) return;
+    if (!user || !question.skills) {
+      console.log('Skipping MCQ skill attempt: no user or skills', { user: !!user, skills: question.skills });
+      return;
+    }
+
+    console.log('Calling process-mcq-skill-attempt with:', {
+      user_id: user.id,
+      question_id: question.id,
+      skill_id: question.skills,
+      is_correct: isCorrect,
+      difficulty: question.difficulty || 2,
+      duration: duration,
+      course_id: '1'
+    });
 
     try {
-      const { error } = await supabase.functions.invoke('process-mcq-skill-attempt', {
+      const { data, error } = await supabase.functions.invoke('process-mcq-skill-attempt', {
         body: {
           user_id: user.id,
           question_id: question.id,
@@ -597,11 +615,21 @@ const Homework = () => {
 
       if (error) {
         console.error('Error recording MCQ skill attempt:', error);
+        toast({
+          title: "Предупреждение",
+          description: "Не удалось обновить прогресс навыков: " + error.message,
+          variant: "destructive"
+        });
       } else {
-        console.log('Successfully recorded MCQ skill attempt');
+        console.log('Successfully recorded MCQ skill attempt, response:', data);
       }
     } catch (error) {
       console.error('Error calling process-mcq-skill-attempt:', error);
+      toast({
+        title: "Предупреждение",
+        description: "Ошибка при обновлении прогресса навыков",
+        variant: "destructive"
+      });
     }
   };
 
