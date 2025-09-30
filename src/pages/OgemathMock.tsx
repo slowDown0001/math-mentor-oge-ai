@@ -381,6 +381,9 @@ const OgemathMock = () => {
       hasSpecialSymbols(correctAns)
     );
   };
+  console.log('shouldUseServerCheck("six","6") =',
+  shouldUseServerCheck("six", "6"));
+  console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
   const handleNextQuestion = async () => {
     if (!currentQuestion || !questionStartTime) return;
