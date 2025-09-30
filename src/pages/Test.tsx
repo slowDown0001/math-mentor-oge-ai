@@ -8,6 +8,15 @@ const Test = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Simple console log to check if effect runs
+    console.log('Initializing p5.js particle system...');
+    
+    // Check if p5 is available
+    if (typeof p5 === 'undefined') {
+      console.error('p5.js library is not loaded');
+      return;
+    }
+
     // Particle class for mathematical symbols
     class Particle {
       x: number;
@@ -26,7 +35,7 @@ const Test = () => {
         this.vx = p.random(-0.5, 0.5);
         this.vy = p.random(-0.5, 0.5);
         this.size = p.random(2, 4);
-        this.opacity = p.random(0.1, 0.3);
+        this.opacity = p.random(0.3, 0.7); // Made more visible
         this.symbol = p.random(['∑', '∫', 'π', '∞', '√', 'Δ', 'θ', 'α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'λ', 'μ', 'ξ', 'ρ', 'σ', 'τ', 'φ', 'χ', 'ψ', 'ω']);
         this.rotation = 0;
         this.rotationSpeed = p.random(-0.02, 0.02);
@@ -51,7 +60,7 @@ const Test = () => {
         p.fill(245, 158, 11, this.opacity * 255);
         p.noStroke();
         p.textAlign(p.CENTER, p.CENTER);
-        p.textSize(this.size * 8);
+        p.textSize(this.size * 12); // Made bigger
         p.text(this.symbol, 0, 0);
         p.pop();
       }
@@ -63,10 +72,10 @@ const Test = () => {
         for (let j = i + 1; j < particles.length; j++) {
           const distance = p.dist(particles[i].x, particles[i].y, particles[j].x, particles[j].y);
           
-          if (distance < 100) {
-            const opacity = p.map(distance, 0, 100, 0.2, 0);
+          if (distance < 120) {
+            const opacity = p.map(distance, 0, 120, 0.4, 0);
             p.stroke(245, 158, 11, opacity * 255);
-            p.strokeWeight(1);
+            p.strokeWeight(2);
             p.line(particles[i].x, particles[i].y, particles[j].x, particles[j].y);
           }
         }
@@ -78,17 +87,22 @@ const Test = () => {
       let particles: Particle[] = [];
       
       p.setup = function() {
+        console.log('p5.js setup running...');
         // Create canvas that covers the full window
         let canvas = p.createCanvas(p.windowWidth, p.windowHeight);
-        canvas.id('p5-background');
-        canvas.position(0, 0);
-        canvas.style('z-index', '-1');
+        canvas.parent(document.body); // Attach to body instead
         canvas.style('position', 'fixed');
+        canvas.style('top', '0');
+        canvas.style('left', '0');
+        canvas.style('z-index', '-1');
+        canvas.style('pointer-events', 'none');
         
         // Create particles with mathematical symbols
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 80; i++) { // More particles
           particles.push(new Particle(p));
         }
+        
+        console.log(`Created ${particles.length} particles`);
       };
       
       p.draw = function() {
@@ -109,11 +123,17 @@ const Test = () => {
       };
     };
 
-    const myP5 = new p5(sketch);
+    try {
+      const myP5 = new p5(sketch);
+      console.log('p5.js instance created successfully');
 
-    return () => {
-      myP5.remove();
-    };
+      return () => {
+        console.log('Cleaning up p5.js instance');
+        myP5.remove();
+      };
+    } catch (error) {
+      console.error('Error creating p5.js instance:', error);
+    }
   }, []);
 
   return (
