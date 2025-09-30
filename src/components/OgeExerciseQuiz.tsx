@@ -396,35 +396,35 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                       </div>
                     </div>
                   )}
-                  
-                  {/* Solution Display */}
-                  {showSolution && questions[currentQuestionIndex]?.solution_text && (
-                    <div 
-                      ref={solutionRef}
-                      className="mt-4 p-5 bg-gradient-to-br from-purple-200 via-blue-200 to-pink-200 rounded-2xl border-4 border-purple-400 shadow-xl"
-                    >
-                      <div className="flex items-center gap-3 mb-4">
-                        <BookOpen className="w-6 h-6 text-purple-700" />
-                        <h4 className="font-black text-purple-900 text-lg">💡 Решение:</h4>
-                      </div>
-                      {viewedSolutionBeforeAnswer && !showResult && (
-                        <div className="mb-3 p-3 bg-orange-100 border-2 border-orange-400 rounded-xl">
-                          <p className="text-orange-700 font-bold text-sm">⚠️ Внимание: просмотр решения до ответа засчитается как неверный ответ</p>
-                        </div>
-                      )}
-                      <div className="space-y-3 bg-white/50 backdrop-blur-sm rounded-xl p-4">
-                        {questions[currentQuestionIndex].solution_text.split('\\n').map((line: string, index: number) => (
-                          <div key={index} className="text-left">
-                            <MathRenderer 
-                              text={line.trim()} 
-                              className="text-purple-900 text-base leading-relaxed font-semibold"
-                              compiler="mathjax"
-                            />
-                          </div>
-                        ))}
-                      </div>
+                </div>
+              )}
+              
+              {/* Solution Display - Can be viewed before or after answering */}
+              {showSolution && questions[currentQuestionIndex]?.solution_text && (
+                <div 
+                  ref={solutionRef}
+                  className="mt-4 p-5 bg-gradient-to-br from-purple-200 via-blue-200 to-pink-200 rounded-2xl border-4 border-purple-400 shadow-xl"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <BookOpen className="w-6 h-6 text-purple-700" />
+                    <h4 className="font-black text-purple-900 text-lg">💡 Решение:</h4>
+                  </div>
+                  {viewedSolutionBeforeAnswer && !showResult && (
+                    <div className="mb-3 p-3 bg-orange-100 border-2 border-orange-400 rounded-xl">
+                      <p className="text-orange-700 font-bold text-sm">⚠️ Внимание: просмотр решения до ответа засчитается как неверный ответ</p>
                     </div>
                   )}
+                  <div className="space-y-3 bg-white/50 backdrop-blur-sm rounded-xl p-4">
+                    {questions[currentQuestionIndex].solution_text.split('\\n').map((line: string, index: number) => (
+                      <div key={index} className="text-left">
+                        <MathRenderer 
+                          text={line.trim()} 
+                          className="text-purple-900 text-base leading-relaxed font-semibold"
+                          compiler="mathjax"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
