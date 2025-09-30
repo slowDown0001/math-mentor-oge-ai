@@ -61,10 +61,33 @@ const Homework = () => {
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
   const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
   const [existingProgress, setExistingProgress] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  const loadUserProfile = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('homework')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error loading user profile:', error);
+        return;
+      }
+      
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
 
   useEffect(() => {
     if (user) {
       loadHomeworkData();
+      loadUserProfile();
     }
   }, [user]);
 
@@ -375,11 +398,13 @@ const Homework = () => {
       const currentQuestion = currentQuestions.find(q => q.id === questionId);
       const questionType = homeworkData?.mcq_questions?.includes(questionId) ? 'mcq' : 'fipi';
       
-      // Get homework name from profiles
+      // Get homework name from user profile
       let homeworkName = 'Homework';
-      if (homeworkData) {
+      if (userProfile?.homework) {
         try {
-          const homeworkJson = homeworkData as any;
+          const homeworkJson = typeof userProfile.homework === 'string' 
+            ? JSON.parse(userProfile.homework) 
+            : userProfile.homework;
           if (homeworkJson.homework_name) {
             homeworkName = homeworkJson.homework_name;
           }
@@ -520,11 +545,13 @@ const Homework = () => {
     const accuracy = completedCount > 0 ? (correctCount / completedCount) * 100 : 0;
 
     try {
-      // Get homework name from profiles
+      // Get homework name from user profile
       let homeworkName = 'Homework';
-      if (homeworkData) {
+      if (userProfile?.homework) {
         try {
-          const homeworkJson = homeworkData as any;
+          const homeworkJson = typeof userProfile.homework === 'string' 
+            ? JSON.parse(userProfile.homework) 
+            : userProfile.homework;
           if (homeworkJson.homework_name) {
             homeworkName = homeworkJson.homework_name;
           }
