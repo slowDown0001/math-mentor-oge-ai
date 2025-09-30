@@ -12,7 +12,7 @@ import { StreakDisplay } from "@/components/streak/StreakDisplay";
 import { DailyTaskStory } from "@/components/DailyTaskStory";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { generateHomeworkFeedback, createHomeworkStatsFromData } from "@/services/homeworkFeedbackService";
+import { generateAIHomeworkFeedback } from "@/services/homeworkAIFeedbackService";
 import { type Message } from "@/contexts/ChatContext";
 
 const OgeMath = () => {
@@ -52,8 +52,7 @@ const OgeMath = () => {
               .order('created_at', { ascending: true });
 
             if (!error && sessionData && sessionData.length > 0) {
-              const homeworkStats = createHomeworkStatsFromData(sessionData);
-              homeworkFeedbackMessage = generateHomeworkFeedback(homeworkStats);
+              homeworkFeedbackMessage = await generateAIHomeworkFeedback(sessionData);
               shouldGenerateHomeworkFeedback = true;
               
               // Clear the stored data to avoid repeated feedback
