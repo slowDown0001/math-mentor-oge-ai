@@ -392,7 +392,7 @@ const OgemathMock = () => {
               problem_number: problemNumber.toString(),
               raw_output: userAnswer.trim(),
               analysis_type: 'solution',
-              openrouter_check: null,
+              openrouter_check: 'HELLOyopta',
             })
             .select('id')
             .single();
