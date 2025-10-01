@@ -303,24 +303,14 @@ const ModulePage = () => {
 
           {/* Legend */}
           <div className="flex flex-wrap gap-4 mb-6">
-            {/* Освоено — full orange square with purple crown inside */}
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-orange-500 grid place-items-center">
-                <Crown className="w-3 h-3 text-purple-700" />
-              </div>
+              <Crown className="h-4 w-4 text-purple-700" />
               <span className="text-sm text-gray-700 dark:text-gray-300">Освоено</span>
             </div>
-          
-            {/* Владею — ~33% orange fill */}
             <div className="flex items-center gap-2">
-              <div
-                className="w-4 h-4 rounded"
-                style={{ background: 'linear-gradient(to top, #f97316 33%, #e5e7eb 33%)' }}
-              />
+              <div className="w-4 h-4 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded"></div>
               <span className="text-sm text-gray-700 dark:text-gray-300">Владею</span>
             </div>
-          
-            {/* Знаком — 25% orange fill */}
             <div className="flex items-center gap-2">
               <div
                 className="w-4 h-4 rounded"
@@ -328,28 +318,23 @@ const ModulePage = () => {
               />
               <span className="text-sm text-gray-700 dark:text-gray-300">Знаком</span>
             </div>
-          
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-orange-400 rounded"></div>
               <span className="text-sm text-gray-700 dark:text-gray-300">Попытался</span>
             </div>
-          
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-gray-300 rounded bg-white"></div>
               <span className="text-sm text-gray-700 dark:text-gray-300">Не начато</span>
             </div>
-          
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4 text-blue-600" />
               <span className="text-sm text-gray-700 dark:text-gray-300">Тест</span>
             </div>
-          
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-yellow-600" />
               <span className="text-sm text-gray-700 dark:text-gray-300">Итоговый тест</span>
             </div>
           </div>
-
 
           {/* Progress Grid */}
           <div className="flex items-center gap-2 flex-wrap">
