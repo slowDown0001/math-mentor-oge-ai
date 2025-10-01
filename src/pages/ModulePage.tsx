@@ -307,14 +307,16 @@ const ModulePage = () => {
               <Crown className="h-4 w-4 text-purple-700" />
               <span className="text-sm text-gray-700 dark:text-gray-300">Освоено</span>
             </div>
+            {/* Освоено — full orange fill + purple crown */}
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded"></div>
-              <span className="text-sm text-gray-700 dark:text-gray-300">Владею</span>
+              <Crown className="h-4 w-4 text-purple-700" />
+              <div className="w-4 h-4 rounded bg-orange-500" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Освоено</span>
             </div>
             <div className="flex items-center gap-2">
               <div
                 className="w-4 h-4 rounded"
-                style={{ background: 'linear-gradient(to top, #f97316 25%, #e5e7eb 25%)' }}
+                style={{ background: 'linear-gradient(to top, #f97316 25%, #e5e7eb 30%)' }}
               />
               <span className="text-sm text-gray-700 dark:text-gray-300">Знаком</span>
             </div>
