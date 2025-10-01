@@ -89,6 +89,17 @@ async function sendNotificationBackground(supabase, userId) {
     console.error(`Background notification task failed for user ${userId}:`, error);
   }
 }
+// Function to shuffle an array (Fisher-Yates shuffle)
+function shuffle(array) {
+  for(let i = array.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [
+      array[j],
+      array[i]
+    ];
+  }
+  return array;
+}
 Deno.serve(async (req)=>{
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -137,6 +148,130 @@ Deno.serve(async (req)=>{
     const hardcode_task = taskData.hardcode_task;
     const previously_failed_topics = taskData.previously_failed_topics;
     console.log('Generated task, hardcode_task, and previously_failed_topics successfully');
+    console.log(`[HOMEWORK TRACK] hardcode_task type: ${typeof hardcode_task}, length: ${hardcode_task ? hardcode_task.length : 0}, preview: ${hardcode_task ? hardcode_task.substring(0, 100) + '...' : 'empty'}`);
+    // --- NEW FEATURE: Generate homework from hardcode_task ---
+    try {
+      // Parse early if it's a string
+      let hardcodeTaskObj = hardcode_task;
+      if (typeof hardcode_task === 'string') {
+        try {
+          hardcodeTaskObj = JSON.parse(hardcode_task);
+          console.log('[HOMEWORK TRACK] Successfully parsed hardcode_task to object');
+          console.log(`[HOMEWORK TRACK] Parsed object keys: ${Object.keys(hardcodeTaskObj).join(', ')}`);
+        } catch (parseError) {
+          console.error('[HOMEWORK TRACK] Error parsing hardcode_task JSON:', parseError);
+          // Skip if invalid
+          hardcodeTaskObj = null;
+        }
+      }
+      // Now check the parsed obj
+      if (hardcodeTaskObj && typeof hardcodeTaskObj === 'object' && !Array.isArray(hardcodeTaskObj)) {
+        console.log('[HOMEWORK TRACK] Entering homework generation - valid object');
+        console.log('Processing hardcode_task for homework generation...');
+        // 1. Process "навыки с наибольшей важностью для выбранных тем"
+        const importantSkills = hardcodeTaskObj['навыки с наибольшей важностью для выбранных тем'] || [];
+        const limitedImportantSkills = importantSkills.slice(0, 10); // Take only up to 10 skills
+        console.log(`[HOMEWORK TRACK] Processing important skills: ${limitedImportantSkills.length} items (e.g., ${limitedImportantSkills.slice(0, 3).join(', ')})`);
+        let mcqlist = [];
+        for (const skillNumber of limitedImportantSkills){
+          try {
+            const { data: mcqQuestions, error: mcqError } = await supabase.from('oge_math_skills_questions').select('question_id').eq('skills', skillNumber);
+            if (mcqError) {
+              console.error(`[HOMEWORK TRACK] Error fetching MCQ questions for skill ${skillNumber}:`, mcqError);
+              continue;
+            }
+            if (mcqQuestions && mcqQuestions.length > 0) {
+              // Shuffle and take 2
+              const shuffled = shuffle([
+                ...mcqQuestions
+              ]);
+              const selected = shuffled.slice(0, 2);
+              // Extract question_id and add to mcqlist
+              const questionIds = selected.map((q)=>q.question_id);
+              mcqlist.push(...questionIds);
+              console.log(`[HOMEWORK TRACK] Added ${questionIds.length} MCQ questions for skill ${skillNumber}`);
+            } else {
+              console.log(`[HOMEWORK TRACK] No MCQ questions found for skill ${skillNumber}`);
+            }
+          } catch (skillError) {
+            console.error(`[HOMEWORK TRACK] Unexpected error fetching MCQ questions for skill ${skillNumber}:`, skillError);
+            continue;
+          }
+        }
+        // Deduplicate mcqlist
+        mcqlist = [
+          ...new Set(mcqlist)
+        ];
+        console.log(`[HOMEWORK TRACK] Final MCQ list has ${mcqlist.length} unique questions`);
+        // 2. Process "Задачи ФИПИ для тренировки"
+        const fipiProblems = hardcodeTaskObj['Задачи ФИПИ для тренировки'] || [];
+        const limitedFipiProblems = fipiProblems.slice(0, 10); // Take only up to 10 problem types
+        console.log(`[HOMEWORK TRACK] Processing FIPI problems: ${limitedFipiProblems.length} items (e.g., ${limitedFipiProblems.slice(0, 3).join(', ')})`);
+        let fipilist = [];
+        for (const problemNumber of limitedFipiProblems){
+          try {
+            const { data: fipiQuestions, error: fipiError } = await supabase.from('oge_math_fipi_bank').select('question_id').eq('problem_number_type', problemNumber);
+            if (fipiError) {
+              console.error(`[HOMEWORK TRACK] Error fetching FIPI questions for problem type ${problemNumber}:`, fipiError);
+              continue;
+            }
+            if (fipiQuestions && fipiQuestions.length > 0) {
+              // Shuffle and take 2
+              const shuffled = shuffle([
+                ...fipiQuestions
+              ]);
+              const selected = shuffled.slice(0, 2);
+              // Extract question_id and add to fipilist
+              const questionIds = selected.map((q)=>q.question_id);
+              fipilist.push(...questionIds);
+              console.log(`[HOMEWORK TRACK] Added ${questionIds.length} FIPI questions for problem type ${problemNumber}`);
+            } else {
+              console.log(`[HOMEWORK TRACK] No FIPI questions found for problem type ${problemNumber}`);
+            }
+          } catch (problemError) {
+            console.error(`[HOMEWORK TRACK] Unexpected error fetching FIPI questions for problem type ${problemNumber}:`, problemError);
+            continue;
+          }
+        }
+        // Deduplicate fipilist
+        fipilist = [
+          ...new Set(fipilist)
+        ];
+        console.log(`[HOMEWORK TRACK] Final FIPI list has ${fipilist.length} unique questions`);
+        // 3. Create the homework JSON object
+        const homeworkJson = {
+          homework_name: crypto.randomUUID(),
+          MCQ: mcqlist,
+          FIPI: fipilist
+        };
+        console.log('[HOMEWORK TRACK] Generated homework JSON:', JSON.stringify(homeworkJson, null, 2));
+        // 4. Update the profiles table
+        console.log(`[HOMEWORK TRACK] Attempting to update profiles.homework for user_id: ${user_id}`);
+        const { error: updateError, count } = await supabase.from('profiles').update({
+          homework: JSON.stringify(homeworkJson)
+        }, {
+          count: 'exact'
+        }) // Always write to 'homework' column for course_id 1
+        .eq('user_id', user_id);
+        console.log(`[HOMEWORK TRACK] Update query returned count: ${count || 'unknown'}`);
+        if (updateError) {
+          console.error('[HOMEWORK TRACK] Error updating profiles with homework:', updateError);
+          console.error(`[HOMEWORK TRACK] Update error details: code=${updateError.code}, message=${updateError.message}, hint=${updateError.hint || 'none'}`);
+        // Note: This error might be worth propagating up depending on requirements,
+        // but the original task insert should still succeed.
+        } else {
+          console.log('[HOMEWORK TRACK] Successfully saved homework to profiles table for user:', user_id);
+        }
+      } else {
+        console.log('[HOMEWORK TRACK] Skipping homework generation - invalid after parse');
+      }
+    } catch (homeworkError) {
+      console.error('[HOMEWORK TRACK] Error in homework generation process:', homeworkError);
+      console.error(`[HOMEWORK TRACK] Homework error stack: ${homeworkError.stack || 'no stack'}`);
+    // Do not throw the error, as the main task creation should still succeed
+    // The homework generation is a secondary feature
+    }
+    // --- END NEW FEATURE ---
     // Always insert a new row with the three extracted values plus seen: 0
     console.log('Inserting new row with task, hardcode_task, and previously_failed_topics...');
     const { data: insertData, error: insertError } = await supabase.from('stories_and_telegram').insert({
