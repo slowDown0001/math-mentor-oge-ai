@@ -452,24 +452,68 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
     slug: 'sequences',
     moduleNumber: 4,
     title: 'Модуль 4: Числовые последовательности',
-    subtitle: '2 темы • 6 видео • 2 статьи • 6 упражнений',
-    masteryPoints: 900,
+    subtitle: '2 темы • 6 видео • 2 статьи • 7 упражнений',
+    masteryPoints: 1650,
     skillsDescription: 'Навыки: Последовательности, Арифметическая прогрессия, Геометрическая прогрессия',
     topicMapping: ['4.1', '4.2'],
     topics: [
-      { id: 'sequences', title: 'Последовательности', videos: 3, articles: 1, exercises: 3 },
-      { id: 'progressions', title: 'Арифметическая и геометрическая прогрессии. Формула сложных процентов', videos: 3, articles: 1, exercises: 3 }
+      { id: 'sequences', title: 'Последовательности', videos: 3, articles: 1, exercises: 2 },
+      { id: 'progressions', title: 'Арифметическая и геометрическая прогрессии. Формула сложных процентов', videos: 3, articles: 1, exercises: 5 }
     ],
     quizzes: [
-      { id: 'quiz-1', title: 'Тест 1', description: 'Повысьте уровень навыков и получите до 400 баллов мастерства' }
+      { id: 'quiz-1', title: 'Тест 1: Арифметическая прогрессия', description: 'Проверьте навыки по арифметической прогрессии' },
+      { id: 'quiz-2', title: 'Тест 2: Геометрическая прогрессия', description: 'Проверьте навыки по геометрической прогрессии' }
     ],
     orderedContent: [
       { type: 'topic', topicIndex: 0 },
       { type: 'topic', topicIndex: 1 },
       { type: 'quiz', quizIndex: 0 },
+      { type: 'quiz', quizIndex: 1 },
       { type: 'quiz', isFinalTest: true }
-    ]
-  },
+    ],
+    getExerciseData: (topicId: string, exerciseIndex: number) => {
+      if (topicId === 'sequences') {
+        if (exerciseIndex === 0) return { title: 'Основные последовательности', skills: [76, 77] };
+        if (exerciseIndex === 1) return { title: 'Работа с последовательностями', skills: [78, 79] };
+      }
+      if (topicId === 'progressions') {
+        if (exerciseIndex === 0) return { title: 'Введение в арифметическую прогрессию', skills: [80, 81, 82] };
+        if (exerciseIndex === 1) return { title: 'Текстовые задачи на арифметическую прогрессию', skills: [83] };
+        if (exerciseIndex === 2) return { title: 'Введение в геометрическую прогрессию', skills: [84, 85, 86] };
+        if (exerciseIndex === 3) return { title: 'Текстовые задачи на геометрическую прогрессию', skills: [87] };
+        if (exerciseIndex === 4) return { title: 'Сложные проценты', skills: [88] };
+      }
+      return { title: `Упражнение ${exerciseIndex + 1}`, skills: [] };
+    },
+    getQuizData: (quizId: string) => {
+      if (quizId === 'quiz-1') {
+        return {
+          title: 'Тест 1: Арифметическая прогрессия',
+          skills: [80, 81, 82, 83],
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'quiz-2') {
+        return {
+          title: 'Тест 2: Геометрическая прогрессия',
+          skills: [84, 85, 86, 87],
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'module-exam') {
+        return {
+          title: 'Итоговый экзамен модуля',
+          skills: Array.from({ length: 13 }, (_, i) => 76 + i), // 76–88
+          questionCount: 10,
+          isExam: true
+        };
+      }
+      return null;
+    }
+  }, 
+
 
   'functions': {
     slug: 'functions',
