@@ -23,8 +23,12 @@ const ModulePage = () => {
     skills: number[];
     questionCount?: number;
     isAdvanced?: boolean;
-    isTest?: boolean;
-    isExam?: boolean;
+    /** FINAL/Module test flag expected by OgeExerciseQuiz */
+    isModuleTest?: boolean;
+    /** Topics list for the booster function (only needed for final) */
+    moduleTopics?: string[];
+    /** Course identifier (string) */
+    courseId?: string;
   } | null>(null);
 
   if (!moduleSlug || !modulesRegistry[moduleSlug]) {
@@ -172,12 +176,17 @@ const ModulePage = () => {
           <Button
             className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
             onClick={() => {
-              if (module.getQuizData) {
-                const quizData = module.getQuizData(quiz.id);
-                if (quizData) {
-                  setSelectedExercise(quizData);
-                }
-              }
+              if (!module.getQuizData) return;
+              const quizData = module.getQuizData(quiz.id);
+              if (!quizData) return;
+
+              const isFinal = quiz.id === "module-exam";
+              setSelectedExercise({
+                ...quizData,
+                isModuleTest: isFinal,
+                moduleTopics: isFinal ? module.topicMapping : undefined,
+                courseId: isFinal ? String(module.moduleNumber) : undefined,
+              });
             }}
           >
             Начать тест
@@ -247,6 +256,9 @@ const ModulePage = () => {
                 refetch();
               }}
               questionCount={selectedExercise.questionCount}
+              isModuleTest={selectedExercise.isModuleTest}
+              moduleTopics={selectedExercise.moduleTopics}
+              courseId={selectedExercise.courseId}
             />
           </div>
         </div>
