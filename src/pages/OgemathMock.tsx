@@ -381,7 +381,9 @@ const OgemathMock = () => {
       hasSpecialSymbols(correctAns)
     );
   };
-
+  console.log('shouldUseServerCheck("six","6") =',
+  shouldUseServerCheck("six", "6"));
+  console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
   const handleNextQuestion = async () => {
     if (!currentQuestion || !questionStartTime) return;
@@ -463,104 +465,51 @@ const OgemathMock = () => {
           // Quick check path that falls back to the server for special symbols
           const correctAnswer = currentQuestion.answer;
 
-                    // Quick check path that falls back to the server for special symbols
-
-          
-          // Normalize common number words for local numeric equality ("six" -> "6")
-          const userAnsNorm = normalizeNumberWords(userAnswer);
-          
-          // Compute diagnostics and decision
-          const diag = getDecisionDiagnostics(userAnsNorm, correctAnswer);
-          const willUseServer = shouldUseServerCheck(userAnsNorm, correctAnswer);
-          
-          // Group all console logs for this question’s check
-          console.group(
-            `[ANSWER-CHECK] Q${problemNumber} id=${currentQuestion.question_id}`
-          );
-          console.log("Inputs:", {
-            rawUser: userAnswer,
-            userAnsNorm,
-            correctAnswer
-          });
-          console.log("Diagnostics:", diag);
-          console.log("Decision -> shouldUseServerCheck =", willUseServer);
-          
-          if (willUseServer) {
-            console.log("[PATH] Server check via check-text-answer");
-            // (Optional tiny UX ping)
-            // toast.message("Проверка сложного ответа…");
-          
+          if (shouldUseServerCheck(userAnswer, correctAnswer)) {
+            // Delegate to edge function for robust checking (LaTeX, units, symbols, etc.)
             try {
-              const payload = {
-                user_id: user.id,
-                question_id: currentQuestion.question_id,
-                submitted_answer: userAnsNorm.trim(),
-              };
-              console.log("[invoke] check-text-answer START with payload:", payload);
-              console.time("[invoke] check-text-answer duration");
-          
               const { data, error } = await supabase.functions.invoke('check-text-answer', {
-                body: payload
+                body: {
+                  user_id: user.id,
+                  question_id: currentQuestion.question_id,
+                  submitted_answer: userAnswer.trim()
+                }
               });
-          
-              console.timeEnd("[invoke] check-text-answer duration");
-              console.log("[invoke] check-text-answer DONE", { data, error });
-          
+
               if (error) {
-                console.warn("[invoke] check-text-answer ERROR -> falling back to local compare", error);
+                console.error('check-text-answer error:', error);
+                // Fallback to local comparison if function fails
                 if (isNumeric(correctAnswer)) {
-                  const sanitizedUserAnswer = sanitizeNumericAnswer(userAnsNorm);
+                  const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
                   const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
-                  console.log("[local fallback numeric] sanitized", {
-                    sanitizedUserAnswer, sanitizedCorrectAnswer
-                  });
                   isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
                 } else {
-                  const lu = userAnsNorm.trim().toLowerCase();
-                  const lc = correctAnswer.toLowerCase();
-                  console.log("[local fallback string] lowercased", { lu, lc });
-                  isCorrect = lu === lc;
+                  isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
                 }
               } else {
                 isCorrect = (data as any)?.is_correct ?? false;
-                console.log("[server result] isCorrect =", isCorrect);
               }
             } catch (err) {
-              console.error("[invoke] check-text-answer EXCEPTION -> local fallback", err);
+              console.error('check-text-answer exception:', err);
+              // Fallback to local comparison on exception too
               if (isNumeric(correctAnswer)) {
-                const sanitizedUserAnswer = sanitizeNumericAnswer(userAnsNorm);
+                const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
                 const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
-                console.log("[local fallback numeric] sanitized", {
-                  sanitizedUserAnswer, sanitizedCorrectAnswer
-                });
                 isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
               } else {
-                const lu = userAnsNorm.trim().toLowerCase();
-                const lc = correctAnswer.toLowerCase();
-                console.log("[local fallback string] lowercased", { lu, lc });
-                isCorrect = lu === lc;
+                isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
               }
             }
           } else {
-            console.log("[PATH] Local check");
+            // Purely numeric/simple path stays on client for speed
             if (isNumeric(correctAnswer)) {
-              const sanitizedUserAnswer = sanitizeNumericAnswer(userAnsNorm);
+              const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
               const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
-              console.log("[local numeric] sanitized", {
-                sanitizedUserAnswer, sanitizedCorrectAnswer
-              });
               isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
             } else {
-              const lu = userAnsNorm.trim().toLowerCase();
-              const lc = correctAnswer.toLowerCase();
-              console.log("[local string] lowercased", { lu, lc });
-              isCorrect = lu === lc;
+              isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
             }
-}
-
-console.log("[RESULT] isCorrect =", isCorrect, " | scores =", scores);
-console.groupEnd();
-
+          }
         }
 
         // Complete the attempt
