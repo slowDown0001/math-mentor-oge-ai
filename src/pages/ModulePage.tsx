@@ -302,16 +302,21 @@ const ModulePage = () => {
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">{module.skillsDescription}</div>
 
           {/* Legend */}
-          <div className="flex flex-wrap gap-4 mb-6">
+            {/* Освоено — full orange square with purple crown inside */}
             <div className="flex items-center gap-2">
-              <Crown className="h-4 w-4 text-purple-700" />
+              <div className="w-4 h-4 rounded bg-orange-500 grid place-items-center">
+                <Crown className="w-3 h-3 text-purple-700" />
+              </div>
               <span className="text-sm text-gray-700 dark:text-gray-300">Освоено</span>
             </div>
-            {/* Освоено — full orange fill + purple crown */}
+
+            {/* Владею — same look as old “Знаком” (about 33% orange fill) */}
             <div className="flex items-center gap-2">
-              <Crown className="h-4 w-4 text-purple-700" />
-              <div className="w-4 h-4 rounded bg-orange-500" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Освоено</span>
+              <div
+                className="w-4 h-4 rounded"
+                style={{ background: 'linear-gradient(to top, #f97316 33%, #e5e7eb 33%)' }} // orange-500 then gray-200
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Владею</span>
             </div>
             <div className="flex items-center gap-2">
               <div
