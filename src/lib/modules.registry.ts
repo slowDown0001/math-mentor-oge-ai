@@ -354,18 +354,22 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
     slug: 'equations-inequalities',
     moduleNumber: 3,
     title: 'Модуль 3: Уравнения и неравенства',
-    subtitle: '3 темы • 9 видео • 3 статьи • 9 упражнений',
+    subtitle: '3 темы • 9 видео • 3 статьи • 13 упражнений',
     masteryPoints: 1350,
     skillsDescription: 'Навыки: Уравнения, Неравенства, Системы, Текстовые задачи',
     topicMapping: ['3.1', '3.2', '3.3'],
     topics: [
-      { id: 'equations-systems', title: 'Уравнения и системы', videos: 3, articles: 1, exercises: 3 },
-      { id: 'inequalities-systems', title: 'Неравенства и системы', videos: 3, articles: 1, exercises: 3 },
-      { id: 'word-problems', title: 'Текстовые задачи', videos: 3, articles: 1, exercises: 3 }
+      // 3.1: Уравнения и системы — 5 упражнений
+      { id: 'equations-systems', title: 'Уравнения и системы', videos: 3, articles: 1, exercises: 5 },
+      // 3.2: Неравенства и системы — 4 упражнения
+      { id: 'inequalities-systems', title: 'Неравенства и системы', videos: 3, articles: 1, exercises: 4 },
+      // 3.3: Текстовые задачи — 4 упражнения
+      { id: 'word-problems', title: 'Текстовые задачи', videos: 3, articles: 1, exercises: 4 }
     ],
     quizzes: [
-      { id: 'quiz-1', title: 'Тест 1', description: 'Повысьте уровень навыков и получите до 400 баллов мастерства' },
-      { id: 'quiz-2', title: 'Тест 2', description: 'Повысьте уровень навыков и получите до 400 баллов мастерства' }
+      { id: 'quiz-1', title: 'Тест 1', description: 'Проверьте темы 3.1: Уравнения и системы' },
+      { id: 'quiz-2', title: 'Тест 2', description: 'Проверьте темы 3.2: Неравенства и системы' },
+      { id: 'quiz-3', title: 'Тест 3', description: 'Проверьте темы 3.3: Текстовые задачи' }
     ],
     orderedContent: [
       { type: 'topic', topicIndex: 0 },
@@ -373,9 +377,76 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
       { type: 'topic', topicIndex: 1 },
       { type: 'quiz', quizIndex: 1 },
       { type: 'topic', topicIndex: 2 },
+      { type: 'quiz', quizIndex: 2 },
       { type: 'quiz', isFinalTest: true }
-    ]
-  },
+    ],
+    getExerciseData: (topicId: string, exerciseIndex: number) => {
+      // 0-based indices -> exercise # = index + 1
+      if (topicId === 'equations-systems') {
+        // ex1: 58,59; ex2: 60; ex3: 61; ex4: 62; ex5*: 188,190,191
+        if (exerciseIndex === 0) return { title: 'Уравнения и системы — 1', skills: [58, 59] };
+        if (exerciseIndex === 1) return { title: 'Уравнения и системы — 2', skills: [60] };
+        if (exerciseIndex === 2) return { title: 'Уравнения и системы — 3', skills: [61] };
+        if (exerciseIndex === 3) return { title: 'Уравнения и системы — 4', skills: [62] };
+        if (exerciseIndex === 4) return { title: 'Уравнения и системы — 5', skills: [188, 190, 191], isAdvanced: true };
+      }
+      if (topicId === 'inequalities-systems') {
+        // ex1: 63,64; ex2: 65; ex3: 66; ex4: 67,68
+        if (exerciseIndex === 0) return { title: 'Неравенства и системы — 1', skills: [63, 64] };
+        if (exerciseIndex === 1) return { title: 'Неравенства и системы — 2', skills: [65] };
+        if (exerciseIndex === 2) return { title: 'Неравенства и системы — 3', skills: [66] };
+        if (exerciseIndex === 3) return { title: 'Неравенства и системы — 4', skills: [67, 68] };
+      }
+      if (topicId === 'word-problems') {
+        // ex1: 69; ex2: 70-74; ex3: 75,184; ex4*: 185
+        if (exerciseIndex === 0) return { title: 'Текстовые задачи — 1', skills: [69] };
+        if (exerciseIndex === 1) return { title: 'Текстовые задачи — 2', skills: Array.from({ length: 5 }, (_, i) => 70 + i) };
+        if (exerciseIndex === 2) return { title: 'Текстовые задачи — 3', skills: [75, 184] };
+        if (exerciseIndex === 3) return { title: 'Текстовые задачи — 4', skills: [185], isAdvanced: true };
+      }
+      return { title: `Упражнение ${exerciseIndex + 1}`, skills: [] };
+    },
+    getQuizData: (quizId: string) => {
+      if (quizId === 'quiz-1') {
+        // test1: 58–62
+        return {
+          title: 'Тест 1: Уравнения и системы',
+          skills: Array.from({ length: 5 }, (_, i) => 58 + i), // 58..62
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'quiz-2') {
+        // test2: 63–68
+        return {
+          title: 'Тест 2: Неравенства и системы',
+          skills: Array.from({ length: 6 }, (_, i) => 63 + i), // 63..68
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'quiz-3') {
+        // test3: 69–75, 184
+        return {
+          title: 'Тест 3: Текстовые задачи',
+          skills: [...Array.from({ length: 7 }, (_, i) => 69 + i), 184], // 69..75, 184
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'module-exam') {
+        // Final exam: 58–75, 184
+        return {
+          title: 'Итоговый экзамен модуля',
+          skills: [...Array.from({ length: 18 }, (_, i) => 58 + i), 184], // 58..75, 184
+          questionCount: 10,
+          isExam: true
+        };
+      }
+      return null;
+    }
+  }
+
 
   'sequences': {
     slug: 'sequences',
