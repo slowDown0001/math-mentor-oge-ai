@@ -445,7 +445,7 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
       }
       return null;
     }
-  }
+  },
 
 
   'sequences': {
