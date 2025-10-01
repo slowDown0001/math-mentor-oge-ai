@@ -59,15 +59,7 @@ const EgemathprofPractice = lazy(() => import("./pages/EgemathprofPractice"));
 const EgemathbasicPractice = lazy(() => import("./pages/EgemathbasicPractice"));
 const NewPracticeSkills = lazy(() => import("./pages/NewPracticeSkills"));
 const LearningPlatform = lazy(() => import("./pages/LearningPlatform"));
-const ModuleNumbersCalculations = lazy(() => import("./pages/ModuleNumbersCalculations"));
-const ModuleAlgebraicExpressions = lazy(() => import("./pages/ModuleAlgebraicExpressions"));
-const ModuleEquationsInequalities = lazy(() => import("./pages/ModuleEquationsInequalities"));
-const ModuleSequences = lazy(() => import("./pages/ModuleSequences"));
-const ModuleFunctions = lazy(() => import("./pages/ModuleFunctions"));
-const ModuleCoordinates = lazy(() => import("./pages/ModuleCoordinates"));
-const ModuleGeometry = lazy(() => import("./pages/ModuleGeometry"));
-const ModuleProbabilityStatistics = lazy(() => import("./pages/ModuleProbabilityStatistics"));
-const ModuleAppliedMath = lazy(() => import("./pages/ModuleAppliedMath"));
+const ModulePage = lazy(() => import("./pages/ModulePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const MyDb3 = lazy(() => import("./pages/MyDb3"));
 const Homework = lazy(() => import("./pages/Homework"));
@@ -123,15 +115,7 @@ const App = () => (
                 <Route path="/egemathbasic-practice" element={<EgemathbasicPractice />} />
                 <Route path="/new-practice-skills" element={<NewPracticeSkills />} />
                 <Route path="/learning-platform" element={<LearningPlatform />} />
-        <Route path="/module/numbers-calculations" element={<ModuleNumbersCalculations />} />
-        <Route path="/module/algebraic-expressions" element={<ModuleAlgebraicExpressions />} />
-        <Route path="/module/equations-inequalities" element={<ModuleEquationsInequalities />} />
-        <Route path="/module/sequences" element={<ModuleSequences />} />
-        <Route path="/module/functions" element={<ModuleFunctions />} />
-        <Route path="/module/coordinates" element={<ModuleCoordinates />} />
-        <Route path="/module/geometry" element={<ModuleGeometry />} />
-        <Route path="/module/probability-statistics" element={<ModuleProbabilityStatistics />} />
-        <Route path="/module/applied-math" element={<ModuleAppliedMath />} />
+        <Route path="/module/:moduleSlug" element={<ModulePage />} />
         <Route path="/book-test" element={<BookTest />} />
         <Route path="/after-registration" element={<AfterRegistration />} />
         <Route path="/db2" element={<Db2 />} />
