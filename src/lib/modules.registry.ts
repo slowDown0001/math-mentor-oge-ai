@@ -770,51 +770,165 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
     slug: 'probability-statistics',
     moduleNumber: 8,
     title: 'Модуль 8: Вероятность и статистика',
-    subtitle: '3 темы • 9 видео • 3 статьи • 9 упражнений',
+    subtitle: '5 тем • 15 видео • 5 статей • 11 упражнений',
     masteryPoints: 1350,
-    skillsDescription: 'Навыки: Статистика, Вероятность, Комбинаторика',
-    topicMapping: ['8.1', '8.2', '8.3'],
+    skillsDescription: 'Навыки: Статистика, Вероятность, Комбинаторика, Множества, Графы',
+    topicMapping: ['8.1', '8.2', '8.3', '8.4', '8.5'],
     topics: [
-      { id: 'statistics', title: 'Статистика', videos: 3, articles: 1, exercises: 3 },
-      { id: 'probability', title: 'Вероятность', videos: 3, articles: 1, exercises: 3 },
-      { id: 'combinatorics', title: 'Комбинаторика', videos: 3, articles: 1, exercises: 3 }
+      { id: 'descriptive-stats', title: 'Описательная статистика', videos: 3, articles: 1, exercises: 3 },
+      { id: 'probability', title: 'Вероятность', videos: 3, articles: 1, exercises: 2 },
+      { id: 'combinatorics', title: 'Комбинаторика', videos: 3, articles: 1, exercises: 2 },
+      { id: 'sets', title: 'Множества', videos: 3, articles: 1, exercises: 2 },
+      { id: 'graphs', title: 'Графы', videos: 3, articles: 1, exercises: 2 }
     ],
     quizzes: [
-      { id: 'quiz-1', title: 'Тест 1', description: 'Повысьте уровень навыков и получите до 400 баллов мастерства' },
-      { id: 'quiz-2', title: 'Тест 2', description: 'Повысьте уровень навыков и получите до 400 баллов мастерства' }
+      { id: 'quiz-1', title: 'Тест 1', description: 'Статистика и вероятность (162–168)' },
+      { id: 'quiz-2', title: 'Тест 2', description: 'Комбинаторика и множества (169–174)' }
     ],
     orderedContent: [
-      { type: 'topic', topicIndex: 0 },
-      { type: 'quiz', quizIndex: 0 },
-      { type: 'topic', topicIndex: 1 },
-      { type: 'topic', topicIndex: 2 },
-      { type: 'quiz', quizIndex: 1 },
-      { type: 'quiz', isFinalTest: true }
-    ]
-  },
+      { type: 'topic', topicIndex: 0 }, // 8.1
+      { type: 'topic', topicIndex: 1 }, // 8.2
+      { type: 'quiz', quizIndex: 0 },   // Test 1 (162–168)
+      { type: 'topic', topicIndex: 2 }, // 8.3
+      { type: 'topic', topicIndex: 3 }, // 8.4
+      { type: 'quiz', quizIndex: 1 },   // Test 2 (169–174)
+      { type: 'topic', topicIndex: 4 }  // 8.5 (Графы)
+    ],
+    getExerciseData: (topicId: string, exerciseIndex: number) => {
+      // 8.1 Описательная статистика
+      if (topicId === 'descriptive-stats') {
+        if (exerciseIndex === 0) return { title: 'Сбор данных, таблицы и диаграммы', skills: [162, 163] };
+        if (exerciseIndex === 1) return { title: 'Среднее арифметическое', skills: [164] };
+        if (exerciseIndex === 2) return { title: 'Мода и медиана', skills: [165] };
+      }
+  
+      // 8.2 Вероятность
+      if (topicId === 'probability') {
+        if (exerciseIndex === 0) return { title: 'События и простые вероятности', skills: [166, 167] };
+        if (exerciseIndex === 1) return { title: 'Формулы вероятности в задачах', skills: [168] };
+      }
+  
+      // 8.3 Комбинаторика
+      if (topicId === 'combinatorics') {
+        if (exerciseIndex === 0) return { title: 'Перестановки и размещения', skills: [169, 170] };
+        if (exerciseIndex === 1) return { title: 'Сочетания и подсчёт по формулам', skills: [171, 172] };
+      }
+  
+      // 8.4 Множества
+      if (topicId === 'sets') {
+        if (exerciseIndex === 0) return { title: 'Операции с множествами', skills: [173] };
+        if (exerciseIndex === 1) return { title: 'Диаграммы Эйлера–Венна', skills: [174] };
+      }
+  
+      // 8.5 Графы
+      if (topicId === 'graphs') {
+        if (exerciseIndex === 0) return { title: 'Графы: вершины и рёбра', skills: [175] };      // 175–175
+        if (exerciseIndex === 1) return { title: 'Поиск путей и прикладные задачи', skills: [177, 178] };
+      }
+  
+      return { title: `Упражнение ${exerciseIndex + 1}`, skills: [] };
+    },
+    getQuizData: (quizId: string) => {
+      if (quizId === 'quiz-1') {
+        // 162–168
+        return {
+          title: 'Тест 1: Описательная статистика и вероятность',
+          skills: Array.from({ length: 7 }, (_, i) => 162 + i), // 162..168
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'quiz-2') {
+        // 169–174
+        return {
+          title: 'Тест 2: Комбинаторика и множества',
+          skills: Array.from({ length: 6 }, (_, i) => 169 + i), // 169..174
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      return null;
+    }
+  },  
+
 
   'applied-math': {
     slug: 'applied-math',
     moduleNumber: 9,
     title: 'Модуль 9: Прикладная математика',
-    subtitle: '2 темы • 6 видео • 2 статьи • 6 упражнений',
+    subtitle: '2 темы • 6 видео • 2 статьи • 12 упражнений',
     masteryPoints: 900,
-    skillsDescription: 'Навыки: Графики, Расчёты, Оценка величин',
+    skillsDescription: 'Навыки: Чтение графиков/таблиц, работа с данными, прикладные расчёты и графики',
     topicMapping: ['9.1', '9.2'],
     topics: [
       { id: 'applied-tasks', title: 'Прикладные задачи', videos: 3, articles: 1, exercises: 3 },
-      { id: 'graphs-calculations', title: 'Графики и расчёты', videos: 3, articles: 1, exercises: 3 }
+      { id: 'graphs-calculations', title: 'Графики и расчёты', videos: 3, articles: 1, exercises: 9 }
     ],
     quizzes: [
-      { id: 'quiz-1', title: 'Тест 1', description: 'Повысьте уровень навыков и получите до 400 баллов мастерства' }
+      // нет промежуточных тестов; только итоговый
     ],
     orderedContent: [
-      { type: 'topic', topicIndex: 0 },
-      { type: 'topic', topicIndex: 1 },
-      { type: 'quiz', quizIndex: 0 },
-      { type: 'quiz', isFinalTest: true }
-    ]
+      { type: 'topic', topicIndex: 0 }, // 9.1
+      { type: 'topic', topicIndex: 1 }, // 9.2
+      { type: 'quiz', isFinalTest: true } // Итоговый тест модуля
+    ],
+    getExerciseData: (topicId: string, exerciseIndex: number) => {
+      // 9.1 — Прикладные задачи (групповые тренировки)
+      if (topicId === 'applied-tasks') {
+        if (exerciseIndex === 0)
+          return {
+            title: 'Чтение графиков и диаграмм',
+            skills: [24, 25, 198] // графики, диаграммы, таблицы
+          };
+        if (exerciseIndex === 1)
+          return {
+            title: 'Извлечение данных и переводы величин',
+            skills: [199, 181, 192] // расписания/таблицы→продолжительность, извлечение данных, единицы измерения
+          };
+        if (exerciseIndex === 2)
+          return {
+            title: 'Стратегии решения и построение графиков',
+            skills: [182, 183, 200] // краткая запись, анализ ошибок, построение по таблице
+          };
+      }
+  
+      // 9.2 — Графики и расчёты (каждый навык — отдельное упражнение)
+      if (topicId === 'graphs-calculations') {
+        const exercises = [
+          { title: 'Квартиры: анализ и расчёты', skills: [26] },
+          { title: 'Маршруты и карты: чтение схем', skills: [27] },
+          { title: 'ОСАГО: расчёт страховых выплат', skills: [28] },
+          { title: 'Тарифные планы: сравнение и выбор', skills: [29] },
+          { title: 'Лист бумаги: форматы и разметка', skills: [30] },
+          { title: 'Печи: режимы, расход, эффективность', skills: [31] },
+          { title: 'Шины: параметры и подбор', skills: [32] },
+          { title: 'Участки: размеры и планировка', skills: [33] },
+          { title: 'Теплицы: площади и материалы', skills: [34] }
+        ];
+        return exercises[exerciseIndex] || { title: `Упражнение ${exerciseIndex + 1}`, skills: [] };
+      }
+  
+      return { title: `Упражнение ${exerciseIndex + 1}`, skills: [] };
+    },
+    getQuizData: (quizId: string) => {
+      if (quizId === 'module-exam') {
+        // Итоговый экзамен: все указанные навыки
+        return {
+          title: 'Итоговый экзамен модуля',
+          skills: [
+            24, 25, 198, // графики/диаграммы/таблицы
+            199, 181, 192, // расписания, извлечение данных, единицы
+            182, 183, 200, // стратегии, анализ ошибок, построение графиков
+            26, 27, 28, 29, 30, 31, 32, 33, 34 // прикладные задачи 9.2
+          ],
+          questionCount: 10,
+          isExam: true
+        };
+      }
+      return null;
+    }
   }
+
 };
 
 export type { ModuleConfig, TopicContent, QuizContent, ExerciseConfig };
