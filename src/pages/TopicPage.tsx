@@ -1,227 +1,225 @@
 // src/pages/TopicPage.tsx
-import React, { useMemo, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Play, BookOpen, Target, X } from "lucide-react";
+import { BookOpen, Play, Target, ArrowLeft, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { modulesRegistry, type TopicContent } from "@/lib/modules.registry";
+import ArticleRenderer from "@/components/ArticleRenderer";
 import OgeExerciseQuiz from "@/components/OgeExerciseQuiz";
 import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
-import ArticleRenderer from "@/components/ArticleRenderer";
-import NotFound from "./NotFound";
-import { useModuleProgress } from "@/hooks/useModuleProgress";
+import { modulesRegistry } from "@/lib/modules.registry";
+import { supabase } from "@/integrations/supabase/client";
+
+type ArticleRow = {
+  topic_number: string;
+  title: string;
+  content: string; // HTML/markdown you already store
+};
 
 const TopicPage: React.FC = () => {
-  const { moduleSlug, topicId } = useParams<{ moduleSlug: string; topicId: string }>();
+  const { topicNumber } = useParams<{ topicNumber: string }>();
   const navigate = useNavigate();
-  const { refetch } = useModuleProgress();
+
+  const [article, setArticle] = useState<ArticleRow | null>(null);
+  const [loadingArticle, setLoadingArticle] = useState(true);
 
   const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string; description: string } | null>(null);
-  const [selectedArticle, setSelectedArticle] = useState<{ title: string; content: string } | null>(null);
-  const [selectedExercise, setSelectedExercise] = useState<{
-    title: string;
-    skills: number[];
-    questionCount?: number;
-    isAdvanced?: boolean;
-  } | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<{ title: string; skills: number[]; questionCount?: number } | null>(null);
 
-  const module = moduleSlug ? modulesRegistry[moduleSlug] : undefined;
-  const topicIndex = useMemo(
-    () => (module ? module.topics.findIndex(t => t.id === topicId) : -1),
-    [module, topicId]
-  );
-  const topic: TopicContent | undefined = module && topicIndex >= 0 ? module.topics[topicIndex] : undefined;
-  const topicNumber = module && topicIndex >= 0 ? module.topicMapping?.[topicIndex] : undefined;
+  // Find the module + topic by topicNumber (e.g., "4.2")
+  const moduleEntry = Object.values(modulesRegistry).find(m => m.topicMapping.includes(topicNumber || ""));
+  const topicIndex = moduleEntry ? moduleEntry.topicMapping.indexOf(topicNumber || "") : -1;
+  const topic = moduleEntry && topicIndex >= 0 ? moduleEntry.topics[topicIndex] : null;
 
-  if (!module || !topic) return <NotFound />;
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      if (!topicNumber) return;
+      setLoadingArticle(true);
+      const { data, error } = await supabase
+        .from("topic_articles")
+        .select("topic_number,title,content")
+        .eq("topic_number", topicNumber)
+        .single();
+
+      if (!ignore) {
+        if (error) {
+          console.error("Failed to load topic article:", error);
+          setArticle(null);
+        } else {
+          setArticle(data as ArticleRow);
+        }
+        setLoadingArticle(false);
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, [topicNumber]);
+
+  if (!moduleEntry || !topic) {
+    return (
+      <div className="p-6">
+        <Button variant="ghost" onClick={() => navigate("/learning-platform")}>
+          <ArrowLeft className="w-4 h-4 mr-2" /> Назад
+        </Button>
+        <div className="mt-6 text-gray-600">Тема не найдена.</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-indigo-950">
+    <div className="min-h-screen">
       {/* Modals */}
       {selectedVideo && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-5xl bg-white dark:bg-gray-900 rounded-lg overflow-hidden">
+          <div className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-lg overflow-hidden">
             <VideoPlayerWithChat
-              video={{
-                videoId: selectedVideo.videoId,
-                title: selectedVideo.title,
-                description: selectedVideo.description
-              }}
+              video={selectedVideo}
               onClose={() => setSelectedVideo(null)}
             />
           </div>
         </div>
       )}
 
-      {selectedArticle && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-5xl bg-white dark:bg-gray-900 rounded-lg overflow-hidden max-h-[90vh]">
-            <div className="flex items-center justify-between border-b p-4">
-              <h2 className="text-xl font-bold">{selectedArticle.title}</h2>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedArticle(null)}>
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            <div className="overflow-y-auto max-h-[calc(90vh-4rem)] p-6">
-              <ArticleRenderer
-                text={selectedArticle.content}
-                article={{ skill: 1, art: selectedArticle.content }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
       {selectedExercise && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
           <div className="w-full max-w-2xl max-h-[95vh] overflow-y-auto">
             <OgeExerciseQuiz
               title={selectedExercise.title}
               skills={selectedExercise.skills}
-              onBack={() => {
-                setSelectedExercise(null);
-                refetch();
-              }}
               questionCount={selectedExercise.questionCount}
+              onBack={() => setSelectedExercise(null)}
             />
           </div>
         </div>
       )}
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Header / Breadcrumbs */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(`/module/${module.slug}`)}
-            className="mr-4 hover:bg-white/20 dark:hover:bg-gray-800/20"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Назад к модулю
+      {/* Header */}
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-4 h-4 mr-2" /> Назад
           </Button>
-          <div className="flex-1">
-            <div className="text-sm text-gray-500">
-              <Link to="/learning-platform" className="hover:underline">Карта курса</Link>
-              <span className="mx-2">/</span>
-              <Link to={`/module/${module.slug}`} className="hover:underline">{module.title}</Link>
-              <span className="mx-2">/</span>
-              <span className="text-gray-800 dark:text-gray-200">{topicNumber}</span>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{topic.title}</h1>
+          <div className="text-sm text-gray-500">
+            <Link to={`/module/${moduleEntry.slug}`} className="hover:underline">
+              {moduleEntry.title}
+            </Link>{" "}
+            <span className="mx-1">→</span> {topic.title} ({topicNumber})
           </div>
-        </motion.div>
+        </div>
+      </div>
 
-        {/* Learn column */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+      {/* Split layout */}
+      <div className="container mx-auto px-4 pb-8 grid grid-cols-1 md:grid-cols-12 gap-6">
+        {/* Left: actions */}
+        <motion.aside
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="md:col-span-4 space-y-4"
         >
-          <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-6 border border-white/20 dark:border-gray-700/20 shadow">
-            <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-3">Учить</h2>
+          {/* Читать учебник — special design on top */}
+          <div className="sticky top-4">
+            <Button
+              onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
+              className="w-full h-14 text-lg font-bold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg rounded-xl flex items-center justify-center"
+            >
+              <BookOpen className="w-5 h-5 mr-2" />
+              Читать учебник ({topicNumber})
+            </Button>
+          </div>
 
-            {/* Videos */}
-            <div className="space-y-3 mb-4">
+          {/* Videos */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border p-4">
+            <h3 className="text-sm uppercase tracking-wide text-gray-500 mb-3">Видео</h3>
+            <div className="space-y-2">
               {Array.from({ length: topic.videos }, (_, i) => (
-                <div
+                <button
                   key={`video-${i}`}
-                  className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border hover:bg-blue-50/50 dark:hover:bg-blue-900/10 cursor-pointer transition-colors"
+                  className="w-full flex items-center justify-between p-3 rounded-lg border hover:bg-blue-50 dark:hover:bg-gray-800 transition"
                   onClick={() => {
-                    if (topic.videoData && topic.videoData[i]) {
-                      setSelectedVideo(topic.videoData[i]);
-                    }
+                    const vd = topic.videoData?.[i];
+                    if (vd) setSelectedVideo(vd);
                   }}
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
-                      <Play className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Видео {i + 1}</span>
-                  </div>
-                  <span className="text-xs text-blue-600 dark:text-blue-400">
-                    {topic.videoData?.[i] ? "Доступно" : "Не начато"}
+                  <span className="flex items-center gap-2 text-sm">
+                    <span className="inline-flex p-2 bg-blue-100 rounded-full">
+                      <Play className="w-4 h-4 text-blue-600" />
+                    </span>
+                    Видео {i + 1}
                   </span>
-                </div>
+                  <span className="text-xs text-blue-600">{topic.videoData?.[i] ? "Доступно" : "—"}</span>
+                </button>
               ))}
             </div>
-
-            {/* Article */}
-            <div
-              className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border hover:bg-purple-50/50 dark:hover:bg-purple-900/10 cursor-pointer transition-colors"
-              onClick={() => {
-                if (module.articleContent && module.articleContent[topic.id]) {
-                  setSelectedArticle(module.articleContent[topic.id]);
-                }
-              }}
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full">
-                  <BookOpen className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                </div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Обзор</span>
-              </div>
-              <span className="text-xs text-purple-600 dark:text-purple-400">
-                {module.articleContent?.[topic.id] ? "Доступно" : "Не начато"}
-              </span>
-            </div>
-
-            {/* Read textbook shortcut */}
-            {topicNumber && (
-              <Link
-                to={`/textbook?topic=${topicNumber}`}
-                className="mt-3 inline-flex items-center text-sm text-purple-700 hover:underline"
-              >
-                Читать учебник
-              </Link>
-            )}
           </div>
 
-          {/* Practice column */}
-          <div className="bg-white/80 dark:bg-gray-800/80 rounded-lg p-6 border border-white/20 dark:border-gray-700/20 shadow">
-            <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-3">Практика</h2>
-
-            <div className="space-y-3">
+          {/* Exercises */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border p-4">
+            <h3 className="text-sm uppercase tracking-wide text-gray-500 mb-3">Практика</h3>
+            <div className="space-y-2">
               {Array.from({ length: topic.exercises }, (_, i) => {
-                const exerciseData = module.getExerciseData
-                  ? module.getExerciseData(topic.id, i)
+                const ex = moduleEntry.getExerciseData
+                  ? moduleEntry.getExerciseData(topic.id, i)
                   : { title: `${topic.title} — упражнение ${i + 1}`, skills: [] };
-
                 return (
-                  <div key={`exercise-${i}`} className="p-4 bg-white dark:bg-gray-800 rounded-lg border">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
-                        <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      </div>
-                      <div className="flex-1">
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {exerciseData.title}
-                          {exerciseData.isAdvanced && (
-                            <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">
-                              * Не в программе ОГЭ
-                            </span>
-                          )}
+                  <button
+                    key={`ex-${i}`}
+                    className="w-full p-3 rounded-lg border hover:bg-green-50 dark:hover:bg-gray-800 transition text-left"
+                    onClick={() => setSelectedExercise(ex)}
+                    disabled={ex.skills.length === 0}
+                  >
+                    <span className="flex items-center gap-2 text-sm font-medium">
+                      <span className="inline-flex p-2 bg-green-100 rounded-full">
+                        <Target className="w-4 h-4 text-green-600" />
+                      </span>
+                      {ex.title}
+                      {ex.isAdvanced && (
+                        <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                          * Не в программе ОГЭ
                         </span>
-                      </div>
-                    </div>
-
-                    <div className="ml-10">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                        onClick={() => setSelectedExercise(exerciseData)}
-                        disabled={exerciseData.skills.length === 0}
-                      >
-                        Практика
-                      </Button>
-                    </div>
-                  </div>
+                      )}
+                    </span>
+                    <span className="mt-1 block text-xs text-gray-500">
+                      Навыки: {ex.skills.join(", ") || "—"}
+                    </span>
+                  </button>
                 );
               })}
             </div>
           </div>
-        </motion.div>
+        </motion.aside>
+
+        {/* Right: article content (Обзор) */}
+        <motion.main
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="md:col-span-8 bg-white dark:bg-gray-900 rounded-xl border p-4 md:p-6 min-h-[60vh]"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">
+              {article?.title || `Обзор: ${topic.title}`}
+            </h2>
+            {article && (
+              <Button variant="ghost" size="sm" onClick={() => setArticle(null)}>
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+
+          {loadingArticle ? (
+            <div className="text-sm text-gray-500">Загружаем обзор…</div>
+          ) : article ? (
+            <ArticleRenderer
+              text={article.content}
+              article={{ skill: 0, art: article.content }}
+            />
+          ) : (
+            <div className="text-sm text-gray-500">
+              Обзор для этой темы пока не добавлен.
+            </div>
+          )}
+        </motion.main>
       </div>
     </div>
   );
