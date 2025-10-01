@@ -133,6 +133,8 @@ const App = () => (
                  
                   <Route path="/topics" element={<TopicsIndex />} />
                   <Route path="/module/:moduleSlug/topic/:topicId" element={<TopicPage />} />
+                  <Route path="/topic/:topicNumber" element={<TopicPage />} />
+
 
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/diagnostic" element={<DiagnosticTest />} />
