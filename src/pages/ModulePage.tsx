@@ -1,3 +1,4 @@
+// src/pages/ModulePage.tsx
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -9,12 +10,13 @@ import ArticleRenderer from "@/components/ArticleRenderer";
 import OgeExerciseQuiz from "@/components/OgeExerciseQuiz";
 import { useModuleProgress } from "@/hooks/useModuleProgress";
 import { modulesRegistry, type TopicContent, type QuizContent } from "@/lib/modules.registry";
+import { supabase } from "@/integrations/supabase/client";
 import NotFound from "./NotFound";
 
 const ModulePage = () => {
   const { moduleSlug } = useParams<{ moduleSlug: string }>();
   const navigate = useNavigate();
-  const { getProgressStatus, refetch } = useModuleProgress();
+  const { refetch } = useModuleProgress();
 
   const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string; description: string } | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<{ title: string; content: string } | null>(null);
@@ -36,6 +38,20 @@ const ModulePage = () => {
   }
 
   const module = modulesRegistry[moduleSlug];
+
+  // DB loader for "Обзор"
+  const loadOverviewByTopicNumber = async (topicNumber: string) => {
+    const { data, error } = await supabase
+      .from("topic_articles")
+      .select("title, content")
+      .eq("topic_number", topicNumber)
+      .maybeSingle();
+    if (error) {
+      console.error("Failed to load topic overview:", error);
+      return null;
+    }
+    return data; // { title?: string; content?: string } | null
+  };
 
   const renderTopicItem = (topic: TopicContent, index: number) => (
     <motion.div
@@ -75,13 +91,34 @@ const ModulePage = () => {
               </div>
             ))}
 
-            {/* Article */}
+            {/* Article (Обзор) */}
             <div
               className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-purple-200/30 dark:border-purple-800/30 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer transition-colors"
-              onClick={() => {
+              onClick={async () => {
+                const topicNumber = module.topicMapping[index];
+
+                // 1) Try DB (topic_articles)
+                const dbArt = await loadOverviewByTopicNumber(topicNumber);
+                if (dbArt?.content) {
+                  setSelectedArticle({
+                    title: dbArt.title ?? `Тема ${topicNumber}: ${topic.title}`,
+                    content: dbArt.content,
+                  });
+                  return;
+                }
+
+                // 2) Fallback to hardcoded content (module.articleContent)
                 if (module.articleContent && module.articleContent[topic.id]) {
                   setSelectedArticle(module.articleContent[topic.id]);
+                  return;
                 }
+
+                // 3) Last resort: placeholder
+                setSelectedArticle({
+                  title: `Тема ${topicNumber}: ${topic.title}`,
+                  content:
+                    `<p>Обзор для этой темы пока не добавлен. Откройте «Читать учебник», затем посмотрите видео и переходите к практике.</p>`,
+                });
               }}
             >
               <div className="flex items-center space-x-3">
@@ -90,8 +127,9 @@ const ModulePage = () => {
                 </div>
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Обзор</span>
               </div>
+              {/* Label kept simple; we don't prefetch availability from DB to avoid extra queries */}
               <span className="text-sm text-purple-600 dark:text-purple-400">
-                {module.articleContent && module.articleContent[topic.id] ? "Доступно" : "Не начато"}
+                Откроется
               </span>
             </div>
 
@@ -232,12 +270,12 @@ const ModulePage = () => {
                 </Button>
               </div>
               <div className="overflow-y-auto max-h-[calc(90vh-4rem)] p-6">
-                <ArticleRenderer 
-                  text={selectedArticle.content} 
+                <ArticleRenderer
+                  text={selectedArticle.content}
                   article={{
                     skill: 1,
                     art: selectedArticle.content
-                  }} 
+                  }}
                 />
               </div>
             </div>
