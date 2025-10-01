@@ -465,7 +465,7 @@ const OgemathMock = () => {
                 problem_number: problemNumber.toString(),
                 raw_output: userAnswer.trim(),
                 analysis_type: 'solution',
-                openrouter_check: null, // bool column, start as null
+                openrouter_check: false, // bool column, start as null
               })
               .select('id, openrouter_check')
               .limit(1);
