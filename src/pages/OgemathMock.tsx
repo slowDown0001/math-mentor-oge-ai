@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, ArrowRight, Home, ArrowLeft, Camera, Clock, BookOpen, Menu, Hash } from "lucide-react";
+import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Camera, Clock, BookOpen, Menu, Hash } from "lucide-react";
 import { Link } from "react-router-dom";
 import MathRenderer from "@/components/MathRenderer";
 import { toast } from "sonner";
@@ -88,7 +88,6 @@ const OgemathMock = () => {
   // Start attempt when a new question is displayed
   useEffect(() => {
     if (!examStarted || examFinished || !currentQuestion || !user) return;
-
     const problemNumberType = currentQuestion.problem_number_type || (currentQuestionIndex + 1);
     startAttempt(currentQuestion.question_id, problemNumberType, 0);
   }, [currentQuestionIndex, examStarted, examFinished, currentQuestion, user]);
@@ -96,19 +95,15 @@ const OgemathMock = () => {
   // Timer effect - counts up to 3 hours 55 minutes (235 minutes)
   useEffect(() => {
     if (!examStartTime || examFinished) return;
-
     const interval = setInterval(() => {
       const now = new Date();
       const elapsed = Math.floor((now.getTime() - examStartTime.getTime()) / 1000);
       setElapsedTime(elapsed);
-
-      // Check if time is up (3 hours 55 minutes = 14,100 seconds)
       if (elapsed >= 14100) {
         setIsTimeUp(true);
         handleFinishExam();
       }
     }, 1000);
-
     return () => clearInterval(interval);
   }, [examStartTime, examFinished]);
 
@@ -117,29 +112,23 @@ const OgemathMock = () => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs
+      .toString()
+      .padStart(2, '0')}`;
   };
 
   // Generate question selection logic - OPTIMIZED VERSION WITH PRE-FETCHING
   const generateQuestionSelection = async () => {
     setLoading(true);
     try {
-      // Step 1: Create batch queries for problems 6-25 (most time-consuming part)
       const batchPromises = [];
       for (let problemNum = 6; problemNum <= 25; problemNum++) {
         batchPromises.push(
-          supabase
-            .from('oge_math_fipi_bank')
-            .select('*')
-            .eq('problem_number_type', problemNum)
-            .limit(20) // Limit for faster query
+          supabase.from("oge_math_fipi_bank").select("*").eq("problem_number_type", problemNum).limit(20)
         );
       }
-
-      // Step 2: Execute all problem 6-25 queries in parallel
       const batchResults = await Promise.all(batchPromises);
 
-      // Process batch results for problems 6-25
       const selectedQuestions: any[] = [];
       const allQuestionIds: string[] = [];
 
@@ -154,27 +143,17 @@ const OgemathMock = () => {
         }
       });
 
-      // Step 3: Handle problems 1-5 with optimized approach
-      const contextTypes = ['uchastki', 'pechi', 'bumaga', 'shini', 'dorogi', 'kvartiri', 'internet'];
+      const contextTypes = ["uchastki", "pechi", "bumaga", "shini", "dorogi", "kvartiri", "internet"];
       const selectedContext = contextTypes[Math.floor(Math.random() * contextTypes.length)];
-
       const contextQuestions: any[] = [];
 
-      if (selectedContext === 'internet') {
+      if (selectedContext === "internet") {
         const Y = Math.floor(Math.random() * 26) + 1;
         const contextPromises = [];
-
         for (let i = 0; i < 5; i++) {
           const questionId = `OGE_SHinternet_1_1_${Y + i}`;
-          contextPromises.push(
-            supabase
-              .from('oge_math_fipi_bank')
-              .select('*')
-              .eq('question_id', questionId)
-              .single()
-          );
+          contextPromises.push(supabase.from("oge_math_fipi_bank").select("*").eq("question_id", questionId).single());
         }
-
         const contextResults = await Promise.all(contextPromises);
         contextResults.forEach((result) => {
           if (result.data && !result.error) {
@@ -184,28 +163,20 @@ const OgemathMock = () => {
         });
       } else {
         const ranges = {
-          'bumaga': 3,
-          'dorogi': 10,
-          'kvartiri': 5,
-          'pechi': 5,
-          'shiny': 4,
-          'uchastki': 4
+          bumaga: 3,
+          dorogi: 10,
+          kvartiri: 5,
+          pechi: 5,
+          shiny: 4,
+          uchastki: 4
         } as const;
 
         const X = Math.floor(Math.random() * (ranges as any)[selectedContext]) + 1;
         const contextPromises = [];
-
         for (let i = 1; i <= 5; i++) {
           const questionId = `OGE_SH${selectedContext}_1_${X}_${i}`;
-          contextPromises.push(
-            supabase
-              .from('oge_math_fipi_bank')
-              .select('*')
-              .eq('question_id', questionId)
-              .single()
-          );
+          contextPromises.push(supabase.from("oge_math_fipi_bank").select("*").eq("question_id", questionId).single());
         }
-
         const contextResults = await Promise.all(contextPromises);
         contextResults.forEach((result) => {
           if (result.data && !result.error) {
@@ -215,21 +186,15 @@ const OgemathMock = () => {
         });
       }
 
-      // If we didn't get all 5 context questions, get fallback questions
       if (contextQuestions.length < 5) {
         const fallbackPromises = [];
         for (let problemNum = 1; problemNum <= 5; problemNum++) {
           if (contextQuestions.length < problemNum) {
             fallbackPromises.push(
-              supabase
-                .from('oge_math_fipi_bank')
-                .select('*')
-                .eq('problem_number_type', problemNum)
-                .limit(10)
+              supabase.from("oge_math_fipi_bank").select("*").eq("problem_number_type", problemNum).limit(10)
             );
           }
         }
-
         if (fallbackPromises.length > 0) {
           const fallbackResults = await Promise.all(fallbackPromises);
           fallbackResults.forEach((result) => {
@@ -242,26 +207,20 @@ const OgemathMock = () => {
         }
       }
 
-      // Combine all questions: context (1-5) + problems (6-25)
       const allQuestions = [...contextQuestions.slice(0, 5), ...selectedQuestions];
-
-      // Ensure we have exactly 25 questions
       if (allQuestions.length < 25) {
-        toast.error('Не удалось загрузить все вопросы экзамена');
+        toast.error("Не удалось загрузить все вопросы экзамена");
         return;
       }
 
-      // Step 4: PRE-FETCH all question details in parallel
-      console.log('Pre-fetching question details for all 25 questions...');
-      const questionDetailsPromises = allQuestionIds.slice(0, 25).map(questionId =>
-        supabase.functions.invoke('get-question-details', {
-          body: { question_id: questionId, course_id: '1' }
+      console.log("Pre-fetching question details for all 25 questions...");
+      const questionDetailsPromises = allQuestionIds.slice(0, 25).map((questionId) =>
+        supabase.functions.invoke("get-question-details", {
+          body: { question_id: questionId, course_id: "1" }
         })
       );
-
       const questionDetailsResults = await Promise.all(questionDetailsPromises);
 
-      // Store question details in a map for quick access
       const questionDetailsCache = new Map();
       questionDetailsResults.forEach((result, index) => {
         if ((result as any).data && !(result as any).error) {
@@ -270,14 +229,11 @@ const OgemathMock = () => {
           console.warn(`Failed to fetch details for question ${allQuestionIds[index]}`);
         }
       });
-
-      // Store the question details cache globally for use in startAttempt
       (window as any).questionDetailsCache = questionDetailsCache;
       console.log(`Cached details for ${questionDetailsCache.size} questions`);
 
       setQuestions(allQuestions.slice(0, 25));
 
-      // Initialize complete examResults array with all 25 questions
       const initialExamResults: ExamResult[] = allQuestions.slice(0, 25).map((question, index) => ({
         questionIndex: index,
         questionId: question.question_id,
@@ -288,17 +244,16 @@ const OgemathMock = () => {
         solutionText: question.solution_text || "",
         timeSpent: 0,
         attempted: false,
-        problemNumber: question.problem_number_type || (index + 1)
+        problemNumber: question.problem_number_type || index + 1
       }));
 
       setExamResults(initialExamResults);
       setCurrentQuestionIndex(0);
       setUserAnswer("");
       setQuestionStartTime(new Date());
-
     } catch (error) {
-      console.error('Error generating exam questions:', error);
-      toast.error('Ошибка при загрузке вопросов экзамена');
+      console.error("Error generating exam questions:", error);
+      toast.error("Ошибка при загрузке вопросов экзамена");
     } finally {
       setLoading(false);
     }
@@ -306,32 +261,40 @@ const OgemathMock = () => {
 
   const handleStartExam = async () => {
     if (!user) {
-      toast.error('Войдите в систему для прохождения экзамена');
+      toast.error("Войдите в систему для прохождения экзамена");
       return;
     }
 
-    // Generate unique exam ID (UUID format)
     const cryptoApi = window.crypto || (window as any).msCrypto;
     const array = new Uint8Array(16);
     cryptoApi.getRandomValues(array);
-    const newExamId = `${array[0].toString(16).padStart(2, '0')}${array[1].toString(16).padStart(2, '0')}${array[2].toString(16).padStart(2, '0')}${array[3].toString(16).padStart(2, '0')}-${array[4].toString(16).padStart(2, '0')}${array[5].toString(16).padStart(2, '0')}-${array[6].toString(16).padStart(2, '0')}${array[7].toString(16).padStart(2, '0')}-${array[8].toString(16).padStart(2, '0')}${array[9].toString(16).padStart(2, '0')}-${array[10].toString(16).padStart(2, '0')}${array[11].toString(16).padStart(2, '0')}${array[12].toString(16).padStart(2, '0')}${array[13].toString(16).padStart(2, '0')}${array[14].toString(16).padStart(2, '0')}${array[15].toString(16).padStart(2, '0')}`;
+    const newExamId = `${array[0].toString(16).padStart(2, "0")}${array[1]
+      .toString(16)
+      .padStart(2, "0")}${array[2].toString(16).padStart(2, "0")}${array[3]
+      .toString(16)
+      .padStart(2, "0")}-${array[4].toString(16).padStart(2, "0")}${array[5]
+      .toString(16)
+      .padStart(2, "0")}-${array[6].toString(16).padStart(2, "0")}${array[7]
+      .toString(16)
+      .padStart(2, "0")}-${array[8].toString(16).padStart(2, "0")}${array[9]
+      .toString(16)
+      .padStart(2, "0")}-${array[10].toString(16).padStart(2, "0")}${array[11]
+      .toString(16)
+      .padStart(2, "0")}${array[12].toString(16).padStart(2, "0")}${array[13]
+      .toString(16)
+      .padStart(2, "0")}${array[14].toString(16).padStart(2, "0")}${array[15].toString(16).padStart(2, "0")}`;
     setExamId(newExamId);
 
-    // Save exam_id to profiles table
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ exam_id: newExamId })
-        .eq('user_id', user.id);
-
+      const { error } = await supabase.from("profiles").update({ exam_id: newExamId }).eq("user_id", user.id);
       if (error) {
-        console.error('Error saving exam_id to profiles:', error);
-        toast.error('Ошибка при сохранении идентификатора экзамена');
+        console.error("Error saving exam_id to profiles:", error);
+        toast.error("Ошибка при сохранении идентификатора экзамена");
         return;
       }
     } catch (error) {
-      console.error('Error updating profile with exam_id:', error);
-      toast.error('Ошибка при подготовке экзамена');
+      console.error("Error updating profile with exam_id:", error);
+      toast.error("Ошибка при подготовке экзамена");
       return;
     }
 
@@ -340,39 +303,33 @@ const OgemathMock = () => {
     await generateQuestionSelection();
   };
 
-  // Helper function to check if answer is non-numeric
+  // Helper: non-numeric?
   const isNonNumericAnswer = (answer: string): boolean => {
     if (!answer) return false;
-    // Check if answer contains units (like кг, м, см, etc.)
-    if (/\p{L}/u.test(answer)) return true;
-    // Check if answer contains LaTeX expressions (contains backslashes)
-    if (answer.includes('\\')) return true;
-    // Check if answer contains mathematical expressions that aren't just numbers
-    if (/[а-яё]/i.test(answer)) return true;
+    if (/\p{L}/u.test(answer)) return true; // letters
+    if (answer.includes("\\")) return true; // LaTeX backslash
+    if (/[а-яё]/i.test(answer)) return true; // Cyrillic
     return false;
   };
 
-  // Helper function to check if a string is purely numeric
+  // Helper: numeric?
   const isNumeric = (str: string): boolean => {
     const cleaned = str.trim();
     return /^-?\d+([.,]\d+)?$/.test(cleaned);
   };
 
-  // Helper function to sanitize numeric input
+  // Helper: sanitize numbers
   const sanitizeNumericAnswer = (answer: string): string => {
-    return answer.trim().replace(/\s/g, '').replace(',', '.');
+    return answer.trim().replace(/\s/g, "").replace(",", ".");
   };
 
-  // --- NEW HELPERS FOR SPECIAL SYMBOL DETECTION & DECISION ---
-
-  // Treat LaTeX, math signs, units, superscripts/subscripts, etc. as "special"
+  // Special symbol detection
   const hasSpecialSymbols = (str: string): boolean => {
     if (!str) return false;
-    // Backslash, common math symbols/operators, degree/percent, braces/angles/pipes/underscore, fraction slash, superscripts/subscripts
     return /[\\±×÷∙·√∞≤≥≠≈≡^_%°‰µπ{}\[\]()<>|_⁄/]|[\u00B2\u00B3\u2070-\u2079\u2080-\u2089]/u.test(str);
   };
 
-  // Decide if we should call the server checker
+  // Decision for server check
   const shouldUseServerCheck = (userAns: string, correctAns: string): boolean => {
     return (
       isNonNumericAnswer(userAns) ||
@@ -381,9 +338,6 @@ const OgemathMock = () => {
       hasSpecialSymbols(correctAns)
     );
   };
-  console.log('shouldUseServerCheck("six","6") =',
-  shouldUseServerCheck("six", "6"));
-  console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
   const handleNextQuestion = async () => {
     if (!currentQuestion || !questionStartTime) return;
@@ -391,166 +345,169 @@ const OgemathMock = () => {
     const timeSpent = Math.floor((new Date().getTime() - questionStartTime.getTime()) / 1000);
     const problemNumber = currentQuestion.problem_number_type || currentQuestionIndex + 1;
 
-    // Check answer and process result
     let isCorrect: boolean | null = null;
     let analysisOutput = "";
     let scores = 0;
 
     if (user) {
-      // Check if answer was provided
       if (userAnswer.trim()) {
         if (problemNumber >= 20) {
-          // For problems 20-25, use photo analysis
+          // FRQ 20-25
           try {
             const { data: profile } = await supabase
-              .from('profiles')
-              .select('exam_id')
-              .eq('user_id', user.id)
+              .from("profiles")
+              .select("exam_id")
+              .eq("user_id", user.id)
               .single();
-
             const currentExamId = profile?.exam_id || examId;
 
-            // Start photo analysis in background without awaiting
-            supabase.functions.invoke('analyze-photo-solution', {
-              body: {
-                student_solution: userAnswer.trim(),
-                problem_text: currentQuestion.problem_text,
-                solution_text: currentQuestion.solution_text,
-                user_id: user.id,
-                question_id: currentQuestion.question_id,
-                exam_id: currentExamId,
-                problem_number: problemNumber.toString()
-              }
-            }).catch(error => {
-              console.error('Background photo analysis error:', error);
-              // No user-facing error for background
-            });
+            supabase
+              .functions
+              .invoke("analyze-photo-solution", {
+                body: {
+                  student_solution: userAnswer.trim(),
+                  problem_text: currentQuestion.problem_text,
+                  solution_text: currentQuestion.solution_text,
+                  user_id: user.id,
+                  question_id: currentQuestion.question_id,
+                  exam_id: currentExamId,
+                  problem_number: problemNumber.toString()
+                }
+              })
+              .catch((error) => console.error("Background photo analysis error:", error));
 
-            console.log('Photo analysis started in background for question', problemNumber);
-            // Set temporary values for immediate UI update
+            console.log("Photo analysis started in background for question", problemNumber);
             analysisOutput = "Решение отправлено на проверку";
-            scores = 1; // Partial credit immediate feedback
-            isCorrect = true; // Mark as attempted
+            scores = 1;
+            isCorrect = true; // mark as attempted
           } catch (error) {
-            console.error('Error with photo analysis function:', error);
+            console.error("Error with photo analysis function:", error);
             analysisOutput = "Ошибка обработки";
             scores = 0;
             isCorrect = false;
           }
         } else {
-          // For problems 1-19, save user's answer to photo_analysis_outputs
+          // 1-19 text answers
           try {
             const { data: profile } = await supabase
-              .from('profiles')
-              .select('exam_id')
-              .eq('user_id', user.id)
+              .from("profiles")
+              .select("exam_id")
+              .eq("user_id", user.id)
               .single();
-
             const currentExamId = profile?.exam_id || examId;
 
-            await supabase
-              .from('photo_analysis_outputs')
-              .insert({
-                user_id: user.id,
-                question_id: currentQuestion.question_id,
-                exam_id: currentExamId,
-                problem_number: problemNumber.toString(),
-                raw_output: userAnswer.trim(),
-                analysis_type: 'solution'
-              });
-          } catch (error) {
-            console.error('Error saving user answer:', error);
-          }
-
-          // Quick check path that falls back to the server for special symbols
-          const correctAnswer = currentQuestion.answer;
-
-          if (shouldUseServerCheck(userAnswer, correctAnswer)) {
-            // Delegate to edge function for robust checking (LaTeX, units, symbols, etc.)
-            try {
-              const { data, error } = await supabase.functions.invoke('check-text-answer', {
-                body: {
-                  user_id: user.id,
-                  question_id: currentQuestion.question_id,
-                  submitted_answer: userAnswer.trim()
-                }
-              });
-
-              if (error) {
-                console.error('check-text-answer error:', error);
-                // Fallback to local comparison if function fails
-                if (isNumeric(correctAnswer)) {
-                  const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
-                  const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
-                  isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
-                } else {
-                  isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
-                }
-              } else {
-                isCorrect = (data as any)?.is_correct ?? false;
-              }
-            } catch (err) {
-              console.error('check-text-answer exception:', err);
-              // Fallback to local comparison on exception too
-              if (isNumeric(correctAnswer)) {
-                const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
-                const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
-                isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
-              } else {
-                isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
-              }
-            }
-          } else {
-            // Purely numeric/simple path stays on client for speed
-            if (isNumeric(correctAnswer)) {
-              const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
-              const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
-              isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
-            } else {
-              isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
-            }
-          }
-        }
-
-        // Complete the attempt
-        await completeAttempt(!!isCorrect, scores);
-
-        // Submit to handle-submission for mastery tracking (fire-and-forget)
-        submitToHandleSubmission(!!isCorrect, scores).catch(error =>
-          console.error('Background mastery tracking failed:', error)
-        );
-      } else {
-        // Question was skipped - save 'False' to photo_analysis_outputs
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('exam_id')
-            .eq('user_id', user.id)
-            .single();
-
-          const currentExamId = profile?.exam_id || examId;
-
-          await supabase
-            .from('photo_analysis_outputs')
-            .insert({
+            // Insert / store raw answer
+            await supabase.from("photo_analysis_outputs").insert({
               user_id: user.id,
               question_id: currentQuestion.question_id,
               exam_id: currentExamId,
               problem_number: problemNumber.toString(),
-              raw_output: 'False',
-              analysis_type: problemNumber >= 20 ? 'photo_solution' : 'solution'
+              raw_output: userAnswer.trim(),
+              analysis_type: "solution"
+              // openrouter_check left empty for now (will be set if server check used)
             });
-        } catch (error) {
-          console.error('Error saving skipped question:', error);
+
+            const correctAnswer = currentQuestion.answer;
+
+            if (shouldUseServerCheck(userAnswer, correctAnswer)) {
+              // Use server check
+              try {
+                const { data, error } = await supabase.functions.invoke("check-text-answer", {
+                  body: {
+                    user_id: user.id,
+                    question_id: currentQuestion.question_id,
+                    submitted_answer: userAnswer.trim()
+                  }
+                });
+
+                if (error) {
+                  console.error("check-text-answer error:", error);
+                  // fallback to local compare
+                  if (isNumeric(correctAnswer)) {
+                    const su = sanitizeNumericAnswer(userAnswer);
+                    const sc = sanitizeNumericAnswer(correctAnswer);
+                    isCorrect = su === sc;
+                  } else {
+                    isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
+                  }
+                } else {
+                  isCorrect = (data as any)?.is_correct ?? false;
+                }
+
+                // NEW: persist server verdict as text "true"/"false" into openrouter_check
+                try {
+                  const { error: updateErr } = await supabase
+                    .from("photo_analysis_outputs")
+                    .update({ openrouter_check: isCorrect ? "true" : "false" })
+                    .eq("user_id", user.id)
+                    .eq("question_id", currentQuestion.question_id)
+                    .eq("exam_id", currentExamId)
+                    .eq("analysis_type", "solution");
+                  if (updateErr) {
+                    console.warn("[photo_analysis_outputs] failed to update openrouter_check:", updateErr);
+                  } else {
+                    console.log("[photo_analysis_outputs] openrouter_check saved:", isCorrect ? "true" : "false");
+                  }
+                } catch (uerr) {
+                  console.warn("[photo_analysis_outputs] exception while updating openrouter_check:", uerr);
+                }
+              } catch (err) {
+                console.error("check-text-answer exception:", err);
+                // fallback to local compare
+                if (isNumeric(correctAnswer)) {
+                  const su = sanitizeNumericAnswer(userAnswer);
+                  const sc = sanitizeNumericAnswer(correctAnswer);
+                  isCorrect = su === sc;
+                } else {
+                  isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
+                }
+              }
+            } else {
+              // Local fast path
+              if (isNumeric(correctAnswer)) {
+                const su = sanitizeNumericAnswer(userAnswer);
+                const sc = sanitizeNumericAnswer(correctAnswer);
+                isCorrect = su === sc;
+              } else {
+                isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
+              }
+            }
+          } catch (error) {
+            console.error("Error saving user answer:", error);
+          }
         }
 
-        // Complete attempt as not finished
+        // Complete attempt + mastery tracking
+        await completeAttempt(!!isCorrect, scores);
+        submitToHandleSubmission(!!isCorrect, scores).catch((error) =>
+          console.error("Background mastery tracking failed:", error)
+        );
+      } else {
+        // skipped
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("exam_id")
+            .eq("user_id", user.id)
+            .single();
+          const currentExamId = profile?.exam_id || examId;
+
+          await supabase.from("photo_analysis_outputs").insert({
+            user_id: user.id,
+            question_id: currentQuestion.question_id,
+            exam_id: currentExamId,
+            problem_number: problemNumber.toString(),
+            raw_output: "False",
+            analysis_type: problemNumber >= 20 ? "photo_solution" : "solution"
+          });
+        } catch (error) {
+          console.error("Error saving skipped question:", error);
+        }
         await completeAttempt(false, 0);
         isCorrect = false;
       }
     }
 
-    // Save current question result
     const result: ExamResult = {
       questionIndex: currentQuestionIndex,
       questionId: currentQuestion.question_id,
@@ -565,9 +522,8 @@ const OgemathMock = () => {
       problemNumber
     };
 
-    setExamResults(prev => {
+    setExamResults((prev) => {
       const newResults = [...prev];
-      // Update the existing entry at the current question index
       newResults[currentQuestionIndex] = {
         ...newResults[currentQuestionIndex],
         ...result,
@@ -576,9 +532,8 @@ const OgemathMock = () => {
       return newResults;
     });
 
-    // Move to next question or finish exam
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
       setUserAnswer("");
       setPhotoFeedback("");
       setPhotoScores(null);
@@ -588,12 +543,10 @@ const OgemathMock = () => {
     }
   };
 
-  // Start attempt logging when question is presented - OPTIMIZED VERSION
+  // Start attempt logging
   const startAttempt = async (questionId: string, problemNumberType: number, _timeSpent: number) => {
     if (!user) return null;
-
     try {
-      // Use pre-fetched question details from cache
       const questionDetailsCache = (window as any).questionDetailsCache;
       let skillsArray: number[] = [];
       let topicsArray: string[] = [];
@@ -607,9 +560,8 @@ const OgemathMock = () => {
         console.warn(`No cached details found for question ${questionId}, proceeding without skills/topics`);
       }
 
-      // Insert into student_activity table with skills and topics
       const { data, error } = await supabase
-        .from('student_activity')
+        .from("student_activity")
         .insert({
           user_id: user.id,
           question_id: questionId,
@@ -622,20 +574,19 @@ const OgemathMock = () => {
           skills: skillsArray.length ? skillsArray : null,
           topics: topicsArray.length ? topicsArray : null
         })
-        .select('attempt_id')
+        .select("attempt_id")
         .single();
 
       if (error) {
-        console.error('Error starting attempt:', error);
+        console.error("Error starting attempt:", error);
         return null;
       }
-
       if (data) {
-        console.log('Started attempt:', (data as any).attempt_id);
+        console.log("Started attempt:", (data as any).attempt_id);
         return (data as any).attempt_id;
       }
     } catch (error) {
-      console.error('Error starting attempt:', error);
+      console.error("Error starting attempt:", error);
       return null;
     }
   };
@@ -643,27 +594,22 @@ const OgemathMock = () => {
   // Complete attempt
   const completeAttempt = async (isCorrect: boolean, scores: number) => {
     if (!user) return;
-
     try {
-      // Get the most recent attempt for this user and question
       const { data: activityData, error: activityError } = await supabase
-        .from('student_activity')
-        .select('attempt_id')
-        .eq('user_id', user.id)
-        .eq('question_id', currentQuestion!.question_id)
-        .order('created_at', { ascending: false })
+        .from("student_activity")
+        .select("attempt_id")
+        .eq("user_id", user.id)
+        .eq("question_id", currentQuestion!.question_id)
+        .order("created_at", { ascending: false })
         .limit(1)
         .single();
 
       if (activityError || !activityData) {
-        console.error('Error getting attempt for completion:', activityError);
+        console.error("Error getting attempt for completion:", activityError);
         return;
       }
 
-      // Calculate duration
-      // (Duration is computed and saved within your edge function 'complete-attempt' based on DB timestamps,
-      //  here we just flag finished + correctness + scores.)
-      const { error: completeError } = await supabase.functions.invoke('complete-attempt', {
+      const { error: completeError } = await supabase.functions.invoke("complete-attempt", {
         body: {
           attempt_id: (activityData as any).attempt_id,
           finished_or_not: true,
@@ -673,36 +619,33 @@ const OgemathMock = () => {
       });
 
       if (completeError) {
-        console.error('Error completing attempt:', completeError);
+        console.error("Error completing attempt:", completeError);
       } else {
         console.log(`Completed attempt: correct=${isCorrect}, scores=${scores}`);
       }
     } catch (error) {
-      console.error('Error in completeAttempt:', error);
+      console.error("Error in completeAttempt:", error);
     }
   };
 
   // Submit to handle-submission for mastery tracking
   const submitToHandleSubmission = async (isCorrect: boolean, scores: number) => {
     if (!user) return;
-
     try {
-      // Get latest student_activity row for current user and question
       const { data: activityData, error: activityError } = await supabase
-        .from('student_activity')
-        .select('question_id, attempt_id, finished_or_not, duration_answer, scores_fipi')
-        .eq('user_id', user.id)
-        .eq('question_id', currentQuestion!.question_id)
-        .order('updated_at', { ascending: false })
+        .from("student_activity")
+        .select("question_id, attempt_id, finished_or_not, duration_answer, scores_fipi")
+        .eq("user_id", user.id)
+        .eq("question_id", currentQuestion!.question_id)
+        .order("updated_at", { ascending: false })
         .limit(1)
         .single();
 
       if (activityError || !activityData) {
-        console.error('Error getting latest activity:', activityError);
+        console.error("Error getting latest activity:", activityError);
         return;
       }
 
-      // Create submission_data dictionary
       const submissionData = {
         user_id: user.id,
         question_id: (activityData as any).question_id,
@@ -712,75 +655,64 @@ const OgemathMock = () => {
         scores_fipi: scores
       };
 
-      // Call handle_submission function
-      const { data, error } = await supabase.functions.invoke('handle-submission', {
+      const { data, error } = await supabase.functions.invoke("handle-submission", {
         body: {
-          course_id: '1',
+          course_id: "1",
           submission_data: submissionData
         }
       });
 
       if (error) {
-        console.error('Error in handle-submission:', error);
+        console.error("Error in handle-submission:", error);
         return;
       }
-
-      console.log('Handle submission completed:', data);
+      console.log("Handle submission completed:", data);
     } catch (error) {
-      console.error('Error in submitToHandleSubmission:', error);
+      console.error("Error in submitToHandleSubmission:", error);
     }
   };
 
   const handleFinishExam = async () => {
     setExamFinished(true);
     const stats = await processExamResults();
-
-    if (stats) {
-      setExamStats(stats);
-    }
+    if (stats) setExamStats(stats);
   };
 
   const processExamResults = async () => {
     if (!user) return null;
-
     setLoading(true);
     try {
-      // Get exam_id from profiles table
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('exam_id')
-        .eq('user_id', user.id)
+        .from("profiles")
+        .select("exam_id")
+        .eq("user_id", user.id)
         .single();
-
       const currentExamId = profile?.exam_id || examId;
 
-      // Fetch all results from photo_analysis_outputs for this exam
+      // Include openrouter_check text column
       const { data: analysisResults, error: analysisError } = await supabase
-        .from('photo_analysis_outputs')
-        .select('question_id, raw_output, problem_number, analysis_type')
-        .eq('user_id', user.id)
-        .eq('exam_id', currentExamId)
-        .order('created_at', { ascending: false });
+        .from("photo_analysis_outputs")
+        .select("question_id, raw_output, problem_number, analysis_type, openrouter_check")
+        .eq("user_id", user.id)
+        .eq("exam_id", currentExamId)
+        .order("created_at", { ascending: false });
 
       if (analysisError) {
-        console.error('Error fetching analysis results:', analysisError);
-        toast.error('Ошибка при получении результатов анализа');
+        console.error("Error fetching analysis results:", analysisError);
+        toast.error("Ошибка при получении результатов анализа");
         setLoading(false);
         return null;
       }
 
-      // Store results for use in review mode
       if (analysisResults) {
         setPhotoFeedback(JSON.stringify(analysisResults));
       }
 
-      // Create a map of question answers for easy lookup
       const questionAnswers = new Map<string, { answer: string; problemText: string; index: number }>();
       questions.forEach((q, index) => {
         questionAnswers.set(q.question_id, { answer: q.answer, problemText: q.problem_text, index });
       });
 
-      // Initialize results array
       const updatedResults = [...examResults];
       let totalCorrect = 0;
       let part1Correct = 0;
@@ -791,15 +723,13 @@ const OgemathMock = () => {
 
       if (analysisResults) {
         for (const analysisResult of analysisResults as any[]) {
-          // Check if analysisResult has required properties
           if (!analysisResult.question_id || !analysisResult.problem_number) {
-            console.warn('Skipping invalid analysis result:', analysisResult);
+            console.warn("Skipping invalid analysis result:", analysisResult);
             continue;
           }
 
           const problemNumber = parseInt(analysisResult.problem_number);
           const questionData = questionAnswers.get(analysisResult.question_id);
-
           if (!questionData) continue;
 
           let isCorrect = false;
@@ -807,10 +737,10 @@ const OgemathMock = () => {
           let scores = 0;
 
           if (problemNumber >= 20) {
-            // For problems 20-25, parse photo analysis JSON
+            // FRQ 20-25
             try {
               const feedbackData = JSON.parse(analysisResult.raw_output);
-              if (feedbackData.review && typeof feedbackData.scores === 'number') {
+              if (feedbackData.review && typeof feedbackData.scores === "number") {
                 feedback = feedbackData.review;
                 scores = feedbackData.scores;
                 isCorrect = feedbackData.scores >= 2;
@@ -820,10 +750,10 @@ const OgemathMock = () => {
                 isCorrect = false;
               }
             } catch (parseError) {
-              console.error('Error parsing stored analysis:', parseError);
+              console.error("Error parsing stored analysis:", parseError);
               feedback = analysisResult.raw_output;
               scores = 0;
-              isCorrect = analysisResult.raw_output !== 'False';
+              isCorrect = analysisResult.raw_output !== "False";
             }
 
             if (isCorrect) {
@@ -831,28 +761,34 @@ const OgemathMock = () => {
               totalCorrect++;
             }
           } else {
-            // For problems 1-19, check the stored user answer against correct answer
+            // 1-19 text
             const userAnswerStored = analysisResult.raw_output as string;
             const correctAnswer = questionData.answer;
 
-            if (userAnswerStored === 'False') {
-              // Question was skipped
-              isCorrect = false;
-              feedback = "Вопрос пропущен";
+            // 1) If openrouter_check is present (non-empty), trust it
+            const orcRaw: string | null | undefined = analysisResult.openrouter_check;
+            if (orcRaw !== null && orcRaw !== undefined && String(orcRaw).trim() !== "") {
+              const orc = String(orcRaw).trim().toLowerCase();
+              isCorrect = orc === "true";
+              feedback = isCorrect ? "Правильно" : "Неправильно";
+              console.log(`[RESULTS] Used openrouter_check="${orc}" for Q${problemNumber}`);
             } else {
-              // Check if answer is correct
-              if (isNumeric(correctAnswer)) {
-                // Numeric comparison
-                const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswerStored);
-                const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
-                isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
-                feedback = isCorrect ? "Правильно" : "Неправильно";
+              // 2) Otherwise do fast local comparison
+              if (userAnswerStored === "False") {
+                isCorrect = false;
+                feedback = "Вопрос пропущен";
               } else {
-                // Non-numeric answer - simple string comparison for speed
-                const userAnswerLower = userAnswerStored.toString().toLowerCase().trim();
-                const correctAnswerLower = correctAnswer.toString().toLowerCase().trim();
-                isCorrect = userAnswerLower === correctAnswerLower;
-                feedback = isCorrect ? "Правильно" : "Неправильно";
+                if (isNumeric(correctAnswer)) {
+                  const su = sanitizeNumericAnswer(userAnswerStored);
+                  const sc = sanitizeNumericAnswer(correctAnswer);
+                  isCorrect = su === sc;
+                  feedback = isCorrect ? "Правильно" : "Неправильно";
+                } else {
+                  const u = userAnswerStored.toString().toLowerCase().trim();
+                  const c = correctAnswer.toString().toLowerCase().trim();
+                  isCorrect = u === c;
+                  feedback = isCorrect ? "Правильно" : "Неправильно";
+                }
               }
             }
 
@@ -862,24 +798,21 @@ const OgemathMock = () => {
             }
           }
 
-          // Update the corresponding result with attempted flag set to true
-          const resultIndex = updatedResults.findIndex(r => r && r.questionId === analysisResult.question_id);
+          const resultIndex = updatedResults.findIndex((r) => r && r.questionId === analysisResult.question_id);
           if (resultIndex >= 0) {
             updatedResults[resultIndex] = {
               ...updatedResults[resultIndex],
               isCorrect,
               photoFeedback: feedback,
               photoScores: scores,
-              attempted: true // Set attempted to true for questions with records
+              attempted: true
             };
           }
         }
       }
 
       setExamResults(updatedResults);
-
       const percentage = Math.round((totalCorrect / totalQuestions) * 100);
-
       toast.success(`Экзамен завершен! Результат: ${totalCorrect}/${totalQuestions} (${percentage}%)`);
 
       return {
@@ -892,9 +825,8 @@ const OgemathMock = () => {
         part2Total,
         totalTimeSpent: elapsedTime
       };
-
     } catch (error) {
-      console.error('Error processing exam results:', error);
+      console.error("Error processing exam results:", error);
       return null;
     } finally {
       setLoading(false);
@@ -904,21 +836,19 @@ const OgemathMock = () => {
   // Photo attachment functionality
   const handlePhotoAttachment = async () => {
     if (!user) {
-      toast.error('Войдите в систему для прохождения экзамена');
+      toast.error("Войдите в систему для прохождения экзамена");
       return;
     }
-
     try {
-      // Check if user has telegram_user_id
       const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('telegram_user_id')
-        .eq('user_id', user.id)
+        .from("profiles")
+        .select("telegram_user_id")
+        .eq("user_id", user.id)
         .single();
 
-      if (error && (error as any).code !== 'PGRST116') {
-        console.error('Error checking telegram connection:', error);
-        toast.error('Ошибка при проверке подключения Telegram');
+      if (error && (error as any).code !== "PGRST116") {
+        console.error("Error checking telegram connection:", error);
+        toast.error("Ошибка при проверке подключения Telegram");
         return;
       }
 
@@ -928,59 +858,57 @@ const OgemathMock = () => {
         setShowUploadPrompt(true);
       }
     } catch (error) {
-      console.error('Error in handlePhotoAttachment:', error);
-      toast.error('Ошибка при проверке подключения Telegram');
+      console.error("Error in handlePhotoAttachment:", error);
+      toast.error("Ошибка при проверке подключения Telegram");
     }
   };
 
   const handlePhotoCheck = async () => {
     if (!user || !currentQuestion) return;
-
     setIsProcessingPhoto(true);
-
     try {
-      // Check telegram_input for data
       const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('telegram_input')
-        .eq('user_id', user.id)
+        .from("profiles")
+        .select("telegram_input")
+        .eq("user_id", user.id)
         .single();
 
-      if (profileError && (profileError as any).code !== 'PGRST116') {
-        console.error('Error getting telegram input:', profileError);
-        toast.error('Ошибка при получении данных');
+      if (profileError && (profileError as any).code !== "PGRST116") {
+        console.error("Error getting telegram input:", profileError);
+        toast.error("Ошибка при получении данных");
         setIsProcessingPhoto(false);
         return;
       }
 
       if (!profile?.telegram_input) {
-        toast.error('Фото не загружено.');
+        toast.error("Фото не загружено.");
         setIsProcessingPhoto(false);
         return;
       }
 
-      // Store the photo solution and trigger analysis immediately (fire and forget)
       setUserAnswer(profile.telegram_input);
       setShowUploadPrompt(false);
 
-      // Fire and forget: analyze photo immediately and save to database
-      supabase.functions.invoke('check-photo-solution', {
-        body: {
-          student_solution: profile.telegram_input,
-          problem_text: currentQuestion.problem_text,
-          solution_text: currentQuestion.solution_text,
-          user_id: user.id,
-          question_id: currentQuestion.question_id,
-          exam_id: examId
-        }
-      }).catch(error => {
-        console.error('Background photo analysis error:', error);
-      });
+      supabase
+        .functions
+        .invoke("check-photo-solution", {
+          body: {
+            student_solution: profile.telegram_input,
+            problem_text: currentQuestion.problem_text,
+            solution_text: currentQuestion.solution_text,
+            user_id: user.id,
+            question_id: currentQuestion.question_id,
+            exam_id: examId
+          }
+        })
+        .catch((error) => {
+          console.error("Background photo analysis error:", error);
+        });
 
-      toast.success('Фото решения сохранено и отправлено на анализ');
+      toast.success("Фото решения сохранено и отправлено на анализ");
     } catch (error) {
-      console.error('Error in handlePhotoCheck:', error);
-      toast.error('Произошла ошибка при обработке решения');
+      console.error("Error in handlePhotoCheck:", error);
+      toast.error("Произошла ошибка при обработке решения");
     } finally {
       setIsProcessingPhoto(false);
     }
@@ -997,24 +925,22 @@ const OgemathMock = () => {
   };
 
   const handleNavigateToQuestion = (questionIndex: number) => {
-    // Save current answer before navigating
     if (!isReviewMode) {
       const currentTime = questionStartTime ? Date.now() - questionStartTime.getTime() : 0;
       const newResult: ExamResult = {
         questionIndex: currentQuestionIndex,
-        questionId: currentQuestion?.question_id || '',
+        questionId: currentQuestion?.question_id || "",
         isCorrect: null,
         userAnswer,
-        correctAnswer: currentQuestion?.answer || '',
-        problemText: currentQuestion?.problem_text || '',
-        solutionText: currentQuestion?.solution_text || '',
+        correctAnswer: currentQuestion?.answer || "",
+        problemText: currentQuestion?.problem_text || "",
+        solutionText: currentQuestion?.solution_text || "",
         timeSpent: Math.floor(currentTime / 1000),
         problemNumber: currentQuestion?.problem_number_type || currentQuestionIndex + 1
       };
 
-      setExamResults(prev => {
+      setExamResults((prev) => {
         const updated = [...prev];
-        // Update the existing entry in the pre-populated array
         updated[currentQuestionIndex] = {
           ...updated[currentQuestionIndex],
           ...newResult,
@@ -1024,7 +950,6 @@ const OgemathMock = () => {
       });
     }
 
-    // Navigate to selected question
     setCurrentQuestionIndex(questionIndex);
     setUserAnswer(examResults[questionIndex]?.userAnswer || "");
     setQuestionStartTime(new Date());
@@ -1051,9 +976,7 @@ const OgemathMock = () => {
             <div className="mb-8">
               <Clock className="w-16 h-16 mx-auto mb-4 text-blue-600" />
               <h1 className="text-4xl font-bold text-gray-900 mb-4">Пробный экзамен ОГЭ</h1>
-              <p className="text-lg text-gray-600 mb-6">
-                Полноценный экзамен с таймером на 3 часа 55 минут
-              </p>
+              <p className="text-lg text-gray-600 mb-6">Полноценный экзамен с таймером на 3 часа 55 минут</p>
             </div>
 
             <Card className="mb-8">
@@ -1074,14 +997,12 @@ const OgemathMock = () => {
               disabled={loading || !user}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
             >
-              {loading ? 'Подготовка экзамена...' : 'Начать экзамен'}
+              {loading ? "Подготовка экзамена..." : "Начать экзамен"}
             </Button>
 
             {!user && (
               <Alert className="mt-4">
-                <AlertDescription>
-                  Войдите в систему для прохождения экзамена
-                </AlertDescription>
+                <AlertDescription>Войдите в систему для прохождения экзамена</AlertDescription>
               </Alert>
             )}
           </div>
@@ -1112,9 +1033,7 @@ const OgemathMock = () => {
                   Назад к практике
                 </Button>
               </Link>
-              <div className="text-lg font-semibold text-gray-700">
-                Экзамен завершен
-              </div>
+              <div className="text-lg font-semibold text-gray-700">Экзамен завершен</div>
             </div>
           </div>
         </div>
@@ -1124,7 +1043,7 @@ const OgemathMock = () => {
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-4">Результаты экзамена</h1>
               <div className="text-6xl font-bold mb-4">
-                <span className={examStats.percentage >= 60 ? 'text-green-600' : 'text-red-600'}>
+                <span className={examStats.percentage >= 60 ? "text-green-600" : "text-red-600"}>
                   {examStats.percentage}%
                 </span>
               </div>
@@ -1163,9 +1082,7 @@ const OgemathMock = () => {
                   <CardTitle>Время</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-gray-600">
-                    {formatTime(examStats.totalTimeSpent)}
-                  </div>
+                  <div className="text-2xl font-bold text-gray-600">{formatTime(examStats.totalTimeSpent)}</div>
                   <p className="text-gray-600">Общее время</p>
                 </CardContent>
               </Card>
@@ -1202,18 +1119,16 @@ const OgemathMock = () => {
                         variant="outline"
                         className={`h-12 ${
                           isCorrect === true
-                            ? 'bg-green-100 border-green-500 hover:bg-green-200 text-green-800'
+                            ? "bg-green-100 border-green-500 hover:bg-green-200 text-green-800"
                             : isCorrect === false
-                            ? 'bg-red-100 border-red-500 hover:bg-red-200 text-red-800'
-                            : 'bg-gray-100 border-gray-400 hover:bg-gray-200 text-gray-600'
+                            ? "bg-red-100 border-red-500 hover:bg-red-200 text-red-800"
+                            : "bg-gray-100 border-gray-400 hover:bg-gray-200 text-gray-600"
                         }`}
                         onClick={() => handleGoToQuestion(index)}
                       >
                         <div className="text-center">
                           <div className="font-semibold">{index + 1}</div>
-                          <div className="text-xs">
-                            {isCorrect === true ? '✓' : isCorrect === false ? '✗' : '—'}
-                          </div>
+                          <div className="text-xs">{isCorrect === true ? "✓" : isCorrect === false ? "✗" : "—"}</div>
                         </div>
                       </Button>
                     );
@@ -1262,13 +1177,9 @@ const OgemathMock = () => {
               </CardHeader>
               <CardContent>
                 {reviewQuestion?.problem_image && (
-                  <img
-                    src={reviewQuestion.problem_image}
-                    alt="Problem"
-                    className="mb-4 max-w-full h-auto"
-                  />
+                  <img src={reviewQuestion.problem_image} alt="Problem" className="mb-4 max-w-full h-auto" />
                 )}
-                <MathRenderer text={reviewQuestion?.problem_text || ''} />
+                <MathRenderer text={reviewQuestion?.problem_text || ""} />
               </CardContent>
             </Card>
 
@@ -1283,10 +1194,9 @@ const OgemathMock = () => {
                         let earnedPoints = 0;
 
                         if (reviewQuestionIndex >= 19 && reviewQuestionIndex <= 24) {
-                          // For FRQ questions, check photo scores or parsed analysis
                           if (reviewResult?.photoScores !== undefined) {
                             earnedPoints = reviewResult.photoScores!;
-                          } else if (reviewResult?.userAnswer?.startsWith('{')) {
+                          } else if (reviewResult?.userAnswer?.startsWith("{")) {
                             try {
                               const analysis = JSON.parse(reviewResult.userAnswer);
                               earnedPoints = analysis.score || 0;
@@ -1295,10 +1205,8 @@ const OgemathMock = () => {
                             }
                           }
                         } else {
-                          // For text questions
                           earnedPoints = reviewResult?.isCorrect ? 1 : 0;
                         }
-
                         return `${earnedPoints}/${maxPoints}`;
                       })()}
                     </div>
@@ -1308,16 +1216,15 @@ const OgemathMock = () => {
                   <div className="p-3 bg-gray-50 rounded border">
                     <MathRenderer
                       text={(() => {
-                        // For FRQ questions 20-25, show parsed answer instead of raw JSON
-                        if (reviewQuestionIndex >= 19 && reviewQuestionIndex <= 24 && reviewResult?.userAnswer?.startsWith('{')) {
+                        if (reviewQuestionIndex >= 19 && reviewQuestionIndex <= 24 && reviewResult?.userAnswer?.startsWith("{")) {
                           try {
                             const analysis = JSON.parse(reviewResult.userAnswer);
-                            return analysis.userAnswer || 'Развернутый ответ представлен';
+                            return analysis.userAnswer || "Развернутый ответ представлен";
                           } catch {
-                            return reviewResult?.userAnswer || 'Не отвечено';
+                            return reviewResult?.userAnswer || "Не отвечено";
                           }
                         }
-                        return reviewResult?.userAnswer || 'Не отвечено';
+                        return reviewResult?.userAnswer || "Не отвечено";
                       })()}
                       compiler="mathjax"
                     />
@@ -1325,9 +1232,7 @@ const OgemathMock = () => {
                   {reviewResult?.photoFeedback && (
                     <div className="mt-3">
                       <strong>Оценка:</strong>
-                      <div className="mt-1 p-3 bg-blue-50 rounded text-sm">
-                        {reviewResult.photoFeedback}
-                      </div>
+                      <div className="mt-1 p-3 bg-blue-50 rounded text-sm">{reviewResult.photoFeedback}</div>
                     </div>
                   )}
                 </CardContent>
@@ -1338,68 +1243,9 @@ const OgemathMock = () => {
                   <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                   Правильный ответ:
                 </div>
-                <MathRenderer
-                  text={reviewResult?.correctAnswer || 'Неизвестно'}
-                  compiler="mathjax"
-                />
+                <MathRenderer text={reviewResult?.correctAnswer || "Неизвестно"} compiler="mathjax" />
               </div>
             </div>
-
-            {/* Marking section for FRQ questions 20-25 */}
-            {reviewQuestionIndex >= 19 && reviewQuestionIndex <= 24 && reviewResult?.attempted && (
-              (() => {
-                try {
-                  // Get the raw output directly from the reviewResult
-                  const rawOutput = reviewResult?.userAnswer;
-
-                  if (rawOutput && rawOutput !== 'false' && rawOutput.startsWith('{')) {
-                    const analysis = JSON.parse(rawOutput);
-                    const score = analysis.score || 0;
-                    const code = analysis.code || '';
-
-                    return (
-                      <Card className="mb-6">
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            Оценивание
-                            <div className="ml-auto flex items-center gap-2">
-                              <span className="text-lg font-bold text-blue-600">
-                                {score}/2 баллов
-                              </span>
-                              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                score === 2 ? 'bg-green-100 text-green-800' :
-                                score === 1 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
-                              }`}>
-                                {score === 2 ? 'Отлично' : score === 1 ? 'Частично' : 'Неверно'}
-                              </div>
-                            </div>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="p-4 bg-gray-50 rounded border">
-                            <div className="whitespace-pre-wrap text-sm font-mono">
-                              {code}
-                            </div>
-                          </div>
-                          {analysis.review && (
-                            <div className="mt-4 p-4 bg-blue-50 rounded border">
-                              <h4 className="font-semibold text-blue-800 mb-2">Обзор решения:</h4>
-                              <div className="text-sm">
-                                <MathRenderer text={analysis.review} />
-                              </div>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    );
-                  }
-                } catch (error) {
-                  console.error('Error parsing marking data:', error);
-                }
-                return null;
-              })()
-            )}
 
             {reviewQuestion?.solution_text && (
               <Card>
@@ -1431,7 +1277,7 @@ const OgemathMock = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className={`text-xl font-bold ${isTimeUp ? 'text-red-600' : 'text-blue-600'}`}>
+              <div className={`text-xl font-bold ${isTimeUp ? "text-red-600" : "text-blue-600"}`}>
                 <Clock className="w-5 h-5 inline mr-2" />
                 {formatTime(elapsedTime)}
               </div>
@@ -1445,11 +1291,7 @@ const OgemathMock = () => {
                 Вопросы
               </Button>
 
-              <Button
-                onClick={handleFinishExam}
-                variant="outline"
-                className="text-red-600 border-red-300 hover:bg-red-50"
-              >
+              <Button onClick={handleFinishExam} variant="outline" className="text-red-600 border-red-300 hover:bg-red-50">
                 Завершить экзамен
               </Button>
             </div>
@@ -1465,15 +1307,10 @@ const OgemathMock = () => {
               <span className="text-sm font-medium text-gray-700">
                 Вопрос {currentQuestionIndex + 1} из {questions.length}
               </span>
-              <span className="text-sm text-gray-500">
-                {Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% завершено
-              </span>
+              <span className="text-sm text-gray-500">{Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% завершено</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
-              />
+              <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }} />
             </div>
           </div>
 
@@ -1489,30 +1326,22 @@ const OgemathMock = () => {
                 <CardTitle>
                   Задание {currentQuestionIndex + 1}
                   {currentQuestion?.problem_number_type && (
-                    <span className="ml-2 text-sm font-normal text-gray-500">
-                      (Номер {currentQuestion.problem_number_type})
-                    </span>
+                    <span className="ml-2 text-sm font-normal text-gray-500">(Номер {currentQuestion.problem_number_type})</span>
                   )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {currentQuestion?.problem_image && (
-                  <img
-                    src={currentQuestion.problem_image}
-                    alt="Problem"
-                    className="mb-4 max-w-full h-auto"
-                  />
+                  <img src={currentQuestion.problem_image} alt="Problem" className="mb-4 max-w-full h-auto" />
                 )}
 
                 <div className="mb-6">
-                  <MathRenderer text={currentQuestion?.problem_text || ''} />
+                  <MathRenderer text={currentQuestion?.problem_text || ""} />
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Ваш ответ:
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Ваш ответ:</label>
                     <Input
                       value={userAnswer}
                       onChange={(e) => setUserAnswer(e.target.value)}
@@ -1523,11 +1352,7 @@ const OgemathMock = () => {
 
                   {isPhotoQuestion && (
                     <div className="flex justify-center">
-                      <Button
-                        variant="outline"
-                        onClick={handlePhotoAttachment}
-                        className="bg-blue-50 hover:bg-blue-100 border-blue-200"
-                      >
+                      <Button variant="outline" onClick={handlePhotoAttachment} className="bg-blue-50 hover:bg-blue-100 border-blue-200">
                         <Camera className="w-4 h-4 mr-2" />
                         Прикрепить фото
                       </Button>
@@ -1539,7 +1364,7 @@ const OgemathMock = () => {
                       {currentQuestionIndex > 0 && (
                         <Button
                           onClick={() => {
-                            setCurrentQuestionIndex(prev => prev - 1);
+                            setCurrentQuestionIndex((prev) => prev - 1);
                             setUserAnswer(examResults[currentQuestionIndex - 1]?.userAnswer || "");
                           }}
                           variant="outline"
@@ -1550,11 +1375,8 @@ const OgemathMock = () => {
                       )}
                     </div>
 
-                    <Button
-                      onClick={handleNextQuestion}
-                      className="flex items-center gap-2"
-                    >
-                      {currentQuestionIndex === questions.length - 1 ? 'Завершить экзамен' : 'Следующий вопрос'}
+                    <Button onClick={handleNextQuestion} className="flex items-center gap-2">
+                      {currentQuestionIndex === questions.length - 1 ? "Завершить экзамен" : "Следующий вопрос"}
                       {currentQuestionIndex < questions.length - 1 && <ArrowRight className="w-4 h-4" />}
                     </Button>
                   </div>
@@ -1575,14 +1397,10 @@ const OgemathMock = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="text-center py-4">
-            <p className="text-gray-700">
-              Зайдите в Дашборд и потвердите Telegram код.
-            </p>
+            <p className="text-gray-700">Зайдите в Дашборд и потвердите Telegram код.</p>
           </div>
           <div className="flex justify-center">
-            <Button onClick={() => setShowTelegramNotConnected(false)}>
-              Понятно
-            </Button>
+            <Button onClick={() => setShowTelegramNotConnected(false)}>Понятно</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -1595,17 +1413,11 @@ const OgemathMock = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-blue-800">
-                Загрузите фото в телеграм бот egechat_bot. Уже загрузили? Нажмите кнопку 'Да'
-              </p>
+              <p className="text-blue-800">Загрузите фото в телеграм бот egechat_bot. Уже загрузили? Нажмите кнопку 'Да'</p>
             </div>
             <div className="flex justify-center">
-              <Button
-                onClick={handlePhotoCheck}
-                disabled={isProcessingPhoto}
-                className="min-w-24"
-              >
-                {isProcessingPhoto ? 'Обработка...' : 'Да'}
+              <Button onClick={handlePhotoCheck} disabled={isProcessingPhoto} className="min-w-24">
+                {isProcessingPhoto ? "Обработка..." : "Да"}
               </Button>
             </div>
           </div>
@@ -1631,19 +1443,13 @@ const OgemathMock = () => {
                     key={index}
                     variant={isCurrent ? "default" : "outline"}
                     className={`h-14 ${
-                      isCurrent
-                        ? 'bg-blue-600 hover:bg-blue-700'
-                        : hasAnswer
-                        ? 'bg-green-50 border-green-300 hover:bg-green-100'
-                        : 'hover:bg-gray-50'
+                      isCurrent ? "bg-blue-600 hover:bg-blue-700" : hasAnswer ? "bg-green-50 border-green-300 hover:bg-green-100" : "hover:bg-gray-50"
                     }`}
                     onClick={() => handleNavigateToQuestion(index)}
                   >
                     <div className="text-center">
                       <div className="font-semibold">{index + 1}</div>
-                      <div className="text-xs mt-1">
-                        {hasAnswer ? '✓' : '○'}
-                      </div>
+                      <div className="text-xs mt-1">{hasAnswer ? "✓" : "○"}</div>
                     </div>
                   </Button>
                 );
@@ -1667,17 +1473,11 @@ const OgemathMock = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Formula booklet */}
-      <FormulaBookletDialog
-        open={showFormulaBooklet}
-        onOpenChange={setShowFormulaBooklet}
-      />
+      <FormulaBookletDialog open={showFormulaBooklet} onOpenChange={setShowFormulaBooklet} />
 
       {isTimeUp && (
         <Alert className="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-red-50 border-red-200">
-          <AlertDescription className="text-red-800">
-            Время экзамена истекло! Экзамен завершается автоматически.
-          </AlertDescription>
+          <AlertDescription className="text-red-800">Время экзамена истекло! Экзамен завершается автоматически.</AlertDescription>
         </Alert>
       )}
     </div>
