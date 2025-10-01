@@ -185,7 +185,7 @@ const ModulePage = () => {
                 ...quizData,
                 isModuleTest: isFinal,
                 moduleTopics: isFinal ? module.topicMapping : undefined,
-                courseId: isFinal ? String(module.moduleNumber) : undefined,
+                courseId: isFinal ? "1" : undefined,
               });
             }}
           >
