@@ -28,36 +28,35 @@ const TopicPage: React.FC = () => {
   const navigate = useNavigate();
   const { refetch } = useModuleProgress();
 
-  // Support /topic/4.2 and /topic/4-2
-  const rawTopicParam = useParams<{ topicNumber: string }>().topicNumber || "";
-  const topicNumber = useMemo(
-    () => decodeURIComponent(rawTopicParam).replace("-", "."),
-    [rawTopicParam]
-  );
+  // We route as /module/:moduleSlug/topic/:topicId
+  const { moduleSlug = "", topicId = "" } = useParams<{
+    moduleSlug: string;
+    topicId: string;
+  }>();
 
-  // Find module+topic by topicNumber (e.g. "4.2")
-  const moduleEntry = useMemo(
-    () =>
-      Object.values(modulesRegistry).find((m) =>
-        m.topicMapping.includes(topicNumber)
-      ),
-    [topicNumber]
-  );
-  const topicIndex = useMemo(
-    () =>
-      moduleEntry ? moduleEntry.topicMapping.indexOf(topicNumber) : -1,
-    [moduleEntry, topicNumber]
-  );
+  const moduleEntry = modulesRegistry[moduleSlug];
+  const topicIndex = useMemo(() => {
+    if (!moduleEntry) return -1;
+    return moduleEntry.topics.findIndex((t) => t.id === topicId);
+  }, [moduleEntry, topicId]);
+
   const topic: TopicContent | null =
     moduleEntry && topicIndex >= 0 ? moduleEntry.topics[topicIndex] : null;
 
-  // Right-pane: load Обзор (article) from DB
+  // derive topicNumber like "4.2" from module.topicMapping
+  const topicNumber = useMemo(() => {
+    if (!moduleEntry || topicIndex < 0) return "";
+    return moduleEntry.topicMapping[topicIndex] || "";
+  }, [moduleEntry, topicIndex]);
+
+  // Right-pane: load Обзор (article) from DB by topic_number
   const [loadingArticle, setLoadingArticle] = useState<boolean>(true);
   const [article, setArticle] = useState<TopicArticleRow | null>(null);
 
   useEffect(() => {
     let ignore = false;
     setLoadingArticle(true);
+
     (async () => {
       if (!topicNumber) {
         if (!ignore) setLoadingArticle(false);
@@ -67,7 +66,7 @@ const TopicPage: React.FC = () => {
         .from("topic_articles")
         .select("topic_number,title,content")
         .eq("topic_number", topicNumber)
-        .maybeSingle<TopicArticleRow>(); // tolerate 0 rows
+        .maybeSingle<TopicArticleRow>();
 
       if (!ignore) {
         if (error) console.error("Failed to load topic article:", error);
@@ -75,6 +74,7 @@ const TopicPage: React.FC = () => {
         setLoadingArticle(false);
       }
     })();
+
     return () => {
       ignore = true;
     };
@@ -87,11 +87,9 @@ const TopicPage: React.FC = () => {
     description: string;
   } | null>(null);
 
-  const [selectedExercise, setSelectedExercise] = useState<ExerciseConfig | null>(
-    null
-  );
+  const [selectedExercise, setSelectedExercise] = useState<ExerciseConfig | null>(null);
 
-  // Simple exercise list resolved from registry
+  // Exercises resolved from registry
   const exercises: ExerciseConfig[] = useMemo(() => {
     if (!moduleEntry || !topic) return [];
     const count = topic.exercises || 0;
@@ -122,7 +120,7 @@ const TopicPage: React.FC = () => {
               Тема не найдена
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              Проверьте адрес страницы: <span className="font-mono">{topicNumber}</span>
+              Проверьте адрес страницы: <span className="font-mono">{moduleSlug}/{topicId}</span>
             </div>
           </div>
         </div>
