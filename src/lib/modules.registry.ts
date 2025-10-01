@@ -519,82 +519,252 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
     slug: 'functions',
     moduleNumber: 5,
     title: 'Модуль 5: Функции',
-    subtitle: '1 тема • 3 видео • 1 статья • 3 упражнения',
-    masteryPoints: 450,
+    subtitle: '1 тема • 3 видео • 1 статья • 6 упражнений',
+    masteryPoints: 1200,
     skillsDescription: 'Навыки: Свойства функций, Графики, Область определения, Монотонность',
     topicMapping: ['5.1'],
     topics: [
-      { id: 'functions-properties', title: 'Свойства и графики функций', videos: 3, articles: 1, exercises: 3 }
+      { id: 'functions-properties', title: 'Свойства и графики функций', videos: 3, articles: 1, exercises: 6 }
     ],
     quizzes: [
-      { id: 'quiz-1', title: 'Тест 1', description: 'Повысьте уровень навыков и получите до 400 баллов мастерства' }
+      { id: 'quiz-1', title: 'Тест 1: Основные свойства функций', description: 'Проверьте навыки 89–94' },
+      { id: 'quiz-2', title: 'Тест 2: Графики функций', description: 'Проверьте навыки 96–99' }
     ],
     orderedContent: [
       { type: 'topic', topicIndex: 0 },
       { type: 'quiz', quizIndex: 0 },
+      { type: 'quiz', quizIndex: 1 },
       { type: 'quiz', isFinalTest: true }
-    ]
+    ],
+    getExerciseData: (topicId: string, exerciseIndex: number) => {
+      if (topicId === 'functions-properties') {
+        if (exerciseIndex === 0) return { title: 'Функции — основы', skills: [89, 90] };
+        if (exerciseIndex === 1) return { title: 'Свойства функций', skills: [91, 92] };
+        if (exerciseIndex === 2) return { title: 'Область определения функций', skills: [93, 94] };
+        if (exerciseIndex === 3) return { title: 'Графики функций', skills: [96, 97] };
+        if (exerciseIndex === 4) return { title: 'Монотонность и экстремумы', skills: [98, 99] };
+        if (exerciseIndex === 5) return { title: 'Сложные задачи по функциям', skills: [95, 186, 187, 100, 101, 102], isAdvanced: true };
+      }
+      return { title: `Упражнение ${exerciseIndex + 1}`, skills: [] };
+    },
+    getQuizData: (quizId: string) => {
+      if (quizId === 'quiz-1') {
+        return {
+          title: 'Тест 1: Основные свойства функций',
+          skills: [89, 90, 91, 92, 93, 94],
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'quiz-2') {
+        return {
+          title: 'Тест 2: Графики функций',
+          skills: [96, 97, 98, 99],
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'module-exam') {
+        return {
+          title: 'Итоговый экзамен модуля',
+          skills: [...Array.from({ length: 6 }, (_, i) => 89 + i), ...Array.from({ length: 4 }, (_, i) => 96 + i)], // 89–94, 96–99
+          questionCount: 10,
+          isExam: true
+        };
+      }
+      return null;
+    }
   },
+
 
   'coordinates': {
     slug: 'coordinates',
     moduleNumber: 6,
     title: 'Модуль 6: Координаты на прямой и плоскости',
-    subtitle: '2 темы • 6 видео • 2 статьи • 6 упражнений',
+    subtitle: '2 темы • 6 видео • 2 статьи • 4 упражнения',
     masteryPoints: 900,
-    skillsDescription: 'Навыки: Координатная прямая, Декартовы координаты',
+    skillsDescription: 'Навыки: Координатная прямая, Интервалы и неравенства, Координаты на плоскости',
     topicMapping: ['6.1', '6.2'],
     topics: [
       { id: 'coordinate-line', title: 'Координатная прямая', videos: 3, articles: 1, exercises: 3 },
-      { id: 'cartesian-coordinates', title: 'Декартовы координаты', videos: 3, articles: 1, exercises: 3 }
+      { id: 'cartesian-coordinates', title: 'Координаты на плоскости', videos: 3, articles: 1, exercises: 1 }
     ],
     quizzes: [
-      { id: 'quiz-1', title: 'Тест 1', description: 'Повысьте уровень навыков и получите до 400 баллов мастерства' }
+      { id: 'quiz-1', title: 'Тест 1: Координатная прямая', description: 'Проверьте навыки 103–109' }
     ],
     orderedContent: [
       { type: 'topic', topicIndex: 0 },
-      { type: 'topic', topicIndex: 1 },
       { type: 'quiz', quizIndex: 0 },
+      { type: 'topic', topicIndex: 1 },
       { type: 'quiz', isFinalTest: true }
-    ]
+    ],
+    getExerciseData: (topicId: string, exerciseIndex: number) => {
+      if (topicId === 'coordinate-line') {
+        if (exerciseIndex === 0) return { title: 'Отметка точек и расстояния на прямой', skills: [103, 104] };
+        if (exerciseIndex === 1) return { title: 'Модули, интервалы и неравенства', skills: [105, 106, 107] };
+        if (exerciseIndex === 2) return { title: 'Сравнение и утверждения о числах', skills: [108, 109] };
+      }
+      if (topicId === 'cartesian-coordinates') {
+        if (exerciseIndex === 0) return { title: 'Построение и расстояния на плоскости', skills: [110, 111] };
+      }
+      return { title: `Упражнение ${exerciseIndex + 1}`, skills: [] };
+    },
+    getQuizData: (quizId: string) => {
+      if (quizId === 'quiz-1') {
+        return {
+          title: 'Тест 1: Координатная прямая',
+          skills: [103, 104, 105, 106, 107, 108, 109],
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'module-exam') {
+        return {
+          title: 'Итоговый экзамен модуля',
+          skills: Array.from({ length: 9 }, (_, i) => 103 + i), // 103–111
+          questionCount: 10,
+          isExam: true
+        };
+      }
+      return null;
+    }
   },
+
 
   'geometry': {
     slug: 'geometry',
     moduleNumber: 7,
     title: 'Модуль 7: Геометрия',
-    subtitle: '7 тем • 21 видео • 7 статей • 21 упражнение',
+    subtitle: '7 тем • 21 видео • 7 статей • 26 упражнений',
     masteryPoints: 3150,
-    skillsDescription: 'Навыки: Геометрические фигуры, Треугольники, Многоугольники, Окружности, Измерения, Векторы',
+    skillsDescription:
+      'Навыки: Геометрические фигуры, Треугольники, Многоугольники, Окружности, Измерения, Векторы',
     topicMapping: ['7.1', '7.2', '7.3', '7.4', '7.5', '7.6', '7.7'],
     topics: [
       { id: 'geometric-figures', title: 'Геометрические фигуры', videos: 3, articles: 1, exercises: 3 },
       { id: 'triangles', title: 'Треугольники', videos: 3, articles: 1, exercises: 3 },
-      { id: 'polygons', title: 'Многоугольники', videos: 3, articles: 1, exercises: 3 },
+      { id: 'polygons', title: 'Многоугольники', videos: 3, articles: 1, exercises: 4 },
       { id: 'circles', title: 'Окружность и круг', videos: 3, articles: 1, exercises: 3 },
-      { id: 'measurements', title: 'Измерения', videos: 3, articles: 1, exercises: 3 },
+      { id: 'measurements', title: 'Измерения', videos: 3, articles: 1, exercises: 6 },
       { id: 'vectors', title: 'Векторы', videos: 3, articles: 1, exercises: 3 },
-      { id: 'additional-geometry', title: 'Дополнительные темы по геометрии', videos: 3, articles: 1, exercises: 3 }
+      { id: 'extra-geometry', title: 'Дополнительные темы по геометрии', videos: 3, articles: 1, exercises: 4 }
     ],
     quizzes: [
-      { id: 'quiz-1', title: 'Тест 1', description: 'Повысьте уровень навыков и получите до 400 баллов мастерства' },
-      { id: 'quiz-2', title: 'Тест 2', description: 'Повысьте уровень навыков и получите до 400 баллов мастерства' },
-      { id: 'quiz-3', title: 'Тест 3', description: 'Повысьте уровень навыков и получите до 400 баллов мастерства' }
+      { id: 'quiz-1', title: 'Тест 1: Базовая геометрия и треугольники', description: 'Проверьте навыки 7.1–7.2 (112–124)' },
+      { id: 'quiz-2', title: 'Тест 2: Многоугольники и окружности', description: 'Проверьте навыки 7.3–7.4 (125–138)' },
+      { id: 'quiz-3', title: 'Тест 3: Измерения и векторы', description: 'Проверьте навыки 7.5–7.6 (139–157)' }
     ],
     orderedContent: [
       { type: 'topic', topicIndex: 0 },
       { type: 'topic', topicIndex: 1 },
-      { type: 'quiz', quizIndex: 0 },
+      { type: 'quiz', quizIndex: 0 },          // Test 1 (112–124)
       { type: 'topic', topicIndex: 2 },
       { type: 'topic', topicIndex: 3 },
-      { type: 'quiz', quizIndex: 1 },
+      { type: 'quiz', quizIndex: 1 },          // Test 2 (125–138)
       { type: 'topic', topicIndex: 4 },
       { type: 'topic', topicIndex: 5 },
-      { type: 'quiz', quizIndex: 2 },
-      { type: 'topic', topicIndex: 6 },
-      { type: 'quiz', isFinalTest: true }
-    ]
-  },
+      { type: 'quiz', quizIndex: 2 },          // Test 3 (139–157)
+      { type: 'topic', topicIndex: 6 },        // Доп. темы
+      { type: 'quiz', isFinalTest: true }      // Final (112–157)
+    ],
+    getExerciseData: (topicId: string, exerciseIndex: number) => {
+      // 7.1 Геометрические фигуры
+      if (topicId === 'geometric-figures') {
+        if (exerciseIndex === 0) return { title: 'Точки, прямые и отрезки', skills: [112] };
+        if (exerciseIndex === 1) return { title: 'Базовые фигуры и измерение углов', skills: [112, 114] };
+        if (exerciseIndex === 2) return { title: 'Параллельность, перпендикулярность и серединный перпендикуляр', skills: [115, 116] };
+      }
+  
+      // 7.2 Треугольники
+      if (topicId === 'triangles') {
+        if (exerciseIndex === 0) return { title: 'Виды треугольников и элементы. Углы треугольника', skills: [117, 118, 119] };
+        if (exerciseIndex === 1) return { title: 'Равенство и подобие. Неравенство треугольника', skills: [120, 121, 122] };
+        if (exerciseIndex === 2) return { title: 'Прямоугольный треугольник: Пифагор и тригонометрия', skills: [123, 124] };
+      }
+  
+      // 7.3 Многоугольники
+      if (topicId === 'polygons') {
+        if (exerciseIndex === 0) return { title: 'Виды, элементы и углы многоугольников', skills: [125, 126, 127] };
+        if (exerciseIndex === 1) return { title: 'Правильные многоугольники и разбиения', skills: [128, 129] };
+        if (exerciseIndex === 2) return { title: 'Четырёхугольники: прямоугольник, ромб, квадрат', skills: [130, 131, 132] };
+        if (exerciseIndex === 3) return { title: 'Параллелограмм и трапеция', skills: [133, 134] };
+      }
+  
+      // 7.4 Окружность и круг
+      if (topicId === 'circles') {
+        if (exerciseIndex === 0) return { title: 'Элементы окружности и круга', skills: [135] };
+        if (exerciseIndex === 1) return { title: 'Центральные и вписанные углы', skills: [136] };
+        if (exerciseIndex === 2) return { title: 'Вписанные и описанные фигуры', skills: [137, 138] };
+      }
+  
+      // 7.5 Измерения
+      if (topicId === 'measurements') {
+        if (exerciseIndex === 0) return { title: 'Длины: отрезки, ломаные, окружности', skills: [139, 140, 141, 142] };
+        if (exerciseIndex === 1) return { title: 'Градусы и дуги окружности', skills: [143, 144] };
+        if (exerciseIndex === 2) return { title: 'Площадь прямоугольника', skills: [146] }; // 146–146 → 146
+        if (exerciseIndex === 3) return { title: 'Площади: параллелограмм, трапеция, треугольник', skills: [147, 148, 149] };
+        if (exerciseIndex === 4) return { title: 'Площадь круга и его частей', skills: [150] };
+        if (exerciseIndex === 5) return { title: '★ Продвинутое: площади, объёмы и решётка', skills: [151, 152, 153], isAdvanced: true };
+      }
+  
+      // 7.6 Векторы
+      if (topicId === 'vectors') {
+        if (exerciseIndex === 0) return { title: 'Векторы: направление, длина и координаты', skills: [154, 155] };
+        if (exerciseIndex === 1) return { title: 'Операции с векторами: сложение/вычитание, умножение на число', skills: [156, 157] };
+        if (exerciseIndex === 2) return { title: '★ Продвинутое: скалярное произведение', skills: [196], isAdvanced: true };
+      }
+  
+      // 7.7 Дополнительные темы (для высоко мотивированных)
+      if (topicId === 'extra-geometry') {
+        if (exerciseIndex === 0) return { title: 'Дополнительно: анализ геометрических высказываний', skills: [158], isAdvanced: true };
+        if (exerciseIndex === 1) return { title: 'Дополнительно: работа с чертежами', skills: [159], isAdvanced: true };
+        if (exerciseIndex === 2) return { title: 'Дополнительно: задачи на доказательство', skills: [160], isAdvanced: true };
+        if (exerciseIndex === 3) return { title: '★ Дополнительно: задачи повышенной сложности', skills: [161], isAdvanced: true };
+      }
+  
+      return { title: `Упражнение ${exerciseIndex + 1}`, skills: [] };
+    },
+    getQuizData: (quizId: string) => {
+      if (quizId === 'quiz-1') {
+        // 7.1–7.2 → 112–124
+        return {
+          title: 'Тест 1: Базовая геометрия и треугольники',
+          skills: Array.from({ length: 13 }, (_, i) => 112 + i), // 112..124
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'quiz-2') {
+        // 7.3–7.4 → 125–138
+        return {
+          title: 'Тест 2: Многоугольники и окружности',
+          skills: Array.from({ length: 14 }, (_, i) => 125 + i), // 125..138
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'quiz-3') {
+        // 7.5–7.6 → 139–157
+        return {
+          title: 'Тест 3: Измерения и векторы',
+          skills: Array.from({ length: 19 }, (_, i) => 139 + i), // 139..157
+          questionCount: 6,
+          isTest: true
+        };
+      }
+      if (quizId === 'module-exam') {
+        // Final exam: 112–157
+        return {
+          title: 'Итоговый экзамен модуля',
+          skills: Array.from({ length: 46 }, (_, i) => 112 + i), // 112..157
+          questionCount: 10,
+          isExam: true
+        };
+      }
+      return null;
+    }
+  },  
+
 
   'probability-statistics': {
     slug: 'probability-statistics',
