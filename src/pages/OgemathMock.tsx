@@ -315,211 +315,19 @@ const OgemathMock = () => {
   };
 
   const handleNextQuestion = async () => {
-    if (!currentQuestion || !questionStartTime) return;
+  if (!currentQuestion || !questionStartTime) return;
 
-    const timeSpent = Math.floor((new Date().getTime() - questionStartTime.getTime()) / 1000);
-    const problemNumber = currentQuestion.problem_number_type || currentQuestionIndex + 1;
+  const timeSpent = Math.floor((new Date().getTime() - questionStartTime.getTime()) / 1000);
+  const problemNumber = currentQuestion.problem_number_type || currentQuestionIndex + 1;
 
-    let isCorrect: boolean | null = null;
-    let analysisOutput = "";
-    let scores = 0;
+  let isCorrect: boolean | null = null;
+  let analysisOutput = "";
+  let scores = 0;
 
-    if (user) {
-      if (userAnswer.trim()) {
-        if (problemNumber >= 20) {
-          // FRQ (20–25)
-          try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('exam_id')
-              .eq('user_id', user.id)
-              .single();
-
-            const currentExamId = profile?.exam_id || examId;
-
-            supabase.functions.invoke('analyze-photo-solution', {
-              body: {
-                student_solution: userAnswer.trim(),
-                problem_text: currentQuestion.problem_text,
-                solution_text: currentQuestion.solution_text,
-                user_id: user.id,
-                question_id: currentQuestion.question_id,
-                exam_id: currentExamId,
-                problem_number: problemNumber.toString()
-              }
-            }).catch(error => console.error('Background photo analysis error:', error));
-
-            console.log('Photo analysis started in background for question', problemNumber);
-            analysisOutput = "Решение отправлено на проверку";
-            scores = 1;
-            isCorrect = true;
-          } catch (error) {
-            console.error('Error with photo analysis function:', error);
-            analysisOutput = "Ошибка обработки";
-            scores = 0;
-            isCorrect = false;
-          }
-        } else {
-          // Part 1 (1–19)
-          let insertedPhotoRowId: number | null = null;
-          let currentExamId: string | null = null;
-
-          try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('exam_id')
-              .eq('user_id', user.id)
-              .single();
-            currentExamId = profile?.exam_id || examId;
-
-            console.log("[PAO/INSERT] about to insert", {
-              user_id: user.id,
-              question_id: currentQuestion.question_id,
-              exam_id: currentExamId,
-              problem_number: problemNumber.toString(),
-              analysis_type: 'solution',
-              raw_output: userAnswer.trim(),
-              openrouter_check: null
-            });
-
-            const { data: insertedRows, error: insertErr } = await supabase
-              .from('photo_analysis_outputs')
-              .insert({
-                user_id: user.id,
-                question_id: currentQuestion.question_id,
-                exam_id: currentExamId,
-                problem_number: problemNumber.toString(),
-                raw_output: userAnswer.trim(),
-                analysis_type: 'solution',
-                openrouter_check: null, // bool column, starts null; will be set if server check runs
-              })
-              .select('id, openrouter_check')
-              .limit(1);
-
-            if (insertErr) {
-              console.error("[PAO/INSERT] error:", insertErr);
-            } else {
-              insertedPhotoRowId = insertedRows?.[0]?.id ?? null;
-              console.log("[PAO/INSERT] success, row:", insertedRows);
-            }
-          } catch (error) {
-            console.error("[PAO/INSERT] exception:", error);
-          }
-
-          const correctAnswer = currentQuestion.answer;
-
-          console.log("[CHECK] Routing decision inputs:", {
-            userAnswer,
-            correctAnswer,
-            isNumericCorrect: isNumeric(correctAnswer),
-            shouldUseServerCheck: shouldUseServerCheck(userAnswer, correctAnswer),
-            insertedPhotoRowId,
-            currentExamId
-          });
-
-          if (shouldUseServerCheck(userAnswer, correctAnswer)) {
-            // Use server check
-            try {
-              console.log("[SERVER CHECK] invoking check-text-answer with payload:", {
-                user_id: user.id,
-                question_id: currentQuestion.question_id,
-                submitted_answer: userAnswer.trim()
-              });
-
-              const { data, error } = await supabase.functions.invoke<CheckTextAnswerResp>(
-                "check-text-answer",
-                {
-                  body: {
-                    user_id: user.id,
-                    question_id: currentQuestion.question_id,
-                    submitted_answer: userAnswer.trim()
-                  }
-                }
-              );
-
-              console.log("[SERVER CHECK] response:", { data, error });
-
-              if (error) {
-                console.error("[SERVER CHECK] error, falling back to local compare:", error);
-                if (isNumeric(correctAnswer)) {
-                  const su = sanitizeNumericAnswer(userAnswer);
-                  const sc = sanitizeNumericAnswer(correctAnswer);
-                  isCorrect = su === sc;
-                } else {
-                  isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
-                }
-              } else {
-                // boolean from JSON
-                isCorrect = !!data?.is_correct;
-              }
-
-              // Persist server verdict into photo_analysis_outputs.openrouter_check (BOOLEAN)
-              try {
-                if (!insertedPhotoRowId) {
-                  console.warn("[PAO/UPDATE] insertedPhotoRowId missing, selecting latest row as fallback.");
-                  const { data: latestRow, error: selErr } = await supabase
-                    .from("photo_analysis_outputs")
-                    .select("id, openrouter_check, created_at")
-                    .eq("user_id", user.id)
-                    .eq("question_id", currentQuestion.question_id)
-                    .eq("exam_id", currentExamId!)
-                    .eq("analysis_type", "solution")
-                    .order("created_at", { ascending: false })
-                    .limit(1)
-                    .maybeSingle();
-
-                  console.log("[PAO/UPDATE] fallback select:", { latestRow, selErr });
-                  if (!selErr && latestRow?.id) insertedPhotoRowId = latestRow.id;
-                }
-
-                if (insertedPhotoRowId) {
-                  console.log("[PAO/UPDATE] writing openrouter_check =", !!isCorrect, "for id =", insertedPhotoRowId);
-                  const { data: updData, error: updateErr } = await supabase
-                    .from("photo_analysis_outputs")
-                    .update({ openrouter_check: !!isCorrect })
-                    .eq("id", insertedPhotoRowId)
-                    .select("id, openrouter_check");
-
-                  if (updateErr) {
-                    console.warn("[PAO/UPDATE] update failed:", updateErr);
-                  } else {
-                    console.log("[PAO/UPDATE] update success:", updData);
-                  }
-                } else {
-                  console.warn("[PAO/UPDATE] No row id available to update openrouter_check.");
-                }
-              } catch (uerr) {
-                console.warn("[PAO/UPDATE] exception while updating openrouter_check:", uerr);
-              }
-            } catch (err) {
-              console.error("[SERVER CHECK] exception, falling back to local compare:", err);
-              if (isNumeric(correctAnswer)) {
-                const su = sanitizeNumericAnswer(userAnswer);
-                const sc = sanitizeNumericAnswer(correctAnswer);
-                isCorrect = su === sc;
-              } else {
-                isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
-              }
-            }
-          } else {
-            // Local fast path
-            if (isNumeric(correctAnswer)) {
-              const su = sanitizeNumericAnswer(userAnswer);
-              const sc = sanitizeNumericAnswer(correctAnswer);
-              isCorrect = su === sc;
-            } else {
-              isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
-            }
-          }
-        }
-
-        await completeAttempt(!!isCorrect, scores);
-
-        submitToHandleSubmission(!!isCorrect, scores).catch(error =>
-          console.error('Background mastery tracking failed:', error)
-        );
-      } else {
-        // Skipped
+  if (user) {
+    if (userAnswer.trim()) {
+      if (problemNumber >= 20) {
+        // FRQ (20–25)
         try {
           const { data: profile } = await supabase
             .from('profiles')
@@ -529,56 +337,227 @@ const OgemathMock = () => {
 
           const currentExamId = profile?.exam_id || examId;
 
-          await supabase
+          supabase.functions.invoke('analyze-photo-solution', {
+            body: {
+              student_solution: userAnswer.trim(),
+              problem_text: currentQuestion.problem_text,
+              solution_text: currentQuestion.solution_text,
+              user_id: user.id,
+              question_id: currentQuestion.question_id,
+              exam_id: currentExamId,
+              problem_number: problemNumber.toString()
+            }
+          }).catch(error => console.error('Background photo analysis error:', error));
+
+          console.log('Photo analysis started in background for question', problemNumber);
+          analysisOutput = "Решение отправлено на проверку";
+          scores = 1;
+          isCorrect = true;
+        } catch (error) {
+          console.error('Error with photo analysis function:', error);
+          analysisOutput = "Ошибка обработки";
+          scores = 0;
+          isCorrect = false;
+        }
+      } else {
+        // Part 1 (1–19) - FIXED SECTION
+        let insertedPhotoRowId: number | null = null;
+        let currentExamId: string | null = null;
+
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('exam_id')
+            .eq('user_id', user.id)
+            .single();
+          currentExamId = profile?.exam_id || examId;
+
+          console.log("[PAO/INSERT] about to insert", {
+            user_id: user.id,
+            question_id: currentQuestion.question_id,
+            exam_id: currentExamId,
+            problem_number: problemNumber.toString(),
+            analysis_type: 'solution',
+            raw_output: userAnswer.trim(),
+            openrouter_check: null
+          });
+
+          // FIXED: Use .single() to get the inserted row immediately
+          const { data: insertedRow, error: insertErr } = await supabase
             .from('photo_analysis_outputs')
             .insert({
               user_id: user.id,
               question_id: currentQuestion.question_id,
               exam_id: currentExamId,
               problem_number: problemNumber.toString(),
-              raw_output: 'False',
-              analysis_type: problemNumber >= 20 ? 'photo_solution' : 'solution',
-              openrouter_check: null
-            });
+              raw_output: userAnswer.trim(),
+              analysis_type: 'solution',
+              openrouter_check: null,
+            })
+            .select('id')
+            .single();
+
+          if (insertErr) {
+            console.error("[PAO/INSERT] error:", insertErr);
+          } else if (insertedRow?.id) {
+            insertedPhotoRowId = insertedRow.id;
+            console.log("[PAO/INSERT] success, row id:", insertedPhotoRowId);
+          }
         } catch (error) {
-          console.error('Error saving skipped question:', error);
+          console.error("[PAO/INSERT] exception:", error);
         }
 
-        await completeAttempt(false, 0);
-        isCorrect = false;
+        const correctAnswer = currentQuestion.answer;
+
+        console.log("[CHECK] Routing decision inputs:", {
+          userAnswer,
+          correctAnswer,
+          isNumericCorrect: isNumeric(correctAnswer),
+          shouldUseServerCheck: shouldUseServerCheck(userAnswer, correctAnswer),
+          insertedPhotoRowId,
+          currentExamId
+        });
+
+        if (shouldUseServerCheck(userAnswer, correctAnswer)) {
+          // Use server check
+          try {
+            console.log("[SERVER CHECK] invoking check-text-answer with payload:", {
+              user_id: user.id,
+              question_id: currentQuestion.question_id,
+              submitted_answer: userAnswer.trim()
+            });
+
+            const { data, error } = await supabase.functions.invoke<CheckTextAnswerResp>(
+              "check-text-answer",
+              {
+                body: {
+                  user_id: user.id,
+                  question_id: currentQuestion.question_id,
+                  submitted_answer: userAnswer.trim()
+                }
+              }
+            );
+
+            console.log("[SERVER CHECK] response:", { data, error });
+
+            if (error) {
+              console.error("[SERVER CHECK] error, falling back to local compare:", error);
+              if (isNumeric(correctAnswer)) {
+                const su = sanitizeNumericAnswer(userAnswer);
+                const sc = sanitizeNumericAnswer(correctAnswer);
+                isCorrect = su === sc;
+              } else {
+                isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
+              }
+            } else {
+              isCorrect = !!data?.is_correct;
+            }
+
+            // FIXED: Update the openrouter_check column
+            if (insertedPhotoRowId) {
+              console.log("[PAO/UPDATE] updating openrouter_check =", isCorrect, "for id =", insertedPhotoRowId);
+              
+              const { error: updateErr } = await supabase
+                .from("photo_analysis_outputs")
+                .update({ openrouter_check: isCorrect })
+                .eq("id", insertedPhotoRowId);
+
+              if (updateErr) {
+                console.error("[PAO/UPDATE] update failed:", updateErr);
+              } else {
+                console.log("[PAO/UPDATE] update success for row", insertedPhotoRowId);
+              }
+            } else {
+              console.warn("[PAO/UPDATE] No insertedPhotoRowId available - cannot update openrouter_check");
+            }
+          } catch (err) {
+            console.error("[SERVER CHECK] exception, falling back to local compare:", err);
+            if (isNumeric(correctAnswer)) {
+              const su = sanitizeNumericAnswer(userAnswer);
+              const sc = sanitizeNumericAnswer(correctAnswer);
+              isCorrect = su === sc;
+            } else {
+              isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
+            }
+          }
+        } else {
+          // Local fast path
+          if (isNumeric(correctAnswer)) {
+            const su = sanitizeNumericAnswer(userAnswer);
+            const sc = sanitizeNumericAnswer(correctAnswer);
+            isCorrect = su === sc;
+          } else {
+            isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
+          }
+        }
       }
-    }
 
-    const result: ExamResult = {
-      questionIndex: currentQuestionIndex,
-      questionId: currentQuestion.question_id,
-      isCorrect,
-      userAnswer: userAnswer.trim(),
-      correctAnswer: currentQuestion.answer,
-      problemText: currentQuestion.problem_text,
-      solutionText: currentQuestion.solution_text,
-      timeSpent,
-      photoFeedback: analysisOutput,
-      photoScores: scores,
-      problemNumber
-    };
+      await completeAttempt(!!isCorrect, scores);
 
-    setExamResults(prev => {
-      const newResults = [...prev];
-      newResults[currentQuestionIndex] = { ...newResults[currentQuestionIndex], ...result, attempted: true };
-      return newResults;
-    });
-
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-      setUserAnswer("");
-      setPhotoFeedback("");
-      setPhotoScores(null);
-      setQuestionStartTime(new Date());
+      submitToHandleSubmission(!!isCorrect, scores).catch(error =>
+        console.error('Background mastery tracking failed:', error)
+      );
     } else {
-      handleFinishExam();
+      // Skipped
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('exam_id')
+          .eq('user_id', user.id)
+          .single();
+
+        const currentExamId = profile?.exam_id || examId;
+
+        await supabase
+          .from('photo_analysis_outputs')
+          .insert({
+            user_id: user.id,
+            question_id: currentQuestion.question_id,
+            exam_id: currentExamId,
+            problem_number: problemNumber.toString(),
+            raw_output: 'False',
+            analysis_type: problemNumber >= 20 ? 'photo_solution' : 'solution',
+            openrouter_check: null
+          });
+      } catch (error) {
+        console.error('Error saving skipped question:', error);
+      }
+
+      await completeAttempt(false, 0);
+      isCorrect = false;
     }
+  }
+
+  const result: ExamResult = {
+    questionIndex: currentQuestionIndex,
+    questionId: currentQuestion.question_id,
+    isCorrect,
+    userAnswer: userAnswer.trim(),
+    correctAnswer: currentQuestion.answer,
+    problemText: currentQuestion.problem_text,
+    solutionText: currentQuestion.solution_text,
+    timeSpent,
+    photoFeedback: analysisOutput,
+    photoScores: scores,
+    problemNumber
   };
+
+  setExamResults(prev => {
+    const newResults = [...prev];
+    newResults[currentQuestionIndex] = { ...newResults[currentQuestionIndex], ...result, attempted: true };
+    return newResults;
+  });
+
+  if (currentQuestionIndex < questions.length - 1) {
+    setCurrentQuestionIndex(prev => prev + 1);
+    setUserAnswer("");
+    setPhotoFeedback("");
+    setPhotoScores(null);
+    setQuestionStartTime(new Date());
+  } else {
+    handleFinishExam();
+  }
+};
 
   const startAttempt = async (questionId: string, problemNumberType: number, _timeSpent: number) => {
     if (!user) return null;
