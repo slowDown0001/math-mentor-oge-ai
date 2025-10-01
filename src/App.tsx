@@ -9,6 +9,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ChatProvider } from "./contexts/ChatContext";
 import Index from "./pages/Index";
 import PrivateRoute from "./components/PrivateRoute";
+import TopicsIndex from "@/pages/TopicsIndex";
+import TopicPage from "@/pages/TopicPage"; // if not already
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MyDashboard = lazy(() => import("./pages/MyDashboard"));
