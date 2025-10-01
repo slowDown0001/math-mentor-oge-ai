@@ -378,8 +378,7 @@ const OgemathMock = () => {
       hasSpecialSymbols(correctAns)
     );
   };
-  console.log('shouldUseServerCheck("six","6") =', shouldUseServerCheck("six", "6"));
-  console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+
 
   const handleNextQuestion = async () => {
     if (!currentQuestion || !questionStartTime) return;
@@ -433,59 +432,76 @@ const OgemathMock = () => {
             isCorrect = false;
           }
         } else {
-          // For problems 1-19, save user's answer to photo_analysis_outputs
-          let currentExamIdForInsert = examId;
+          // For problems 1-19, save user's answer to photo_analysis_outputs (capture row id)
+          let insertedPhotoRowId: number | null = null;
+          let currentExamId: string | null = null;
+          
           try {
             const { data: profile } = await supabase
               .from('profiles')
               .select('exam_id')
               .eq('user_id', user.id)
               .single();
-            currentExamIdForInsert = profile?.exam_id || examId;
-
-            await supabase
+          
+            currentExamId = profile?.exam_id || examId;
+          
+            console.log("[PAO/INSERT] about to insert", {
+              user_id: user.id,
+              question_id: currentQuestion.question_id,
+              exam_id: currentExamId,
+              problem_number: problemNumber.toString(),
+              analysis_type: 'solution',
+              raw_output: userAnswer.trim(),
+              openrouter_check: null
+            });
+          
+            // IMPORTANT: select('id') to get the inserted row id back
+            const { data: insertedRows, error: insertErr } = await supabase
               .from('photo_analysis_outputs')
               .insert({
                 user_id: user.id,
                 question_id: currentQuestion.question_id,
-                exam_id: currentExamIdForInsert,
+                exam_id: currentExamId,
                 problem_number: problemNumber.toString(),
                 raw_output: userAnswer.trim(),
                 analysis_type: 'solution',
-                // be explicit; this will be updated later after server verdict (if used)
-                openrouter_check: null
-              });
+                openrouter_check: null, // bool column, start as null
+              })
+              .select('id, openrouter_check')
+              .limit(1);
+          
+            if (insertErr) {
+              console.error("[PAO/INSERT] error:", insertErr);
+            } else {
+              insertedPhotoRowId = insertedRows?.[0]?.id ?? null;
+              console.log("[PAO/INSERT] success, row:", insertedRows);
+            }
           } catch (error) {
-            console.error('Error saving user answer:', error);
+            console.error("[PAO/INSERT] exception:", error);
           }
-
-          // Quick check path that falls back to the server for special symbols
+          
+          // Quick check path that falls back to the server for special symbols/words/LaTeX
           const correctAnswer = currentQuestion.answer;
-
+          
+          // SUPER-VERBOSE logs to see the routing decision
+          console.log("[CHECK] Routing decision inputs:", {
+            userAnswer,
+            correctAnswer,
+            isNumericCorrect: isNumeric(correctAnswer),
+            shouldUseServerCheck: shouldUseServerCheck(userAnswer, correctAnswer),
+            insertedPhotoRowId,
+            currentExamId
+          });
+          
           if (shouldUseServerCheck(userAnswer, correctAnswer)) {
-            console.groupCollapsed("[Q1–19] Server check path");
-            console.log("Inputs:", {
-              userId: user.id,
-              questionId: currentQuestion.question_id,
-              examId: currentExamId,
-              userAnswerRaw: userAnswer,
-              correctAnswerRaw: correctAnswer,
-            });
-            const diag = {
-              isNonNumeric_user: isNonNumericAnswer(userAnswer),
-              isNonNumeric_correct: isNonNumericAnswer(correctAnswer),
-              hasSpecial_user: hasSpecialSymbols(userAnswer),
-              hasSpecial_correct: hasSpecialSymbols(correctAnswer),
-            };
-            console.table(diag);
-
+            // Delegate to edge function for robust checking (words, LaTeX, units, symbols, etc.)
             try {
-              console.log("[check-text-answer] invoking with payload:", {
+              console.log("[SERVER CHECK] invoking check-text-answer with payload:", {
                 user_id: user.id,
                 question_id: currentQuestion.question_id,
-                submitted_answer: userAnswer.trim(),
+                submitted_answer: userAnswer.trim()
               });
-
+          
               const { data, error } = await supabase.functions.invoke("check-text-answer", {
                 body: {
                   user_id: user.id,
@@ -493,12 +509,11 @@ const OgemathMock = () => {
                   submitted_answer: userAnswer.trim()
                 }
               });
-
-              console.log("[check-text-answer] response:", { data, error });
-
+          
+              console.log("[SERVER CHECK] response:", { data, error });
+          
               if (error) {
-                console.error("[check-text-answer] error returned:", error);
-                // Fallback to local compare
+                console.error("[SERVER CHECK] error, falling back to local compare:", error);
                 if (isNumeric(correctAnswer)) {
                   const su = sanitizeNumericAnswer(userAnswer);
                   const sc = sanitizeNumericAnswer(correctAnswer);
@@ -506,54 +521,58 @@ const OgemathMock = () => {
                 } else {
                   isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
                 }
-                console.log("[fallback local compare] isCorrect =", isCorrect);
               } else {
-                // treat as boolean
+                // Treat the function's result as boolean
                 isCorrect = Boolean((data as any)?.is_correct);
-                console.log("[server verdict] isCorrect =", isCorrect);
               }
-
+          
               // --- Persist server verdict into photo_analysis_outputs.openrouter_check (BOOLEAN) ---
               try {
-                // Locate latest inserted row for this Q
-                const { data: latestRow, error: selErr } = await supabase
-                  .from("photo_analysis_outputs")
-                  .select("id, openrouter_check, created_at")
-                  .eq("user_id", user.id)
-                  .eq("question_id", currentQuestion.question_id)
-                  .eq("exam_id", currentExamId)
-                  .eq("analysis_type", "solution")
-                  .order("created_at", { ascending: false })
-                  .limit(1)
-                  .maybeSingle();
-
-                console.log("[photo_analysis_outputs] select for update:", { latestRow, selErr });
-
-                if (selErr) {
-                  console.warn("[photo_analysis_outputs] select failed:", selErr);
-                } else if (!latestRow) {
-                  console.warn("[photo_analysis_outputs] No row found to update openrouter_check.");
+                if (!insertedPhotoRowId) {
+                  // Fallback: find the latest matching row
+                  console.warn("[PAO/UPDATE] insertedPhotoRowId missing, selecting latest row as fallback.");
+                  const { data: latestRow, error: selErr } = await supabase
+                    .from("photo_analysis_outputs")
+                    .select("id, openrouter_check, created_at")
+                    .eq("user_id", user.id)
+                    .eq("question_id", currentQuestion.question_id)
+                    .eq("exam_id", currentExamId!)
+                    .eq("analysis_type", "solution")
+                    .order("created_at", { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+          
+                  console.log("[PAO/UPDATE] fallback select:", { latestRow, selErr });
+          
+                  if (selErr) {
+                    console.warn("[PAO/UPDATE] fallback select failed:", selErr);
+                  } else {
+                    insertedPhotoRowId = latestRow?.id ?? null;
+                  }
+                }
+          
+                if (!insertedPhotoRowId) {
+                  console.warn("[PAO/UPDATE] No row id to update openrouter_check.");
                 } else {
+                  console.log("[PAO/UPDATE] writing openrouter_check =", !!isCorrect, "for id =", insertedPhotoRowId);
                   const { data: updData, error: updateErr } = await supabase
                     .from("photo_analysis_outputs")
                     .update({ openrouter_check: !!isCorrect })
-                    .eq("id", latestRow.id)
+                    .eq("id", insertedPhotoRowId)
                     .select("id, openrouter_check");
-
+          
                   if (updateErr) {
-                    console.warn("[photo_analysis_outputs] update failed:", updateErr);
+                    console.warn("[PAO/UPDATE] update failed:", updateErr);
                   } else {
-                    console.log("[photo_analysis_outputs] update success:", updData);
+                    console.log("[PAO/UPDATE] update success:", updData);
                   }
                 }
               } catch (uerr) {
-                console.warn("[photo_analysis_outputs] exception while updating openrouter_check:", uerr);
+                console.warn("[PAO/UPDATE] exception while updating openrouter_check:", uerr);
               }
               // --- END persist ---
-
             } catch (err) {
-              console.error("[check-text-answer] exception thrown:", err);
-              // Fallback to local compare
+              console.error("[SERVER CHECK] exception, falling back to local compare:", err);
               if (isNumeric(correctAnswer)) {
                 const su = sanitizeNumericAnswer(userAnswer);
                 const sc = sanitizeNumericAnswer(correctAnswer);
@@ -561,20 +580,19 @@ const OgemathMock = () => {
               } else {
                 isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
               }
-              console.log("[fallback local compare after exception] isCorrect =", isCorrect);
-            } finally {
-              console.groupEnd();
             }
           } else {
             // Purely numeric/simple path stays on client for speed
             if (isNumeric(correctAnswer)) {
-              const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
-              const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
-              isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
+              const su = sanitizeNumericAnswer(userAnswer);
+              const sc = sanitizeNumericAnswer(correctAnswer);
+              isCorrect = su === sc;
             } else {
               isCorrect = userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase();
             }
+            // We intentionally do NOT set openrouter_check here, since server check didn't run.
           }
+
         }
 
         // Complete the attempt
