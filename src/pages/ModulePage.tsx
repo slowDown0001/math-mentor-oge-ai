@@ -10,6 +10,7 @@ import OgeExerciseQuiz from "@/components/OgeExerciseQuiz";
 import { useModuleProgress } from "@/hooks/useModuleProgress";
 import type { TopicContent, QuizContent } from "@/lib/modules.registry";
 import { modulesRegistry } from "@/lib/modules.registry";
+import { ModuleProgressBar } from "@/components/ModuleProgressBar";
 import { supabase } from "@/integrations/supabase/client";
 import NotFound from "./NotFound";
 import { Link, useParams, useNavigate } from "react-router-dom";
@@ -368,15 +369,13 @@ const ModulePage = () => {
           </div>
 
           {/* Progress Grid */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {Array.from({ length: totalExercises }, (_, i) => (
-              <div key={i} className="w-8 h-8 border-2 border-gray-300 rounded bg-white" />
-            ))}
-            {module.quizzes.map((_, i) => (
-              <Zap key={`quiz-${i}`} className="h-6 w-6 text-blue-600 mx-1" />
-            ))}
-            <Star className="h-6 w-6 text-yellow-600 mx-1" />
-          </div>
+          <ModuleProgressBar
+            moduleSlug={moduleSlug!}
+            orderedContent={module.orderedContent}
+            topics={module.topics}
+            quizzes={module.quizzes}
+            getExerciseData={module.getExerciseData}
+          />
         </motion.div>
 
         {/* Content List */}
