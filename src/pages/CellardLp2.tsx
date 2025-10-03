@@ -41,9 +41,6 @@ const CellardLp2: React.FC = () => {
 
   // Where to go when user clicks a module
   const goToModule = (n: number) => {
-    // If you have slugs in modulesRegistry, prefer using them:
-    // const slug = Object.keys(modulesRegistry)[n-1]; navigate(`/module/${slug}`);
-    // Generic fallback:
     navigate("/learning-platform");
   };
 
@@ -64,42 +61,47 @@ const CellardLp2: React.FC = () => {
     });
 
     // Animate module cards when in view
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          animate(e.target as Element, {
-            translateY: [50, 0],
-            opacity: [0, 1],
-            easing: "out(4)",
-            duration: 800,
-          });
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.15 });
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            animate(e.target as Element, {
+              translateY: [50, 0],
+              opacity: [0, 1],
+              easing: "out(4)",
+              duration: 800,
+            });
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
 
     document.querySelectorAll(".module-card").forEach((el) => io.observe(el));
-
     return () => io.disconnect();
   }, []);
 
   // Animate progress rings on intersection
   useEffect(() => {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        const ring = e.target as SVGCircleElement;
-        const pct = Number(ring.getAttribute("data-progress") || "0");
-        const offset = circumference - (pct / 100) * circumference;
-        animate(ring, {
-          strokeDashoffset: [circumference, offset],
-          easing: "out(4)",
-          duration: 1500,
-          delay: 300,
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          const ring = e.target as SVGCircleElement;
+          const pct = Number(ring.getAttribute("data-progress") || "0");
+          const offset = circumference - (pct / 100) * circumference;
+          animate(ring, {
+            strokeDashoffset: [circumference, offset],
+            easing: "out(4)",
+            duration: 1500,
+            delay: 300,
+          });
+          io.unobserve(ring);
         });
-        io.unobserve(ring);
-      });
-    }, { threshold: 0.3 });
+      },
+      { threshold: 0.3 }
+    );
 
     document.querySelectorAll<SVGCircleElement>(".progress-ring-circle").forEach((r) => io.observe(r));
     return () => io.disconnect();
@@ -111,12 +113,15 @@ const CellardLp2: React.FC = () => {
 
     const sketch = (p: p5) => {
       const syms = ["∑", "∫", "π", "∞", "√", "Δ", "θ", "α", "β"];
-      type Part = { x: number; y: number; vx: number; vy: number; size: number; opacity: number; sym: string; };
+      type Part = { x: number; y: number; vx: number; vy: number; size: number; opacity: number; sym: string };
       const parts: Part[] = [];
 
       p.setup = () => {
         const c = p.createCanvas(p.windowWidth, p.windowHeight);
         c.parent(canvasParentRef.current!);
+        p.pixelDensity(p.displayDensity()); // crisp on HiDPI
+        p.clear(); // transparent background
+
         for (let i = 0; i < 50; i++) {
           parts.push({
             x: p.random(p.width),
@@ -131,13 +136,17 @@ const CellardLp2: React.FC = () => {
       };
 
       p.draw = () => {
-        p.clear();
-        parts.forEach((pt) => {
-          pt.x += pt.vx; pt.y += pt.vy;
-          if (pt.x < 0) pt.x = p.width; if (pt.x > p.width) pt.x = 0;
-          if (pt.y < 0) pt.y = p.height; if (pt.y > p.height) pt.y = 0;
+        p.clear(); // keep canvas transparent each frame
 
-          p.fill(245, 158, 11, pt.opacity * 255);
+        parts.forEach((pt) => {
+          pt.x += pt.vx;
+          pt.y += pt.vy;
+          if (pt.x < 0) pt.x = p.width;
+          if (pt.x > p.width) pt.x = 0;
+          if (pt.y < 0) pt.y = p.height;
+          if (pt.y > p.height) pt.y = 0;
+
+          p.fill(245, 158, 11, pt.opacity * 255); // amber-ish
           p.noStroke();
           p.textAlign(p.CENTER, p.CENTER);
           p.textSize(pt.size * 8);
@@ -166,15 +175,22 @@ const CellardLp2: React.FC = () => {
     };
   }, []);
 
-  const completedCount = useMemo(() => modules.filter(m => m.progress === 100).length, []);
+  const completedCount = useMemo(() => modules.filter((m) => m.progress === 100).length, []);
 
   return (
-    <div className="min-h-screen text-white" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
-      {/* p5 background container */}
-      <div ref={canvasParentRef} className="fixed inset-0 -z-10" />
+    <div
+      className="min-h-screen text-white relative"
+      style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}
+    >
+      {/* p5 background container (VISIBLE layer, click-through) */}
+      <div
+        ref={canvasParentRef}
+        className="fixed inset-0 z-10 pointer-events-none"
+        aria-hidden="true"
+      />
 
-      {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 backdrop-blur-lg bg-[#1a1f36]/80 border-b border-yellow-500/20">
+      {/* Nav stays on top of everything */}
+      <nav className="fixed top-0 w-full z-30 backdrop-blur-lg bg-[#1a1f36]/80 border-b border-yellow-500/20">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded-lg flex items-center justify-center">
@@ -194,23 +210,34 @@ const CellardLp2: React.FC = () => {
 
       {/* Hero */}
       <section className="relative min-h-screen flex items-center justify-center pt-16">
+        {/* Keep bg under canvas */}
         <div
-          className="absolute inset-0 bg-center bg-cover"
+          className="absolute inset-0 bg-center bg-cover z-0"
           style={{ backgroundImage: `url(${moduleImgs.hero})` }}
         />
-        <div className="absolute inset-0 bg-[#1a1f36]/30" />
-        <div className="relative text-center z-10 max-w-4xl mx-auto px-4">
-          <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text" data-splitting>
+        <div className="absolute inset-0 bg-[#1a1f36]/30 z-0" />
+        {/* Raise the text above the canvas */}
+        <div className="relative z-20 text-center max-w-4xl mx-auto px-4">
+          <h1
+            className="font-display text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text"
+            data-splitting
+          >
             Математика — это просто!
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto leading-relaxed">
             Подготовка к ОГЭ по математике через 9 интерактивных модулей. Каждый шаг приближает тебя к успеху!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button onClick={scrollToModules} className="bg-yellow-500 text-[#1a1f36] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-yellow-400 transition-all hover:scale-105">
+            <button
+              onClick={scrollToModules}
+              className="bg-yellow-500 text-[#1a1f36] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-yellow-400 transition-all hover:scale-105"
+            >
               Начать обучение
             </button>
-            <button onClick={startMock} className="border-2 border-yellow-500 text-yellow-500 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-yellow-500 hover:text-[#1a1f36] transition-all">
+            <button
+              onClick={startMock}
+              className="border-2 border-yellow-500 text-yellow-500 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-yellow-500 hover:text-[#1a1f36] transition-all"
+            >
               Пробный экзамен
             </button>
           </div>
@@ -219,7 +246,7 @@ const CellardLp2: React.FC = () => {
 
       {/* Modules */}
       <section id="modules" className="py-20 relative">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="relative z-20 max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text">
               Путь к успеху
@@ -248,7 +275,10 @@ const CellardLp2: React.FC = () => {
                       <svg className="w-16 h-16" style={{ transform: "rotate(-90deg)" }}>
                         <circle cx="32" cy="32" r="28" stroke="#e5e7eb" strokeWidth="4" fill="none" />
                         <circle
-                          cx="32" cy="32" r="28" fill="none"
+                          cx="32"
+                          cy="32"
+                          r="28"
+                          fill="none"
                           stroke={strokeColor}
                           strokeWidth="4"
                           className="progress-ring-circle"
@@ -266,7 +296,7 @@ const CellardLp2: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <span className={`text-xs font-medium ${m.locked ? "text-gray-500" : "text-emerald-600"}`}>{statusText}</span>
                     <span className={`${m.locked ? "text-gray-400 cursor-not-allowed" : "text-yellow-600 hover:text-yellow-700"} font-medium text-sm`}>
-                      {m.locked ? "Скоро →" : (m.progress === 100 ? "Повторить →" : "Продолжить →")}
+                      {m.locked ? "Скоро →" : m.progress === 100 ? "Повторить →" : "Продолжить →"}
                     </span>
                   </div>
                 </div>
@@ -276,7 +306,10 @@ const CellardLp2: React.FC = () => {
 
           {/* Mock exam */}
           <div className="text-center mt-20">
-            <div className="rounded-xl p-8 max-w-md mx-auto cursor-pointer bg-white/95 text-[#1a1f36] border border-white/20" onClick={startMock}>
+            <div
+              className="rounded-xl p-8 max-w-md mx-auto cursor-pointer bg-white/95 text-[#1a1f36] border border-white/20"
+              onClick={startMock}
+            >
               <img src={moduleImgs.mock} alt="Пробный экзамен" className="w-20 h-20 mx-auto mb-6" />
               <h3 className="font-display text-2xl font-semibold mb-4">Пробный экзамен</h3>
               <p className="text-gray-600 mb-6">Проверь свои знания перед настоящим ОГЭ</p>
@@ -290,7 +323,7 @@ const CellardLp2: React.FC = () => {
 
       {/* Progress */}
       <section id="progress" className="py-20 bg-[#1a1f36]/50">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="relative z-20 max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl font-bold mb-6 bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text">
               Твой прогресс
@@ -341,10 +374,22 @@ const CellardLp2: React.FC = () => {
             <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6">
               <h3 className="font-display text-xl font-semibold mb-4 text-center">Статистика</h3>
               <div className="space-y-4">
-                <div className="flex justify-between"><span className="text-gray-300">Дней подряд</span><span className="font-bold text-yellow-500">5</span></div>
-                <div className="flex justify-between"><span className="text-gray-300">Решено задач</span><span className="font-bold text-emerald-500">127</span></div>
-                <div className="flex justify-between"><span className="text-gray-300">Правильных ответов</span><span className="font-bold text-yellow-500">89%</span></div>
-                <div className="flex justify-between"><span className="text-gray-300">Время обучения</span><span className="font-bold text-emerald-500">12ч 30м</span></div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Дней подряд</span>
+                  <span className="font-bold text-yellow-500">5</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Решено задач</span>
+                  <span className="font-bold text-emerald-500">127</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Правильных ответов</span>
+                  <span className="font-bold text-yellow-500">89%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Время обучения</span>
+                  <span className="font-bold text-emerald-500">12ч 30м</span>
+                </div>
               </div>
             </div>
           </div>
