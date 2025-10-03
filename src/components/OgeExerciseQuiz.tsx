@@ -602,6 +602,28 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
               </AlertDialogAction>
             )}
             <AlertDialogAction 
+              onClick={() => {
+                // Store exercise completion data for AI feedback
+                const completionData = {
+                  activityName: title,
+                  activityType: questionCount === 10 || isModuleTest ? "exam" : questionCount === 6 ? "test" : "exercise",
+                  totalQuestions: questions.length,
+                  questionsCorrect: correctAnswers,
+                  accuracy: score,
+                  skills: skills,
+                  itemId: itemId || `exercise-${skills.join("-")}`,
+                  completedAt: new Date().toISOString(),
+                  timestamp: Date.now()
+                };
+                localStorage.setItem('textbookExerciseCompletionData', JSON.stringify(completionData));
+                
+                navigate('/ogemath');
+              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg px-4 py-2 text-sm"
+            >
+              💬 к ИИ ассистенту
+            </AlertDialogAction>
+            <AlertDialogAction 
               onClick={onBack}
               className="bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg px-4 py-2 text-sm"
             >

@@ -37,6 +37,7 @@ const OgeMath = () => {
       if (user && !isHistoryLoaded) {
         // Check for homework completion data
         const homeworkData = localStorage.getItem('homeworkCompletionData');
+        const textbookData = localStorage.getItem('textbookExerciseCompletionData');
         let shouldGenerateHomeworkFeedback = false;
         let homeworkFeedbackMessage = '';
 
@@ -61,6 +62,31 @@ const OgeMath = () => {
           } catch (error) {
             console.error('Error processing homework completion data:', error);
             localStorage.removeItem('homeworkCompletionData');
+          }
+        } else if (textbookData) {
+          try {
+            const completionData = JSON.parse(textbookData);
+            // Generate feedback for textbook exercise
+            const activityTypeRu = completionData.activityType === 'exam' ? 'экзамен' : 
+                                   completionData.activityType === 'test' ? 'тест' : 'упражнение';
+            
+            homeworkFeedbackMessage = `**${activityTypeRu.toUpperCase()}: ${completionData.activityName}**\n\n` +
+              `✅ Правильных ответов: ${completionData.questionsCorrect} из ${completionData.totalQuestions}\n` +
+              `📊 Точность: ${completionData.accuracy}%\n` +
+              `🎯 Навыки: #${completionData.skills.join(', #')}\n\n` +
+              (completionData.accuracy >= 75 ? 
+                '🎉 Отличная работа! Ты хорошо освоил этот материал.' : 
+                completionData.accuracy >= 50 ? 
+                '👍 Неплохой результат! Продолжай практиковаться.' : 
+                '💪 Не останавливайся! Изучи теорию и попробуй еще раз.');
+            
+            shouldGenerateHomeworkFeedback = true;
+            
+            // Clear the stored data to avoid repeated feedback
+            localStorage.removeItem('textbookExerciseCompletionData');
+          } catch (error) {
+            console.error('Error processing textbook exercise data:', error);
+            localStorage.removeItem('textbookExerciseCompletionData');
           }
         }
 
