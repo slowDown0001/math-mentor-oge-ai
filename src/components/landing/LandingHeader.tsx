@@ -194,6 +194,13 @@ export default function LandingHeader() {
             FAQ
           </Link>
 
+          <Link
+            to="/cellard-lp2"
+            className="text-foreground hover:text-primary transition-colors duration-200"
+          >
+            Cellard LP2
+          </Link>
+
           <Button
             onClick={handleLoginClick}
             className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium px-6 py-2 transition-all duration-200 hover:scale-105 hover:shadow-md"
