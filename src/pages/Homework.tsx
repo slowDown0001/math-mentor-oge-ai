@@ -57,7 +57,7 @@ const Homework = () => {
   const [questionType, setQuestionType] = useState<'mcq' | 'frq'>('mcq');
   const [showCongrats, setShowCongrats] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
-  const [sessionId, setSessionId] = useState<string>('');
+  const [homeworkName, setHomeworkName] = useState<string>('');
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
   const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
   const [existingProgress, setExistingProgress] = useState<any>(null);
@@ -174,38 +174,39 @@ const Homework = () => {
   }, [currentQuestionIndex, currentQuestions]);
 
   useEffect(() => {
-    if (user?.id && currentQuestions.length > 0 && sessionId && !existingProgress) {
+    if (user?.id && currentQuestions.length > 0 && homeworkName && !existingProgress) {
       recordSessionStart();
     }
-  }, [user?.id, currentQuestions.length, sessionId, existingProgress]);
+  }, [user?.id, currentQuestions.length, homeworkName, existingProgress]);
 
   const checkExistingProgress = async () => {
-    if (!user?.id || !homeworkData) return;
+    if (!user?.id || !homeworkData || !userProfile?.homework) return;
 
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    
     try {
-      // Check for existing homework progress for today
+      // Extract homework_name from user profile
+      const homeworkJson = typeof userProfile.homework === 'string' 
+        ? JSON.parse(userProfile.homework) 
+        : userProfile.homework;
+      
+      const currentHomeworkName = homeworkJson.homework_name || 'Homework';
+      setHomeworkName(currentHomeworkName);
+      
+      // Check for existing homework progress with this homework_name
       const { data: existingSessions, error } = await supabase
         .from('homework_progress')
         .select('*')
         .eq('user_id', user.id)
-        .eq('homework_date', today)
+        .eq('homework_name', currentHomeworkName)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error checking existing progress:', error);
         // If no existing progress, start fresh
-        const newSessionId = crypto.randomUUID();
-        setSessionId(newSessionId);
         loadQuestions();
         return;
       }
 
       if (existingSessions && existingSessions.length > 0) {
-        const latestSession = existingSessions[0];
-        setSessionId(latestSession.session_id);
-        
         // Check if homework is already completed
         const completedSession = existingSessions.find(s => s.completion_status === 'completed');
         if (completedSession) {
@@ -220,7 +221,7 @@ const Homework = () => {
           return;
         }
 
-        // Get all completed questions for this session
+        // Get all completed questions for this homework_name
         const completedQuestionsList = existingSessions
           .filter(s => s.question_id)
           .map(s => s.question_id);
@@ -247,45 +248,25 @@ const Homework = () => {
         }
         
         // Set existing progress for stats
-        setExistingProgress(latestSession);
+        setExistingProgress(existingSessions[0]);
         
       } else {
         // No existing progress, start fresh
-        const newSessionId = crypto.randomUUID();
-        setSessionId(newSessionId);
         loadQuestions();
       }
     } catch (error) {
       console.error('Error checking existing progress:', error);
       // If error, start fresh
-      const newSessionId = crypto.randomUUID();
-      setSessionId(newSessionId);
       loadQuestions();
     }
   };
 
   const recordSessionStart = async () => {
-    if (!user?.id || !sessionId) return;
+    if (!user?.id || !homeworkName) return;
     
     try {
-      // Get homework name from user profile
-      let homeworkName = 'Homework';
-      if (userProfile?.homework) {
-        try {
-          const homeworkJson = typeof userProfile.homework === 'string' 
-            ? JSON.parse(userProfile.homework) 
-            : userProfile.homework;
-          if (homeworkJson.homework_name) {
-            homeworkName = homeworkJson.homework_name;
-          }
-        } catch (error) {
-          console.error('Error parsing homework JSON:', error);
-        }
-      }
-
       await supabase.from('homework_progress').insert({
         user_id: user.id,
-        session_id: sessionId,
         homework_task: `Homework ${new Date().toLocaleDateString()} - Session Start`,
         homework_name: homeworkName,
         total_questions: currentQuestions.length,
@@ -464,30 +445,14 @@ const Homework = () => {
     responseTime: number, 
     showedSolution: boolean
   ) => {
-    if (!user?.id) return;
+    if (!user?.id || !homeworkName) return;
 
     try {
       const currentQuestion = currentQuestions.find(q => q.id === questionId);
       const questionType = homeworkData?.mcq_questions?.includes(questionId) ? 'mcq' : 'fipi';
       
-      // Get homework name from user profile
-      let homeworkName = 'Homework';
-      if (userProfile?.homework) {
-        try {
-          const homeworkJson = typeof userProfile.homework === 'string' 
-            ? JSON.parse(userProfile.homework) 
-            : userProfile.homework;
-          if (homeworkJson.homework_name) {
-            homeworkName = homeworkJson.homework_name;
-          }
-        } catch (error) {
-          console.error('Error parsing homework name:', error);
-        }
-      }
-      
       await supabase.from('homework_progress').insert({
         user_id: user.id,
-        session_id: sessionId,
         homework_task: `Homework ${new Date().toLocaleDateString()}`,
         homework_name: homeworkName,
         question_id: questionId,
@@ -507,14 +472,14 @@ const Homework = () => {
   };
 
   const loadProgressStats = async () => {
-    if (!user?.id) return;
+    if (!user?.id || !homeworkName) return;
 
     try {
       const { data, error } = await supabase
         .from('homework_progress')
         .select('*')
         .eq('user_id', user.id)
-        .eq('session_id', sessionId)
+        .eq('homework_name', homeworkName)
         .not('question_id', 'is', null);
 
       if (error) throw error;
@@ -762,7 +727,7 @@ const Homework = () => {
   };
 
   const completeHomework = async () => {
-    if (!user?.id) return;
+    if (!user?.id || !homeworkName) return;
 
     // Calculate total questions from both MCQ and FRQ
     const totalMCQ = homeworkData?.mcq_questions?.length || 0;
@@ -774,25 +739,9 @@ const Homework = () => {
     const accuracy = completedCount > 0 ? (correctCount / completedCount) * 100 : 0;
 
     try {
-      // Get homework name from user profile
-      let homeworkName = 'Homework';
-      if (userProfile?.homework) {
-        try {
-          const homeworkJson = typeof userProfile.homework === 'string' 
-            ? JSON.parse(userProfile.homework) 
-            : userProfile.homework;
-          if (homeworkJson.homework_name) {
-            homeworkName = homeworkJson.homework_name;
-          }
-        } catch (error) {
-          console.error('Error parsing homework name:', error);
-        }
-      }
-
       // Record completion summary
       await supabase.from('homework_progress').insert({
         user_id: user.id,
-        session_id: sessionId,
         homework_task: `Homework ${new Date().toLocaleDateString()} - Summary`,
         homework_name: homeworkName,
         completed_at: new Date().toISOString(),
@@ -994,7 +943,7 @@ const Homework = () => {
                 onClick={() => {
                   // Store homework completion data for AI teacher feedback
                   const completionData = {
-                    sessionId,
+                    homeworkName,
                     totalQuestions: completedQuestions.size,
                     questionsCompleted: completedQuestions.size,
                     questionsCorrect: correctAnswers.size,
