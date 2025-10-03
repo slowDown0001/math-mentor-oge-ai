@@ -139,20 +139,22 @@ const App = () => (
           
               {/* protected pages – wrap in layout too if you want the same background */}
               <Route element={<PrivateRoute />}>
-                {/* With layout */}
-                <Route element={<LearningLayout />}>
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/mydashboard" element={<MyDashboard />} />
-                  <Route path="/mydb3" element={<MyDb3 />} />
-                  <Route path="/topics" element={<TopicsIndex />} />
-                  <Route path="/topic/:topicNumber" element={<TopicPage />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/diagnostic" element={<DiagnosticTest />} />
-                  <Route path="/statistics" element={<Statistics />} />
-                  <Route path="/statistics/detailed" element={<DetailedStatistics />} />
-                  <Route path="/statistics/visual" element={<StatisticsVisual />} />
-                  <Route path="/practice" element={<PracticeExercise />} />
-                </Route>
+              {/* With layout */}
+              <Route element={<LearningLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/mydashboard" element={<MyDashboard />} />
+                <Route path="/mydb3" element={<MyDb3 />} />
+                <Route path="/topics" element={<TopicsIndex />} />
+                <Route path="/topic/:topicNumber" element={<TopicPage />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/diagnostic" element={<DiagnosticTest />} />
+                <Route path="/statistics" element={<Statistics />} />
+                <Route path="/statistics/detailed" element={<DetailedStatistics />} />
+                <Route path="/statistics/visual" element={<StatisticsVisual />} />
+                <Route path="/practice" element={<PracticeExercise />} />
+                <Route path="/homework" element={<Homework />} />
+                <Route path="/homework-fipi-practice" element={<HomeworkFipiPractice />} />
+              </Route>
               </Route>
           
               <Route path="*" element={<NotFound />} />
