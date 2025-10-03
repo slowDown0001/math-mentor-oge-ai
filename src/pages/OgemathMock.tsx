@@ -479,7 +479,7 @@ const OgemathMock = () => {
                   console.log("[PAO/UPDATE] writing openrouter_check =", verdictStr, "for id =", targetId);
                   const { data: updData, error: updateErr } = await supabase
                     .from("photo_analysis_outputs")
-                    .update({ raw_output: verdictStr } as any)
+                    .update({ openrouter_check: verdictStr } as any)
                     .eq("id", targetId)
                     .select("id")
                     .single();
