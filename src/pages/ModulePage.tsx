@@ -30,6 +30,7 @@ const ModulePage = () => {
     isModuleTest?: boolean;
     moduleTopics?: string[];
     courseId?: string;
+    itemId?: string;
   } | null>(null);
 
   if (!moduleSlug || !modulesRegistry[moduleSlug]) {
@@ -184,7 +185,10 @@ const ModulePage = () => {
                       variant="outline"
                       size="sm"
                       className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                      onClick={() => setSelectedExercise(exerciseData)}
+                      onClick={() => {
+                        const itemId = `${moduleSlug}-${topic.id}-ex${i}`;
+                        setSelectedExercise({ ...exerciseData, itemId });
+                      }}
                       disabled={exerciseData.skills.length === 0}
                     >
                       Практика
@@ -220,11 +224,13 @@ const ModulePage = () => {
               if (!quizData) return;
 
               const isFinal = quiz.id === "module-exam";
+              const itemId = `${moduleSlug}-${quiz.id}`;
               setSelectedExercise({
                 ...quizData,
                 isModuleTest: isFinal,
                 moduleTopics: isFinal ? module.topicMapping : undefined,
                 courseId: isFinal ? "1" : undefined,
+                itemId
               });
             }}
           >
@@ -295,6 +301,7 @@ const ModulePage = () => {
               isModuleTest={selectedExercise.isModuleTest}
               moduleTopics={selectedExercise.moduleTopics}
               courseId={selectedExercise.courseId}
+              itemId={selectedExercise.itemId}
             />
           </div>
         </div>
@@ -378,23 +385,27 @@ const ModulePage = () => {
             onExerciseClick={(topicId, exerciseIndex) => {
               const exerciseData = module.getExerciseData?.(topicId, exerciseIndex);
               if (exerciseData) {
-                setSelectedExercise(exerciseData);
+                const itemId = `${moduleSlug}-${topicId}-ex${exerciseIndex}`;
+                setSelectedExercise({ ...exerciseData, itemId });
               }
             }}
             onQuizClick={(quizId) => {
               const quizData = module.getQuizData?.(quizId);
               if (quizData) {
-                setSelectedExercise(quizData);
+                const itemId = `${moduleSlug}-${quizId}`;
+                setSelectedExercise({ ...quizData, itemId });
               }
             }}
             onExamClick={() => {
               const examData = module.getQuizData?.('module-exam');
               if (examData) {
+                const itemId = `${moduleSlug}-module-exam`;
                 setSelectedExercise({
                   ...examData,
                   isModuleTest: true,
                   moduleTopics: module.topicMapping,
-                  courseId: "1"
+                  courseId: "1",
+                  itemId
                 });
               }
             }}

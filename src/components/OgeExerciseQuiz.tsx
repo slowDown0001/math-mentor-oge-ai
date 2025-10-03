@@ -21,6 +21,7 @@ interface OgeExerciseQuizProps {
   isModuleTest?: boolean;
   moduleTopics?: string[];
   courseId?: string;
+  itemId?: string; // Add itemId prop for tracking
 }
 
 const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({ 
@@ -30,7 +31,8 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
   questionCount = 4,
   isModuleTest = false,
   moduleTopics = [],
-  courseId = "1"
+  courseId = "1",
+  itemId // Accept itemId prop
 }) => {
   const { trackActivity } = useStreakTracking();
   const { user } = useAuth();
@@ -106,14 +108,25 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
     // Log exercise progress
     const solvedCount = answers.length + 1;
     const correctCount = [...answers, isCorrect].filter(Boolean).length;
+    
+    // Determine activity type based on question count
+    let activityType: "exercise" | "test" | "exam";
+    if (questionCount === 10 || isModuleTest) {
+      activityType = "exam";
+    } else if (questionCount === 6) {
+      activityType = "test";
+    } else {
+      activityType = "exercise";
+    }
+    
     logTextbookActivity({
-      activity_type: "exercise",
+      activity_type: activityType,
       activity: title,
       solved_count: solvedCount,
       correct_count: correctCount,
       total_questions: questionCount,
       skills_involved: skills.join(","),
-      item_id: `exercise-${skills.join("-")}`
+      item_id: itemId || `exercise-${skills.join("-")}`
     });
 
     if (isCorrect) {
@@ -232,14 +245,25 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
       // Log exercise progress
       const solvedCount = answers.length + 1;
       const correctCount = answers.filter(Boolean).length; // Don't count this one as correct
+      
+      // Determine activity type based on question count
+      let activityType: "exercise" | "test" | "exam";
+      if (questionCount === 10 || isModuleTest) {
+        activityType = "exam";
+      } else if (questionCount === 6) {
+        activityType = "test";
+      } else {
+        activityType = "exercise";
+      }
+      
       logTextbookActivity({
-        activity_type: "exercise",
+        activity_type: activityType,
         activity: title,
         solved_count: solvedCount,
         correct_count: correctCount,
         total_questions: questionCount,
         skills_involved: skills.join(","),
-        item_id: `exercise-${skills.join("-")}`
+        item_id: itemId || `exercise-${skills.join("-")}`
       });
     }
     
