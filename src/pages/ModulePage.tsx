@@ -1,6 +1,5 @@
 // src/pages/ModulePage.tsx
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Play, BookOpen, Target, Crown, Zap, Star, Info, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
