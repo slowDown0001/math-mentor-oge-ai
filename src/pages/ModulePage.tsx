@@ -12,6 +12,7 @@ import { useModuleProgress } from "@/hooks/useModuleProgress";
 import { modulesRegistry, type TopicContent, type QuizContent } from "@/lib/modules.registry";
 import { supabase } from "@/integrations/supabase/client";
 import NotFound from "./NotFound";
+import { Link, useParams, useNavigate } from "react-router-dom";
 
 const ModulePage = () => {
   const { moduleSlug } = useParams<{ moduleSlug: string }>();
@@ -61,7 +62,15 @@ const ModulePage = () => {
       transition={{ delay: topicIndex * 0.05 }}
       className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg p-6 mb-4 border border-blue-200/50 dark:border-blue-800/50"
     >
-      <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6">{topic.title}</h3>
+      <h3 className="text-xl font-semibold mb-6">
+        <Link
+          to={`/module/${moduleSlug}/topic/${topic.id}`}
+          className="text-gray-800 dark:text-gray-200 hover:underline cursor-pointer focus:outline-none focus:underline"
+        >
+          {topic.title}
+        </Link>
+      </h3>
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column - Learn */}
