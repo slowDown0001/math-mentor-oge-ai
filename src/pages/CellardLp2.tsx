@@ -33,7 +33,22 @@ const CellardLp2: React.FC = () => {
   const p5InstanceRef = useRef<p5 | null>(null);
 
   const goToModule = (n: number) => {
-    navigate("/learning-platform");
+    const moduleSlugMap: Record<number, string> = {
+      1: 'numbers-calculations',
+      2: 'algebraic-expressions',
+      3: 'equations-inequalities',
+      4: 'sequences',
+      5: 'functions',
+      6: 'coordinates',
+      7: 'geometry',
+      8: 'probability-statistics',
+      9: 'applications'
+    };
+    
+    const slug = moduleSlugMap[n];
+    if (slug) {
+      navigate(`/module/${slug}`);
+    }
   };
 
   const startMock = () => {
