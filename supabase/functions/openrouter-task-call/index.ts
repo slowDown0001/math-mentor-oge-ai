@@ -5,31 +5,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
 Deno.serve(async (req)=>{
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       headers: corsHeaders
     });
   }
   try {
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    // Get OpenRouter API key from Supabase secrets
     const openrouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
     if (!openrouterApiKey) {
       throw new Error('OPENROUTER_API_KEY not found in environment variables');
     }
-    // Parse request body
     const { user_id, course_id = 1, target_score, weekly_hours, school_grade, date_string = '29 may 2026', number_of_words } = await req.json();
-    console.log(`Processing task call for user: ${user_id}`);
-    // Calculate days to exam
+    console.log(`Processing task call for user: ${user_id}, course_id: ${course_id}`);
     const examDate = new Date(date_string);
     const today = new Date();
     const daysToExam = Math.ceil((examDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     let studentProgress = '';
-    // Get student progress if course_id is 1
     if (course_id === 1) {
       console.log('Fetching student progress...');
       try {
@@ -40,12 +34,10 @@ Deno.serve(async (req)=>{
         });
         if (progressError) {
           console.error('Error fetching student progress:', progressError);
-          console.log('Using fallback for student progress');
-          studentProgress = '[]'; // Use empty array as fallback
+          studentProgress = '[]';
         } else if (!progressData) {
           console.error('No progress data returned from student-progress-calculate');
-          console.log('Using fallback for student progress');
-          studentProgress = '[]'; // Use empty array as fallback
+          studentProgress = '[]';
         } else {
           console.log('Progress data received successfully');
           console.log('Progress data type:', typeof progressData);
@@ -54,67 +46,82 @@ Deno.serve(async (req)=>{
         }
       } catch (error) {
         console.error('Exception while fetching student progress:', error);
-        console.log('Error details:', error.name, error.message);
-        console.log('Using fallback for student progress due to exception');
-        studentProgress = '[]'; // Use empty array as fallback
+        studentProgress = '[]';
       }
     }
-    // ---- Calculate previously_failed_topics ----
-    let previously_failed_topics = [];
+    let previously_failed_topics = {
+      time_task: null,
+      time_mastery: null,
+      "темы с ошибками": []
+    };
     try {
-      const { data: masteryRow } = await supabase.from('mastery_snapshots').select('run_timestamp').eq('user_id', user_id).eq('course_id', course_id).order('run_timestamp', {
+      console.log('Fetching latest mastery snapshot and task timestamps...');
+      const { data: masteryRow, error: masteryError } = await supabase.from('mastery_snapshots').select('run_timestamp').eq('user_id', user_id).eq('course_id', String(course_id)).order('run_timestamp', {
         ascending: false
       }).limit(1).single();
-      const { data: taskRow } = await supabase.from('stories_and_telegram').select('created_at').eq('user_id', user_id).eq('course_id', course_id).order('created_at', {
+      const { data: taskRow, error: taskError } = await supabase.from('stories_and_telegram').select('created_at').eq('user_id', user_id).eq('course_id', String(course_id)).order('created_at', {
         ascending: false
       }).limit(1).single();
+      if (masteryError) console.error('Mastery snapshot error:', masteryError);
+      if (taskError) console.error('Task row error:', taskError);
       if (masteryRow && taskRow) {
+        console.log('Mastery and task rows found');
         const time_mastery = new Date(masteryRow.run_timestamp);
         const time_task = new Date(taskRow.created_at);
-        const { data: activityData } = await supabase.from('student_activity').select('question_id').eq('user_id', user_id).eq('course_id', course_id).eq('is_correct', false).gt('created_at', time_task.toISOString()).lt('created_at', time_mastery.toISOString());
+        previously_failed_topics.time_task = time_task.toISOString();
+        previously_failed_topics.time_mastery = time_mastery.toISOString();
+        console.log(`Timestamps - time_task: ${previously_failed_topics.time_task}, time_mastery: ${previously_failed_topics.time_mastery}`);
+        const olderTime = new Date(Math.min(time_task.getTime(), time_mastery.getTime()) - 60 * 60 * 1000); // 1 hour before
+        const newerTime = new Date(Math.max(time_task.getTime(), time_mastery.getTime()));
+        console.log(`Time window - older: ${olderTime.toISOString()}, newer: ${newerTime.toISOString()}`);
+        const { data: activityData, error: activityError } = await supabase.from('student_activity').select('question_id').eq('user_id', user_id).eq('course_id', String(course_id)).eq('is_correct', false).gt('created_at', olderTime.toISOString()).lt('created_at', newerTime.toISOString());
+        if (activityError) console.error('Student activity error:', activityError);
+        console.log(`Fetched student activity, found ${activityData?.length || 0} failed questions`);
         if (activityData && activityData.length > 0) {
           const qids = activityData.map((a)=>a.question_id);
-          const { data: fipiData } = await supabase.from('oge_math_fipi_bank').select('topics, question_id').in('question_id', qids);
+          console.log('Failed question IDs:', JSON.stringify(qids, null, 2));
+          const { data: fipiData, error: fipiError } = await supabase.from('oge_math_fipi_bank').select('topics, question_id').in('question_id', qids);
+          if (fipiError) console.error('FIPI bank error:', fipiError);
+          console.log(`Fetched topics from oge_math_fipi_bank, found ${fipiData?.length || 0} records`);
           if (fipiData && fipiData.length > 0) {
-            const topicsFlat = fipiData.flatMap((row)=>Array.isArray(row.topics) ? row.topics : [
-                row.topics
-              ]);
-            previously_failed_topics = [
+            console.log('Raw topics data:', JSON.stringify(fipiData.map((row)=>({
+                question_id: row.question_id,
+                topics: row.topics
+              })), null, 2));
+            const topicsFlat = fipiData.flatMap((row)=>{
+              if (Array.isArray(row.topics)) return row.topics;
+              return row.topics ? row.topics.split(',').map((t)=>t.trim()) : [];
+            });
+            console.log('Flattened topics before deduplication:', JSON.stringify(topicsFlat, null, 2));
+            previously_failed_topics["темы с ошибками"] = [
               ...new Set(topicsFlat)
             ];
+            console.log('Final previously_failed_topics:', JSON.stringify(previously_failed_topics, null, 2));
+          } else {
+            console.log('No topics found for question IDs');
           }
+        } else {
+          console.log('No failed questions found in the time window');
         }
+      } else {
+        console.log('Missing mastery or task row:', {
+          masteryRowExists: !!masteryRow,
+          taskRowExists: !!taskRow
+        });
       }
     } catch (e) {
       console.error('Error calculating failed topics:', e);
     }
-    // Get student hardcoded task
+    console.log('Final previously_failed_topics:', JSON.stringify(previously_failed_topics, null, 2));
     let student_hardcoded_task = '';
-    console.log(`Checking conditions for ogemath-task-hardcode: course_id=${course_id}, studentProgress exists=${!!studentProgress}, studentProgress length=${typeof studentProgress === 'string' ? studentProgress.length : 'undefined'}`);
+    console.log(`Checking conditions for ogemath-task-hardcode: course_id=${course_id}, studentProgress exists=${!!studentProgress}`);
     if (course_id === 1 && studentProgress) {
       console.log('Calling ogemath-task-hardcode function...');
       try {
-        let progressArray;
-        try {
-          progressArray = JSON.parse(studentProgress);
-        } catch (parseError) {
-          console.error('Failed to parse studentProgress JSON:', parseError);
-          progressArray = []; // Use empty array as fallback
-        }
-        console.log('Progress array parsed, type:', typeof progressArray, 'is array:', Array.isArray(progressArray));
-        // Extract progress_bars if it exists, otherwise use the array directly, or empty array as fallback
-        let progressData;
-        if (progressArray && typeof progressArray === 'object') {
-          progressData = progressArray.progress_bars || progressArray;
-        } else {
-          progressData = [];
-        }
-        // Ensure progressData is an array
-        if (!Array.isArray(progressData)) {
-          console.log('progressData is not an array, converting to empty array');
-          progressData = [];
-        }
-        console.log('Using progress ', `Array with ${progressData.length} items`);
+        let progressArray = JSON.parse(studentProgress);
+        let progressData = Array.isArray(progressArray) ? progressArray : progressArray.progress_bars || [];
+        if (!Array.isArray(progressData)) progressData = [];
+        console.log('Using progress Array with', progressData.length, 'items');
         const { data: taskData, error: taskError } = await supabase.functions.invoke('ogemath-task-hardcode', {
           body: {
             goal: target_score,
@@ -135,21 +142,12 @@ Deno.serve(async (req)=>{
         console.error('Error parsing student progress for task generation:', error);
         student_hardcoded_task = 'Ошибка при обработке прогресса';
       }
-    } else {
-      console.log('Conditions not met for ogemath-task-hardcode. Reasons:');
-      console.log(`- course_id !== 1: ${course_id !== 1}`);
-      console.log(`- no studentProgress: ${!studentProgress}`);
-      console.log(`- studentProgress is error: ${studentProgress === 'Не удалось загрузить прогресс студента' || studentProgress === 'Ошибка при загрузке прогресса студента'}`);
     }
-    // Get task context from oge_entrypage_rag table
-    console.log(`Fetching task context for course_id: ${course_id}`);
-    const { data: ragData, error: ragError } = await supabase.from('oge_entrypage_rag').select('task_context').eq('id', course_id).single();
+    const { data: ragData, error: ragError } = await supabase.from('oge_entrypage_rag').select('task_context').eq('id', String(course_id)).single();
     if (ragError) {
       console.error('Error fetching task context:', ragError);
       throw new Error('Failed to fetch task context');
     }
-    const prompt1 = ragData.task_context || '';
-    // Filter student progress to remove skill elements
     let filteredStudentProgress = studentProgress;
     if (studentProgress && course_id === 1) {
       try {
@@ -158,124 +156,214 @@ Deno.serve(async (req)=>{
         filteredStudentProgress = JSON.stringify(filteredProgress, null, 2);
       } catch (error) {
         console.error('Error filtering student progress:', error);
-      // Keep original if filtering fails
       }
     }
-    // NEW: Get progress difference logic with null checks (for context only, not stored)
     let final_json = null;
     let retrieved_hardcode_task = null;
     try {
-      // 1. Get most recent hardcode_task from stories_and_telegram
-      const { data: storiesData, error: storiesError } = await supabase.from('stories_and_telegram').select('hardcode_task, created_at').eq('user_id', user_id).eq('course_id', course_id).order('created_at', {
+      const { data: storiesData, error: storiesError } = await supabase.from('stories_and_telegram').select('hardcode_task, created_at').eq('user_id', user_id).eq('course_id', String(course_id)).order('created_at', {
         ascending: false
       }).limit(1).single();
       if (storiesError) {
         console.error(`Error fetching stories_and_telegram: ${storiesError.message}`);
-        final_json = null;
-        retrieved_hardcode_task = null;
-      } else if (!storiesData) {
-        final_json = null;
-        retrieved_hardcode_task = null;
-      } else {
+      } else if (storiesData && storiesData.created_at) {
         retrieved_hardcode_task = storiesData.hardcode_task;
-        if (!storiesData.created_at) {
-          final_json = null;
-          retrieved_hardcode_task = null;
-        } else {
-          const task_timestamp = new Date(storiesData.created_at);
-          // 2. Get most recent raw_data from mastery_snapshots
-          const { data: recentMasteryData, error: recentMasteryError } = await supabase.from('mastery_snapshots').select('raw_data, run_timestamp').eq('user_id', user_id).eq('course_id', course_id).order('run_timestamp', {
+        const task_timestamp = new Date(storiesData.created_at);
+        const { data: recentMasteryData, error: recentMasteryError } = await supabase.from('mastery_snapshots').select('raw_data, run_timestamp').eq('user_id', user_id).eq('course_id', String(course_id)).order('run_timestamp', {
+          ascending: false
+        }).limit(1).single();
+        if (recentMasteryError) {
+          console.error(`Error fetching recent mastery_snapshot: ${recentMasteryError.message}`);
+        } else if (recentMasteryData) {
+          const recentRawData = recentMasteryData.raw_data || [];
+          const { data: previousMasteryData, error: previousMasteryError } = await supabase.from('mastery_snapshots').select('raw_data, run_timestamp').eq('user_id', user_id).eq('course_id', String(course_id)).lt('run_timestamp', task_timestamp.toISOString()).order('run_timestamp', {
             ascending: false
           }).limit(1).single();
-          if (recentMasteryError) {
-            console.error(`Error fetching recent mastery_snapshot: ${recentMasteryError.message}`);
-            final_json = null;
-            retrieved_hardcode_task = null;
-          } else if (!recentMasteryData) {
-            final_json = null;
-            retrieved_hardcode_task = null;
-          } else {
-            const recentRawData = recentMasteryData.raw_data || [];
-            // 3. Get most recent raw_data before task_timestamp from mastery_snapshots
-            const { data: previousMasteryData, error: previousMasteryError } = await supabase.from('mastery_snapshots').select('raw_data, run_timestamp').eq('user_id', user_id).eq('course_id', course_id).lt('run_timestamp', task_timestamp.toISOString()).order('run_timestamp', {
-              ascending: false
-            }).limit(1).single();
-            if (previousMasteryError) {
-              console.error(`Error fetching previous mastery_snapshot: ${previousMasteryError.message}`);
-              final_json = null;
-              retrieved_hardcode_task = null;
-            } else if (!previousMasteryData) {
-              final_json = null;
-              retrieved_hardcode_task = null;
-            } else {
-              const previousRawData = previousMasteryData.raw_data || [];
-              // Calculate progress_diff by subtracting values
-              const progress_diff = [];
-              // Create a map of previous data for quick lookup
-              const previousMap = new Map();
-              previousRawData.forEach((item)=>{
-                const key = Object.keys(item).filter((k)=>k !== 'prob').map((k)=>`${k}:${item[k]}`).join('|');
-                previousMap.set(key, item);
-              });
-              // Calculate differences
-              recentRawData.forEach((recentItem)=>{
-                const key = Object.keys(recentItem).filter((k)=>k !== 'prob').map((k)=>`${k}:${recentItem[k]}`).join('|');
-                const previousItem = previousMap.get(key);
-                const diffItem = {
-                  ...recentItem
-                }; // Copy all properties
-                if (previousItem) {
-                  diffItem.prob = recentItem.prob - previousItem.prob;
-                } else {
-                  diffItem.prob = recentItem.prob; // If no previous value, use current value
-                }
-                progress_diff.push(diffItem);
-              });
-              // Add items that were in previous but not in recent (with negative values)
-              previousRawData.forEach((prevItem)=>{
-                const key = Object.keys(prevItem).filter((k)=>k !== 'prob').map((k)=>`${k}:${prevItem[k]}`).join('|');
-                if (!recentRawData.some((recentItem)=>Object.keys(recentItem).filter((k)=>k !== 'prob').map((k)=>`${k}:${recentItem[k]}`).join('|') === key)) {
-                  const newItem = {
-                    ...prevItem,
-                    prob: 0 - prevItem.prob
-                  };
-                  progress_diff.push(newItem);
-                }
-              });
-              // Sort by absolute value of prob in descending order and take top 30
-              const sorted_progress_diff = progress_diff.sort((a, b)=>Math.abs(b.prob) - Math.abs(a.prob)).slice(0, 30);
-              final_json = sorted_progress_diff;
-            }
+          if (previousMasteryError) {
+            console.error(`Error fetching previous mastery_snapshot: ${previousMasteryError.message}`);
+          } else if (previousMasteryData) {
+            const previousRawData = previousMasteryData.raw_data || [];
+            const progress_diff = [];
+            const previousMap = new Map();
+            previousRawData.forEach((item)=>{
+              const key = Object.keys(item).filter((k)=>k !== 'prob').map((k)=>`${k}:${item[k]}`).join('|');
+              previousMap.set(key, item);
+            });
+            recentRawData.forEach((recentItem)=>{
+              const key = Object.keys(recentItem).filter((k)=>k !== 'prob').map((k)=>`${k}:${recentItem[k]}`).join('|');
+              const previousItem = previousMap.get(key);
+              const diffItem = {
+                ...recentItem
+              };
+              if (previousItem) {
+                diffItem.prob = recentItem.prob - previousItem.prob;
+              } else {
+                diffItem.prob = recentItem.prob;
+              }
+              progress_diff.push(diffItem);
+            });
+            previousRawData.forEach((prevItem)=>{
+              const key = Object.keys(prevItem).filter((k)=>k !== 'prob').map((k)=>`${k}:${prevItem[k]}`).join('|');
+              if (!recentRawData.some((recentItem)=>Object.keys(recentItem).filter((k)=>k !== 'prob').map((k)=>`${k}:${recentItem[k]}`).join('|') === key)) {
+                const newItem = {
+                  ...prevItem,
+                  prob: 0 - prevItem.prob
+                };
+                progress_diff.push(newItem);
+              }
+            });
+            final_json = progress_diff.sort((a, b)=>Math.abs(b.prob) - Math.abs(a.prob)).slice(0, 30);
           }
         }
       }
     } catch (progressDiffError) {
       console.error('Error in progress difference calculation:', progressDiffError);
-      final_json = null;
-      retrieved_hardcode_task = null;
     }
-    // NEW: Log the content of final_json for debugging
-    if (final_json) {
-      console.log('Final JSON content (top 10 items):', JSON.stringify(final_json.slice(0, 10), null, 2));
-      console.log(`Total items in final_json: ${final_json.length}`);
-    } else {
-      console.log('Final JSON is null - no progress difference data available');
+    // New code block to fetch previous_homework_question_ids and result_of_prev_homework_completion
+    let previous_homework_question_ids = {
+      MCQ: [],
+      FIPI: []
+    };
+    let result_of_prev_homework_completion = [];
+    try {
+      console.log('Fetching homework from profiles table...');
+      const { data: profileData, error: profileError } = await supabase.from('profiles').select('homework').eq('user_id', user_id).single();
+      if (profileError) {
+        console.error('Error fetching homework from profiles:', profileError);
+      } else if (profileData && profileData.homework) {
+        console.log('Homework data found in profiles');
+        console.log('Raw homework data:', JSON.stringify(profileData.homework, null, 2));
+        try {
+          const homeworkJson = typeof profileData.homework === 'string' ? JSON.parse(profileData.homework) : profileData.homework;
+          previous_homework_question_ids = {
+            MCQ: homeworkJson.MCQ || [],
+            FIPI: homeworkJson.FIPI || []
+          };
+          console.log('Extracted previous_homework_question_ids:', JSON.stringify(previous_homework_question_ids, null, 2));
+          const homeworkName = homeworkJson.homework_name;
+          if (homeworkName && typeof homeworkName === 'string' && homeworkName.trim() !== '') {
+            console.log(`Fetching homework progress for homework_name: ${homeworkName}`);
+            const { data: homeworkProgressData, error: homeworkProgressError } = await supabase.from('homework_progress').select('question_id, is_correct').eq('user_id', user_id).eq('homework_name', homeworkName);
+            if (homeworkProgressError) {
+              console.error('Error fetching homework progress:', homeworkProgressError);
+            } else {
+              // Combine all question IDs from previous_homework_question_ids
+              const allHomeworkQids = [
+                ...previous_homework_question_ids.MCQ,
+                ...previous_homework_question_ids.FIPI
+              ];
+              console.log('All homework question IDs:', JSON.stringify(allHomeworkQids, null, 2));
+              // Get question IDs from homework_progress
+              const progressQids = homeworkProgressData ? homeworkProgressData.map((row)=>row.question_id) : [];
+              // Find missing question IDs
+              const missingQids = allHomeworkQids.filter((qid)=>!progressQids.includes(qid));
+              console.log('Missing question IDs:', JSON.stringify(missingQids, null, 2));
+              // Split all question IDs (progress + missing) into SKILLS and non-SKILLS
+              const allQids = [
+                ...progressQids,
+                ...missingQids
+              ];
+              const skillsQids = allQids.filter((qid)=>qid.includes('SKILLS'));
+              const fipiQids = allQids.filter((qid)=>!qid.includes('SKILLS'));
+              console.log('Skills question IDs:', JSON.stringify(skillsQids, null, 2));
+              console.log('FIPI question IDs:', JSON.stringify(fipiQids, null, 2));
+              // Fetch skills for SKILLS questions
+              let skillsMap = new Map();
+              if (skillsQids.length > 0) {
+                const { data: skillsData, error: skillsError } = await supabase.from('oge_math_skills_questions').select('question_id, skills').in('question_id', skillsQids);
+                if (skillsError) {
+                  console.error('Error fetching skills from oge_math_skills_questions:', skillsError);
+                } else if (skillsData) {
+                  skillsMap = new Map(skillsData.map((row)=>[
+                      row.question_id,
+                      row.skills !== null ? row.skills : 0
+                    ]));
+                  console.log('Fetched skills data:', JSON.stringify([
+                    ...skillsMap
+                  ], null, 2));
+                }
+              }
+              // Fetch problem_number_type for FIPI questions
+              let fipiMap = new Map();
+              if (fipiQids.length > 0) {
+                const { data: fipiData, error: fipiError } = await supabase.from('oge_math_fipi_bank').select('question_id, problem_number_type').in('question_id', fipiQids);
+                if (fipiError) {
+                  console.error('Error fetching problem_number_type from oge_math_fipi_bank:', fipiError);
+                } else if (fipiData) {
+                  fipiMap = new Map(fipiData.map((row)=>[
+                      row.question_id,
+                      row.problem_number_type !== null ? row.problem_number_type : 0
+                    ]));
+                  console.log('Fetched problem_number_type data:', JSON.stringify([
+                    ...fipiMap
+                  ], null, 2));
+                }
+              }
+              // Build result_of_prev_homework_completion
+              if (homeworkProgressData && homeworkProgressData.length > 0) {
+                result_of_prev_homework_completion = homeworkProgressData.map((row)=>{
+                  const isSkillsQuestion = row.question_id.includes('SKILLS');
+                  return {
+                    question_id: row.question_id,
+                    is_correct: row.is_correct,
+                    [isSkillsQuestion ? 'навык' : 'номер задачи ФИПИ']: isSkillsQuestion ? skillsMap.get(row.question_id) ?? 0 : fipiMap.get(row.question_id) ?? 0
+                  };
+                });
+              }
+              // Add missing question IDs
+              if (missingQids.length > 0) {
+                const missingEntries = missingQids.map((qid)=>{
+                  const isSkillsQuestion = qid.includes('SKILLS');
+                  return {
+                    question_id: qid,
+                    is_correct: null,
+                    [isSkillsQuestion ? 'навык' : 'номер задачи ФИПИ']: isSkillsQuestion ? skillsMap.get(qid) ?? 0 : fipiMap.get(qid) ?? 0
+                  };
+                });
+                result_of_prev_homework_completion = [
+                  ...result_of_prev_homework_completion,
+                  ...missingEntries
+                ];
+              }
+              console.log('Fetched result_of_prev_homework_completion:', JSON.stringify(result_of_prev_homework_completion, null, 2));
+            }
+          } else {
+            console.log('No valid homework_name found in homework JSON');
+          }
+        } catch (parseError) {
+          console.error('Error parsing homework JSON:', parseError.message);
+        }
+      } else {
+        console.log('No homework data found in profiles for user_id:', user_id);
+      }
+    } catch (error) {
+      console.error('Error fetching homework-related data:', error.message);
     }
-    // Construct the full prompt
+    // End of new code block
+    const prompt1 = ragData.task_context || '';
+    const homeworkSection = previous_homework_question_ids.MCQ.length || previous_homework_question_ids.FIPI.length || result_of_prev_homework_completion.length ? `
+### Задачи из Прошлого Домашнего Задания и как оно были решены учеником
+{ЗАДАЧИ_ИЗ_ПРОШЛОГО_ДОМАШНЕГО_ЗАДАНИЯ}
+${JSON.stringify(previous_homework_question_ids, null, 2)}
+
+{ЗАДАЧИ_ИЗ_ПРОШЛОГО_ДОМАШНЕГО_ЗАДАНИЯ_КАК_РЕШЕНЫ}
+${JSON.stringify(result_of_prev_homework_completion, null, 2)}` : `
+### Задачи из Прошлого Домашнего Задания и как оно были решены учеником
+Нет данных о предыдущем домашнем задании или его выполнении`;
     const prompt = prompt1 + `
 Твой ответ должен иметь длину до ${number_of_words} слов.
 
 ### Задание студента
-
 {ЗАДАНИЕ_ДЛЯ_СТУДЕНТА}:
 ${student_hardcoded_task}
 
-### Аанализ Прошлой Активности
+### Анализ Прошлой Активности
 {АНАЛИЗ_ОШИБОК}
-${previously_failed_topics}
+${JSON.stringify(previously_failed_topics["темы с ошибками"] || [])}
+
+${homeworkSection}
 
 ### Динамика прогресса студента
-
 {ПРОШЛОЕ_ЗАДАНИЕ}:
 ${retrieved_hardcode_task || 'Нет предыдущих заданий'}
 
@@ -283,7 +371,6 @@ ${retrieved_hardcode_task || 'Нет предыдущих заданий'}
 ${final_json ? JSON.stringify(final_json, null, 2) : 'Нет данных о прогрессе'}
 
 ### Данные студента
-
 {ЦЕЛЬ_СТУДЕНТА}:
 ${target_score} балла
 
@@ -300,13 +387,12 @@ ${daysToExam}
 ${filteredStudentProgress}
 `;
     console.log('Making OpenRouter API call...');
-    // Make OpenRouter API call
     const headers = {
       "Authorization": `Bearer ${openrouterApiKey}`,
       "Content-Type": "application/json"
     };
     const data = {
-      "model": "x-ai/grok-3-mini",
+      "model": "google/gemini-2.5-flash-lite-preview-09-2025",
       "messages": [
         {
           "role": "system",
@@ -328,16 +414,16 @@ ${filteredStudentProgress}
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`OpenRouter API error: ${response.status} ${response.statusText}`, errorText);
-      throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
+      throw new Error(`OpenRouter API error: ${response.status}`);
     }
     const responseData = await response.json();
     const aiResponse = responseData.choices?.[0]?.message?.content || "Не удалось получить ответ от ИИ";
+    console.log('Final previously_failed_topics in response:', JSON.stringify(previously_failed_topics, null, 2));
     console.log('Successfully generated AI response');
-    // Return only the requested data without writing to database
     return new Response(JSON.stringify({
       task: aiResponse,
       hardcode_task: student_hardcoded_task,
-      previously_failed_topics: previously_failed_topics,
+      previously_failed_topics,
       metadata: {
         user_id,
         course_id,
