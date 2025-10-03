@@ -31,7 +31,7 @@ const LearningLayout: React.FC = () => {
         </div>
       </nav>
 
-      <main className="pt-24 relative z-20">
+      <main className="pt-16 relative z-20">
         <Outlet />
       </main>
 
