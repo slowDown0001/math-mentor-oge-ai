@@ -843,6 +843,7 @@ export type Database = {
           created_at: string
           difficulty_level: number | null
           homework_date: string | null
+          homework_name: string | null
           homework_task: string | null
           id: number
           is_correct: boolean | null
@@ -853,6 +854,7 @@ export type Database = {
           questions_correct: number | null
           response_time_seconds: number | null
           session_id: string | null
+          session_number: number | null
           showed_solution: boolean | null
           skill_ids: number[] | null
           started_at: string | null
@@ -870,6 +872,7 @@ export type Database = {
           created_at?: string
           difficulty_level?: number | null
           homework_date?: string | null
+          homework_name?: string | null
           homework_task?: string | null
           id?: number
           is_correct?: boolean | null
@@ -880,6 +883,7 @@ export type Database = {
           questions_correct?: number | null
           response_time_seconds?: number | null
           session_id?: string | null
+          session_number?: number | null
           showed_solution?: boolean | null
           skill_ids?: number[] | null
           started_at?: string | null
@@ -897,6 +901,7 @@ export type Database = {
           created_at?: string
           difficulty_level?: number | null
           homework_date?: string | null
+          homework_name?: string | null
           homework_task?: string | null
           id?: number
           is_correct?: boolean | null
@@ -907,6 +912,7 @@ export type Database = {
           questions_correct?: number | null
           response_time_seconds?: number | null
           session_id?: string | null
+          session_number?: number | null
           showed_solution?: boolean | null
           skill_ids?: number[] | null
           started_at?: string | null
@@ -1701,6 +1707,7 @@ export type Database = {
           created_at: string
           exam_id: string | null
           id: string
+          openrouter_check: string | null
           problem_number: string | null
           question_id: string | null
           raw_output: string
@@ -1711,6 +1718,7 @@ export type Database = {
           created_at?: string
           exam_id?: string | null
           id?: string
+          openrouter_check?: string | null
           problem_number?: string | null
           question_id?: string | null
           raw_output: string
@@ -1721,6 +1729,7 @@ export type Database = {
           created_at?: string
           exam_id?: string | null
           id?: string
+          openrouter_check?: string | null
           problem_number?: string | null
           question_id?: string | null
           raw_output?: string
@@ -1847,6 +1856,7 @@ export type Database = {
           course_id: string | null
           created_at: string | null
           hardcode_task: string | null
+          previously_failed_topics: string | null
           problem_submission_id: string | null
           seen: number | null
           task: string | null
@@ -1859,6 +1869,7 @@ export type Database = {
           course_id?: string | null
           created_at?: string | null
           hardcode_task?: string | null
+          previously_failed_topics?: string | null
           problem_submission_id?: string | null
           seen?: number | null
           task?: string | null
@@ -1871,6 +1882,7 @@ export type Database = {
           course_id?: string | null
           created_at?: string | null
           hardcode_task?: string | null
+          previously_failed_topics?: string | null
           problem_submission_id?: string | null
           seen?: number | null
           task?: string | null
