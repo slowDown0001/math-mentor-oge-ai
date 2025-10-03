@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import anime from "animejs";
+import { animate, stagger } from "animejs";
 import Splitting from "splitting";
 import "splitting/dist/splitting.css";
 import p5 from "p5";
@@ -55,24 +55,22 @@ const CellardLp2: React.FC = () => {
   // Splitting + Anime init
   useEffect(() => {
     Splitting(); // splits [data-splitting]
-    anime({
-      targets: "[data-splitting] .char",
+    animate("[data-splitting] .char", {
       translateY: [100, 0],
       opacity: [0, 1],
-      easing: "easeOutExpo",
+      easing: "out(3)",
       duration: 1400,
-      delay: anime.stagger(30),
+      delay: stagger(30),
     });
 
     // Animate module cards when in view
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         if (e.isIntersecting) {
-          anime({
-            targets: e.target as Element,
+          animate(e.target as Element, {
             translateY: [50, 0],
             opacity: [0, 1],
-            easing: "easeOutQuart",
+            easing: "out(4)",
             duration: 800,
           });
           io.unobserve(e.target);
@@ -93,10 +91,9 @@ const CellardLp2: React.FC = () => {
         const ring = e.target as SVGCircleElement;
         const pct = Number(ring.getAttribute("data-progress") || "0");
         const offset = circumference - (pct / 100) * circumference;
-        anime({
-          targets: ring,
+        animate(ring, {
           strokeDashoffset: [circumference, offset],
-          easing: "easeOutQuart",
+          easing: "out(4)",
           duration: 1500,
           delay: 300,
         });
