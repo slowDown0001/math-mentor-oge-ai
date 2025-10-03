@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Play, BookOpen, Target, X } from "lucide-react";
+import { Link } from "react-router-dom";
+
 
 import { Button } from "@/components/ui/button";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
@@ -179,10 +181,14 @@ const TopicPage: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               {topic.title}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <Link
+              to={`/module/${moduleSlug}`}
+              className="text-gray-600 dark:text-gray-400 hover:underline inline-block"
+            >
               Тема {topicNumber} • Модуль {moduleEntry.moduleNumber}:{" "}
               {moduleEntry.title.replace(/^Модуль \d+:\s*/, "")}
-            </p>
+            </Link>
+
           </div>
           <StreakDisplay />
         </div>
