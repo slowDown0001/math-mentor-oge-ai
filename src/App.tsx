@@ -116,8 +116,9 @@ const App = () => (
                 <Route path="/egemathprof-practice" element={<EgemathprofPractice />} />
                 <Route path="/egemathbasic-practice" element={<EgemathbasicPractice />} />
                 <Route path="/new-practice-skills" element={<NewPracticeSkills />} />
-                <Route path="/learning-platform" element={<LearningPlatform />} />
+        <Route path="/learning-platform" element={<LearningPlatform />} />
         <Route path="/module/:moduleSlug" element={<ModulePage />} />
+        <Route path="/module/:moduleSlug/topic/:topicId" element={<TopicPage />} />
         <Route path="/book-test" element={<BookTest />} />
         <Route path="/after-registration" element={<AfterRegistration />} />
         <Route path="/db2" element={<Db2 />} />
@@ -132,7 +133,6 @@ const App = () => (
                   <Route path="/mydb3" element={<MyDb3 />} />
                  
                   <Route path="/topics" element={<TopicsIndex />} />
-                  <Route path="/module/:moduleSlug/topic/:topicId" element={<TopicPage />} />
                   <Route path="/topic/:topicNumber" element={<TopicPage />} />
 
 
