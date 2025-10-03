@@ -53,12 +53,12 @@ const ModulePage = () => {
     return data ? { title: `Тема ${topicNumber}`, content: data.topic_text } : null;
   };
 
-  const renderTopicItem = (topic: TopicContent, index: number) => (
+  const renderTopicItem = (topic: TopicContent, topicIndex: number) => (
     <motion.div
       key={topic.id}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
+      transition={{ delay: topicIndex * 0.05 }}
       className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg p-6 mb-4 border border-blue-200/50 dark:border-blue-800/50"
     >
       <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6">{topic.title}</h3>
@@ -95,7 +95,7 @@ const ModulePage = () => {
             <div
               className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-purple-200/30 dark:border-purple-800/30 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer transition-colors"
               onClick={async () => {
-                const topicNumber = module.topicMapping[index];
+                const topicNumber = module.topicMapping[topicIndex];
 
                 // 1) Try DB (topic_articles)
                 const dbArt = await loadOverviewByTopicNumber(topicNumber);
@@ -136,7 +136,7 @@ const ModulePage = () => {
             {/* Read Textbook */}
             <div
               className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-purple-200/30 dark:border-purple-800/30 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer transition-colors"
-              onClick={() => (window.location.href = `/textbook?topic=${module.topicMapping[index]}`)}
+              onClick={() => (window.location.href = `/textbook?topic=${module.topicMapping[topicIndex]}`)}
             >
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full">
@@ -387,7 +387,7 @@ const ModulePage = () => {
         <div className="max-w-4xl mx-auto">
           {module.orderedContent.map((item, globalIndex) => {
             if (item.type === "topic" && item.topicIndex !== undefined) {
-              return renderTopicItem(module.topics[item.topicIndex], globalIndex);
+              return renderTopicItem(module.topics[item.topicIndex], item.topicIndex);
             }
             if (item.type === "quiz") {
               if (item.isFinalTest) {
