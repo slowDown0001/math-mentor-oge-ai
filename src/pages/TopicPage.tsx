@@ -183,7 +183,7 @@ const TopicPage: React.FC = () => {
             </h1>
             <Link
               to={`/module/${moduleSlug}`}
-              className="text-gray-600 dark:text-gray-400 hover:underline inline-block"
+              className="text-gray-600 dark:text-gray-400 hover:underline hover:text-blue-600 dark:hover:text-blue-400 inline-block cursor-pointer transition-colors"
             >
               Тема {topicNumber} • Модуль {moduleEntry.moduleNumber}:{" "}
               {moduleEntry.title.replace(/^Модуль \d+:\s*/, "")}
