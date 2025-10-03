@@ -64,11 +64,12 @@ const ModulePage = () => {
       <h3 className="text-xl font-semibold mb-6">
         <Link
           to={`/module/${moduleSlug}/topic/${topic.id}`}
-          className="text-gray-800 dark:text-gray-200 hover:underline cursor-pointer focus:outline-none focus:underline"
+          className="inline-block relative z-10 text-gray-800 dark:text-gray-200 hover:underline focus:outline-none focus:underline"
         >
           {topic.title}
         </Link>
       </h3>
+
 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
