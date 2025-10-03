@@ -43,14 +43,14 @@ const ModulePage = () => {
   const loadOverviewByTopicNumber = async (topicNumber: string) => {
     const { data, error } = await supabase
       .from("topic_articles")
-      .select("title, content")
-      .eq("topic_number", topicNumber)
+      .select("topic_text")
+      .eq("topic_id", topicNumber)
       .maybeSingle();
     if (error) {
       console.error("Failed to load topic overview:", error);
       return null;
     }
-    return data; // { title?: string; content?: string } | null
+    return data ? { title: `Тема ${topicNumber}`, content: data.topic_text } : null;
   };
 
   const renderTopicItem = (topic: TopicContent, index: number) => (
