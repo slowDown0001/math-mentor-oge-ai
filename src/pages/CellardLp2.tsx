@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { animate, stagger } from "animejs";
-import Splitting from "splitting";
-import "splitting/dist/splitting.css";
+import { animate } from "animejs";
 import p5 from "p5";
 import { moduleImgs } from "@/lib/assets";
 
@@ -34,33 +32,16 @@ const CellardLp2: React.FC = () => {
   const canvasParentRef = useRef<HTMLDivElement | null>(null);
   const p5InstanceRef = useRef<p5 | null>(null);
 
-  // Smooth scroll to modules
-  const scrollToModules = () => {
-    document.getElementById("modules")?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  // Where to go when user clicks a module
   const goToModule = (n: number) => {
     navigate("/learning-platform");
   };
 
-  // “Start mock exam” navigation
   const startMock = () => {
-    navigate("/practice-now"); // or dedicated route if you have one
+    navigate("/practice-now");
   };
 
-  // Splitting + Anime init
+  // Animate module cards on view
   useEffect(() => {
-    Splitting(); // splits [data-splitting]
-    animate("[data-splitting] .char", {
-      translateY: [100, 0],
-      opacity: [0, 1],
-      easing: "out(3)",
-      duration: 1400,
-      delay: stagger(30),
-    });
-
-    // Animate module cards when in view
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -82,7 +63,7 @@ const CellardLp2: React.FC = () => {
     return () => io.disconnect();
   }, []);
 
-  // Animate progress rings on intersection
+  // Animate progress rings
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) => {
@@ -107,7 +88,7 @@ const CellardLp2: React.FC = () => {
     return () => io.disconnect();
   }, []);
 
-  // p5 background
+  // p5 background (flying math symbols)
   useEffect(() => {
     if (!canvasParentRef.current) return;
 
@@ -119,8 +100,8 @@ const CellardLp2: React.FC = () => {
       p.setup = () => {
         const c = p.createCanvas(p.windowWidth, p.windowHeight);
         c.parent(canvasParentRef.current!);
-        p.pixelDensity(p.displayDensity()); // crisp on HiDPI
-        p.clear(); // transparent background
+        p.pixelDensity(p.displayDensity());
+        p.clear();
 
         for (let i = 0; i < 50; i++) {
           parts.push({
@@ -136,7 +117,7 @@ const CellardLp2: React.FC = () => {
       };
 
       p.draw = () => {
-        p.clear(); // keep canvas transparent each frame
+        p.clear();
 
         parts.forEach((pt) => {
           pt.x += pt.vx;
@@ -146,14 +127,13 @@ const CellardLp2: React.FC = () => {
           if (pt.y < 0) pt.y = p.height;
           if (pt.y > p.height) pt.y = 0;
 
-          p.fill(245, 158, 11, pt.opacity * 255); // amber-ish
+          p.fill(245, 158, 11, pt.opacity * 255);
           p.noStroke();
           p.textAlign(p.CENTER, p.CENTER);
           p.textSize(pt.size * 8);
           p.text(pt.sym, pt.x, pt.y);
         });
 
-        // simple connections
         p.stroke(245, 158, 11, 60);
         p.strokeWeight(1);
         for (let i = 0; i < parts.length; i++) {
@@ -182,14 +162,14 @@ const CellardLp2: React.FC = () => {
       className="min-h-screen text-white relative"
       style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}
     >
-      {/* p5 background container (VISIBLE layer, click-through) */}
+      {/* p5 background */}
       <div
         ref={canvasParentRef}
         className="fixed inset-0 z-10 pointer-events-none"
         aria-hidden="true"
       />
 
-      {/* Nav stays on top of everything */}
+      {/* Nav */}
       <nav className="fixed top-0 w-full z-30 backdrop-blur-lg bg-[#1a1f36]/80 border-b border-yellow-500/20">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -208,44 +188,8 @@ const CellardLp2: React.FC = () => {
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16">
-        {/* Keep bg under canvas */}
-        <div
-          className="absolute inset-0 bg-center bg-cover z-0"
-          style={{ backgroundImage: `url(${moduleImgs.hero})` }}
-        />
-        <div className="absolute inset-0 bg-[#1a1f36]/30 z-0" />
-        {/* Raise the text above the canvas */}
-        <div className="relative z-20 text-center max-w-4xl mx-auto px-4">
-          <h1
-            className="font-display text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text"
-            data-splitting
-          >
-            Математика — это просто!
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto leading-relaxed">
-            Подготовка к ОГЭ по математике через 9 интерактивных модулей. Каждый шаг приближает тебя к успеху!
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={scrollToModules}
-              className="bg-yellow-500 text-[#1a1f36] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-yellow-400 transition-all hover:scale-105"
-            >
-              Начать обучение
-            </button>
-            <button
-              onClick={startMock}
-              className="border-2 border-yellow-500 text-yellow-500 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-yellow-500 hover:text-[#1a1f36] transition-all"
-            >
-              Пробный экзамен
-            </button>
-          </div>
-        </div>
-      </section>
-
       {/* Modules */}
-      <section id="modules" className="py-20 relative">
+      <section id="modules" className="pt-24 pb-20 relative">
         <div className="relative z-20 max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text">
@@ -374,22 +318,10 @@ const CellardLp2: React.FC = () => {
             <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6">
               <h3 className="font-display text-xl font-semibold mb-4 text-center">Статистика</h3>
               <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Дней подряд</span>
-                  <span className="font-bold text-yellow-500">5</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Решено задач</span>
-                  <span className="font-bold text-emerald-500">127</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Правильных ответов</span>
-                  <span className="font-bold text-yellow-500">89%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Время обучения</span>
-                  <span className="font-bold text-emerald-500">12ч 30м</span>
-                </div>
+                <div className="flex justify-between"><span className="text-gray-300">Дней подряд</span><span className="font-bold text-yellow-500">5</span></div>
+                <div className="flex justify-between"><span className="text-gray-300">Решено задач</span><span className="font-bold text-emerald-500">127</span></div>
+                <div className="flex justify-between"><span className="text-gray-300">Правильных ответов</span><span className="font-bold text-yellow-500">89%</span></div>
+                <div className="flex justify-between"><span className="text-gray-300">Время обучения</span><span className="font-bold text-emerald-500">12ч 30м</span></div>
               </div>
             </div>
           </div>
