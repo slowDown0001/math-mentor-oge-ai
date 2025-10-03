@@ -128,6 +128,9 @@ const App = () => (
                 <Route path="/practice-now" element={<PracticeNow />} />
                 <Route path="/practice-by-number" element={<PracticeByNumber />} />
                 <Route path="/daily-practice" element={<DailyPractice />} />
+                <Route path="/cellard-lp2" element={<CellardLp2 />} />
+
+                
                 <Route element={<PrivateRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/mydashboard" element={<MyDashboard />} />
@@ -135,7 +138,7 @@ const App = () => (
                  
                   <Route path="/topics" element={<TopicsIndex />} />
                   <Route path="/topic/:topicNumber" element={<TopicPage />} />
-                  <Route path="/cellard-lp2" element={<CellardLp2 />} />
+                  
 
 
                   <Route path="/profile" element={<Profile />} />
