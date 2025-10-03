@@ -11,6 +11,8 @@ import Index from "./pages/Index";
 import PrivateRoute from "./components/PrivateRoute";
 import TopicsIndex from "@/pages/TopicsIndex";
 import TopicPage from "@/pages/TopicPage"; // if not already
+import LearningLayout from "@/components/layouts/LearningLayout";
+
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MyDashboard = lazy(() => import("./pages/MyDashboard"));
@@ -80,8 +82,24 @@ const App = () => (
             <Toaster />
             <Sonner />
             <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-              <Routes>
-                <Route path="/" element={<Index />} />
+            <Routes>
+              {/* pages WITHOUT the layout (plain) */}
+              <Route path="/" element={<Index />} />
+              <Route path="/subscribe" element={<Subscribe />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/test" element={<Test />} />
+          
+              {/* pages WITH the layout (shared gradient + flying symbols) */}
+              <Route element={<LearningLayout />}>
+                <Route path="/learning-platform" element={<LearningPlatform />} />
+                <Route path="/module/:moduleSlug" element={<ModulePage />} />
+                <Route path="/module/:moduleSlug/topic/:topicId" element={<TopicPage />} />
+                <Route path="/practice-now" element={<PracticeNow />} />
+                <Route path="/cellard-lp2" element={<CellardLp2 />} />
+          
+                {/* put any other pages that should share the look here: */}
                 <Route path="/textbook" element={<DigitalTextbook />} />
                 <Route path="/new-textbook" element={<NewTextbook />} />
                 <Route path="/triangle-similarity" element={<TriangleSimilarity />} />
@@ -94,19 +112,17 @@ const App = () => (
                 <Route path="/scanner" element={<Scanner />} />
                 <Route path="/videos" element={<Videos />} />
                 <Route path="/questions" element={<Questions />} />
-                <Route path="/subscribe" element={<Subscribe />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/faq" element={<FAQ />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/test" element={<Test />} />
-                <Route path="/egemathprof" element={<EgeMathProf />} />
-                <Route path="/egemathbasic" element={<EgeMathBasic />} />
+                <Route path="/fipi-bank" element={<FipiBank />} />
+                <Route path="/new-practice" element={<NewPractice />} />
+                <Route path="/practice-by-number" element={<PracticeByNumber />} />
+                <Route path="/daily-practice" element={<DailyPractice />} />
+                <Route path="/book-test" element={<BookTest />} />
+                <Route path="/after-registration" element={<AfterRegistration />} />
+                <Route path="/db2" element={<Db2 />} />
                 <Route path="/ogemath" element={<OgeMath />} />
                 <Route path="/ogemath-practice" element={<OgemathPractice />} />
                 <Route path="/ogemath-mock" element={<OgemathMock />} />
                 <Route path="/ogemath-revision" element={<OgemathRevision />} />
-                <Route path="/homework" element={<Homework />} />
-                <Route path="/homework-fipi-practice" element={<HomeworkFipiPractice />} />
                 <Route path="/ogemath-progress" element={<OgemathProgress />} />
                 <Route path="/ogemath-progress2" element={<OgemathProgress2 />} />
                 <Route path="/egemathbasic-progress" element={<EgemathbasicProgress />} />
@@ -117,41 +133,32 @@ const App = () => (
                 <Route path="/egemathprof-practice" element={<EgemathprofPractice />} />
                 <Route path="/egemathbasic-practice" element={<EgemathbasicPractice />} />
                 <Route path="/new-practice-skills" element={<NewPracticeSkills />} />
-        <Route path="/learning-platform" element={<LearningPlatform />} />
-        <Route path="/module/:moduleSlug" element={<ModulePage />} />
-        <Route path="/module/:moduleSlug/topic/:topicId" element={<TopicPage />} />
-        <Route path="/book-test" element={<BookTest />} />
-        <Route path="/after-registration" element={<AfterRegistration />} />
-        <Route path="/db2" element={<Db2 />} />
-                <Route path="/fipi-bank" element={<FipiBank />} />
-                <Route path="/new-practice" element={<NewPractice />} />
-                <Route path="/practice-now" element={<PracticeNow />} />
-                <Route path="/practice-by-number" element={<PracticeByNumber />} />
-                <Route path="/daily-practice" element={<DailyPractice />} />
-                <Route path="/cellard-lp2" element={<CellardLp2 />} />
-
-                
-                <Route element={<PrivateRoute />}>
+                <Route path="/egemathprof" element={<EgeMathProf />} />
+                <Route path="/egemathbasic" element={<EgeMathBasic />} />
+              </Route>
+          
+              {/* protected pages – wrap in layout too if you want the same background */}
+              <Route element={<PrivateRoute />}>
+                {/* With layout */}
+                <Route element={<LearningLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/mydashboard" element={<MyDashboard />} />
                   <Route path="/mydb3" element={<MyDb3 />} />
-                 
                   <Route path="/topics" element={<TopicsIndex />} />
                   <Route path="/topic/:topicNumber" element={<TopicPage />} />
-                  
-
-
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/diagnostic" element={<DiagnosticTest />} />
-          <Route path="/statistics" element={<Statistics />} />
-          <Route path="/statistics/detailed" element={<DetailedStatistics />} />
-          <Route path="/statistics/visual" element={<StatisticsVisual />} />
-                <Route path="/detailed-statistics" element={<DetailedStatistics />} />
+                  <Route path="/statistics" element={<Statistics />} />
+                  <Route path="/statistics/detailed" element={<DetailedStatistics />} />
+                  <Route path="/statistics/visual" element={<StatisticsVisual />} />
                   <Route path="/practice" element={<PracticeExercise />} />
                 </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
+              </Route>
+          
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+
           </TooltipProvider>
         </ChatProvider>
       </AuthProvider>
