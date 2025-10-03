@@ -67,6 +67,7 @@ const MyDb3 = lazy(() => import("./pages/MyDb3"));
 const Homework = lazy(() => import("./pages/Homework"));
 const HomeworkFipiPractice = lazy(() => import("./pages/HomeworkFipiPractice"));
 const Test = lazy(() => import("./pages/Test"));
+const CellardLp2 = lazy(() => import("./pages/CellardLp2"));
 
 const queryClient = new QueryClient();
 
@@ -134,6 +135,7 @@ const App = () => (
                  
                   <Route path="/topics" element={<TopicsIndex />} />
                   <Route path="/topic/:topicNumber" element={<TopicPage />} />
+                  <Route path="/cellard-lp2" element={<CellardLp2 />} />
 
 
                   <Route path="/profile" element={<Profile />} />
