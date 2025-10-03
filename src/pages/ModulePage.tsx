@@ -1,4 +1,3 @@
-// ModulePage.tsx
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -11,7 +10,6 @@ import OgeExerciseQuiz from "@/components/OgeExerciseQuiz";
 import { useModuleProgress } from "@/hooks/useModuleProgress";
 import { modulesRegistry, type TopicContent, type QuizContent } from "@/lib/modules.registry";
 import NotFound from "./NotFound";
-// ⬇️ add supabase client
 import { supabase } from "@/integrations/supabase/client";
 
 const ModulePage = () => {
@@ -21,9 +19,9 @@ const ModulePage = () => {
 
   const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string; description: string } | null>(null);
 
-  // article modal state
+  // Article modal
   const [selectedArticle, setSelectedArticle] = useState<{ title: string; content: string } | null>(null);
-  const [articleLoading, setArticleLoading] = useState<boolean>(false);
+  const [articleLoading, setArticleLoading] = useState(false);
 
   const [selectedExercise, setSelectedExercise] = useState<{
     title: string;
@@ -41,20 +39,22 @@ const ModulePage = () => {
 
   const module = modulesRegistry[moduleSlug];
 
-  // ⬇️ helper to open article: tries DB first, then code fallback
+  // Fetch article from DB by topicNumber (e.g. "1.2"), fallback to code
   const openArticle = async (topic: TopicContent, topicNumber: string) => {
     setArticleLoading(true);
     try {
       const { data, error } = await supabase
         .from("topic_articles")
-        .select("topic_text, topic_id")
+        .select("topic_id, topic_text")
         .eq("topic_id", topicNumber)
-        .maybeSingle(); // tolerate 0 rows
+        .limit(1);
 
-      if (!error && data?.topic_text) {
+      const row = !error && data && data.length ? data[0] : null;
+
+      if (row?.topic_text) {
         setSelectedArticle({
           title: `Тема ${topicNumber}: ${topic.title}`,
-          content: data.topic_text,
+          content: row.topic_text,
         });
       } else if (module.articleContent && module.articleContent[topic.id]) {
         setSelectedArticle(module.articleContent[topic.id]);
@@ -65,13 +65,25 @@ const ModulePage = () => {
             "Обзор для этой темы пока не добавлен. Откройте «Читать учебник», затем посмотрите видео и переходите к практике.",
         });
       }
+    } catch {
+      // On any runtime error, try code fallback
+      if (module.articleContent && module.articleContent[topic.id]) {
+        setSelectedArticle(module.articleContent[topic.id]);
+      } else {
+        setSelectedArticle({
+          title: `Тема: ${topic.title}`,
+          content:
+            "Обзор для этой темы пока не добавлен. Откройте «Читать учебник», затем посмотрите видео и переходите к практике.",
+        });
+      }
     } finally {
       setArticleLoading(false);
     }
   };
 
   const renderTopicItem = (topic: TopicContent, index: number) => {
-    const topicNumber = module.topicMapping[index]; // e.g., "1.2"
+    const topicNumber = module.topicMapping[index]; // e.g. "1.2"
+
     return (
       <motion.div
         key={topic.id}
@@ -93,9 +105,7 @@ const ModulePage = () => {
                   key={`video-${i}`}
                   className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-blue-200/30 dark:border-blue-800/30 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer transition-colors"
                   onClick={() => {
-                    if (topic.videoData && topic.videoData[i]) {
-                      setSelectedVideo(topic.videoData[i]);
-                    }
+                    if (topic.videoData && topic.videoData[i]) setSelectedVideo(topic.videoData[i]);
                   }}
                 >
                   <div className="flex items-center space-x-3">
@@ -121,9 +131,7 @@ const ModulePage = () => {
                   </div>
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Обзор</span>
                 </div>
-                <span className="text-sm text-purple-600 dark:text-purple-400">
-                  {articleLoading ? "Загрузка…" : "Открыть"}
-                </span>
+                <span className="text-sm text-purple-600 dark:text-purple-400">{articleLoading ? "Загрузка…" : "Открыть"}</span>
               </div>
 
               {/* Read Textbook */}
@@ -174,11 +182,11 @@ const ModulePage = () => {
                     </p>
                     <div className="ml-11">
                       <Button
-        variant="outline"
-        size="sm"
-        className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-        onClick={() => setSelectedExercise(exerciseData)}
-        disabled={exerciseData.skills.length === 0}
+                        variant="outline"
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                        onClick={() => setSelectedExercise(exerciseData)}
+                        disabled={exerciseData.skills.length === 0}
                       >
                         Практика
                       </Button>
@@ -201,8 +209,34 @@ const ModulePage = () => {
       transition={{ delay: (module.topics.length + index) * 0.05 }}
       className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg p-6 mb-6 border border-amber-200/50 dark:border-amber-800/50"
     >
-      {/* ...unchanged... */}
-      {/* keep your existing quiz code */}
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">{quiz.title}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{quiz.description}</p>
+          <Button
+            className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
+            onClick={() => {
+              if (!module.getQuizData) return;
+              const quizData = module.getQuizData(quiz.id);
+              if (!quizData) return;
+              const isFinal = quiz.id === "module-exam";
+              setSelectedExercise({
+                ...quizData,
+                isModuleTest: isFinal,
+                moduleTopics: isFinal ? module.topicMapping : undefined,
+                courseId: isFinal ? "1" : undefined,
+              });
+            }}
+          >
+            Начать тест
+          </Button>
+        </div>
+        <div className="ml-8">
+          <div className="w-24 h-24 bg-gradient-to-br from-orange-200 to-amber-200 dark:from-orange-800 dark:to-amber-800 rounded-full flex items-center justify-center shadow-lg">
+            <div className="w-16 h-20 bg-gradient-to-br from-orange-300 to-amber-300 dark:from-orange-700 dark:to-amber-700 rounded-lg shadow-inner"></div>
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 
@@ -210,7 +244,7 @@ const ModulePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-indigo-950 relative">
-      {/* Video modal – unchanged */}
+      {/* Video Modal */}
       {selectedVideo && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
           <div className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-lg overflow-hidden">
@@ -218,7 +252,7 @@ const ModulePage = () => {
               video={{
                 videoId: selectedVideo.videoId,
                 title: selectedVideo.title,
-                description: selectedVideo.description
+                description: selectedVideo.description,
               }}
               onClose={() => setSelectedVideo(null)}
             />
@@ -226,10 +260,10 @@ const ModulePage = () => {
         </div>
       )}
 
-      {/* Article modal */}
+      {/* Article Modal */}
       {selectedArticle && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-lg overflow-hidden max-h[90vh]">
+          <div className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-lg overflow-hidden max-h-[90vh]">
             <div className="bg-white dark:bg-gray-900">
               <div className="flex items-center justify-between border-b p-4">
                 <h2 className="text-xl font-bold">{selectedArticle.title}</h2>
@@ -248,7 +282,7 @@ const ModulePage = () => {
         </div>
       )}
 
-      {/* Exercise modal – unchanged */}
+      {/* Exercise Modal */}
       {selectedExercise && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
           <div className="w-full max-w-2xl max-h-[95vh] overflow-y-auto">
@@ -268,7 +302,110 @@ const ModulePage = () => {
         </div>
       )}
 
-      {/* ...keep the rest of your header/statistics/content list as-is... */}
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center mb-8">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/learning-platform")}
+          className="mr-4 hover:bg-white/20 dark:hover:bg-gray-800/20"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Назад к карте
+        </Button>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            {module.title}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{module.subtitle}</p>
+        </div>
+        <StreakDisplay />
+      </motion.div>
+
+      {/* Module Statistics */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-6 mb-8 border border-white/20 dark:border-gray-700/20 shadow-lg max-w-4xl mx-auto"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+            {module.masteryPoints} возможных баллов мастерства
+          </span>
+          <Info className="h-4 w-4 text-gray-500" />
+        </div>
+
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">{module.skillsDescription}</div>
+
+        {/* Legend */}
+        <div className="flex flex-wrap gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <Crown className="h-4 w-4 text-purple-700" />
+            <span className="text-sm text-gray-700 dark:text-gray-300">Освоено</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded"></div>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Владею</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gradient-to-t from-orange-500 from-20% to-gray-200 to-20% rounded"></div>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Знаком</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-orange-400 rounded"></div>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Попытался</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-gray-300 rounded bg-white"></div>
+            <span className="text-sm text-gray-700 dark:text-gray-300">Не начато</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Zap className="h-4 w-4 text-blue-600" />
+            <span className="text-sm text-gray-700 dark:text-gray-300">Тест</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Star className="h-4 w-4 text-yellow-600" />
+            <span className="text-sm text-gray-700 dark:text-gray-300">Итоговый тест</span>
+          </div>
+        </div>
+
+        {/* Progress Grid */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {Array.from({ length: totalExercises }, (_, i) => (
+            <div key={i} className="w-8 h-8 border-2 border-gray-300 rounded bg-white"></div>
+          ))}
+          {module.quizzes.map((_, i) => (
+            <Zap key={`quiz-${i}`} className="h-6 w-6 text-blue-600 mx-1" />
+          ))}
+          <Star className="h-6 w-6 text-yellow-600 mx-1" />
+        </div>
+      </motion.div>
+
+      {/* Content List */}
+      <div className="max-w-4xl mx-auto">
+        {module.orderedContent.map((item, globalIndex) => {
+          if (item.type === "topic" && item.topicIndex !== undefined) {
+            return renderTopicItem(module.topics[item.topicIndex], globalIndex);
+          }
+          if (item.type === "quiz") {
+            if (item.isFinalTest) {
+              return renderQuiz(
+                {
+                  id: "module-exam",
+                  title: "Итоговый тест модуля",
+                  description: `Проверьте свои знания по всему модулю "${module.title.split(": ")[1]}"`,
+                },
+                globalIndex
+              );
+            }
+            if (item.quizIndex !== undefined) {
+              return renderQuiz(module.quizzes[item.quizIndex], item.quizIndex);
+            }
+          }
+          return null;
+        })}
+      </div>
     </div>
   );
 };
