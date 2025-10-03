@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { animate } from "animejs";
 import p5 from "p5";
 import { moduleImgs } from "@/lib/assets";
@@ -191,7 +191,7 @@ const CellardLp2: React.FC = () => {
             <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded-lg flex items-center justify-center">
               <span className="text-[#1a1f36] font-bold text-xl">M</span>
             </div>
-            <h1 className="font-display text-xl font-semibold">Математика ОГЭ</h1>
+            <Link to="/ogemath" className="font-display text-xl font-semibold hover:text-yellow-500 transition-colors">Математика ОГЭ</Link>
           </div>
           <div className="flex items-center gap-6">
             <a href="#modules" className="hover:text-yellow-500">Модули</a>
