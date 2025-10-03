@@ -13,6 +13,9 @@ interface ModuleProgressBarProps {
   topics: Array<{ id: string; exercises: number }>;
   quizzes: Array<{ id: string }>;
   getExerciseData?: (topicId: string, exerciseIndex: number) => { title: string; skills: number[] };
+  onExerciseClick: (topicId: string, exerciseIndex: number) => void;
+  onQuizClick: (quizId: string) => void;
+  onExamClick: () => void;
 }
 
 export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
@@ -20,7 +23,10 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
   orderedContent,
   topics,
   quizzes,
-  getExerciseData
+  getExerciseData,
+  onExerciseClick,
+  onQuizClick,
+  onExamClick
 }) => {
   const { getProgressStatus } = useModuleProgress();
 
@@ -29,6 +35,9 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
     type: 'exercise' | 'test' | 'exam';
     itemId: string;
     status: string;
+    topicId?: string;
+    exerciseIndex?: number;
+    quizId?: string;
   }> = [];
 
   orderedContent.forEach((content) => {
@@ -42,7 +51,9 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
         progressItems.push({
           type: 'exercise',
           itemId,
-          status
+          status,
+          topicId: topic.id,
+          exerciseIndex: i
         });
       }
     } else if (content.type === 'quiz') {
@@ -61,7 +72,8 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
         progressItems.push({
           type: 'test',
           itemId,
-          status
+          status,
+          quizId: quiz.id
         });
       }
     }
@@ -115,12 +127,36 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {progressItems.map((item, index) => {
-        if (item.type === 'exercise') {
-          return <div key={index}>{renderExerciseBox(item.status)}</div>;
-        } else if (item.type === 'test') {
-          return <div key={index}>{renderTestIcon(item.status)}</div>;
+        if (item.type === 'exercise' && item.topicId && item.exerciseIndex !== undefined) {
+          return (
+            <button 
+              key={index}
+              onClick={() => onExerciseClick(item.topicId!, item.exerciseIndex!)}
+              className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+            >
+              {renderExerciseBox(item.status)}
+            </button>
+          );
+        } else if (item.type === 'test' && item.quizId) {
+          return (
+            <button 
+              key={index}
+              onClick={() => onQuizClick(item.quizId!)}
+              className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+            >
+              {renderTestIcon(item.status)}
+            </button>
+          );
         } else if (item.type === 'exam') {
-          return <div key={index}>{renderExamIcon(item.status)}</div>;
+          return (
+            <button 
+              key={index}
+              onClick={onExamClick}
+              className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+            >
+              {renderExamIcon(item.status)}
+            </button>
+          );
         }
         return null;
       })}

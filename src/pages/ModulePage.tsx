@@ -375,6 +375,29 @@ const ModulePage = () => {
             topics={module.topics}
             quizzes={module.quizzes}
             getExerciseData={module.getExerciseData}
+            onExerciseClick={(topicId, exerciseIndex) => {
+              const exerciseData = module.getExerciseData?.(topicId, exerciseIndex);
+              if (exerciseData) {
+                setSelectedExercise(exerciseData);
+              }
+            }}
+            onQuizClick={(quizId) => {
+              const quizData = module.getQuizData?.(quizId);
+              if (quizData) {
+                setSelectedExercise(quizData);
+              }
+            }}
+            onExamClick={() => {
+              const examData = module.getQuizData?.('module-exam');
+              if (examData) {
+                setSelectedExercise({
+                  ...examData,
+                  isModuleTest: true,
+                  moduleTopics: module.topicMapping,
+                  courseId: "1"
+                });
+              }
+            }}
           />
         </motion.div>
 
