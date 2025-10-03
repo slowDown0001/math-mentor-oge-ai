@@ -120,7 +120,7 @@ const OgemathMock = () => {
   const generateQuestionSelection = async () => {
     setLoading(true);
     try {
-      const batchPromises: Promise<any>[] = [];
+      const batchPromises = [];
       for (let problemNum = 6; problemNum <= 25; problemNum++) {
         batchPromises.push(
           supabase
@@ -150,12 +150,10 @@ const OgemathMock = () => {
 
       if (selectedContext === 'internet') {
         const Y = Math.floor(Math.random() * 26) + 1;
-        const contextPromises: Promise<any>[] = [];
+        const contextPromises = [];
         for (let i = 0; i < 5; i++) {
           const questionId = `OGE_SHinternet_1_1_${Y + i}`;
-          contextPromises.push(
-            supabase.from('oge_math_fipi_bank').select('*').eq('question_id', questionId).single()
-          );
+          contextPromises.push(supabase.from('oge_math_fipi_bank').select('*').eq('question_id', questionId).single());
         }
         const contextResults = await Promise.all(contextPromises);
         contextResults.forEach((result) => {
@@ -167,12 +165,10 @@ const OgemathMock = () => {
       } else {
         const ranges = { bumaga: 3, dorogi: 10, kvartiri: 5, pechi: 5, shiny: 4, uchastki: 4 } as const;
         const X = Math.floor(Math.random() * ranges[selectedContext]) + 1;
-        const contextPromises: Promise<any>[] = [];
+        const contextPromises = [];
         for (let i = 1; i <= 5; i++) {
           const questionId = `OGE_SH${selectedContext}_1_${X}_${i}`;
-          contextPromises.push(
-            supabase.from('oge_math_fipi_bank').select('*').eq('question_id', questionId).single()
-          );
+          contextPromises.push(supabase.from('oge_math_fipi_bank').select('*').eq('question_id', questionId).single());
         }
         const contextResults = await Promise.all(contextPromises);
         contextResults.forEach((result) => {
@@ -184,12 +180,10 @@ const OgemathMock = () => {
       }
 
       if (contextQuestions.length < 5) {
-        const fallbackPromises: Promise<any>[] = [];
+        const fallbackPromises = [];
         for (let problemNum = 1; problemNum <= 5; problemNum++) {
           if (contextQuestions.length < problemNum) {
-            fallbackPromises.push(
-              supabase.from('oge_math_fipi_bank').select('*').eq('problem_number_type', problemNum).limit(10)
-            );
+            fallbackPromises.push(supabase.from('oge_math_fipi_bank').select('*').eq('problem_number_type', problemNum).limit(10));
           }
         }
         if (fallbackPromises.length > 0) {
@@ -361,7 +355,7 @@ const OgemathMock = () => {
           }
         } else {
           // Part 1 (1–19) — INSERT first, then possibly server-check and UPDATE openrouter_check ("true"/"false")
-          let insertedPhotoRowId: number | null = null;
+          let insertedPhotoRowId: string | null = null;
           let currentExamId: string | null = null;
 
           try {
@@ -485,9 +479,9 @@ const OgemathMock = () => {
                   console.log("[PAO/UPDATE] writing openrouter_check =", verdictStr, "for id =", targetId);
                   const { data: updData, error: updateErr } = await supabase
                     .from("photo_analysis_outputs")
-                    .update({ openrouter_check: verdictStr })
+                    .update({ raw_output: verdictStr } as any)
                     .eq("id", targetId)
-                    .select("id, openrouter_check")
+                    .select("id")
                     .single();
 
                   if (updateErr) {

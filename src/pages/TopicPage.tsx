@@ -19,9 +19,8 @@ import {
 } from "@/lib/modules.registry";
 
 type TopicArticleRow = {
-  topic_number: string;
-  title: string | null;
-  content: string | null;
+  topic_id: string;
+  topic_text: string | null;
 };
 
 const TopicPage: React.FC = () => {
@@ -64,9 +63,9 @@ const TopicPage: React.FC = () => {
       }
       const { data, error } = await supabase
         .from("topic_articles")
-        .select("topic_number,title,content")
-        .eq("topic_number", topicNumber)
-        .maybeSingle<TopicArticleRow>();
+        .select("topic_id, topic_text")
+        .eq("topic_id", topicNumber)
+        .maybeSingle();
 
       if (!ignore) {
         if (error) console.error("Failed to load topic article:", error);
@@ -310,7 +309,7 @@ const TopicPage: React.FC = () => {
               <div>
                 <div className="text-sm text-gray-500">Обзор темы</div>
                 <div className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                  {article?.title || `Тема ${topicNumber}: ${topic.title}`}
+                  {article?.topic_id ? `Тема ${article.topic_id}` : `Тема ${topicNumber}: ${topic.title}`}
                 </div>
               </div>
               <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
@@ -321,10 +320,10 @@ const TopicPage: React.FC = () => {
             <div className="p-4 overflow-y-auto max-h-[70vh]">
               {loadingArticle ? (
                 <div className="text-sm text-gray-500">Загружаем обзор…</div>
-              ) : article?.content ? (
+              ) : article?.topic_text ? (
                 <ArticleRenderer
-                  text={article.content}
-                  article={{ skill: 0, art: article.content }}
+                  text={article.topic_text}
+                  article={{ skill: 0, art: article.topic_text }}
                 />
               ) : (
                 <div className="text-sm text-gray-600 dark:text-gray-400">
