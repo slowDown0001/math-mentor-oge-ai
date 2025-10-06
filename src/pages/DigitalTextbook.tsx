@@ -357,7 +357,7 @@ const DigitalTextbook = () => {
         {/* Chat Toggle Button - Fixed to right edge */}
         <button
           onClick={() => setIsChatOpen(true)}
-          className="fixed right-4 top-20 z-50 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-110 transition-all duration-300 flex items-center gap-2"
+          className="fixed right-0 top-20 z-50 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-3 rounded-l-xl shadow-xl hover:shadow-2xl transform hover:scale-110 transition-all duration-300 flex items-center gap-2"
         >
           <MessageCircle className="h-5 w-5" />
           <span className="font-medium">ЧАТ</span>
