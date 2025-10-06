@@ -853,7 +853,6 @@ export type Database = {
           questions_completed: number | null
           questions_correct: number | null
           response_time_seconds: number | null
-          session_id: string | null
           session_number: number | null
           showed_solution: boolean | null
           skill_ids: number[] | null
@@ -882,7 +881,6 @@ export type Database = {
           questions_completed?: number | null
           questions_correct?: number | null
           response_time_seconds?: number | null
-          session_id?: string | null
           session_number?: number | null
           showed_solution?: boolean | null
           skill_ids?: number[] | null
@@ -911,7 +909,6 @@ export type Database = {
           questions_completed?: number | null
           questions_correct?: number | null
           response_time_seconds?: number | null
-          session_id?: string | null
           session_number?: number | null
           showed_solution?: boolean | null
           skill_ids?: number[] | null

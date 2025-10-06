@@ -53,13 +53,13 @@ const OgeMath = () => {
               throw new Error('Missing homeworkName in homework completion data');
             }
 
-            // Query all records for this homework (session_id = homework_name)
-            console.log('🔍 Querying homework_progress for homework_name (session_id):', completionData.homeworkName);
+            // Query all records for this homework by homework_name
+            console.log('🔍 Querying homework_progress for homework_name:', completionData.homeworkName);
             const { data: sessionRows, error } = await supabase
               .from('homework_progress')
               .select('*')
               .eq('user_id', user.id)
-              .eq('session_id', completionData.homeworkName)
+              .eq('homework_name', completionData.homeworkName)
               .order('created_at', { ascending: true });
         
             if (error) {

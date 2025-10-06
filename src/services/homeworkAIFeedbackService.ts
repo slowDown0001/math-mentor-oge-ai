@@ -14,7 +14,6 @@ interface QuestionDetails {
 }
 
 interface HomeworkSessionData {
-  session_id: string;
   user_id: string;
   homework_name?: string;
   questions: Array<{
@@ -130,7 +129,6 @@ export async function createHomeworkSummaryJSON(sessionData: any[]): Promise<Hom
   const accuracy = questionsCompleted > 0 ? (questionsCorrect / questionsCompleted) * 100 : 0;
 
   return {
-    session_id: sessionData[0]?.session_id || '',
     user_id: sessionData[0]?.user_id || '',
     homework_name: sessionData[0]?.homework_name || 'Домашнее задание',
     questions,

@@ -67,8 +67,6 @@ const Homework = () => {
   const [existingProgress, setExistingProgress] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
 
-  // Persist an active session id for this homework run
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   // Mastery tracking (FIPI)
   const [currentAttemptId, setCurrentAttemptId] = useState<number | null>(null);
@@ -88,23 +86,6 @@ const Homework = () => {
     setUserProfile(data);
   };
 
-  const getLatestSession = async () => {
-    if (!user?.id || !homeworkName) return null;
-    const { data, error } = await supabase
-      .from('homework_progress')
-      .select('session_id, homework_name')
-      .eq('user_id', user.id)
-      .eq('homework_name', homeworkName)
-      .eq('completion_status', 'completed')
-      .order('completed_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (error) {
-      console.error('Error getting latest session:', error);
-      return null;
-    }
-    return data;
-  };
 
   const startFIPIAttempt = async (questionId: string) => {
     if (!user) return;
@@ -191,10 +172,10 @@ const Homework = () => {
 
   // Start a session as soon as we know homeworkName + we loaded first batch of questions
   useEffect(() => {
-    if (user?.id && homeworkName && currentQuestions.length > 0 && !activeSessionId) {
+    if (user?.id && homeworkName && currentQuestions.length > 0) {
       recordSessionStart();
     }
-  }, [user?.id, homeworkName, currentQuestions.length, activeSessionId]);
+  }, [user?.id, homeworkName, currentQuestions.length]);
 
   const checkExistingProgress = async () => {
     if (!user?.id || !homeworkData || !userProfile?.homework) return;
@@ -232,9 +213,6 @@ const Homework = () => {
         setCompletedQuestions(new Set(completedQuestionsList));
         setCorrectAnswers(new Set(correctQuestionsList));
 
-        // Reuse active session if any in_progress exists
-        const inProgressRow = existingSessions.find(s => s.completion_status === 'in_progress' && s.session_id);
-        if (inProgressRow?.session_id) setActiveSessionId(inProgressRow.session_id);
 
         await loadQuestions();
 
@@ -263,26 +241,21 @@ const Homework = () => {
   };
 
   const recordSessionStart = async () => {
-    if (!user?.id || !homeworkName || activeSessionId) return;
+    if (!user?.id || !homeworkName) return;
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('homework_progress')
         .insert({
           user_id: user.id,
-          session_id: homeworkName, // Use homework_name as session_id
           homework_task: `Homework ${new Date().toLocaleDateString()} - Session Start`,
           homework_name: homeworkName,
           total_questions: (homeworkData?.mcq_questions?.length || 0) + (homeworkData?.fipi_questions?.length || 0),
           questions_completed: 0,
           questions_correct: 0,
           completion_status: 'in_progress'
-        })
-        .select('session_id')
-        .single();
+        });
 
-      if (!error && data?.session_id) {
-        setActiveSessionId(homeworkName); // Set to homework_name
-      }
+      if (error) console.error('Error recording session start:', error);
     } catch (error) {
       console.error('Error recording session start:', error);
     }
@@ -426,7 +399,6 @@ const Homework = () => {
 
       await supabase.from('homework_progress').insert({
         user_id: user.id,
-        session_id: homeworkName, // Use homework_name as session_id
         homework_task: `Homework ${new Date().toLocaleDateString()}`,
         homework_name: homeworkName,
         question_id: questionId,
