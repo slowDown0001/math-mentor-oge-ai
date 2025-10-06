@@ -20,6 +20,7 @@ import { useChatContext } from '@/contexts/ChatContext';
 import CourseChatMessages from '@/components/chat/CourseChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
 import { sendChatMessage } from '@/services/chatService';
+import { saveChatLog } from '@/services/chatLogsService';
 
 interface HomeworkData {
   mcq_questions: string[];
@@ -223,6 +224,13 @@ const Homework = () => {
     try {
       const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
+      
+      // Save to chat_logs
+      try {
+        await saveChatLog(newUserMessage.text, aiResponse.text, '1');
+      } catch (logError) {
+        console.error('Error saving chat log:', logError);
+      }
     } catch (error) {
       console.error('Error getting AI response:', error);
       toast({
@@ -253,6 +261,13 @@ const Homework = () => {
     try {
       const aiResponse = await sendChatMessage(userMessage, messages, false);
       setMessages([...messages, userMessage, aiResponse]);
+      
+      // Save to chat_logs
+      try {
+        await saveChatLog(userInput, aiResponse.text, '1');
+      } catch (logError) {
+        console.error('Error saving chat log:', logError);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
