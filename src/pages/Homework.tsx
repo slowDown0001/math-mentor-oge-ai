@@ -97,7 +97,7 @@ const Homework = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Chat context
-  const { messages, setMessages, isTyping, setIsTyping } = useChatContext();
+  const { messages, setMessages, isTyping, setIsTyping, addMessage, isDatabaseMode } = useChatContext();
 
   // Initialize MathJax selection
   useMathJaxSelection();
@@ -204,8 +204,11 @@ const Homework = () => {
     window.getSelection()?.removeAllRanges();
   };
 
-  const handleAskHedgehog = () => {
+  const handleAskHedgehog = async () => {
     if (!selectedText) return;
+
+    setIsChatOpen(true);
+    closeSelectionPopup();
 
     const newUserMessage = {
       id: Date.now(),
@@ -214,9 +217,24 @@ const Homework = () => {
       timestamp: new Date()
     };
 
-    setMessages([newUserMessage]);
-    setIsChatOpen(true);
-    closeSelectionPopup();
+    addMessage(newUserMessage);
+    setIsTyping(true);
+
+    try {
+      const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
+      addMessage(aiResponse);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось получить ответ от Ёжика",
+        variant: "destructive"
+      });
+    } finally {
+      setIsTyping(false);
+    }
+
+    setSelectedText('');
   };
 
   const handleSendChatMessage = async (userInput: string) => {
