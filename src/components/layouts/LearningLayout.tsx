@@ -1,6 +1,7 @@
 import React from "react";
 import FlyingMathBackground from "@/components/FlyingMathBackground";
 import { Outlet, useNavigate, Link } from "react-router-dom";
+import { StreakDisplay } from "@/components/streak/StreakDisplay";
 
 
 
@@ -35,6 +36,7 @@ const LearningLayout: React.FC = () => {
             <button onClick={startMock} className="bg-yellow-500 text-[#1a1f36] px-4 py-2 rounded-lg hover:bg-yellow-400 font-medium">
               Экзамен
             </button>
+            <StreakDisplay />
           </div>
         </div>
       </nav>
