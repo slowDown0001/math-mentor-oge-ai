@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3 } from 'lucide-react';
+import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3, MessageSquare, ArrowLeft } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -68,7 +69,14 @@ const Homework = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [checkingAnswer, setCheckingAnswer] = useState(false);
   const [answerCheckMethod, setAnswerCheckMethod] = useState<'numeric' | 'ai' | null>(null);
-
+  const [reviewMode, setReviewMode] = useState(false);
+  const [allQuestionResults, setAllQuestionResults] = useState<Array<{
+    question: Question;
+    type: 'mcq' | 'frq';
+    userAnswer: string;
+    isCorrect: boolean;
+    correctAnswer: string;
+  }>>([]);
 
   // Mastery tracking (FIPI)
   const [currentAttemptId, setCurrentAttemptId] = useState<number | null>(null);
@@ -201,12 +209,15 @@ const Homework = () => {
       }
 
       if (existingSessions && existingSessions.length > 0) {
-        // Seed completed/correct sets
+        // Check if Summary record exists
+        const summaryRecord = existingSessions.find(s => s.question_id === 'Summary');
+        
+        // Seed completed/correct sets (excluding Summary)
         const completedQuestionsList = existingSessions
-          .filter(s => s.question_id)
+          .filter(s => s.question_id && s.question_id !== 'Summary')
           .map(s => s.question_id as string);
         const correctQuestionsList = existingSessions
-          .filter(s => s.question_id && s.is_correct)
+          .filter(s => s.question_id && s.question_id !== 'Summary' && s.is_correct)
           .map(s => s.question_id as string);
 
         setCompletedQuestions(new Set(completedQuestionsList));
@@ -214,11 +225,11 @@ const Homework = () => {
 
         await loadQuestions();
 
-        const completedSession = existingSessions.find(s => s.completion_status === 'completed');
-        if (completedSession) {
-          setExistingProgress(completedSession);
+        if (summaryRecord) {
+          // Load review mode
+          await loadReviewModeData(existingSessions);
           await loadProgressStats();
-          setShowCongrats(true);
+          setReviewMode(true);
           return;
         }
 
@@ -446,6 +457,75 @@ const Homework = () => {
     }
   };
 
+  const loadReviewModeData = async (progressRecords: any[]) => {
+    const results: Array<{
+      question: Question;
+      type: 'mcq' | 'frq';
+      userAnswer: string;
+      isCorrect: boolean;
+      correctAnswer: string;
+    }> = [];
+
+    for (const record of progressRecords) {
+      if (record.question_id === 'Summary') continue;
+
+      // Try to find question in current questions
+      let question = currentQuestions.find(q => q.id === record.question_id);
+      
+      // If not found, try to load it
+      if (!question) {
+        const isMCQ = homeworkData?.mcq_questions?.includes(record.question_id);
+        if (isMCQ) {
+          const { data } = await supabase
+            .from('oge_math_skills_questions')
+            .select('*')
+            .eq('question_id', record.question_id)
+            .maybeSingle();
+          if (data) {
+            question = {
+              id: data.question_id,
+              text: data.problem_text || '',
+              options: [data.option1, data.option2, data.option3, data.option4].filter(Boolean),
+              correct_answer: data.answer || '',
+              solution_text: data.solution_text || '',
+              problem_number: typeof data.problem_number_type === 'string' ? parseInt(data.problem_number_type) || 0 : data.problem_number_type || 0,
+              difficulty: data.difficulty || null,
+              skills: data.skills || null
+            };
+          }
+        } else {
+          const { data } = await supabase
+            .from('oge_math_fipi_bank')
+            .select('*')
+            .eq('question_id', record.question_id)
+            .maybeSingle();
+          if (data) {
+            question = {
+              id: data.question_id,
+              text: data.problem_text || '',
+              correct_answer: data.answer || '',
+              solution_text: data.solution_text || '',
+              problem_number: data.problem_number_type || 0,
+              difficulty: data.difficulty || null
+            };
+          }
+        }
+      }
+      
+      if (!question) continue;
+
+      results.push({
+        question,
+        type: homeworkData?.mcq_questions?.includes(record.question_id) ? 'mcq' : 'frq',
+        userAnswer: record.user_answer || '',
+        isCorrect: record.is_correct || false,
+        correctAnswer: record.correct_answer || question.correct_answer || ''
+      });
+    }
+
+    setAllQuestionResults(results);
+  };
+
   const loadProgressStats = async () => {
     if (!user?.id || !homeworkName) return;
     try {
@@ -454,7 +534,8 @@ const Homework = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('homework_name', homeworkName)
-        .not('question_id', 'is', null);
+        .not('question_id', 'is', null)
+        .neq('question_id', 'Summary');
       if (error) throw error;
 
       if (data) {
@@ -711,13 +792,14 @@ const Homework = () => {
     const accuracy = completedCount > 0 ? (correctCount / completedCount) * 100 : 0;
 
     try {
+      // Save Summary record
       const { error: completionError } = await supabase
         .from('homework_progress')
         .insert({
           user_id: user.id,
-          session_id: homeworkName, // Use homework_name as session_id
           homework_task: `Homework ${new Date().toLocaleDateString()} - Summary`,
           homework_name: homeworkName,
+          question_id: 'Summary',
           completed_at: new Date().toISOString(),
           total_questions: totalQuestions,
           questions_completed: completedCount,
@@ -727,16 +809,29 @@ const Homework = () => {
         });
 
       if (completionError) {
-        console.error('Error inserting completion record:', completionError);
+        console.error('Error inserting Summary record:', completionError);
+      }
+
+      // Load all progress records for review
+      const { data: existingProgress } = await supabase
+        .from('homework_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('homework_name', homeworkName)
+        .order('created_at', { ascending: false });
+
+      if (existingProgress) {
+        await loadReviewModeData(existingProgress);
       }
 
       await loadProgressStats();
 
-      setShowCongrats(true);
+      setReviewMode(true);
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      toast({ title: 'Домашнее задание завершено!', description: 'Отличная работа! 🎉' });
     } catch (error) {
       console.error('Error completing homework:', error);
-      toast({ title: 'Error', description: 'Failed to save homework completion', variant: 'destructive' });
+      toast({ title: 'Ошибка', description: 'Не удалось сохранить завершение', variant: 'destructive' });
     }
   };
 
@@ -811,6 +906,169 @@ const Homework = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
             <p className="text-lg text-muted-foreground">Загрузка вопросов...</p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Review Mode - Full Page View
+  if (reviewMode) {
+    const totalQuestions = allQuestionResults.length;
+    const correctAnswersCount = allQuestionResults.filter(r => r.isCorrect).length;
+    const accuracy = totalQuestions > 0 ? Math.round((correctAnswersCount / totalQuestions) * 100) : 0;
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Statistics at the top */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">Результаты домашнего задания</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="text-sm text-muted-foreground">Всего вопросов</div>
+                  <div className="text-2xl font-bold">{totalQuestions}</div>
+                </div>
+                <div className="bg-green-500/10 p-4 rounded-lg">
+                  <div className="text-sm text-muted-foreground">Правильно</div>
+                  <div className="text-2xl font-bold text-green-600">{correctAnswersCount}</div>
+                </div>
+                <div className="bg-red-500/10 p-4 rounded-lg">
+                  <div className="text-sm text-muted-foreground">Неправильно</div>
+                  <div className="text-2xl font-bold text-red-600">{totalQuestions - correctAnswersCount}</div>
+                </div>
+                <div className="bg-primary/10 p-4 rounded-lg">
+                  <div className="text-sm text-muted-foreground">Точность</div>
+                  <div className="text-2xl font-bold text-primary">{accuracy}%</div>
+                </div>
+              </div>
+              
+              {/* Go to AI Teacher button */}
+              <Button 
+                onClick={() => {
+                  const completionData = {
+                    homeworkName,
+                    timestamp: Date.now()
+                  };
+                  localStorage.setItem('homeworkCompletionData', JSON.stringify(completionData));
+                  
+                  toast({
+                    title: 'Данные отправлены ИИ учителю! 🤖',
+                    description: 'Ваши результаты будут проанализированы автоматически',
+                    duration: 2000
+                  });
+                  
+                  navigate('/ogemath');
+                }}
+                className="w-full bg-purple-600 hover:bg-purple-700"
+                size="lg"
+              >
+                <MessageSquare className="mr-2 h-5 w-5" />
+                Перейти к AI учителю
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Grid of question cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {allQuestionResults.map((result, index) => (
+              <Card
+                key={result.question.id}
+                className={cn(
+                  "cursor-pointer transition-all hover:scale-105",
+                  result.isCorrect 
+                    ? "border-green-500 bg-green-500/10" 
+                    : "border-red-500 bg-red-500/10",
+                  currentQuestionIndex === index && "ring-2 ring-primary"
+                )}
+                onClick={() => setCurrentQuestionIndex(index)}
+              >
+                <CardContent className="p-4 text-center">
+                  <div className="text-lg font-bold mb-1">№{index + 1}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {result.type === 'mcq' ? 'MCQ' : 'FIPI'}
+                  </div>
+                  {result.isCorrect ? (
+                    <Check className="w-6 h-6 text-green-600 mx-auto mt-2" />
+                  ) : (
+                    <X className="w-6 h-6 text-red-600 mx-auto mt-2" />
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Current question display */}
+          {allQuestionResults[currentQuestionIndex] && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Вопрос {currentQuestionIndex + 1} из {totalQuestions}</CardTitle>
+                <Badge className={allQuestionResults[currentQuestionIndex].isCorrect ? "bg-green-500" : "bg-red-500"}>
+                  {allQuestionResults[currentQuestionIndex].isCorrect ? "Правильно ✓" : "Неправильно ✗"}
+                </Badge>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Question text */}
+                <div className="space-y-2">
+                  <div className="font-semibold">Вопрос:</div>
+                  <MathRenderer text={allQuestionResults[currentQuestionIndex].question.text} />
+                </div>
+
+                {/* User's answer */}
+                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                  <div className="font-semibold text-sm">Ваш ответ:</div>
+                  <div className={cn(
+                    "text-lg font-medium",
+                    allQuestionResults[currentQuestionIndex].isCorrect ? "text-green-600" : "text-red-600"
+                  )}>
+                    {allQuestionResults[currentQuestionIndex].userAnswer || "Не отвечено"}
+                  </div>
+                </div>
+
+                {/* Correct answer */}
+                <div className="bg-green-500/10 p-4 rounded-lg space-y-2">
+                  <div className="font-semibold text-sm">Правильный ответ:</div>
+                  <div className="text-lg font-medium text-green-600">
+                    {allQuestionResults[currentQuestionIndex].correctAnswer}
+                  </div>
+                </div>
+
+                {/* Solution if available */}
+                {allQuestionResults[currentQuestionIndex].question.solution_text && (
+                  <div className="space-y-2">
+                    <div className="font-semibold">Решение:</div>
+                    <div className="bg-primary/5 p-4 rounded-lg">
+                      <MathRenderer text={allQuestionResults[currentQuestionIndex].question.solution_text} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Navigation buttons */}
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                    disabled={currentQuestionIndex === 0}
+                    className="flex-1"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Предыдущий
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentQuestionIndex(Math.min(totalQuestions - 1, currentQuestionIndex + 1))}
+                    disabled={currentQuestionIndex === totalQuestions - 1}
+                    className="flex-1"
+                  >
+                    Следующий
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     );
