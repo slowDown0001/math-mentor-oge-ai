@@ -77,7 +77,7 @@ const OgeMath = () => {
             console.error('Error processing homework completion data:', err);
             localStorage.removeItem('homeworkCompletionData');
           }
-        }
+        
 
         } else if (textbookData) {
           try {
