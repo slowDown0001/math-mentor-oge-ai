@@ -148,16 +148,13 @@ const Homework = () => {
     }
   }, [homeworkData, user, userProfile]);
 
-  // Decide next question index AFTER questions + completed set are ready
+  // Set initial question index only when questions first load
   useEffect(() => {
     if (!currentQuestions.length) return;
-    if (completedQuestions.size > 0) {
-      const next = currentQuestions.findIndex(q => !completedQuestions.has(q.id));
-      setCurrentQuestionIndex(next >= 0 ? next : 0);
-    } else {
-      setCurrentQuestionIndex(0);
-    }
-  }, [currentQuestions, completedQuestions]);
+    
+    const firstIncomplete = currentQuestions.findIndex(q => !completedQuestions.has(q.id));
+    setCurrentQuestionIndex(firstIncomplete >= 0 ? firstIncomplete : 0);
+  }, [currentQuestions]);
 
   // When question changes, prepare timer / FIPI attempt
   useEffect(() => {
@@ -202,7 +199,7 @@ const Homework = () => {
       }
 
       if (existingSessions && existingSessions.length > 0) {
-        // Seed completed/correct BEFORE loading questions
+        // Seed completed/correct sets
         const completedQuestionsList = existingSessions
           .filter(s => s.question_id)
           .map(s => s.question_id as string);
@@ -212,7 +209,6 @@ const Homework = () => {
 
         setCompletedQuestions(new Set(completedQuestionsList));
         setCorrectAnswers(new Set(correctQuestionsList));
-
 
         await loadQuestions();
 
@@ -331,8 +327,13 @@ const Homework = () => {
         return;
       }
 
+      // Sort questions to match homework assignment order
+      const sortedData = homeworkData.mcq_questions
+        .map(qid => mcqData?.find(q => q.question_id === qid))
+        .filter(Boolean);
+
       const mcqQuestions: Question[] =
-        mcqData?.map((q, index) => ({
+        sortedData.map((q, index) => ({
           id: q.question_id,
           text: q.problem_text || '',
           options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
@@ -341,10 +342,9 @@ const Homework = () => {
           problem_number: typeof q.problem_number_type === 'string' ? parseInt(q.problem_number_type) || index + 1 : q.problem_number_type || index + 1,
           difficulty: q.difficulty || null,
           skills: q.skills || null
-        })) || [];
+        }));
 
       setCurrentQuestions(mcqQuestions);
-      // ⚠️ Do NOT set index here — handled by effect
     } catch (error) {
       console.error('Error loading MCQ questions:', error);
       toast({ title: 'Ошибка', description: 'Произошла ошибка при загрузке вопросов', variant: 'destructive' });
@@ -365,18 +365,22 @@ const Homework = () => {
         return;
       }
 
+      // Sort questions to match homework assignment order
+      const sortedData = homeworkData.fipi_questions
+        .map(qid => frqData?.find(q => q.question_id === qid))
+        .filter(Boolean);
+
       const frqQuestions: Question[] =
-        frqData?.map((q, index) => ({
+        sortedData.map((q, index) => ({
           id: q.question_id,
           text: q.problem_text || '',
           correct_answer: q.answer || '',
           solution_text: q.solution_text || '',
           problem_number: q.problem_number_type || index + 1,
           difficulty: q.difficulty || null
-        })) || [];
+        }));
 
       setCurrentQuestions(frqQuestions);
-      // ⚠️ Do NOT set index here — handled by effect
     } catch (error) {
       console.error('Error loading FRQ questions:', error);
       toast({ title: 'Ошибка', description: 'Произошла ошибка при загрузке задач', variant: 'destructive' });
