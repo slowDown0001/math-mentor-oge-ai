@@ -44,25 +44,41 @@ const OgeMath = () => {
         if (homeworkData) {
           try {
             const completionData = JSON.parse(homeworkData);
-            // Get detailed homework session data from database
-            const { data: sessionData, error } = await supabase
+            // completionData.homeworkName is saved by the Homework page
+            const { data: allRows, error } = await supabase
               .from('homework_progress')
               .select('*')
               .eq('user_id', user.id)
-              .eq('session_id', completionData.sessionId)
+              .eq('homework_name', completionData.homeworkName)
               .order('created_at', { ascending: true });
-
-            if (!error && sessionData && sessionData.length > 0) {
-              homeworkFeedbackMessage = await generateAIHomeworkFeedback(sessionData);
+        
+            if (error) throw error;
+        
+            if (allRows && allRows.length > 0) {
+              // Find the latest completed marker for this homework_name
+              const completedMarkers = allRows.filter(r => r.completion_status === 'completed');
+              let rowsForLatestSession = allRows;
+        
+              if (completedMarkers.length > 0) {
+                const lastCompleted = completedMarkers[completedMarkers.length - 1];
+                const cutoff = new Date(lastCompleted.created_at).getTime();
+                // Use everything up to and including the latest completion marker
+                rowsForLatestSession = allRows.filter(r => new Date(r.created_at).getTime() <= cutoff);
+              }
+        
+              // Generate AI feedback from the rows we selected
+              homeworkFeedbackMessage = await generateAIHomeworkFeedback(rowsForLatestSession);
               shouldGenerateHomeworkFeedback = true;
-              
-              // Clear the stored data to avoid repeated feedback
+        
+              // prevent duplicate feedback on next open
               localStorage.removeItem('homeworkCompletionData');
             }
-          } catch (error) {
-            console.error('Error processing homework completion data:', error);
+          } catch (err) {
+            console.error('Error processing homework completion data:', err);
             localStorage.removeItem('homeworkCompletionData');
           }
+        }
+
         } else if (textbookData) {
           try {
             const completionData = JSON.parse(textbookData);
