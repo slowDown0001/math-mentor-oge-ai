@@ -130,10 +130,12 @@ export async function createHomeworkSummaryJSON(sessionData: any[]): Promise<Hom
 
 export async function generateAIHomeworkFeedback(sessionData: any[]): Promise<string> {
   try {
+    console.log('🔄 Starting AI feedback generation for session data:', sessionData.length, 'records');
     const homeworkJSON = await createHomeworkSummaryJSON(sessionData);
+    console.log('📝 Created homework JSON summary:', homeworkJSON);
     
     // Create specialized system prompt for homework feedback with access to question content
-    const systemPrompt = `Ты "Ёжик" - доброжелательный и опытный учитель математики, специализирующийся на подготовке к ОГЭ. 
+    const systemPrompt = `Ты "Ёжик" - доброжелательный и опытный учитель математики, специализирующийся на подготовке к ОГЭ.
 
 Твоя задача - проанализировать результаты выполнения домашнего задания учеником и дать ПЕРСОНАЛЬНУЮ обратную связь.
 
@@ -175,6 +177,7 @@ ${JSON.stringify(homeworkJSON, null, 2)}
 
 Дай персональную обратную связь на основе этих данных.`;
 
+    console.log('📤 Calling groq-chat edge function...');
     // Call Groq API for AI-generated feedback
     const { data, error } = await supabase.functions.invoke('groq-chat', {
       body: { 
@@ -187,11 +190,14 @@ ${JSON.stringify(homeworkJSON, null, 2)}
     });
 
     if (error) {
-      console.error('Error generating AI homework feedback:', error);
+      console.error('❌ Error from groq-chat edge function:', error);
       throw new Error(`AI feedback error: ${error.message}`);
     }
 
-    return data.choices[0].message.content;
+    console.log('✅ Received response from groq-chat');
+    const feedbackContent = data.choices[0].message.content;
+    console.log('📨 AI feedback content length:', feedbackContent.length);
+    return feedbackContent;
   } catch (error) {
     console.error('Error in generateAIHomeworkFeedback:', error);
     // Fallback to original feedback service

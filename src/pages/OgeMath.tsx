@@ -43,38 +43,58 @@ const OgeMath = () => {
 
         if (homeworkData) {
           try {
+            console.log('📋 Homework completion data found in localStorage:', homeworkData);
             const completionData = JSON.parse(homeworkData);
-            // completionData.homeworkName is saved by the Homework page
-            const { data: allRows, error } = await supabase
+            console.log('✅ Parsed completion data:', completionData);
+            
+            if (!completionData.session_id) {
+              console.error('❌ No session_id in completion data');
+              localStorage.removeItem('homeworkCompletionData');
+              throw new Error('Missing session_id in homework completion data');
+            }
+
+            // Query all records for this specific session
+            console.log('🔍 Querying homework_progress for session_id:', completionData.session_id);
+            const { data: sessionRows, error } = await supabase
               .from('homework_progress')
               .select('*')
               .eq('user_id', user.id)
-              .eq('homework_name', completionData.homeworkName)
+              .eq('session_id', completionData.session_id)
               .order('created_at', { ascending: true });
         
-            if (error) throw error;
+            if (error) {
+              console.error('❌ Database error fetching session:', error);
+              throw error;
+            }
         
-            if (allRows && allRows.length > 0) {
-              // Find the latest completed marker for this homework_name
-              const completedMarkers = allRows.filter(r => r.completion_status === 'completed');
-              let rowsForLatestSession = allRows;
-        
-              if (completedMarkers.length > 0) {
-                const lastCompleted = completedMarkers[completedMarkers.length - 1];
-                const cutoff = new Date(lastCompleted.created_at).getTime();
-                // Use everything up to and including the latest completion marker
-                rowsForLatestSession = allRows.filter(r => new Date(r.created_at).getTime() <= cutoff);
-              }
-        
-              // Generate AI feedback from the rows we selected
-              homeworkFeedbackMessage = await generateAIHomeworkFeedback(rowsForLatestSession);
+            console.log(`📊 Found ${sessionRows?.length || 0} records for session`);
+            
+            if (sessionRows && sessionRows.length > 0) {
+              // Show loading toast
+              toast({
+                title: "Генерация обратной связи",
+                description: "ИИ анализирует ваше домашнее задание...",
+              });
+
+              console.log('🤖 Generating AI feedback for session data...');
+              // Generate AI feedback from the session data
+              homeworkFeedbackMessage = await generateAIHomeworkFeedback(sessionRows);
+              console.log('✨ AI feedback generated successfully');
               shouldGenerateHomeworkFeedback = true;
         
               // prevent duplicate feedback on next open
               localStorage.removeItem('homeworkCompletionData');
+            } else {
+              console.warn('⚠️ No rows found for session');
+              localStorage.removeItem('homeworkCompletionData');
             }
           } catch (err) {
-            console.error('Error processing homework completion data:', err);
+            console.error('❌ Error processing homework completion data:', err);
+            toast({
+              title: "Ошибка",
+              description: "Не удалось сгенерировать обратную связь по ДЗ",
+              variant: "destructive",
+            });
             localStorage.removeItem('homeworkCompletionData');
           }
         

@@ -88,6 +88,32 @@ const Homework = () => {
     }
   };
 
+  const getLatestSession = async () => {
+    if (!user?.id) return null;
+    
+    try {
+      const { data, error } = await supabase
+        .from('homework_progress')
+        .select('session_id, homework_name')
+        .eq('user_id', user.id)
+        .eq('homework_name', homeworkName)
+        .eq('completion_status', 'completed')
+        .order('completed_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error getting latest session:', error);
+        return null;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error getting latest session:', error);
+      return null;
+    }
+  };
+
   // Start attempt for FIPI questions (create student_activity record)
   const startFIPIAttempt = async (questionId: string) => {
     if (!user) return;
@@ -941,16 +967,14 @@ const Homework = () => {
 
             <div className="flex flex-col gap-2">
               <Button 
-                onClick={() => {
+                onClick={async () => {
                   // Store homework completion data for AI teacher feedback
+                  // Get session_id from the latest completed session
+                  const latestSession = existingProgress || await getLatestSession();
+                  
                   const completionData = {
+                    session_id: latestSession?.session_id || '',
                     homeworkName,
-                    totalQuestions: completedQuestions.size,
-                    questionsCompleted: completedQuestions.size,
-                    questionsCorrect: correctAnswers.size,
-                    accuracy: completedQuestions.size > 0 ? (correctAnswers.size / completedQuestions.size) * 100 : 0,
-                    progressStats,
-                    completedAt: new Date().toISOString(),
                     timestamp: Date.now() // Add timestamp to ensure uniqueness
                   };
                   localStorage.setItem('homeworkCompletionData', JSON.stringify(completionData));
