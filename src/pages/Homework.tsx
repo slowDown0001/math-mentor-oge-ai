@@ -30,6 +30,7 @@ interface Question {
   solution_text?: string;
   difficulty?: number;
   skills?: number;
+  problem_image?: string;
 }
 
 interface ProgressStats {
@@ -377,7 +378,8 @@ const Homework = () => {
           solution_text: q.solution_text || '',
           problem_number: typeof q.problem_number_type === 'string' ? parseInt(q.problem_number_type) || index + 1 : q.problem_number_type || index + 1,
           difficulty: q.difficulty || null,
-          skills: q.skills || null
+          skills: q.skills || null,
+          problem_image: q.problem_image || undefined
         }));
 
       setCurrentQuestions(mcqQuestions);
@@ -413,7 +415,8 @@ const Homework = () => {
           correct_answer: q.answer || '',
           solution_text: q.solution_text || '',
           problem_number: q.problem_number_type || index + 1,
-          difficulty: q.difficulty || null
+          difficulty: q.difficulty || null,
+          problem_image: q.problem_image || undefined
         }));
 
       setCurrentQuestions(frqQuestions);
@@ -490,7 +493,8 @@ const Homework = () => {
               solution_text: data.solution_text || '',
               problem_number: typeof data.problem_number_type === 'string' ? parseInt(data.problem_number_type) || 0 : data.problem_number_type || 0,
               difficulty: data.difficulty || null,
-              skills: data.skills || null
+              skills: data.skills || null,
+              problem_image: data.problem_image || undefined
             };
           }
         } else {
@@ -506,7 +510,8 @@ const Homework = () => {
               correct_answer: data.answer || '',
               solution_text: data.solution_text || '',
               problem_number: data.problem_number_type || 0,
-              difficulty: data.difficulty || null
+              difficulty: data.difficulty || null,
+              problem_image: data.problem_image || undefined
             };
           }
         }
@@ -1010,6 +1015,17 @@ const Homework = () => {
                 </Badge>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Question image */}
+                {allQuestionResults[currentQuestionIndex].question.problem_image && (
+                  <div className="flex justify-center">
+                    <img 
+                      src={allQuestionResults[currentQuestionIndex].question.problem_image} 
+                      alt="Problem illustration"
+                      className="max-w-full h-auto rounded-lg shadow-md"
+                    />
+                  </div>
+                )}
+                
                 {/* Question text */}
                 <div className="space-y-2">
                   <div className="font-semibold">Вопрос:</div>
@@ -1225,6 +1241,17 @@ const Homework = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Question image */}
+                {currentQuestion.problem_image && (
+                  <div className="flex justify-center mb-4">
+                    <img 
+                      src={currentQuestion.problem_image} 
+                      alt="Problem illustration"
+                      className="max-w-full h-auto rounded-lg shadow-md"
+                    />
+                  </div>
+                )}
+                
                 <MathRenderer text={currentQuestion.text} className="text-lg leading-relaxed" compiler="mathjax" />
 
                 {questionType === 'mcq' && currentQuestion.options ? (
