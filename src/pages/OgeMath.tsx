@@ -428,7 +428,7 @@ const OgeMath = () => {
           </Button>
           
           <Button
-            onClick={handleTextbookClick}
+            onClick={() => navigate('/cellard-lp2')}
             variant="ghost"
             className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
