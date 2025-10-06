@@ -326,7 +326,6 @@ const ModulePage = () => {
             </h1>
             <p className="text-gray-200/90 mt-1">{module.subtitle}</p>
           </div>
-          <StreakDisplay />
         </motion.div>
 
         {/* Module Statistics */}

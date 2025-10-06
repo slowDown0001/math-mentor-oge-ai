@@ -181,7 +181,6 @@ const TopicPage: React.FC = () => {
               {moduleEntry.title.replace(/^Модуль \d+:\s*/, "")}
             </Link>
           </div>
-          <StreakDisplay />
         </div>
 
         {/* Split layout */}
