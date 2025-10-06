@@ -66,6 +66,8 @@ const Homework = () => {
   const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
   const [existingProgress, setExistingProgress] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [checkingAnswer, setCheckingAnswer] = useState(false);
+  const [answerCheckMethod, setAnswerCheckMethod] = useState<'numeric' | 'ai' | null>(null);
 
 
   // Mastery tracking (FIPI)
@@ -484,22 +486,89 @@ const Homework = () => {
       return;
     }
 
-    const correct = answer === currentQuestion.correct_answer;
-    const responseTime = Math.floor((Date.now() - questionStartTime) / 1000);
+    // For MCQ questions, use the old logic
+    if (questionType === 'mcq') {
+      const correct = answer === currentQuestion.correct_answer;
+      const responseTime = Math.floor((Date.now() - questionStartTime) / 1000);
 
-    setIsCorrect(correct);
-    setShowAnswer(true);
+      setIsCorrect(correct);
+      setShowAnswer(true);
 
-    setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
-    if (correct) setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
+      setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
+      if (correct) setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
 
-    await recordQuestionProgress(currentQuestion.id, answer, currentQuestion.correct_answer || '', correct, responseTime, false);
+      await recordQuestionProgress(currentQuestion.id, answer, currentQuestion.correct_answer || '', correct, responseTime, false);
 
-    if (questionType === 'mcq' && currentQuestion.skills) {
-      await processMCQSkillAttempt(currentQuestion, correct, responseTime);
-    } else if (questionType === 'frq') {
-      await updateFIPIActivity(correct, 0);
-      await submitToHandleSubmission(correct);
+      if (currentQuestion.skills) {
+        await processMCQSkillAttempt(currentQuestion, correct, responseTime);
+      }
+      return;
+    }
+
+    // For FIPI questions, use check-text-answer edge function
+    if (questionType === 'frq') {
+      setCheckingAnswer(true);
+      setAnswerCheckMethod(null);
+
+      try {
+        const { data, error } = await supabase.functions.invoke('check-text-answer', {
+          body: {
+            user_id: user.id,
+            question_id: currentQuestion.id,
+            submitted_answer: answer
+          }
+        });
+
+        if (error) {
+          console.error('Error checking answer:', error);
+          toast({ 
+            title: 'Ошибка проверки', 
+            description: 'Не удалось проверить ответ. Попробуйте снова.', 
+            variant: 'destructive' 
+          });
+          setCheckingAnswer(false);
+          return;
+        }
+
+        const { is_correct, duration_seconds, scores_fipi } = data;
+        
+        // Determine check method (numeric vs AI)
+        // The edge function tries numeric first, then falls back to AI
+        const isNumericAnswer = !isNaN(parseFloat(answer)) && !isNaN(parseFloat(currentQuestion.correct_answer || ''));
+        setAnswerCheckMethod(isNumericAnswer ? 'numeric' : 'ai');
+
+        setIsCorrect(is_correct);
+        setShowAnswer(true);
+
+        setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
+        if (is_correct) setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
+
+        const responseTime = Math.floor((Date.now() - questionStartTime) / 1000);
+        await recordQuestionProgress(
+          currentQuestion.id, 
+          answer, 
+          currentQuestion.correct_answer || '', 
+          is_correct, 
+          responseTime, 
+          false
+        );
+
+        toast({
+          title: is_correct ? 'Правильно! ✓' : 'Неправильно ✗',
+          description: `Проверено ${isNumericAnswer ? 'числовым сравнением' : 'ИИ анализом'}`,
+          variant: is_correct ? 'default' : 'destructive'
+        });
+
+      } catch (error) {
+        console.error('Error in handleSubmitAnswer for FIPI:', error);
+        toast({ 
+          title: 'Ошибка', 
+          description: 'Произошла ошибка при проверке ответа', 
+          variant: 'destructive' 
+        });
+      } finally {
+        setCheckingAnswer(false);
+      }
     }
   };
 
@@ -616,6 +685,7 @@ const Homework = () => {
     setQuestionStartTime(Date.now());
     setCurrentAttemptId(null);
     setAttemptStartTime(null);
+    setAnswerCheckMethod(null);
 
     if (currentQuestionIndex < currentQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -941,6 +1011,11 @@ const Homework = () => {
                       <span className={`font-bold ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
                         {isCorrect ? 'Правильно!' : showSolution ? 'Показано решение' : 'Неправильно'}
                       </span>
+                      {questionType === 'frq' && answerCheckMethod && !showSolution && (
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          {answerCheckMethod === 'numeric' ? '🔢 Числовая проверка' : '🤖 ИИ проверка'}
+                        </Badge>
+                      )}
                     </div>
                     {!isCorrect && !showSolution && (
                       <p className="text-gray-700">
@@ -962,11 +1037,18 @@ const Homework = () => {
                       <Button
                         onClick={handleSubmitAnswer}
                         className="bg-purple-600 hover:bg-purple-700"
-                        disabled={questionType === 'mcq' ? !selectedOption : !userAnswer}
+                        disabled={checkingAnswer || (questionType === 'mcq' ? !selectedOption : !userAnswer)}
                       >
-                        Проверить ответ
+                        {checkingAnswer ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Проверяем...
+                          </>
+                        ) : (
+                          'Проверить ответ'
+                        )}
                       </Button>
-                      <Button onClick={handleShowSolution} variant="outline" className="flex items-center gap-2">
+                      <Button onClick={handleShowSolution} variant="outline" className="flex items-center gap-2" disabled={checkingAnswer}>
                         <Eye className="w-4 h-4" />
                         Показать решение
                       </Button>
