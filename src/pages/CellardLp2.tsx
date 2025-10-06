@@ -366,7 +366,7 @@ const CellardLp2: React.FC = () => {
           <div className="text-center mt-20">
             <div
               className="rounded-xl p-8 max-w-md mx-auto cursor-pointer bg-white/95 text-[#1a1f36] border border-white/20"
-              onClick={startMock}
+              onClick={() => window.location.href = "/ogemath-mock"}
             >
               <img src={moduleImgs.mock} alt="Пробный экзамен" className="w-20 h-20 mx-auto mb-6" />
               <h3 className="font-display text-2xl font-semibold mb-4">Пробный экзамен</h3>
