@@ -350,9 +350,18 @@ const DigitalTextbook = () => {
     
     return (
       <div className="space-y-6">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Программа ОГЭ по математике</h2>
-          <p className="text-lg text-gray-600">Выберите любой навык для изучения</p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex-1 text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Программа ОГЭ по математике</h2>
+            <p className="text-lg text-gray-600">Выберите любой навык для изучения</p>
+          </div>
+          <button
+            onClick={() => setIsChatOpen(true)}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-110 transition-all duration-300 flex items-center gap-2"
+          >
+            <MessageCircle className="h-5 w-5" />
+            <span className="font-medium">ЧАТ</span>
+          </button>
         </div>
         
         <div className="grid gap-6">
@@ -572,20 +581,6 @@ const DigitalTextbook = () => {
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto relative">
-          {/* Chat Toggle Button */}
-          <button
-            onClick={() => setIsChatOpen(true)}
-            className="fixed left-4 top-1/2 -translate-y-1/2 z-50 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white p-3 rounded-r-2xl shadow-xl hover:shadow-2xl transform hover:scale-110 transition-all duration-300 border-l-4 border-white/30"
-            style={{ 
-              writingMode: 'vertical-lr',
-              textOrientation: 'mixed'
-            }}
-          >
-            <div className="flex flex-col items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
-              <span className="text-xs font-medium tracking-wider">ЧАТ</span>
-            </div>
-          </button>
           <div className="max-w-6xl mx-auto px-4 py-6">
             {/* Breadcrumb Navigation */}
             {(selectedModule || selectedTopic || selectedSkill) && (
