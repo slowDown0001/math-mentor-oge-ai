@@ -614,11 +614,75 @@ function useOgemathProgressData() {
       setProblems(problemsData);
       setModules(modulesData);
       setSkills(skillsData);
+
+      // Insert snapshot after successful data processing
+      await insertMasterySnapshot(progressData);
     } catch (err) {
       console.error('Error recalculating progress data:', err);
       setError(err instanceof Error ? err.message : 'Произошла ошибка при загрузке данных');
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  // Function to compute summary from progress data
+  const computeSummary = (progressData: any[]) => {
+    try {
+      const summary = [];
+      const probabilities = [];
+      
+      // Extract topic probabilities from progress data
+      if (Array.isArray(progressData)) {
+        for (const item of progressData) {
+          if (item.topic && typeof item.prob === 'number') {
+            summary.push({
+              topic: item.topic,
+              prob: item.prob
+            });
+            probabilities.push(item.prob);
+          }
+        }
+      }
+      
+      // Calculate general progress as arithmetic mean
+      const general_progress = probabilities.length > 0 
+        ? probabilities.reduce((sum, prob) => sum + prob, 0) / probabilities.length 
+        : 0;
+      
+      // Insert general progress at the beginning
+      summary.unshift({
+        general_progress
+      });
+      
+      return summary;
+    } catch (error) {
+      console.error('Error computing summary:', error);
+      return [{ general_progress: 0 }];
+    }
+  };
+
+  // Function to insert mastery snapshot
+  const insertMasterySnapshot = async (progressData: any[]) => {
+    if (!user) return;
+
+    try {
+      const raw_data = progressData;
+      const computed_summary = computeSummary(progressData);
+
+      const { error: insertError } = await supabase
+        .from('mastery_snapshots')
+        .insert({
+          user_id: user.id,
+          course_id: '1',
+          raw_data,
+          computed_summary
+        });
+
+      if (insertError) {
+        console.error('Error inserting mastery snapshot:', insertError);
+      }
+    } catch (err) {
+      console.error('Error in insertMasterySnapshot:', err);
     }
   };
 
