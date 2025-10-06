@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3, MessageSquare, ArrowLeft, Highlighter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +14,12 @@ import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import MathRenderer from '@/components/MathRenderer';
+import { useMathJaxSelection } from '@/hooks/useMathJaxSelection';
+import { getSelectedTextWithMath } from '@/utils/getSelectedTextWithMath';
+import { useChatContext } from '@/contexts/ChatContext';
+import CourseChatMessages from '@/components/chat/CourseChatMessages';
+import ChatInput from '@/components/chat/ChatInput';
+import { sendChatMessage } from '@/services/chatService';
 
 interface HomeworkData {
   mcq_questions: string[];
@@ -83,6 +90,18 @@ const Homework = () => {
   const [currentAttemptId, setCurrentAttemptId] = useState<number | null>(null);
   const [attemptStartTime, setAttemptStartTime] = useState<Date | null>(null);
 
+  // Selector tool states
+  const [isSelecterActive, setIsSelecterActive] = useState(false);
+  const [selectedText, setSelectedText] = useState('');
+  const [selectionPosition, setSelectionPosition] = useState<{ x: number; y: number } | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Chat context
+  const { messages, setMessages, isTyping, setIsTyping } = useChatContext();
+
+  // Initialize MathJax selection
+  useMathJaxSelection();
+
   const loadUserProfile = async () => {
     if (!user?.id) return;
     const { data, error } = await supabase
@@ -143,6 +162,90 @@ const Homework = () => {
       }
     } catch (error) {
       console.error('Error starting FIPI attempt:', error);
+    }
+  };
+
+  // Text selection handler
+  useEffect(() => {
+    if (!isSelecterActive) return;
+
+    const handleTextSelection = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+
+      const text = getSelectedTextWithMath();
+      if (text.trim().length > 0) {
+        setSelectedText(text);
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        setSelectionPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.top - 10
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setTimeout(handleTextSelection, 10);
+    };
+
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchend', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchend', handleMouseUp);
+    };
+  }, [isSelecterActive]);
+
+  const closeSelectionPopup = () => {
+    setSelectedText('');
+    setSelectionPosition(null);
+    window.getSelection()?.removeAllRanges();
+  };
+
+  const handleAskHedgehog = () => {
+    if (!selectedText) return;
+
+    const currentQuestion = currentQuestions[currentQuestionIndex];
+    const contextMessage = `Вопрос ${currentQuestionIndex + 1}: ${currentQuestion?.text || ''}\n\nВыбранный текст: ${selectedText}`;
+
+    setMessages([{
+      id: Date.now(),
+      text: contextMessage,
+      isUser: true,
+      timestamp: new Date()
+    }]);
+
+    setIsChatOpen(true);
+    closeSelectionPopup();
+  };
+
+  const handleSendChatMessage = async (userInput: string) => {
+    if (!userInput.trim()) return;
+
+    const userMessage = {
+      id: Date.now(),
+      text: userInput,
+      isUser: true,
+      timestamp: new Date()
+    };
+
+    setMessages([...messages, userMessage]);
+    setIsTyping(true);
+
+    try {
+      const aiResponse = await sendChatMessage(userMessage, messages, false);
+      setMessages([...messages, userMessage, aiResponse]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось отправить сообщение',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsTyping(false);
     }
   };
 
@@ -1061,7 +1164,7 @@ const Homework = () => {
                   </div>
                 )}
 
-                {/* Navigation buttons */}
+                 {/* Navigation buttons */}
                 <div className="flex gap-3">
                   <Button
                     variant="outline"
@@ -1081,6 +1184,16 @@ const Homework = () => {
                     Следующий
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
+                  {!isSelecterActive && (
+                    <Button
+                      onClick={() => setIsSelecterActive(true)}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <Highlighter className="w-4 h-4" />
+                      Выделение
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1357,6 +1470,16 @@ const Homework = () => {
                           Показать решение
                         </Button>
                       )}
+                      {showSolution && !isSelecterActive && (
+                        <Button
+                          onClick={() => setIsSelecterActive(true)}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          <Highlighter className="w-4 h-4" />
+                          Выделение
+                        </Button>
+                      )}
                     </>
                   )}
                 </div>
@@ -1399,6 +1522,48 @@ const Homework = () => {
           </Card>
         </div>
       </div>
+
+      {/* Selection popup */}
+      {selectedText && selectionPosition && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed z-50 bg-white rounded-lg shadow-xl border-2 border-purple-500 p-3"
+          style={{
+            left: `${selectionPosition.x}px`,
+            top: `${selectionPosition.y}px`,
+            transform: 'translate(-50%, -100%)'
+          }}
+        >
+          <Button
+            onClick={handleAskHedgehog}
+            className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Спросить Ёжика
+          </Button>
+        </motion.div>
+      )}
+
+      {/* Chat Sheet */}
+      <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <SheetContent side="right" className="w-full sm:w-[540px] flex flex-col h-full p-0">
+          <SheetHeader className="px-6 py-4 border-b">
+            <SheetTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-purple-600" />
+              Чат с Ёжиком
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto px-6">
+              <CourseChatMessages messages={messages} isTyping={isTyping} />
+            </div>
+            <div className="border-t px-6 py-4">
+              <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
