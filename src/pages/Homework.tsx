@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3, TrendingUp } from 'lucide-react';
+import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -43,15 +43,19 @@ const Homework = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
   const [homeworkData, setHomeworkData] = useState<HomeworkData | null>(null);
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
   const [userAnswer, setUserAnswer] = useState('');
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+
   const [completedQuestions, setCompletedQuestions] = useState<Set<string>>(new Set());
   const [correctAnswers, setCorrectAnswers] = useState<Set<string>>(new Set());
+
   const [loading, setLoading] = useState(true);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [questionType, setQuestionType] = useState<'mcq' | 'frq'>('mcq');
@@ -62,64 +66,49 @@ const Homework = () => {
   const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
   const [existingProgress, setExistingProgress] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
-  
-  // Mastery tracking states (for FIPI questions)
+
+  // Persist an active session id for this homework run
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
+  // Mastery tracking (FIPI)
   const [currentAttemptId, setCurrentAttemptId] = useState<number | null>(null);
   const [attemptStartTime, setAttemptStartTime] = useState<Date | null>(null);
 
   const loadUserProfile = async () => {
     if (!user?.id) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('homework')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error loading user profile:', error);
-        return;
-      }
-      
-      setUserProfile(data);
-    } catch (error) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('homework')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (error) {
       console.error('Error loading user profile:', error);
+      return;
     }
+    setUserProfile(data);
   };
 
   const getLatestSession = async () => {
-    if (!user?.id) return null;
-    
-    try {
-      const { data, error } = await supabase
-        .from('homework_progress')
-        .select('session_id, homework_name')
-        .eq('user_id', user.id)
-        .eq('homework_name', homeworkName)
-        .eq('completion_status', 'completed')
-        .order('completed_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error getting latest session:', error);
-        return null;
-      }
-      
-      return data;
-    } catch (error) {
+    if (!user?.id || !homeworkName) return null;
+    const { data, error } = await supabase
+      .from('homework_progress')
+      .select('session_id, homework_name')
+      .eq('user_id', user.id)
+      .eq('homework_name', homeworkName)
+      .eq('completion_status', 'completed')
+      .order('completed_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) {
       console.error('Error getting latest session:', error);
       return null;
     }
+    return data;
   };
 
-  // Start attempt for FIPI questions (create student_activity record)
   const startFIPIAttempt = async (questionId: string) => {
     if (!user) return;
-    
     try {
-      // Fetch question details to populate skills and topics
       let skillsArray: number[] = [];
       let topicsArray: string[] = [];
       let problemNumberType = 1;
@@ -128,9 +117,7 @@ const Homework = () => {
         const { data: detailsResp, error: detailsErr } = await supabase.functions.invoke('get-question-details', {
           body: { question_id: questionId, course_id: '1' }
         });
-        if (detailsErr) {
-          console.warn('get-question-details error (will fallback):', detailsErr);
-        } else if (detailsResp?.data) {
+        if (!detailsErr && detailsResp?.data) {
           skillsArray = Array.isArray(detailsResp.data.skills_list) ? detailsResp.data.skills_list : [];
           topicsArray = Array.isArray(detailsResp.data.topics_list) ? detailsResp.data.topics_list : [];
           if (detailsResp.data.problem_number_type) {
@@ -138,10 +125,9 @@ const Homework = () => {
           }
         }
       } catch (e) {
-        console.warn('Failed to fetch question details, proceeding without skills/topics:', e);
+        console.warn('get-question-details failed, continuing:', e);
       }
 
-      // Insert into student_activity table
       const { data, error } = await supabase
         .from('student_activity')
         .insert({
@@ -159,15 +145,9 @@ const Homework = () => {
         .select('attempt_id')
         .single();
 
-      if (error) {
-        console.error('Error starting FIPI attempt:', error);
-        return;
-      }
-
-      if (data) {
+      if (!error && data) {
         setCurrentAttemptId(data.attempt_id);
         setAttemptStartTime(new Date());
-        console.log('Started FIPI attempt:', data.attempt_id);
       }
     } catch (error) {
       console.error('Error starting FIPI attempt:', error);
@@ -180,45 +160,53 @@ const Homework = () => {
       loadUserProfile();
     }
   }, [user]);
-  
+
   useEffect(() => {
     if (homeworkData && user && userProfile) {
       checkExistingProgress();
     }
   }, [homeworkData, user, userProfile]);
 
-
+  // Decide next question index AFTER questions + completed set are ready
   useEffect(() => {
-    if (currentQuestions.length > 0) {
-      setQuestionStartTime(Date.now());
-      
-      // Start attempt for FIPI questions when shown
-      const currentQuestion = currentQuestions[currentQuestionIndex];
-      if (currentQuestion && questionType === 'frq' && user) {
-        startFIPIAttempt(currentQuestion.id);
-      }
+    if (!currentQuestions.length) return;
+    if (completedQuestions.size > 0) {
+      const next = currentQuestions.findIndex(q => !completedQuestions.has(q.id));
+      setCurrentQuestionIndex(next >= 0 ? next : 0);
+    } else {
+      setCurrentQuestionIndex(0);
     }
-  }, [currentQuestionIndex, currentQuestions]);
+  }, [currentQuestions, completedQuestions]);
 
+  // When question changes, prepare timer / FIPI attempt
   useEffect(() => {
-    if (user?.id && currentQuestions.length > 0 && homeworkName && !existingProgress) {
+    if (!currentQuestions.length) return;
+    setQuestionStartTime(Date.now());
+
+    const currentQuestion = currentQuestions[currentQuestionIndex];
+    if (currentQuestion && questionType === 'frq' && user) {
+      startFIPIAttempt(currentQuestion.id);
+    }
+  }, [currentQuestionIndex, currentQuestions, questionType, user]);
+
+  // Start a session as soon as we know homeworkName + we loaded first batch of questions
+  useEffect(() => {
+    if (user?.id && homeworkName && currentQuestions.length > 0 && !activeSessionId) {
       recordSessionStart();
     }
-  }, [user?.id, currentQuestions.length, homeworkName, existingProgress]);
+  }, [user?.id, homeworkName, currentQuestions.length, activeSessionId]);
 
   const checkExistingProgress = async () => {
     if (!user?.id || !homeworkData || !userProfile?.homework) return;
 
     try {
-      // Extract homework_name from user profile
-      const homeworkJson = typeof userProfile.homework === 'string' 
-        ? JSON.parse(userProfile.homework) 
+      const homeworkJson = typeof userProfile.homework === 'string'
+        ? JSON.parse(userProfile.homework)
         : userProfile.homework;
-      
+
       const currentHomeworkName = homeworkJson.homework_name || 'Homework';
       setHomeworkName(currentHomeworkName);
-      
-      // Check for existing homework progress with this homework_name
+
       const { data: existingSessions, error } = await supabase
         .from('homework_progress')
         .select('*')
@@ -228,84 +216,71 @@ const Homework = () => {
 
       if (error) {
         console.error('Error checking existing progress:', error);
-        // If no existing progress, start fresh
-        loadQuestions();
+        await loadQuestions();
         return;
       }
 
       if (existingSessions && existingSessions.length > 0) {
-        // Check if homework is already completed
+        // Seed completed/correct BEFORE loading questions
+        const completedQuestionsList = existingSessions
+          .filter(s => s.question_id)
+          .map(s => s.question_id as string);
+        const correctQuestionsList = existingSessions
+          .filter(s => s.question_id && s.is_correct)
+          .map(s => s.question_id as string);
+
+        setCompletedQuestions(new Set(completedQuestionsList));
+        setCorrectAnswers(new Set(correctQuestionsList));
+
+        // Reuse active session if any in_progress exists
+        const inProgressRow = existingSessions.find(s => s.completion_status === 'in_progress' && s.session_id);
+        if (inProgressRow?.session_id) setActiveSessionId(inProgressRow.session_id);
+
+        await loadQuestions();
+
         const completedSession = existingSessions.find(s => s.completion_status === 'completed');
         if (completedSession) {
-          // Load questions first, then show congratulations
-          await loadQuestions();
           setExistingProgress(completedSession);
-          
-          // Load progress stats for the completed session
           await loadProgressStats();
-          
           setShowCongrats(true);
           return;
         }
 
-        // Get all completed questions for this homework_name
-        const completedQuestionsList = existingSessions
-          .filter(s => s.question_id)
-          .map(s => s.question_id);
-        
-        const correctQuestions = existingSessions
-          .filter(s => s.question_id && s.is_correct)
-          .map(s => s.question_id);
-
-        // Load questions and then resume from where they left off
-        await loadQuestions();
-        
-        // Set completed and correct questions
-        setCompletedQuestions(new Set(completedQuestionsList));
-        setCorrectAnswers(new Set(correctQuestions));
-        
-        // Check if all MCQ questions are completed and we need to move to FRQ
-        const allMCQCompleted = homeworkData.mcq_questions?.every(qid => 
-          completedQuestionsList.includes(qid)
-        ) || false;
-        
+        // If all MCQs done, switch to FRQ
+        const allMCQCompleted = homeworkData.mcq_questions?.every(qid => completedQuestionsList.includes(qid)) || false;
         if (allMCQCompleted && homeworkData?.fipi_questions?.length > 0) {
-          // User should continue with FRQ questions
-          loadFRQQuestions();
+          await loadFRQQuestions();
         }
-        
-        // Set existing progress for stats
+
         setExistingProgress(existingSessions[0]);
-        
       } else {
-        // No existing progress, start fresh
-        loadQuestions();
+        await loadQuestions();
       }
     } catch (error) {
       console.error('Error checking existing progress:', error);
-      // If error, start fresh
-      loadQuestions();
+      await loadQuestions();
     }
   };
 
   const recordSessionStart = async () => {
-    if (!user?.id || !homeworkName) return;
-    
+    if (!user?.id || !homeworkName || activeSessionId) return;
     try {
-      const { data, error } = await supabase.from('homework_progress').insert({
-        user_id: user.id,
-        homework_task: `Homework ${new Date().toLocaleDateString()} - Session Start`,
-        homework_name: homeworkName,
-        total_questions: currentQuestions.length,
-        questions_completed: 0,
-        questions_correct: 0,
-        completion_status: 'in_progress'
-      }).select('session_id').single();
-      
-      if (error) {
-        console.error('Error recording session start:', error);
-      } else {
-        console.log('Session started with ID:', data?.session_id);
+      const { data, error } = await supabase
+        .from('homework_progress')
+        .insert({
+          user_id: user.id,
+          homework_task: `Homework ${new Date().toLocaleDateString()} - Session Start`,
+          homework_name: homeworkName,
+          total_questions: (homeworkData?.mcq_questions?.length || 0) + (homeworkData?.fipi_questions?.length || 0),
+          questions_completed: 0,
+          questions_correct: 0,
+          completion_status: 'in_progress'
+        })
+        .select('session_id')
+        .single();
+
+      if (!error && data?.session_id) {
+        setActiveSessionId(data.session_id);
       }
     } catch (error) {
       console.error('Error recording session start:', error);
@@ -314,7 +289,6 @@ const Homework = () => {
 
   const loadHomeworkData = async () => {
     if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -331,21 +305,19 @@ const Homework = () => {
       if (data && (data as any).homework) {
         try {
           const parsedHomework = JSON.parse((data as any).homework);
-          
-          const transformedHomework = {
+          const transformedHomework: HomeworkData = {
             mcq_questions: parsedHomework.MCQ || parsedHomework.mcq_questions || [],
             fipi_questions: parsedHomework.FIPI || parsedHomework.fipi_questions || [],
             assigned_date: parsedHomework.assigned_date,
             due_date: parsedHomework.due_date
           };
-          
           setHomeworkData(transformedHomework);
         } catch (parseError) {
           console.error('Error parsing homework JSON:', parseError);
           toast({
-            title: "Ошибка",
-            description: "Неверный формат домашнего задания",
-            variant: "destructive"
+            title: 'Ошибка',
+            description: 'Неверный формат домашнего задания',
+            variant: 'destructive'
           });
         }
       }
@@ -358,23 +330,21 @@ const Homework = () => {
 
   const loadQuestions = async () => {
     if (!homeworkData) return;
-    
     setLoadingQuestions(true);
-    
-    // Start with MCQ questions
+
     if (homeworkData.mcq_questions?.length > 0) {
       await loadMCQQuestions();
+      setQuestionType('mcq');
     } else if (homeworkData.fipi_questions?.length > 0) {
-      setQuestionType('frq');
       await loadFRQQuestions();
+      setQuestionType('frq');
     }
-    
+
     setLoadingQuestions(false);
   };
 
   const loadMCQQuestions = async () => {
     if (!homeworkData?.mcq_questions?.length) return;
-
     try {
       const { data: mcqData, error } = await supabase
         .from('oge_math_skills_questions')
@@ -383,48 +353,32 @@ const Homework = () => {
 
       if (error) {
         console.error('Error loading MCQ questions:', error);
-        toast({
-          title: "Ошибка",
-          description: "Не удалось загрузить вопросы MCQ",
-          variant: "destructive"
-        });
+        toast({ title: 'Ошибка', description: 'Не удалось загрузить вопросы MCQ', variant: 'destructive' });
         return;
       }
 
-      const mcqQuestions: Question[] = mcqData?.map((q, index) => ({
-        id: q.question_id,
-        text: q.problem_text || '',
-        options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
-        correct_answer: q.answer || '',
-        solution_text: q.solution_text || '',
-        problem_number: typeof q.problem_number_type === 'string' ? parseInt(q.problem_number_type) || index + 1 : q.problem_number_type || index + 1,
-        difficulty: q.difficulty || null,
-        skills: q.skills || null
-      })) || [];
+      const mcqQuestions: Question[] =
+        mcqData?.map((q, index) => ({
+          id: q.question_id,
+          text: q.problem_text || '',
+          options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
+          correct_answer: q.answer || '',
+          solution_text: q.solution_text || '',
+          problem_number: typeof q.problem_number_type === 'string' ? parseInt(q.problem_number_type) || index + 1 : q.problem_number_type || index + 1,
+          difficulty: q.difficulty || null,
+          skills: q.skills || null
+        })) || [];
 
       setCurrentQuestions(mcqQuestions);
-      setQuestionType('mcq');
-      
-      // If resuming, find the next uncompleted question
-      if (completedQuestions.size > 0) {
-        const nextUncompletedIndex = mcqQuestions.findIndex(q => !completedQuestions.has(q.id));
-        setCurrentQuestionIndex(nextUncompletedIndex >= 0 ? nextUncompletedIndex : 0);
-      } else {
-        setCurrentQuestionIndex(0);
-      }
+      // ⚠️ Do NOT set index here — handled by effect
     } catch (error) {
       console.error('Error loading MCQ questions:', error);
-      toast({
-        title: "Ошибка",
-        description: "Произошла ошибка при загрузке вопросов",
-        variant: "destructive"
-      });
+      toast({ title: 'Ошибка', description: 'Произошла ошибка при загрузке вопросов', variant: 'destructive' });
     }
   };
 
   const loadFRQQuestions = async () => {
     if (!homeworkData?.fipi_questions?.length) return;
-
     try {
       const { data: frqData, error } = await supabase
         .from('oge_math_fipi_bank')
@@ -433,97 +387,74 @@ const Homework = () => {
 
       if (error) {
         console.error('Error loading FRQ questions:', error);
-        toast({
-          title: "Ошибка",
-          description: "Не удалось загрузить задачи ФИПИ",
-          variant: "destructive"
-        });
+        toast({ title: 'Ошибка', description: 'Не удалось загрузить задачи ФИПИ', variant: 'destructive' });
         return;
       }
 
-      const frqQuestions: Question[] = frqData?.map((q, index) => ({
-        id: q.question_id,
-        text: q.problem_text || '',
-        correct_answer: q.answer || '',
-        solution_text: q.solution_text || '',
-        problem_number: q.problem_number_type || index + 1,
-        difficulty: q.difficulty || null
-      })) || [];
+      const frqQuestions: Question[] =
+        frqData?.map((q, index) => ({
+          id: q.question_id,
+          text: q.problem_text || '',
+          correct_answer: q.answer || '',
+          solution_text: q.solution_text || '',
+          problem_number: q.problem_number_type || index + 1,
+          difficulty: q.difficulty || null
+        })) || [];
 
       setCurrentQuestions(frqQuestions);
-      setQuestionType('frq');
-      
-      // If resuming, find the next uncompleted question
-      if (completedQuestions.size > 0) {
-        const nextUncompletedIndex = frqQuestions.findIndex(q => !completedQuestions.has(q.id));
-        setCurrentQuestionIndex(nextUncompletedIndex >= 0 ? nextUncompletedIndex : 0);
-      } else {
-        setCurrentQuestionIndex(0);
-      }
+      // ⚠️ Do NOT set index here — handled by effect
     } catch (error) {
       console.error('Error loading FRQ questions:', error);
-      toast({
-        title: "Ошибка",
-        description: "Произошла ошибка при загрузке задач",
-        variant: "destructive"
-      });
+      toast({ title: 'Ошибка', description: 'Произошла ошибка при загрузке задач', variant: 'destructive' });
     }
   };
 
   const recordQuestionProgress = async (
-    questionId: string, 
-    userAnswer: string, 
-    correctAnswer: string, 
-    isCorrect: boolean, 
-    responseTime: number, 
+    questionId: string,
+    userAns: string,
+    correctAns: string,
+    wasCorrect: boolean,
+    responseTime: number,
     showedSolution: boolean
   ) => {
     if (!user?.id || !homeworkName) return;
 
     try {
+      // Ensure we have a session id (reuse or recover last in_progress)
+      let sessionId = activeSessionId;
+      if (!sessionId) {
+        const { data: existingSession } = await supabase
+          .from('homework_progress')
+          .select('session_id')
+          .eq('user_id', user.id)
+          .eq('homework_name', homeworkName)
+          .eq('completion_status', 'in_progress')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        sessionId = existingSession?.session_id || null;
+        if (sessionId) setActiveSessionId(sessionId);
+      }
+
       const currentQuestion = currentQuestions.find(q => q.id === questionId);
-      const questionType = homeworkData?.mcq_questions?.includes(questionId) ? 'mcq' : 'fipi';
-      
-      // Get or generate session_id from existing records
-      const { data: existingSession } = await supabase
-        .from('homework_progress')
-        .select('session_id')
-        .eq('user_id', user.id)
-        .eq('homework_name', homeworkName)
-        .eq('completion_status', 'in_progress')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      const sessionId = existingSession?.session_id;
-      
-      console.log('Recording question progress:', {
-        questionId,
-        sessionId,
-        isCorrect,
-        responseTime,
-        showedSolution,
-        skills: currentQuestion?.skills
-      });
-      
+      const qType = homeworkData?.mcq_questions?.includes(questionId) ? 'mcq' : 'fipi';
+
       await supabase.from('homework_progress').insert({
         user_id: user.id,
-        session_id: sessionId, // Use the same session_id
+        session_id: sessionId,
         homework_task: `Homework ${new Date().toLocaleDateString()}`,
         homework_name: homeworkName,
         question_id: questionId,
-        question_type: questionType,
-        user_answer: userAnswer,
-        correct_answer: correctAnswer,
-        is_correct: isCorrect,
+        question_type: qType,
+        user_answer: userAns,
+        correct_answer: correctAns,
+        is_correct: wasCorrect,
         showed_solution: showedSolution,
         response_time_seconds: responseTime,
         difficulty_level: currentQuestion?.difficulty || null,
         skill_ids: currentQuestion?.skills ? [currentQuestion.skills] : null,
         problem_number: currentQuestion?.problem_number || null
       });
-      
-      console.log('Question progress recorded successfully');
     } catch (error) {
       console.error('Error recording progress:', error);
     }
@@ -531,7 +462,6 @@ const Homework = () => {
 
   const loadProgressStats = async () => {
     if (!user?.id || !homeworkName) return;
-
     try {
       const { data, error } = await supabase
         .from('homework_progress')
@@ -539,17 +469,16 @@ const Homework = () => {
         .eq('user_id', user.id)
         .eq('homework_name', homeworkName)
         .not('question_id', 'is', null);
-
       if (error) throw error;
 
       if (data) {
         const stats: ProgressStats = {
-          totalTime: data.reduce((sum, record) => sum + (record.response_time_seconds || 0), 0),
-          avgTime: data.length > 0 ? Math.round(data.reduce((sum, record) => sum + (record.response_time_seconds || 0), 0) / data.length) : 0,
-          showedSolutionCount: data.filter(record => record.showed_solution).length,
-          skillsWorkedOn: [...new Set(data.flatMap(record => record.skill_ids || []))],
-          difficultyBreakdown: data.reduce((acc, record) => {
-            const level = record.difficulty_level || 'unknown';
+          totalTime: data.reduce((sum, r) => sum + (r.response_time_seconds || 0), 0),
+          avgTime: data.length > 0 ? Math.round(data.reduce((s, r) => s + (r.response_time_seconds || 0), 0) / data.length) : 0,
+          showedSolutionCount: data.filter(r => r.showed_solution).length,
+          skillsWorkedOn: [...new Set(data.flatMap(r => r.skill_ids || []))],
+          difficultyBreakdown: data.reduce((acc, r) => {
+            const level = r.difficulty_level || 'unknown';
             acc[level] = (acc[level] || 0) + 1;
             return acc;
           }, {} as Record<string, number>)
@@ -557,7 +486,7 @@ const Homework = () => {
         setProgressStats(stats);
       }
     } catch (error) {
-      console.error('Error loading progress stats:', error);
+      console.error('Error loading stats:', error);
     }
   };
 
@@ -567,99 +496,57 @@ const Homework = () => {
 
     const answer = questionType === 'mcq' ? selectedOption : userAnswer;
     if (!answer) {
-      toast({
-        title: "Ответ не выбран",
-        description: "Пожалуйста, выберите или введите ответ",
-        variant: "destructive"
-      });
+      toast({ title: 'Ответ не выбран', description: 'Пожалуйста, выберите или введите ответ', variant: 'destructive' });
       return;
     }
 
     const correct = answer === currentQuestion.correct_answer;
     const responseTime = Math.floor((Date.now() - questionStartTime) / 1000);
-    
+
     setIsCorrect(correct);
     setShowAnswer(true);
 
     setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
-    if (correct) {
-      setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
-    }
+    if (correct) setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
 
-    // Record progress in database
     await recordQuestionProgress(currentQuestion.id, answer, currentQuestion.correct_answer || '', correct, responseTime, false);
 
-    // Update mastery tracking
-    console.log('About to update mastery tracking, questionType:', questionType, 'skills:', currentQuestion.skills);
     if (questionType === 'mcq' && currentQuestion.skills) {
-      // For MCQ questions, call process-mcq-skill-attempt
-      console.log('Calling processMCQSkillAttempt for MCQ question');
       await processMCQSkillAttempt(currentQuestion, correct, responseTime);
     } else if (questionType === 'frq') {
-      // For FIPI questions, update student_activity and call handle-submission
-      console.log('Processing FIPI question');
       await updateFIPIActivity(correct, 0);
       await submitToHandleSubmission(correct);
-    } else {
-      console.log('Skipping mastery tracking - no matching condition');
     }
   };
 
-  // Process MCQ skill attempt for mastery tracking
-  const processMCQSkillAttempt = async (question: Question, isCorrect: boolean, duration: number) => {
-    if (!user || !question.skills) {
-      console.log('Skipping MCQ skill attempt: no user or skills', { user: !!user, skills: question.skills });
-      return;
-    }
-
-    console.log('Calling process-mcq-skill-attempt with:', {
-      user_id: user.id,
-      question_id: question.id,
-      skill_id: question.skills,
-      is_correct: isCorrect,
-      difficulty: question.difficulty || 2,
-      duration: duration,
-      course_id: '1'
-    });
+  const processMCQSkillAttempt = async (question: Question, isCorrectAns: boolean, duration: number) => {
+    if (!user || !question.skills) return;
 
     try {
-      const { data, error } = await supabase.functions.invoke('process-mcq-skill-attempt', {
+      const { error } = await supabase.functions.invoke('process-mcq-skill-attempt', {
         body: {
           user_id: user.id,
           question_id: question.id,
           skill_id: question.skills,
           finished_or_not: true,
-          is_correct: isCorrect,
+          is_correct: isCorrectAns,
           difficulty: question.difficulty || 2,
-          duration: duration,
+          duration,
           course_id: '1'
         }
       });
-
       if (error) {
-        console.error('Error recording MCQ skill attempt:', error);
-        toast({
-          title: "Предупреждение",
-          description: "Не удалось обновить прогресс навыков: " + error.message,
-          variant: "destructive"
-        });
-      } else {
-        console.log('Successfully recorded MCQ skill attempt, response:', data);
+        console.error('process-mcq-skill-attempt error:', error);
+        toast({ title: 'Предупреждение', description: 'Не удалось обновить прогресс навыков', variant: 'destructive' });
       }
     } catch (error) {
       console.error('Error calling process-mcq-skill-attempt:', error);
-      toast({
-        title: "Предупреждение",
-        description: "Ошибка при обновлении прогресса навыков",
-        variant: "destructive"
-      });
+      toast({ title: 'Предупреждение', description: 'Ошибка при обновлении прогресса навыков', variant: 'destructive' });
     }
   };
 
-  // Update student_activity for FIPI questions
-  const updateFIPIActivity = async (isCorrect: boolean, scores: number) => {
+  const updateFIPIActivity = async (isCorrectAns: boolean, scores: number) => {
     if (!user || !currentAttemptId) return;
-
     try {
       const now = new Date();
       const startTime = attemptStartTime || new Date();
@@ -667,30 +554,23 @@ const Homework = () => {
 
       const { error: updateError } = await supabase
         .from('student_activity')
-        .update({ 
+        .update({
           duration_answer: durationInSeconds,
-          is_correct: isCorrect,
+          is_correct: isCorrectAns,
           scores_fipi: scores,
           finished_or_not: true
         })
         .eq('user_id', user.id)
         .eq('attempt_id', currentAttemptId);
 
-      if (updateError) {
-        console.error('Error updating student_activity:', updateError);
-        return;
-      }
-
-      console.log(`Updated student_activity: correct=${isCorrect}, scores=${scores}, duration=${durationInSeconds}s`);
+      if (updateError) console.error('Error updating student_activity:', updateError);
     } catch (error) {
       console.error('Error in updateFIPIActivity:', error);
     }
   };
 
-  // Submit to handle-submission for FIPI question mastery tracking
-  const submitToHandleSubmission = async (isCorrect: boolean) => {
+  const submitToHandleSubmission = async (isCorrectAns: boolean) => {
     if (!user) return;
-
     try {
       const { data: activityData, error: activityError } = await supabase
         .from('student_activity')
@@ -700,34 +580,22 @@ const Homework = () => {
         .limit(1)
         .single();
 
-      if (activityError || !activityData) {
-        console.error('Error getting latest activity:', activityError);
-        return;
-      }
+      if (activityError || !activityData) return;
 
       const submissionData = {
         user_id: user.id,
         question_id: activityData.question_id,
         attempt_id: activityData.attempt_id,
         finished_or_not: activityData.finished_or_not,
-        is_correct: isCorrect,
+        is_correct: isCorrectAns,
         duration: activityData.duration_answer,
         scores_fipi: activityData.scores_fipi
       };
 
-      const { data, error } = await supabase.functions.invoke('handle-submission', {
-        body: { 
-          course_id: '1',
-          submission_data: submissionData
-        }
+      const { error } = await supabase.functions.invoke('handle-submission', {
+        body: { course_id: '1', submission_data: submissionData }
       });
-
-      if (error) {
-        console.error('Error in handle-submission:', error);
-        return;
-      }
-
-      console.log('Handle submission completed:', data);
+      if (error) console.error('handle-submission error:', error);
     } catch (error) {
       console.error('Error in submitToHandleSubmission:', error);
     }
@@ -738,22 +606,18 @@ const Homework = () => {
     if (!currentQuestion) return;
 
     const responseTime = Math.floor((Date.now() - questionStartTime) / 1000);
-    
+
     setShowSolution(true);
     setIsCorrect(false);
     setShowAnswer(true);
     setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
 
-    // Record that solution was shown
     const answer = questionType === 'mcq' ? selectedOption : userAnswer;
     await recordQuestionProgress(currentQuestion.id, answer || '', currentQuestion.correct_answer || '', false, responseTime, true);
 
-    // Mark as wrong in mastery tracking (solution viewed before answering)
     if (questionType === 'mcq' && currentQuestion.skills) {
-      // For MCQ questions, call process-mcq-skill-attempt with is_correct=false
       await processMCQSkillAttempt(currentQuestion, false, responseTime);
     } else if (questionType === 'frq') {
-      // For FIPI questions, update student_activity and call handle-submission
       await updateFIPIActivity(false, 0);
       await submitToHandleSubmission(false);
     }
@@ -765,20 +629,17 @@ const Homework = () => {
     setUserAnswer('');
     setSelectedOption(null);
     setShowSolution(false);
-    setQuestionStartTime(Date.now()); // Reset timer for new question
-    
-    // Reset FIPI attempt tracking
+    setQuestionStartTime(Date.now());
     setCurrentAttemptId(null);
     setAttemptStartTime(null);
 
     if (currentQuestionIndex < currentQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
-      // Move to next question type or show completion
-      if (questionType === 'mcq' && homeworkData?.fipi_questions?.length > 0) {
+      if (questionType === 'mcq' && (homeworkData?.fipi_questions?.length || 0) > 0) {
+        setQuestionType('frq');
         loadFRQQuestions();
       } else {
-        // All questions completed
         completeHomework();
       }
     }
@@ -787,67 +648,56 @@ const Homework = () => {
   const completeHomework = async () => {
     if (!user?.id || !homeworkName) return;
 
-    // Calculate total questions from both MCQ and FRQ
     const totalMCQ = homeworkData?.mcq_questions?.length || 0;
     const totalFRQ = homeworkData?.fipi_questions?.length || 0;
     const totalQuestions = totalMCQ + totalFRQ;
-    
+
     const completedCount = completedQuestions.size;
     const correctCount = correctAnswers.size;
     const accuracy = completedCount > 0 ? (correctCount / completedCount) * 100 : 0;
 
     try {
-      // Get session_id from the most recent in_progress session
-      const { data: sessionData } = await supabase
+      let sessionId = activeSessionId;
+      if (!sessionId) {
+        const { data: sessionData } = await supabase
+          .from('homework_progress')
+          .select('session_id')
+          .eq('user_id', user.id)
+          .eq('homework_name', homeworkName)
+          .eq('completion_status', 'in_progress')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        sessionId = sessionData?.session_id || null;
+        if (sessionId) setActiveSessionId(sessionId);
+      }
+
+      const { error: completionError } = await supabase
         .from('homework_progress')
-        .select('session_id')
-        .eq('user_id', user.id)
-        .eq('homework_name', homeworkName)
-        .eq('completion_status', 'in_progress')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      const sessionId = sessionData?.session_id;
-      
-      console.log('Completing homework with session_id:', sessionId);
-      
-      // Record completion summary with the same session_id
-      const { data: completionData, error: completionError } = await supabase.from('homework_progress').insert({
-        user_id: user.id,
-        session_id: sessionId, // Use the same session_id
-        homework_task: `Homework ${new Date().toLocaleDateString()} - Summary`,
-        homework_name: homeworkName,
-        completed_at: new Date().toISOString(),
-        total_questions: totalQuestions,
-        questions_completed: completedCount,
-        questions_correct: correctCount,
-        accuracy_percentage: accuracy,
-        completion_status: 'completed'
-      }).select('session_id').single();
+        .insert({
+          user_id: user.id,
+          session_id: sessionId,
+          homework_task: `Homework ${new Date().toLocaleDateString()} - Summary`,
+          homework_name: homeworkName,
+          completed_at: new Date().toISOString(),
+          total_questions: totalQuestions,
+          questions_completed: completedCount,
+          questions_correct: correctCount,
+          accuracy_percentage: accuracy,
+          completion_status: 'completed'
+        });
 
       if (completionError) {
         console.error('Error inserting completion record:', completionError);
-      } else {
-        console.log('Homework completed, session_id:', completionData?.session_id);
       }
 
-      // Get detailed progress stats
       await loadProgressStats();
-      
+
       setShowCongrats(true);
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
     } catch (error) {
       console.error('Error completing homework:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save homework completion",
-        variant: "destructive"
-      });
+      toast({ title: 'Error', description: 'Failed to save homework completion', variant: 'destructive' });
     }
   };
 
@@ -882,7 +732,7 @@ const Homework = () => {
         <div className="bg-white shadow-sm border-b">
           <div className="container mx-auto px-4 py-3">
             <div className="flex justify-start">
-              <Button 
+              <Button
                 onClick={() => navigate('/ogemath-practice')}
                 className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
               >
@@ -903,10 +753,7 @@ const Homework = () => {
                 <p className="text-muted-foreground mb-6">
                   У вас пока нет домашнего задания от ИИ помощника. Обратитесь к преподавателю или попробуйте другие виды практики.
                 </p>
-                <Button 
-                  onClick={() => navigate('/ogemath-practice')}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                >
+                <Button onClick={() => navigate('/ogemath-practice')} className="w-full bg-purple-600 hover:bg-purple-700">
                   Перейти к другим видам практики
                 </Button>
               </CardContent>
@@ -933,15 +780,15 @@ const Homework = () => {
   const currentQuestion = currentQuestions[currentQuestionIndex];
   const totalMCQ = homeworkData.mcq_questions?.length || 0;
   const totalFRQ = homeworkData.fipi_questions?.length || 0;
-  const currentProgress = ((completedQuestions.size) / (totalMCQ + totalFRQ)) * 100;
+  const currentProgress = (completedQuestions.size / (totalMCQ + totalFRQ || 1)) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-      {/* Navigation Bar */}
+      {/* Top Bar */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
-            <Button 
+            <Button
               onClick={() => navigate('/ogemath-practice')}
               className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
             >
@@ -953,7 +800,7 @@ const Homework = () => {
         </div>
       </div>
 
-      {/* Congratulations Modal */}
+      {/* Congrats Modal */}
       {showCongrats && (
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
@@ -961,18 +808,11 @@ const Homework = () => {
           exit={{ opacity: 0, scale: 0.5 }}
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
         >
-          <motion.div
-            initial={{ y: -50 }}
-            animate={{ y: 0 }}
-            className="bg-white rounded-lg p-8 text-center max-w-md mx-4"
-          >
+          <motion.div initial={{ y: -50 }} animate={{ y: 0 }} className="bg-white rounded-lg p-8 text-center max-w-md mx-4">
             <Trophy className="w-16 h-16 mx-auto text-yellow-500 mb-4" />
             <h2 className="text-2xl font-bold text-purple-800 mb-4">Поздравляем!</h2>
-            <p className="text-gray-600 mb-6">
-              Вы успешно выполнили всё домашнее задание! 🎉
-            </p>
-            
-            {/* Main Statistics */}
+            <p className="text-gray-600 mb-6">Вы успешно выполнили всё домашнее задание! 🎉</p>
+
             <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5" />
@@ -995,12 +835,13 @@ const Homework = () => {
                 </div>
               </div>
 
-              {/* Detailed Analytics */}
               {progressStats && (
                 <div className="border-t pt-4 space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Общее время:</span>
-                    <span className="font-semibold">{Math.floor(progressStats.totalTime / 60)} мин {progressStats.totalTime % 60} сек</span>
+                    <span className="font-semibold">
+                      {Math.floor(progressStats.totalTime / 60)} мин {progressStats.totalTime % 60} сек
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Среднее время на задачу:</span>
@@ -1019,37 +860,29 @@ const Homework = () => {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Button 
+              <Button
                 onClick={async () => {
-                  // Store homework completion data for AI teacher feedback
-                  // Get session_id from the latest completed session
-                  const latestSession = existingProgress || await getLatestSession();
-                  
+                  const latestSession = existingProgress || (await getLatestSession());
                   const completionData = {
-                    session_id: latestSession?.session_id || '',
+                    session_id: latestSession?.session_id || activeSessionId || '',
                     homeworkName,
-                    timestamp: Date.now() // Add timestamp to ensure uniqueness
+                    timestamp: Date.now()
                   };
                   localStorage.setItem('homeworkCompletionData', JSON.stringify(completionData));
-                  
-                  // Show toast to confirm data is being sent to AI teacher
+
                   toast({
-                    title: "Данные отправлены ИИ учителю! 🤖",
-                    description: "Ваши результаты будут проанализированы автоматически",
+                    title: 'Данные отправлены ИИ учителю! 🤖',
+                    description: 'Ваши результаты будут проанализированы автоматически',
                     duration: 2000
                   });
-                  
+
                   navigate('/ogemath');
                 }}
                 className="bg-purple-600 hover:bg-purple-700 w-full"
               >
                 Перейти к ИИ учителю
               </Button>
-              <Button 
-                onClick={() => setShowCongrats(false)}
-                variant="outline"
-                className="w-full"
-              >
+              <Button onClick={() => setShowCongrats(false)} variant="outline" className="w-full">
                 Закрыть
               </Button>
             </div>
@@ -1073,8 +906,12 @@ const Homework = () => {
             <CardContent>
               <Progress value={currentProgress} className="h-3 mb-2" />
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Вопрос {currentQuestionIndex + 1} из {currentQuestions.length}</span>
-                <span>{completedQuestions.size} из {totalMCQ + totalFRQ} выполнено</span>
+                <span>
+                  Вопрос {Math.min(currentQuestionIndex + 1, currentQuestions.length)} из {currentQuestions.length}
+                </span>
+                <span>
+                  {completedQuestions.size} из {totalMCQ + totalFRQ} выполнено
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -1093,26 +930,21 @@ const Homework = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                 <MathRenderer 
-                  text={currentQuestion.text}
-                  className="text-lg leading-relaxed"
-                  compiler="mathjax"
-                />
+                <MathRenderer text={currentQuestion.text} className="text-lg leading-relaxed" compiler="mathjax" />
 
                 {questionType === 'mcq' && currentQuestion.options ? (
                   <div className="space-y-2">
                     {currentQuestion.options.map((option, index) => {
-                      const cyrillicLetters = ['А', 'Б', 'В', 'Г'];
-                      const cyrillicAnswer = cyrillicLetters[index];
+                      const cyrillic = ['А', 'Б', 'В', 'Г'][index];
                       return (
                         <Button
                           key={index}
-                          variant={selectedOption === cyrillicAnswer ? "default" : "outline"}
+                          variant={selectedOption === cyrillic ? 'default' : 'outline'}
                           className="w-full text-left justify-start h-auto p-4"
-                          onClick={() => setSelectedOption(cyrillicAnswer)}
+                          onClick={() => setSelectedOption(cyrillic)}
                           disabled={showAnswer}
                         >
-                          <span className="font-bold mr-2">{cyrillicAnswer})</span>
+                          <span className="font-bold mr-2">{cyrillic})</span>
                           <MathRenderer text={option} className="inline-block" compiler="mathjax" />
                         </Button>
                       );
@@ -1138,11 +970,7 @@ const Homework = () => {
                     className={`p-4 rounded-lg border-2 ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      {isCorrect ? (
-                        <Check className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <X className="w-5 h-5 text-red-600" />
-                      )}
+                      {isCorrect ? <Check className="w-5 h-5 text-green-600" /> : <X className="w-5 h-5 text-red-600" />}
                       <span className={`font-bold ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
                         {isCorrect ? 'Правильно!' : showSolution ? 'Показано решение' : 'Неправильно'}
                       </span>
@@ -1171,23 +999,16 @@ const Homework = () => {
                       >
                         Проверить ответ
                       </Button>
-                      <Button
-                        onClick={handleShowSolution}
-                        variant="outline"
-                        className="flex items-center gap-2"
-                      >
+                      <Button onClick={handleShowSolution} variant="outline" className="flex items-center gap-2">
                         <Eye className="w-4 h-4" />
                         Показать решение
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button
-                        onClick={handleNextQuestion}
-                        className="bg-purple-600 hover:bg-purple-700"
-                      >
-                        {currentQuestionIndex < currentQuestions.length - 1 || 
-                         (questionType === 'mcq' && totalFRQ > 0) ? (
+                      <Button onClick={handleNextQuestion} className="bg-purple-600 hover:bg-purple-700">
+                        {currentQuestionIndex < currentQuestions.length - 1 ||
+                        (questionType === 'mcq' && totalFRQ > 0) ? (
                           <>
                             Следующий вопрос
                             <ArrowRight className="w-4 h-4 ml-2" />
@@ -1197,11 +1018,7 @@ const Homework = () => {
                         )}
                       </Button>
                       {!showSolution && (
-                        <Button
-                          onClick={handleShowSolution}
-                          variant="outline"
-                          className="flex items-center gap-2"
-                        >
+                        <Button onClick={handleShowSolution} variant="outline" className="flex items-center gap-2">
                           <Eye className="w-4 h-4" />
                           Показать решение
                         </Button>
@@ -1224,15 +1041,11 @@ const Homework = () => {
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div className="p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {completedQuestions.size}
-                  </div>
+                  <div className="text-2xl font-bold text-purple-600">{completedQuestions.size}</div>
                   <div className="text-sm text-purple-700">Выполнено</div>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
-                    {correctAnswers.size}
-                  </div>
+                  <div className="text-2xl font-bold text-green-600">{correctAnswers.size}</div>
                   <div className="text-sm text-green-700">Правильно</div>
                 </div>
                 <div className="p-4 bg-blue-50 rounded-lg">
