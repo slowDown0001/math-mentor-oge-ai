@@ -514,18 +514,6 @@ const DigitalTextbook = () => {
     <div className="flex h-screen w-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Left Sidebar - Fixed */}
       <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0">
-        {/* Logo area */}
-        <button 
-          onClick={() => navigate("/mydb3")}
-          className="flex items-center space-x-3 hover:opacity-80 transition-opacity p-4"
-        >
-          <img 
-            src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png" 
-            alt="EGEChat Logo" 
-            className="w-8 h-8"
-          />
-          <span className="font-bold text-lg text-sidebar-foreground">EGEChat</span>
-        </button>
         
         {/* Navigation buttons */}
         <div className="p-4 space-y-2">
