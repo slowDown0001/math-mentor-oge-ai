@@ -239,6 +239,27 @@ const Homework = () => {
   const recordSessionStart = async () => {
     if (!user?.id || !homeworkName) return;
     try {
+      // Check if session start already recorded
+      const { data: existingStart, error: checkError } = await supabase
+        .from('homework_progress')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('homework_name', homeworkName)
+        .ilike('homework_task', '%Session Start%')
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking existing session start:', checkError);
+        return;
+      }
+
+      // If session already started, don't create duplicate
+      if (existingStart) {
+        console.log('Session already started for:', homeworkName);
+        return;
+      }
+
+      // Insert new session start record
       const { error } = await supabase
         .from('homework_progress')
         .insert({
@@ -252,6 +273,7 @@ const Homework = () => {
         });
 
       if (error) console.error('Error recording session start:', error);
+      else console.log('New session started for:', homeworkName);
     } catch (error) {
       console.error('Error recording session start:', error);
     }
