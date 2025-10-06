@@ -184,7 +184,7 @@ const TopicPage: React.FC = () => {
         </div>
 
         {/* Split layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6">
           {/* LEFT: Controls */}
           <motion.div
             initial={{ opacity: 0, x: -6 }}
