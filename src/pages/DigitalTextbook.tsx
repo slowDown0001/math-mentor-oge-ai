@@ -568,25 +568,7 @@ const DigitalTextbook = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full">
-        {/* Header */}
-        <div className="h-14 border-b border-border bg-background flex items-center justify-between px-4">
-          <h1 className="text-xl font-semibold">Учебник</h1>
-          {user && (
-            <div className="flex items-center gap-4">
-              <StreakDisplay />
-              <button 
-                onClick={() => navigate("/mydashboard")}
-                className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
-              >
-                <img 
-                  src="/placeholder.svg" 
-                  alt="User Avatar" 
-                  className="w-8 h-8 rounded-full bg-primary/10"
-                />
-              </button>
-            </div>
-          )}
-        </div>
+
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto relative">
