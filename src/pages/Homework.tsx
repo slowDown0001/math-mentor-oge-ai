@@ -1026,6 +1026,7 @@ const Homework = () => {
     const accuracy = totalQuestions > 0 ? Math.round((correctAnswersCount / totalQuestions) * 100) : 0;
 
     return (
+      <>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Statistics at the top */}
@@ -1206,6 +1207,49 @@ const Homework = () => {
           )}
         </div>
       </div>
+
+      {/* Selection popup */}
+      {selectedText && selectionPosition && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed z-50 bg-white rounded-lg shadow-xl border-2 border-purple-500 p-3"
+          style={{
+            left: `${selectionPosition.x}px`,
+            top: `${selectionPosition.y}px`,
+            transform: 'translate(-50%, -100%)'
+          }}
+        >
+          <Button
+            onClick={handleAskHedgehog}
+            className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Спросить Ёжика
+          </Button>
+        </motion.div>
+      )}
+
+      {/* Chat Sheet */}
+      <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <SheetContent side="right" className="w-full sm:w-[540px] flex flex-col h-full p-0">
+          <SheetHeader className="px-6 py-4 border-b">
+            <SheetTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-purple-600" />
+              Чат с Ёжиком
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto px-6">
+              <CourseChatMessages messages={messages} isTyping={isTyping} />
+            </div>
+            <div className="border-t px-6 py-4">
+              <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+      </>
     );
   }
 
@@ -1216,9 +1260,9 @@ const Homework = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-      {/* Top Bar */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-3">
+        {/* Top Bar */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             <Button
               onClick={() => navigate('/ogemath-practice')}
