@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play, Edit3, Send, ChevronLeft, Calculator, Highlighter } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import newSyllabusData from '../data/newSyllabusStructure.json';
@@ -521,10 +522,10 @@ const DigitalTextbook = () => {
   return (
     <div className="flex h-screen w-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Left Sidebar - Fixed */}
-      <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0">
+      <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0 flex flex-col">
         
         {/* Navigation buttons */}
-        <div className="p-4 space-y-2">
+        <div className="p-4 space-y-2 border-b border-border">
           {/* OGE Math Practice Link */}
           <Link to="/ogemath">
             <Button
@@ -572,6 +573,39 @@ const DigitalTextbook = () => {
             </Button>
           )}
         </div>
+
+        {/* Module Navigation */}
+        <ScrollArea className="flex-1 px-2 py-4">
+          <div className="text-xs font-semibold text-sidebar-foreground/60 px-3 mb-2">МОДУЛИ</div>
+          <Accordion type="single" collapsible className="w-full">
+            {Object.entries(newSyllabusData as SyllabusStructure).map(([moduleName, module]) => (
+              <AccordionItem key={moduleName} value={moduleName} className="border-b-0">
+                <AccordionTrigger className="text-sm py-2 px-3 hover:bg-sidebar-accent rounded-md text-sidebar-foreground hover:no-underline">
+                  {moduleName}
+                </AccordionTrigger>
+                <AccordionContent className="pb-1">
+                  <div className="space-y-1 pl-2">
+                    {Object.entries(module).map(([topicKey, topic]) => (
+                      <Button
+                        key={topicKey}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedModule(moduleName);
+                          setSelectedTopic(topic.name);
+                          setSelectedSkill(null);
+                        }}
+                        className="w-full justify-start text-xs h-auto py-2 px-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      >
+                        {topic.name}
+                      </Button>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </ScrollArea>
       </div>
 
       {/* Main Content Area */}
