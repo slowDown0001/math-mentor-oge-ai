@@ -47,19 +47,19 @@ const OgeMath = () => {
             const completionData = JSON.parse(homeworkData);
             console.log('✅ Parsed completion data:', completionData);
             
-            if (!completionData.session_id) {
-              console.error('❌ No session_id in completion data');
+            if (!completionData.homeworkName) {
+              console.error('❌ No homeworkName in completion data');
               localStorage.removeItem('homeworkCompletionData');
-              throw new Error('Missing session_id in homework completion data');
+              throw new Error('Missing homeworkName in homework completion data');
             }
 
-            // Query all records for this specific session
-            console.log('🔍 Querying homework_progress for session_id:', completionData.session_id);
+            // Query all records for this homework (session_id = homework_name)
+            console.log('🔍 Querying homework_progress for homework_name (session_id):', completionData.homeworkName);
             const { data: sessionRows, error } = await supabase
               .from('homework_progress')
               .select('*')
               .eq('user_id', user.id)
-              .eq('session_id', completionData.session_id)
+              .eq('session_id', completionData.homeworkName)
               .order('created_at', { ascending: true });
         
             if (error) {

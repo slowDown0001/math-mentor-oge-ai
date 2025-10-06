@@ -269,6 +269,7 @@ const Homework = () => {
         .from('homework_progress')
         .insert({
           user_id: user.id,
+          session_id: homeworkName, // Use homework_name as session_id
           homework_task: `Homework ${new Date().toLocaleDateString()} - Session Start`,
           homework_name: homeworkName,
           total_questions: (homeworkData?.mcq_questions?.length || 0) + (homeworkData?.fipi_questions?.length || 0),
@@ -280,7 +281,7 @@ const Homework = () => {
         .single();
 
       if (!error && data?.session_id) {
-        setActiveSessionId(data.session_id);
+        setActiveSessionId(homeworkName); // Set to homework_name
       }
     } catch (error) {
       console.error('Error recording session start:', error);
@@ -420,28 +421,12 @@ const Homework = () => {
     if (!user?.id || !homeworkName) return;
 
     try {
-      // Ensure we have a session id (reuse or recover last in_progress)
-      let sessionId = activeSessionId;
-      if (!sessionId) {
-        const { data: existingSession } = await supabase
-          .from('homework_progress')
-          .select('session_id')
-          .eq('user_id', user.id)
-          .eq('homework_name', homeworkName)
-          .eq('completion_status', 'in_progress')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        sessionId = existingSession?.session_id || null;
-        if (sessionId) setActiveSessionId(sessionId);
-      }
-
       const currentQuestion = currentQuestions.find(q => q.id === questionId);
       const qType = homeworkData?.mcq_questions?.includes(questionId) ? 'mcq' : 'fipi';
 
       await supabase.from('homework_progress').insert({
         user_id: user.id,
-        session_id: sessionId,
+        session_id: homeworkName, // Use homework_name as session_id
         homework_task: `Homework ${new Date().toLocaleDateString()}`,
         homework_name: homeworkName,
         question_id: questionId,
@@ -657,26 +642,11 @@ const Homework = () => {
     const accuracy = completedCount > 0 ? (correctCount / completedCount) * 100 : 0;
 
     try {
-      let sessionId = activeSessionId;
-      if (!sessionId) {
-        const { data: sessionData } = await supabase
-          .from('homework_progress')
-          .select('session_id')
-          .eq('user_id', user.id)
-          .eq('homework_name', homeworkName)
-          .eq('completion_status', 'in_progress')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        sessionId = sessionData?.session_id || null;
-        if (sessionId) setActiveSessionId(sessionId);
-      }
-
       const { error: completionError } = await supabase
         .from('homework_progress')
         .insert({
           user_id: user.id,
-          session_id: sessionId,
+          session_id: homeworkName, // Use homework_name as session_id
           homework_task: `Homework ${new Date().toLocaleDateString()} - Summary`,
           homework_name: homeworkName,
           completed_at: new Date().toISOString(),
@@ -862,9 +832,7 @@ const Homework = () => {
             <div className="flex flex-col gap-2">
               <Button
                 onClick={async () => {
-                  const latestSession = existingProgress || (await getLatestSession());
                   const completionData = {
-                    session_id: latestSession?.session_id || activeSessionId || '',
                     homeworkName,
                     timestamp: Date.now()
                   };

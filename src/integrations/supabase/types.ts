@@ -1856,9 +1856,12 @@ export type Database = {
           course_id: string | null
           created_at: string | null
           hardcode_task: string | null
+          previous_homework_question_ids: Json | null
           previously_failed_topics: string | null
           problem_submission_id: string | null
+          result_of_prev_homework_completion: Json | null
           seen: number | null
+          student_activity_session_results: Json | null
           task: string | null
           telegram_notification: number | null
           telegram_user_id: number | null
@@ -1869,9 +1872,12 @@ export type Database = {
           course_id?: string | null
           created_at?: string | null
           hardcode_task?: string | null
+          previous_homework_question_ids?: Json | null
           previously_failed_topics?: string | null
           problem_submission_id?: string | null
+          result_of_prev_homework_completion?: Json | null
           seen?: number | null
+          student_activity_session_results?: Json | null
           task?: string | null
           telegram_notification?: number | null
           telegram_user_id?: number | null
@@ -1882,9 +1888,12 @@ export type Database = {
           course_id?: string | null
           created_at?: string | null
           hardcode_task?: string | null
+          previous_homework_question_ids?: Json | null
           previously_failed_topics?: string | null
           problem_submission_id?: string | null
+          result_of_prev_homework_completion?: Json | null
           seen?: number | null
+          student_activity_session_results?: Json | null
           task?: string | null
           telegram_notification?: number | null
           telegram_user_id?: number | null
@@ -1897,6 +1906,7 @@ export type Database = {
         Row: {
           answer_time_start: string
           attempt_id: number
+          course_id: string | null
           created_at: string
           duration_answer: number | null
           finished_or_not: boolean
@@ -1912,6 +1922,7 @@ export type Database = {
         Insert: {
           answer_time_start: string
           attempt_id?: number
+          course_id?: string | null
           created_at?: string
           duration_answer?: number | null
           finished_or_not: boolean
@@ -1927,6 +1938,7 @@ export type Database = {
         Update: {
           answer_time_start?: string
           attempt_id?: number
+          course_id?: string | null
           created_at?: string
           duration_answer?: number | null
           finished_or_not?: boolean
