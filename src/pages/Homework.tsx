@@ -292,7 +292,7 @@ const Homework = () => {
     if (!user?.id || !homeworkName) return;
     
     try {
-      await supabase.from('homework_progress').insert({
+      const { data, error } = await supabase.from('homework_progress').insert({
         user_id: user.id,
         homework_task: `Homework ${new Date().toLocaleDateString()} - Session Start`,
         homework_name: homeworkName,
@@ -300,7 +300,13 @@ const Homework = () => {
         questions_completed: 0,
         questions_correct: 0,
         completion_status: 'in_progress'
-      });
+      }).select('session_id').single();
+      
+      if (error) {
+        console.error('Error recording session start:', error);
+      } else {
+        console.log('Session started with ID:', data?.session_id);
+      }
     } catch (error) {
       console.error('Error recording session start:', error);
     }
@@ -478,8 +484,31 @@ const Homework = () => {
       const currentQuestion = currentQuestions.find(q => q.id === questionId);
       const questionType = homeworkData?.mcq_questions?.includes(questionId) ? 'mcq' : 'fipi';
       
+      // Get or generate session_id from existing records
+      const { data: existingSession } = await supabase
+        .from('homework_progress')
+        .select('session_id')
+        .eq('user_id', user.id)
+        .eq('homework_name', homeworkName)
+        .eq('completion_status', 'in_progress')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      const sessionId = existingSession?.session_id;
+      
+      console.log('Recording question progress:', {
+        questionId,
+        sessionId,
+        isCorrect,
+        responseTime,
+        showedSolution,
+        skills: currentQuestion?.skills
+      });
+      
       await supabase.from('homework_progress').insert({
         user_id: user.id,
+        session_id: sessionId, // Use the same session_id
         homework_task: `Homework ${new Date().toLocaleDateString()}`,
         homework_name: homeworkName,
         question_id: questionId,
@@ -493,6 +522,8 @@ const Homework = () => {
         skill_ids: currentQuestion?.skills ? [currentQuestion.skills] : null,
         problem_number: currentQuestion?.problem_number || null
       });
+      
+      console.log('Question progress recorded successfully');
     } catch (error) {
       console.error('Error recording progress:', error);
     }
@@ -766,9 +797,25 @@ const Homework = () => {
     const accuracy = completedCount > 0 ? (correctCount / completedCount) * 100 : 0;
 
     try {
-      // Record completion summary
-      await supabase.from('homework_progress').insert({
+      // Get session_id from the most recent in_progress session
+      const { data: sessionData } = await supabase
+        .from('homework_progress')
+        .select('session_id')
+        .eq('user_id', user.id)
+        .eq('homework_name', homeworkName)
+        .eq('completion_status', 'in_progress')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      const sessionId = sessionData?.session_id;
+      
+      console.log('Completing homework with session_id:', sessionId);
+      
+      // Record completion summary with the same session_id
+      const { data: completionData, error: completionError } = await supabase.from('homework_progress').insert({
         user_id: user.id,
+        session_id: sessionId, // Use the same session_id
         homework_task: `Homework ${new Date().toLocaleDateString()} - Summary`,
         homework_name: homeworkName,
         completed_at: new Date().toISOString(),
@@ -777,7 +824,13 @@ const Homework = () => {
         questions_correct: correctCount,
         accuracy_percentage: accuracy,
         completion_status: 'completed'
-      });
+      }).select('session_id').single();
+
+      if (completionError) {
+        console.error('Error inserting completion record:', completionError);
+      } else {
+        console.log('Homework completed, session_id:', completionData?.session_id);
+      }
 
       // Get detailed progress stats
       await loadProgressStats();

@@ -49,8 +49,15 @@ interface HomeworkSessionData {
 }
 
 export async function createHomeworkSummaryJSON(sessionData: any[]): Promise<HomeworkSessionData> {
+  console.log('=== createHomeworkSummaryJSON called ===');
+  console.log('📥 Total records received:', sessionData.length);
+  console.log('📋 Sample records:', JSON.stringify(sessionData.slice(0, 2), null, 2));
+  
   const questionRecords = sessionData.filter(record => record.question_id);
   const summaryRecord = sessionData.find(record => record.completion_status === 'completed');
+  
+  console.log(`📊 Question records: ${questionRecords.length}, Summary records: ${summaryRecord ? 1 : 0}`);
+  console.log('🔑 Question IDs:', questionRecords.map(r => r.question_id));
   
   const totalTime = questionRecords.reduce((sum, record) => sum + (record.response_time_seconds || 0), 0);
   const showedSolutionCount = questionRecords.filter(record => record.showed_solution).length;
@@ -64,23 +71,37 @@ export async function createHomeworkSummaryJSON(sessionData: any[]): Promise<Hom
 
   // Fetch detailed question content from database
   const questionIds = questionRecords.map(record => record.question_id).filter(Boolean);
+  console.log('📤 Fetching details for question IDs:', questionIds);
   let questionDetailsMap: Record<string, QuestionDetails> = {};
   
   if (questionIds.length > 0) {
     try {
+      console.log('🔄 Calling get-homework-questions-details edge function...');
       const { data: questionDetailsResponse, error } = await supabase.functions.invoke('get-homework-questions-details', {
         body: { questionIds }
       });
       
-      if (!error && questionDetailsResponse?.questions) {
+      console.log('📦 Edge function response:', { 
+        hasError: !!error, 
+        questionCount: questionDetailsResponse?.questions?.length || 0 
+      });
+      
+      if (error) {
+        console.error('❌ Error from edge function:', error);
+      } else if (questionDetailsResponse?.questions) {
+        console.log(`✅ Received ${questionDetailsResponse.questions.length} question details`);
         questionDetailsMap = questionDetailsResponse.questions.reduce((acc: Record<string, QuestionDetails>, q: QuestionDetails) => {
           acc[q.question_id] = q;
           return acc;
         }, {});
+      } else {
+        console.warn('⚠️ No questions in response');
       }
     } catch (error) {
-      console.error('Error fetching question details:', error);
+      console.error('❌ Error fetching question details:', error);
     }
+  } else {
+    console.warn('⚠️ No question IDs to fetch');
   }
 
   const questions = questionRecords.map(record => {
