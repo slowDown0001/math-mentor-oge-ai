@@ -91,9 +91,10 @@ const LearningLayout: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen text-white relative"
+      className="min-h-screen text-foreground relative"
       style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}
     >
+
       <FlyingMathBackground />
 
       <nav className="fixed top-0 w-full z-30 backdrop-blur-lg bg-[#1a1f36]/80 border-b border-yellow-500/20">
