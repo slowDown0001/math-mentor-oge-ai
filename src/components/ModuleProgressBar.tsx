@@ -1,6 +1,7 @@
 import React from "react";
 import { Crown, Zap, Star } from "lucide-react";
 import { useModuleProgress } from "@/hooks/useModuleProgress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ModuleProgressBarProps {
   moduleSlug: string;
@@ -11,7 +12,7 @@ interface ModuleProgressBarProps {
     isFinalTest?: boolean 
   }>;
   topics: Array<{ id: string; exercises: number }>;
-  quizzes: Array<{ id: string }>;
+  quizzes: Array<{ id: string; name?: string }>;
   getExerciseData?: (topicId: string, exerciseIndex: number) => { title: string; skills: number[] };
   onExerciseClick: (topicId: string, exerciseIndex: number) => void;
   onQuizClick: (quizId: string) => void;
@@ -38,6 +39,7 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
     topicId?: string;
     exerciseIndex?: number;
     quizId?: string;
+    title?: string;
   }> = [];
 
   orderedContent.forEach((content) => {
@@ -53,7 +55,8 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
           itemId,
           status,
           topicId: topic.id,
-          exerciseIndex: i
+          exerciseIndex: i,
+          title: exerciseData?.title || `Exercise ${i + 1}`
         });
       }
     } else if (content.type === 'quiz') {
@@ -63,7 +66,8 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
         progressItems.push({
           type: 'exam',
           itemId,
-          status
+          status,
+          title: 'Module Exam'
         });
       } else if (content.quizIndex !== undefined) {
         const quiz = quizzes[content.quizIndex];
@@ -73,7 +77,8 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
           type: 'test',
           itemId,
           status,
-          quizId: quiz.id
+          quizId: quiz.id,
+          title: quiz.name || `Test ${content.quizIndex + 1}`
         });
       }
     }
@@ -125,41 +130,61 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      {progressItems.map((item, index) => {
-        if (item.type === 'exercise' && item.topicId && item.exerciseIndex !== undefined) {
-          return (
-            <button 
-              key={index}
-              onClick={() => onExerciseClick(item.topicId!, item.exerciseIndex!)}
-              className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-            >
-              {renderExerciseBox(item.status)}
-            </button>
-          );
-        } else if (item.type === 'test' && item.quizId) {
-          return (
-            <button 
-              key={index}
-              onClick={() => onQuizClick(item.quizId!)}
-              className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-            >
-              {renderTestIcon(item.status)}
-            </button>
-          );
-        } else if (item.type === 'exam') {
-          return (
-            <button 
-              key={index}
-              onClick={onExamClick}
-              className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-            >
-              {renderExamIcon(item.status)}
-            </button>
-          );
-        }
-        return null;
-      })}
-    </div>
+    <TooltipProvider>
+      <div className="flex items-center gap-2 flex-wrap">
+        {progressItems.map((item, index) => {
+          if (item.type === 'exercise' && item.topicId && item.exerciseIndex !== undefined) {
+            return (
+              <Tooltip key={index}>
+                <TooltipTrigger asChild>
+                  <button 
+                    onClick={() => onExerciseClick(item.topicId!, item.exerciseIndex!)}
+                    className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  >
+                    {renderExerciseBox(item.status)}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{item.title}</p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          } else if (item.type === 'test' && item.quizId) {
+            return (
+              <Tooltip key={index}>
+                <TooltipTrigger asChild>
+                  <button 
+                    onClick={() => onQuizClick(item.quizId!)}
+                    className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  >
+                    {renderTestIcon(item.status)}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{item.title}</p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          } else if (item.type === 'exam') {
+            return (
+              <Tooltip key={index}>
+                <TooltipTrigger asChild>
+                  <button 
+                    onClick={onExamClick}
+                    className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  >
+                    {renderExamIcon(item.status)}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{item.title}</p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          }
+          return null;
+        })}
+      </div>
+    </TooltipProvider>
   );
 };
