@@ -163,15 +163,18 @@ const CellardLp2: React.FC = () => {
 
   // Animate progress rings
   useEffect(() => {
+    if (loading || modules.length === 0) return;
+
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (!e.isIntersecting) return;
           const ring = e.target as SVGCircleElement;
           const pct = Number(ring.getAttribute("data-progress") || "0");
-          const offset = circumference - (pct / 100) * circumference;
+          const targetOffset = circumference - (pct / 100) * circumference;
+          
           animate(ring, {
-            strokeDashoffset: [circumference, offset],
+            strokeDashoffset: [circumference, targetOffset],
             easing: "out(4)",
             duration: 1500,
             delay: 300,
@@ -184,7 +187,7 @@ const CellardLp2: React.FC = () => {
 
     document.querySelectorAll<SVGCircleElement>(".progress-ring-circle").forEach((r) => io.observe(r));
     return () => io.disconnect();
-  }, []);
+  }, [loading, modules]);
 
   // p5 background (flying math symbols)
   useEffect(() => {
@@ -310,6 +313,8 @@ const CellardLp2: React.FC = () => {
               const strokeColor = m.progress === 100 ? "#10b981" : m.progress > 0 ? "#f59e0b" : "#64748b";
               const statusText = m.locked ? "Заблокировано" : m.progress === 100 ? "Завершено" : m.progress > 0 ? "В процессе" : "Не начато";
 
+              const progressOffset = circumference - (m.progress / 100) * circumference;
+              
               return (
                 <div
                   key={m.n}
@@ -329,9 +334,14 @@ const CellardLp2: React.FC = () => {
                           fill="none"
                           stroke={strokeColor}
                           strokeWidth="4"
+                          strokeLinecap="round"
                           className="progress-ring-circle"
                           data-progress={m.progress}
-                          style={{ strokeDasharray: circumference, strokeDashoffset: circumference }}
+                          style={{ 
+                            strokeDasharray: circumference, 
+                            strokeDashoffset: progressOffset,
+                            transition: 'stroke-dashoffset 0.3s ease'
+                          }}
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
