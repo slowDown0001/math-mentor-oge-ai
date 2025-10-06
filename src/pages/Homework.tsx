@@ -207,16 +207,14 @@ const Homework = () => {
   const handleAskHedgehog = () => {
     if (!selectedText) return;
 
-    const currentQuestion = currentQuestions[currentQuestionIndex];
-    const contextMessage = `Вопрос ${currentQuestionIndex + 1}: ${currentQuestion?.text || ''}\n\nВыбранный текст: ${selectedText}`;
-
-    setMessages([{
+    const newUserMessage = {
       id: Date.now(),
-      text: contextMessage,
+      text: `Объясни мне это: "${selectedText}"`,
       isUser: true,
       timestamp: new Date()
-    }]);
+    };
 
+    setMessages([newUserMessage]);
     setIsChatOpen(true);
     closeSelectionPopup();
   };
