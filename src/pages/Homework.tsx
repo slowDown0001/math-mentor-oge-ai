@@ -224,6 +224,7 @@ const Homework = () => {
         const allMCQCompleted = homeworkData.mcq_questions?.every(qid => completedQuestionsList.includes(qid)) || false;
         if (allMCQCompleted && homeworkData?.fipi_questions?.length > 0) {
           await loadFRQQuestions();
+          setQuestionType('frq');
         }
 
         setExistingProgress(existingSessions[0]);
