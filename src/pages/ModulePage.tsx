@@ -314,8 +314,8 @@ const ModulePage = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/learning-platform")}
-            className="mr-4 hover:bg-white/20"
+            onClick={() => navigate("/cellard-lp2")}
+            className="mr-4 hover:bg-white/20 text-white"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Назад к карте
