@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { animate } from "animejs";
 import p5 from "p5";
 import { moduleImgs } from "@/lib/assets";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 type ModuleCard = {
   n: number;
@@ -13,24 +15,27 @@ type ModuleCard = {
   locked?: boolean;
 };
 
-const modules: ModuleCard[] = [
-  { n: 1, title: "1. Числа и вычисления", subtitle: "Основы арифметики и работа с числами", img: moduleImgs[1], progress: 50 },
-  { n: 2, title: "2. Алгебраические выражения", subtitle: "Работа с переменными и формулами", img: moduleImgs[2], progress: 100 },
-  { n: 3, title: "3. Уравнения и неравенства", subtitle: "Решение уравнений и систем", img: moduleImgs[3], progress: 0, locked: true },
-  { n: 4, title: "4. Числовые последовательности", subtitle: "Арифметическая и геометрическая прогрессии", img: moduleImgs[4], progress: 0, locked: true },
-  { n: 5, title: "5. Функции", subtitle: "Графики и свойства функций", img: moduleImgs[5], progress: 0, locked: true },
-  { n: 6, title: "6. Координаты на прямой и плоскости", subtitle: "Геометрия координат", img: moduleImgs[6], progress: 0, locked: true },
-  { n: 7, title: "7. Геометрия", subtitle: "Планиметрия и стереометрия", img: moduleImgs[7], progress: 0, locked: true },
-  { n: 8, title: "8. Вероятность и статистика", subtitle: "Теория вероятностей и анализ данных", img: moduleImgs[8], progress: 0, locked: true },
-  { n: 9, title: "9. Применение математики", subtitle: "Реальные задачи и прикладные проблемы", img: moduleImgs[9], progress: 0, locked: true },
+const moduleDefinitions = [
+  { n: 1, title: "1. Числа и вычисления", subtitle: "Основы арифметики и работа с числами", img: moduleImgs[1], topicCodes: ['1.1', '1.2', '1.3', '1.4', '1.5'] },
+  { n: 2, title: "2. Алгебраические выражения", subtitle: "Работа с переменными и формулами", img: moduleImgs[2], topicCodes: ['2.1', '2.2', '2.3', '2.4', '2.5'] },
+  { n: 3, title: "3. Уравнения и неравенства", subtitle: "Решение уравнений и систем", img: moduleImgs[3], topicCodes: ['3.1', '3.2', '3.3'] },
+  { n: 4, title: "4. Числовые последовательности", subtitle: "Арифметическая и геометрическая прогрессии", img: moduleImgs[4], topicCodes: ['4.1', '4.2'] },
+  { n: 5, title: "5. Функции", subtitle: "Графики и свойства функций", img: moduleImgs[5], topicCodes: ['5.1'] },
+  { n: 6, title: "6. Координаты на прямой и плоскости", subtitle: "Геометрия координат", img: moduleImgs[6], topicCodes: ['6.1', '6.2'] },
+  { n: 7, title: "7. Геометрия", subtitle: "Планиметрия и стереометрия", img: moduleImgs[7], topicCodes: ['7.1', '7.2', '7.3', '7.4', '7.5', '7.6', '7.7'] },
+  { n: 8, title: "8. Вероятность и статистика", subtitle: "Теория вероятностей и анализ данных", img: moduleImgs[8], topicCodes: ['8.1', '8.2', '8.3', '8.4', '8.5'] },
+  { n: 9, title: "9. Применение математики", subtitle: "Реальные задачи и прикладные проблемы", img: moduleImgs[9], topicCodes: ['9.1', '9.2'] },
 ];
 
 const circumference = 2 * Math.PI * 28; // radius 28 in your SVG
 
 const CellardLp2: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const canvasParentRef = useRef<HTMLDivElement | null>(null);
   const p5InstanceRef = useRef<p5 | null>(null);
+  const [modules, setModules] = useState<ModuleCard[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const goToModule = (n: number) => {
     const moduleSlugMap: Record<number, string> = {
@@ -54,6 +59,84 @@ const CellardLp2: React.FC = () => {
   const startMock = () => {
     navigate("/practice-now");
   };
+
+  // Load progress data from mastery snapshots
+  useEffect(() => {
+    const loadProgressData = async () => {
+      if (!user) {
+        // Set default modules with 0 progress if not logged in
+        setModules(moduleDefinitions.map(m => ({ ...m, progress: 0, locked: true })));
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: snapshot, error } = await supabase
+          .from('mastery_snapshots')
+          .select('raw_data')
+          .eq('user_id', user.id)
+          .eq('course_id', '1')
+          .order('run_timestamp', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error || !snapshot?.raw_data) {
+          console.log('No snapshot found, using default values');
+          setModules(moduleDefinitions.map(m => ({ ...m, progress: 0 })));
+          setLoading(false);
+          return;
+        }
+
+        const rawData = snapshot.raw_data as any[];
+        
+        // Parse topic progress from snapshot
+        const topicProgressMap: {[key: string]: number} = {};
+        rawData.forEach((item: any) => {
+          if (item.topic && !item.topic.includes('задача ФИПИ') && !item.topic.includes('навык')) {
+            const topicMatch = item.topic.match(/^(\d+\.\d+)/);
+            if (topicMatch) {
+              const topicCode = topicMatch[1];
+              topicProgressMap[topicCode] = Math.round(item.prob * 100);
+            }
+          }
+        });
+
+        // Calculate module progress based on topic progress
+        const modulesWithProgress: ModuleCard[] = moduleDefinitions.map(moduleDef => {
+          const moduleTopics = moduleDef.topicCodes;
+          let totalProgress = 0;
+          let validTopics = 0;
+          
+          moduleTopics.forEach(topicCode => {
+            if (topicProgressMap[topicCode] !== undefined) {
+              totalProgress += topicProgressMap[topicCode];
+              validTopics++;
+            }
+          });
+          
+          const progress = validTopics > 0 ? Math.round(totalProgress / validTopics) : 0;
+
+          return {
+            n: moduleDef.n,
+            title: moduleDef.title,
+            subtitle: moduleDef.subtitle,
+            img: moduleDef.img,
+            progress,
+            locked: progress === 0
+          };
+        });
+
+        setModules(modulesWithProgress);
+      } catch (err) {
+        console.error('Error loading progress data:', err);
+        setModules(moduleDefinitions.map(m => ({ ...m, progress: 0 })));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProgressData();
+  }, [user]);
 
   // Animate module cards on view
   useEffect(() => {
@@ -170,7 +253,13 @@ const CellardLp2: React.FC = () => {
     };
   }, []);
 
-  const completedCount = useMemo(() => modules.filter((m) => m.progress === 100).length, []);
+  const completedCount = useMemo(() => modules.filter((m) => m.progress === 100).length, [modules]);
+  
+  const overallProgress = useMemo(() => {
+    if (modules.length === 0) return 0;
+    const totalProgress = modules.reduce((sum, m) => sum + m.progress, 0);
+    return Math.round(totalProgress / modules.length);
+  }, [modules]);
 
   return (
     <div
@@ -296,10 +385,20 @@ const CellardLp2: React.FC = () => {
               <div className="w-24 h-24 mx-auto mb-4 relative">
                 <svg className="w-24 h-24" style={{ transform: "rotate(-90deg)" }}>
                   <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="6" fill="none" />
-                  <circle cx="48" cy="48" r="40" stroke="#f59e0b" strokeWidth="6" fill="none" />
+                  <circle 
+                    cx="48" 
+                    cy="48" 
+                    r="40" 
+                    stroke="#f59e0b" 
+                    strokeWidth="6" 
+                    fill="none"
+                    strokeDasharray={`${2 * Math.PI * 40}`}
+                    strokeDashoffset={`${2 * Math.PI * 40 * (1 - overallProgress / 100)}`}
+                    style={{ transition: 'stroke-dashoffset 1s ease' }}
+                  />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-2xl font-bold">25%</span>
+                  <span className="text-2xl font-bold">{overallProgress}%</span>
                 </div>
               </div>
               <h3 className="font-display text-xl font-semibold mb-2">Общий прогресс</h3>
