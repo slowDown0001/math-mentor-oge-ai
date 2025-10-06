@@ -1184,16 +1184,22 @@ const Homework = () => {
                     Следующий
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
-                  {!isSelecterActive && (
-                    <Button
-                      onClick={() => setIsSelecterActive(true)}
-                      variant="outline"
-                      className="flex items-center gap-2"
-                    >
-                      <Highlighter className="w-4 h-4" />
-                      Выделение
-                    </Button>
-                  )}
+                  <Button
+                    onClick={() => {
+                      setIsSelecterActive(!isSelecterActive);
+                      if (isSelecterActive) {
+                        closeSelectionPopup();
+                      }
+                    }}
+                    variant={isSelecterActive ? "default" : "outline"}
+                    className={cn(
+                      "flex items-center gap-2",
+                      isSelecterActive && "bg-purple-600 hover:bg-purple-700"
+                    )}
+                  >
+                    <Highlighter className="w-4 h-4" />
+                    {isSelecterActive ? "Выкл. выделение" : "Вкл. выделение"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -1470,14 +1476,22 @@ const Homework = () => {
                           Показать решение
                         </Button>
                       )}
-                      {showSolution && !isSelecterActive && (
+                      {showSolution && (
                         <Button
-                          onClick={() => setIsSelecterActive(true)}
-                          variant="outline"
-                          className="flex items-center gap-2"
+                          onClick={() => {
+                            setIsSelecterActive(!isSelecterActive);
+                            if (isSelecterActive) {
+                              closeSelectionPopup();
+                            }
+                          }}
+                          variant={isSelecterActive ? "default" : "outline"}
+                          className={cn(
+                            "flex items-center gap-2",
+                            isSelecterActive && "bg-purple-600 hover:bg-purple-700"
+                          )}
                         >
                           <Highlighter className="w-4 h-4" />
-                          Выделение
+                          {isSelecterActive ? "Выкл. выделение" : "Вкл. выделение"}
                         </Button>
                       )}
                     </>
