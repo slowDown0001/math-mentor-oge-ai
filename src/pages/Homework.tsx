@@ -154,12 +154,13 @@ const Homework = () => {
       loadUserProfile();
     }
   }, [user]);
-
+  
   useEffect(() => {
-    if (homeworkData && user) {
+    if (homeworkData && user && userProfile) {
       checkExistingProgress();
     }
-  }, [homeworkData, user]);
+  }, [homeworkData, user, userProfile]);
+
 
   useEffect(() => {
     if (currentQuestions.length > 0) {
