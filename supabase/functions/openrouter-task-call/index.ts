@@ -54,26 +54,39 @@ Deno.serve(async (req)=>{
       time_mastery: null,
       "темы с ошибками": []
     };
+    let student_activity_session_results = [];
     try {
-      console.log('Fetching latest mastery snapshot and task timestamps...');
-      const { data: masteryRow, error: masteryError } = await supabase.from('mastery_snapshots').select('run_timestamp').eq('user_id', user_id).eq('course_id', String(course_id)).order('run_timestamp', {
+      console.log('Fetching latest student activity and task timestamps...');
+      const { data: activityRow, error: activityError } = await supabase.from('student_activity').select('updated_at').eq('user_id', user_id).eq('course_id', '1').order('updated_at', {
         ascending: false
       }).limit(1).single();
       const { data: taskRow, error: taskError } = await supabase.from('stories_and_telegram').select('created_at').eq('user_id', user_id).eq('course_id', String(course_id)).order('created_at', {
         ascending: false
       }).limit(1).single();
-      if (masteryError) console.error('Mastery snapshot error:', masteryError);
+      if (activityError) console.error('Student activity error:', activityError);
       if (taskError) console.error('Task row error:', taskError);
-      if (masteryRow && taskRow) {
-        console.log('Mastery and task rows found');
-        const time_mastery = new Date(masteryRow.run_timestamp);
+      if (activityRow && taskRow) {
+        console.log('Activity and task rows found');
+        const time_mastery = new Date(activityRow.updated_at);
         const time_task = new Date(taskRow.created_at);
         previously_failed_topics.time_task = time_task.toISOString();
         previously_failed_topics.time_mastery = time_mastery.toISOString();
         console.log(`Timestamps - time_task: ${previously_failed_topics.time_task}, time_mastery: ${previously_failed_topics.time_mastery}`);
-        const olderTime = new Date(Math.min(time_task.getTime(), time_mastery.getTime()) - 60 * 60 * 1000); // 1 hour before
+        const olderTime = new Date(Math.min(time_task.getTime(), time_mastery.getTime()));
         const newerTime = new Date(Math.max(time_task.getTime(), time_mastery.getTime()));
         console.log(`Time window - older: ${olderTime.toISOString()}, newer: ${newerTime.toISOString()}`);
+        const { data: activitySessionData, error: activitySessionError } = await supabase.from('student_activity').select('question_id, is_correct, created_at').eq('user_id', user_id).eq('course_id', String(course_id)).gt('created_at', olderTime.toISOString()).lt('created_at', newerTime.toISOString());
+        if (activitySessionError) {
+          console.error('Student activity session error:', activitySessionError);
+        } else {
+          console.log(`Fetched student activity session, found ${activitySessionData?.length || 0} records`);
+          student_activity_session_results = activitySessionData ? activitySessionData.map((row)=>({
+              question_id: row.question_id,
+              is_correct: row.is_correct,
+              created_at: row.created_at
+            })) : [];
+          console.log('Fetched student_activity_session_results:', JSON.stringify(student_activity_session_results, null, 2));
+        }
         const { data: activityData, error: activityError } = await supabase.from('student_activity').select('question_id').eq('user_id', user_id).eq('course_id', String(course_id)).eq('is_correct', false).gt('created_at', olderTime.toISOString()).lt('created_at', newerTime.toISOString());
         if (activityError) console.error('Student activity error:', activityError);
         console.log(`Fetched student activity, found ${activityData?.length || 0} failed questions`);
@@ -104,13 +117,13 @@ Deno.serve(async (req)=>{
           console.log('No failed questions found in the time window');
         }
       } else {
-        console.log('Missing mastery or task row:', {
-          masteryRowExists: !!masteryRow,
+        console.log('Missing activity or task row:', {
+          activityRowExists: !!activityRow,
           taskRowExists: !!taskRow
         });
       }
     } catch (e) {
-      console.error('Error calculating failed topics:', e);
+      console.error('Error calculating failed topics or student activity session:', e);
     }
     console.log('Final previously_failed_topics:', JSON.stringify(previously_failed_topics, null, 2));
     let student_hardcoded_task = '';
@@ -219,7 +232,6 @@ Deno.serve(async (req)=>{
     } catch (progressDiffError) {
       console.error('Error in progress difference calculation:', progressDiffError);
     }
-    // New code block to fetch previous_homework_question_ids and result_of_prev_homework_completion
     let previous_homework_question_ids = {
       MCQ: [],
       FIPI: []
@@ -247,27 +259,22 @@ Deno.serve(async (req)=>{
             if (homeworkProgressError) {
               console.error('Error fetching homework progress:', homeworkProgressError);
             } else {
-              // Combine all question IDs from previous_homework_question_ids
               const allHomeworkQids = [
                 ...previous_homework_question_ids.MCQ,
                 ...previous_homework_question_ids.FIPI
               ];
               console.log('All homework question IDs:', JSON.stringify(allHomeworkQids, null, 2));
-              // Get question IDs from homework_progress
               const progressQids = homeworkProgressData ? homeworkProgressData.map((row)=>row.question_id) : [];
-              // Find missing question IDs
               const missingQids = allHomeworkQids.filter((qid)=>!progressQids.includes(qid));
               console.log('Missing question IDs:', JSON.stringify(missingQids, null, 2));
-              // Split all question IDs (progress + missing) into SKILLS and non-SKILLS
               const allQids = [
                 ...progressQids,
                 ...missingQids
               ];
-              const skillsQids = allQids.filter((qid)=>qid.includes('SKILLS'));
-              const fipiQids = allQids.filter((qid)=>!qid.includes('SKILLS'));
+              const skillsQids = allQids.filter((qid)=>qid?.includes('SKILLS') ?? false);
+              const fipiQids = allQids.filter((qid)=>qid && !(qid?.includes('SKILLS') ?? false));
               console.log('Skills question IDs:', JSON.stringify(skillsQids, null, 2));
               console.log('FIPI question IDs:', JSON.stringify(fipiQids, null, 2));
-              // Fetch skills for SKILLS questions
               let skillsMap = new Map();
               if (skillsQids.length > 0) {
                 const { data: skillsData, error: skillsError } = await supabase.from('oge_math_skills_questions').select('question_id, skills').in('question_id', skillsQids);
@@ -283,7 +290,6 @@ Deno.serve(async (req)=>{
                   ], null, 2));
                 }
               }
-              // Fetch problem_number_type for FIPI questions
               let fipiMap = new Map();
               if (fipiQids.length > 0) {
                 const { data: fipiData, error: fipiError } = await supabase.from('oge_math_fipi_bank').select('question_id, problem_number_type').in('question_id', fipiQids);
@@ -299,10 +305,16 @@ Deno.serve(async (req)=>{
                   ], null, 2));
                 }
               }
-              // Build result_of_prev_homework_completion
+              console.log(`Skills map size: ${skillsMap.size}, FIPI map size: ${fipiMap.size}`);
               if (homeworkProgressData && homeworkProgressData.length > 0) {
-                result_of_prev_homework_completion = homeworkProgressData.map((row)=>{
-                  const isSkillsQuestion = row.question_id.includes('SKILLS');
+                result_of_prev_homework_completion = homeworkProgressData.filter((row)=>{
+                  if (!row.question_id) {
+                    console.warn(`Skipping homework_progress row with null/undefined question_id: ${JSON.stringify(row)}`);
+                    return false;
+                  }
+                  return true;
+                }).map((row)=>{
+                  const isSkillsQuestion = row.question_id?.includes('SKILLS') ?? false;
                   return {
                     question_id: row.question_id,
                     is_correct: row.is_correct,
@@ -310,10 +322,9 @@ Deno.serve(async (req)=>{
                   };
                 });
               }
-              // Add missing question IDs
               if (missingQids.length > 0) {
                 const missingEntries = missingQids.map((qid)=>{
-                  const isSkillsQuestion = qid.includes('SKILLS');
+                  const isSkillsQuestion = qid?.includes('SKILLS') ?? false;
                   return {
                     question_id: qid,
                     is_correct: null,
@@ -339,7 +350,6 @@ Deno.serve(async (req)=>{
     } catch (error) {
       console.error('Error fetching homework-related data:', error.message);
     }
-    // End of new code block
     const prompt1 = ragData.task_context || '';
     const homeworkSection = previous_homework_question_ids.MCQ.length || previous_homework_question_ids.FIPI.length || result_of_prev_homework_completion.length ? `
 ### Задачи из Прошлого Домашнего Задания и как оно были решены учеником
@@ -404,7 +414,7 @@ ${filteredStudentProgress}
         }
       ],
       "max_tokens": 40000,
-      "temperature": 0.6
+      "temperature": 0.9
     };
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -434,7 +444,10 @@ ${filteredStudentProgress}
         number_of_words
       },
       progress_diff: final_json,
-      retrieved_hardcode_task
+      retrieved_hardcode_task,
+      previous_homework_question_ids,
+      result_of_prev_homework_completion,
+      student_activity_session_results
     }), {
       headers: {
         ...corsHeaders,
