@@ -44,26 +44,21 @@ const OgeMath = () => {
         if (homeworkData) {
           try {
             const completionData = JSON.parse(homeworkData);
-            // Generate feedback based on completion data
-            homeworkFeedbackMessage = `**📚 ДОМАШНЕЕ ЗАДАНИЕ: ${completionData.homeworkName}**\n\n` +
-              `✅ Правильных ответов: ${completionData.questionsCorrect} из ${completionData.totalQuestions}\n` +
-              `📊 Точность: ${Math.round(completionData.accuracy)}%\n` +
-              (completionData.progressStats ? 
-                `⏱️ Общее время: ${Math.floor(completionData.progressStats.totalTime / 60)} мин ${completionData.progressStats.totalTime % 60} сек\n` +
-                `⚡ Среднее время: ${completionData.progressStats.avgTime} сек\n` +
-                `👀 Просмотрено решений: ${completionData.progressStats.showedSolutionCount}\n` +
-                `🎯 Навыков отработано: ${completionData.progressStats.skillsWorkedOn.length}\n\n` 
-                : '\n') +
-              (completionData.accuracy >= 80 ? 
-                '🎉 Отлично! Ты показал высокий результат!' : 
-                completionData.accuracy >= 60 ? 
-                '👍 Хороший результат! Продолжай в том же духе!' : 
-                '💪 Неплохо! Разбери ошибки и попробуй еще раз.');
-            
-            shouldGenerateHomeworkFeedback = true;
-            
-            // Clear the stored data to avoid repeated feedback
-            localStorage.removeItem('homeworkCompletionData');
+            // Get detailed homework session data from database
+            const { data: sessionData, error } = await supabase
+              .from('homework_progress')
+              .select('*')
+              .eq('user_id', user.id)
+              .eq('session_id', completionData.sessionId)
+              .order('created_at', { ascending: true });
+
+            if (!error && sessionData && sessionData.length > 0) {
+              homeworkFeedbackMessage = await generateAIHomeworkFeedback(sessionData);
+              shouldGenerateHomeworkFeedback = true;
+              
+              // Clear the stored data to avoid repeated feedback
+              localStorage.removeItem('homeworkCompletionData');
+            }
           } catch (error) {
             console.error('Error processing homework completion data:', error);
             localStorage.removeItem('homeworkCompletionData');
