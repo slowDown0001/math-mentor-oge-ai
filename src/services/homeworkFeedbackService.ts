@@ -112,11 +112,15 @@ export function createHomeworkStatsFromData(sessionData: any[]): HomeworkStats {
     return acc;
   }, {} as Record<string, number>);
 
+  const questionsCompleted = summaryRecord?.questions_completed || questionRecords.length;
+  const questionsCorrect = summaryRecord?.questions_correct || questionRecords.filter(r => r.is_correct).length;
+  const calculatedAccuracy = questionsCompleted > 0 ? (questionsCorrect / questionsCompleted) * 100 : 0;
+
   return {
     totalQuestions: summaryRecord?.total_questions || questionRecords.length,
-    questionsCompleted: summaryRecord?.questions_completed || questionRecords.length,
-    questionsCorrect: summaryRecord?.questions_correct || questionRecords.filter(r => r.is_correct).length,
-    accuracy: summaryRecord?.accuracy_percentage || 0,
+    questionsCompleted,
+    questionsCorrect,
+    accuracy: summaryRecord?.accuracy_percentage ?? calculatedAccuracy,
     totalTime,
     avgTime: questionRecords.length > 0 ? Math.round(totalTime / questionRecords.length) : 0,
     showedSolutionCount,
