@@ -397,53 +397,10 @@ const PracticeByNumberOgemath = () => {
       const correctAnswer = currentQuestion.answer;
       let isCorrect = false;
 
-      // Check if the correct answer is numeric
-      if (isNumeric(correctAnswer)) {
-        // Simple numeric comparison with sanitization
-        const sanitizedUserAnswer = sanitizeNumericAnswer(userAnswer);
-        const sanitizedCorrectAnswer = sanitizeNumericAnswer(correctAnswer);
-        isCorrect = sanitizedUserAnswer === sanitizedCorrectAnswer;
-        
-        console.log('Numeric answer check:', {
-          user: sanitizedUserAnswer,
-          correct: sanitizedCorrectAnswer,
-          isCorrect
-        });
-      } else {
-        // Use OpenRouter API for non-numeric answers
-        console.log('Non-numeric answer detected, using OpenRouter API');
-        
-        const { data, error } = await supabase.functions.invoke('check-non-numeric-answer', {
-          body: {
-            student_answer: userAnswer.trim(),
-            correct_answer: correctAnswer,
-            problem_text: currentQuestion.problem_text
-          }
-        });
-
-        if (error) {
-          console.error('Error checking non-numeric answer:', error);
-          
-          // Check if there's a retry message from the API
-          if (data?.retry_message) {
-            toast.error(data.retry_message);
-          } else {
-            toast.error('Ошибка при проверке ответа. Пожалуйста, попробуйте ещё раз.');
-          }
-          return;
-        }
-
-        if (data?.retry_message) {
-          toast.error(data.retry_message);
-          return;
-        }
-
-        isCorrect = data?.is_correct || false;
-        console.log('OpenRouter API result:', { isCorrect });
-      }
-
-      // Call check-text-answer function for logging purposes
-      const { data: logData, error: logError } = await supabase.functions.invoke('check-text-answer', {
+      // Use check-text-answer function for all answer checking (conducts normalization)
+      console.log('Checking answer using check-text-answer function');
+      
+      const { data, error } = await supabase.functions.invoke('check-text-answer', {
         body: {
           user_id: user.id,
           question_id: currentQuestion.question_id,
@@ -451,9 +408,14 @@ const PracticeByNumberOgemath = () => {
         }
       });
 
-      if (logError) {
-        console.error('Error logging answer check:', logError);
+      if (error) {
+        console.error('Error checking answer:', error);
+        toast.error('Ошибка при проверке ответа. Пожалуйста, попробуйте ещё раз.');
+        return;
       }
+
+      isCorrect = data?.is_correct || false;
+      console.log('check-text-answer result:', { isCorrect });
 
       setIsCorrect(isCorrect);
       setIsAnswered(true);
