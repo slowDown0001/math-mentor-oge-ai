@@ -121,8 +121,8 @@ export const StreakRingAnimation: React.FC<StreakRingAnimationProps> = ({
             
             <p className="text-gray-600 text-sm">
               {newPercentage >= 100 
-                ? "🎉 Дневная цель достигнута!" 
-                : `${Math.round(newPercentage)}% от дневной цели`
+                ? "🎉 Недельная цель достигнута!" 
+                : `${Math.round(newPercentage)}% от недельной цели`
               }
             </p>
           </div>

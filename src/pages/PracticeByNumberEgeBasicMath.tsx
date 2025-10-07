@@ -276,9 +276,9 @@ const PracticeByNumberEgeBasicMath = () => {
         if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
           (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
         }
-        toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
+        toast.success(`Правильно! +${reward.minutes} мин к недельной цели.`);
       } else {
-        toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
+        toast.error(`Неправильно. +${reward.minutes} мин к недельной цели за попытку.`);
       }
     } catch (error) {
       console.error('Error in checkAnswer:', error);

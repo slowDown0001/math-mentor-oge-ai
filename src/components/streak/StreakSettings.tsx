@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 export const StreakSettings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [selectedGoal, setSelectedGoal] = useState(30);
+  const [selectedGoal, setSelectedGoal] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export const StreakSettings = () => {
       setSelectedGoal(minutes);
       toast({
         title: "Цель обновлена!",
-        description: `Ваша дневная цель установлена на ${minutes} минут.`,
+        description: `Ваша недельная цель установлена на ${minutes} минут.`,
       });
     } catch (error) {
       console.error('Error updating goal:', error);
@@ -75,11 +75,11 @@ export const StreakSettings = () => {
     <Card className="p-6">
       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <Target className="h-5 w-5 text-primary" />
-        Настройки дневных целей
+        Настройки недельных целей
       </h3>
       
       <p className="text-muted-foreground mb-6">
-        Выберите, сколько времени в день вы хотите уделять изучению математики:
+        Выберите, сколько времени в неделю вы хотите уделять изучению математики:
       </p>
 
       <div className="space-y-6 mb-6">
@@ -97,15 +97,15 @@ export const StreakSettings = () => {
           <Slider
             value={[selectedGoal]}
             onValueChange={(value) => setSelectedGoal(value[0])}
-            max={90}
-            min={1}
-            step={1}
+            max={240}
+            min={10}
+            step={5}
             className="w-full"
           />
           
           <div className="flex justify-between text-sm text-muted-foreground">
-            <span>1 мин</span>
-            <span>90 мин</span>
+            <span>10 мин</span>
+            <span>240 мин</span>
           </div>
         </div>
       </div>

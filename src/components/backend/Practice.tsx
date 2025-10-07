@@ -183,11 +183,11 @@ const Practice: React.FC<PracticeProps> = ({ onComplete }) => {
 
     setUserAnswers(prev => [...prev, newAnswer]);
 
-    if (isCorrect) {
-      toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
-    } else {
-      toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
-    }
+      if (isCorrect) {
+        toast.success(`Правильно! +${reward.minutes} мин к недельной цели.`);
+      } else {
+        toast.error(`Неправильно. +${reward.minutes} мин к недельной цели за попытку.`);
+      }
 
     // Move to next question or finish
     if (currentQuestionIndex < questions.length - 1) {

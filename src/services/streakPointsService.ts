@@ -63,7 +63,7 @@ export const awardStreakPoints = async (userId: string, reward: StreakReward) =>
           current_streak: 1,
           longest_streak: 1,
           last_activity_date: today,
-          daily_goal_minutes: 30
+          daily_goal_minutes: 60
         });
       
       if (insertError) throw insertError;
@@ -142,7 +142,7 @@ export const getCurrentStreakData = async (userId: string) => {
     }
 
     const todayMinutes = activityData?.reduce((sum, activity) => sum + (activity.duration_minutes || 0), 0) || 0;
-    const goalMinutes = streakData?.daily_goal_minutes || 30;
+    const goalMinutes = streakData?.daily_goal_minutes || 60;
 
     return {
       currentStreak: streakData?.current_streak || 0,

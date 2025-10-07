@@ -170,9 +170,9 @@ const PracticeByNumber = () => {
       await awardStreakPoints(user.id, reward);
 
       if (isCorrect) {
-        toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
+        toast.success(`Правильно! +${reward.minutes} мин к недельной цели.`);
       } else {
-        toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
+        toast.error(`Неправильно. +${reward.minutes} мин к недельной цели за попытку.`);
       }
     } catch (error) {
       console.error('Error in checkAnswer:', error);
