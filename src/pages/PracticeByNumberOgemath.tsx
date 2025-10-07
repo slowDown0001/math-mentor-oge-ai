@@ -11,7 +11,7 @@ import { CheckCircle, XCircle, BookOpen, ArrowRight, Home, ArrowLeft, Camera, X 
 import { Link } from "react-router-dom";
 import MathRenderer from "@/components/MathRenderer";
 import { useStreakTracking } from "@/hooks/useStreakTracking";
-import { StreakDisplay } from "@/components/streak/StreakDisplay";
+
 import { awardStreakPoints, calculateStreakReward, getCurrentStreakData } from "@/services/streakPointsService";
 import { toast } from "sonner";
 import TestStatisticsWindow from "@/components/TestStatisticsWindow";
@@ -922,7 +922,6 @@ const PracticeByNumberOgemath = () => {
                 }
               </p>
             </div>
-            {user && <StreakDisplay />}
           </div>
 
           {!practiceStarted ? (
