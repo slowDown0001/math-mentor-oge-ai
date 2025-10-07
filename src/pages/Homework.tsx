@@ -961,7 +961,7 @@ const Homework = () => {
     return (
       <div className="min-h-screen text-white relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
         <FlyingMathBackground />
-        <div className="pt-20 px-4">
+        <div className="pt-20 px-4 relative z-10">
           <div className="max-w-2xl mx-auto text-center">
             <p className="text-lg text-muted-foreground">Войдите в систему для доступа к домашнему заданию</p>
           </div>
@@ -974,7 +974,7 @@ const Homework = () => {
     return (
       <div className="min-h-screen text-white relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
         <FlyingMathBackground />
-        <div className="pt-20 px-4">
+        <div className="pt-20 px-4 relative z-10">
           <div className="max-w-2xl mx-auto text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
             <p className="text-lg text-muted-foreground">Загрузка домашнего задания...</p>
@@ -988,7 +988,7 @@ const Homework = () => {
     return (
       <div className="min-h-screen text-white relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
         <FlyingMathBackground />
-        <div className="bg-white shadow-sm border-b">
+        <div className="bg-white shadow-sm border-b relative z-20">
           <div className="container mx-auto px-4 py-3">
             <div className="flex justify-start">
               <Button
@@ -1001,7 +1001,7 @@ const Homework = () => {
           </div>
         </div>
 
-        <div className="pt-8 px-4">
+        <div className="pt-8 px-4 relative z-10">
           <div className="max-w-2xl mx-auto text-center">
             <Card className="p-8">
               <CardHeader>
@@ -1027,7 +1027,7 @@ const Homework = () => {
     return (
       <div className="min-h-screen text-white relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
         <FlyingMathBackground />
-        <div className="pt-20 px-4">
+        <div className="pt-20 px-4 relative z-10">
           <div className="max-w-2xl mx-auto text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
             <p className="text-lg text-muted-foreground">Загрузка вопросов...</p>
@@ -1309,7 +1309,7 @@ const Homework = () => {
         </motion.div>
       )}
 
-      <div className="pt-8 px-4 pb-8">
+      <div className="pt-8 px-4 pb-8 relative z-10">
         <div className="max-w-4xl mx-auto">
           <Card className="mb-6">
             <CardHeader>
