@@ -195,12 +195,12 @@ export const StreakDisplay = () => {
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-foreground">Дневная цель</span>
+              <span className="text-sm font-medium text-foreground">Недельная цель</span>
               <span className="text-sm text-muted-foreground">{streakData.dailyGoalMinutes} мин</span>
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-foreground">Сегодня занимались</span>
+              <span className="text-sm font-medium text-foreground">Занятия на неделе</span>
               <span className="text-sm text-muted-foreground">{Math.round(streakData.todayProgress)} мин</span>
             </div>
             

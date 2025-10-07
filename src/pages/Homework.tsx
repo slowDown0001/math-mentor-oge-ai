@@ -25,6 +25,7 @@ import CourseChatMessages from '@/components/chat/CourseChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
 import { sendChatMessage } from '@/services/chatService';
 import { saveChatLog } from '@/services/chatLogsService';
+import { awardEnergyPoints } from '@/services/energyPoints';
 
 interface HomeworkData {
   mcq_questions: string[];
@@ -692,6 +693,14 @@ const Homework = () => {
         if (currentQuestion.skills) {
           await processMCQSkillAttempt(currentQuestion, correct, responseTime);
         }
+        
+        // Award energy points if correct (oge_math_skills_questions = 1 point)
+        if (correct) {
+          const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_skills_questions');
+          if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
+            (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
+          }
+        }
       }
       return;
     }
@@ -736,6 +745,14 @@ const Homework = () => {
             responseTime,
             false
           );
+          
+          // Award energy points if correct (oge_math_fipi_bank = 2 points for FRQ)
+          if (is_correct) {
+            const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
+            if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
+              (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
+            }
+          }
         }
 
         toast({

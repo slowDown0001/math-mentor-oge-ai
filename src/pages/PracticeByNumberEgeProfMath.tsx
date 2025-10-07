@@ -14,6 +14,7 @@ import { useStreakTracking } from "@/hooks/useStreakTracking";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
 import { StreakRingAnimation } from "@/components/streak/StreakRingAnimation";
 import { awardStreakPoints, calculateStreakReward, getCurrentStreakData } from "@/services/streakPointsService";
+import { awardEnergyPoints } from "@/services/energyPoints";
 import { toast } from "sonner";
 
 interface Question {
@@ -274,8 +275,13 @@ const PracticeByNumberEgeProfMath = () => {
       }
       
       await awardStreakPoints(user.id, reward);
-
+      
+      // Award energy points if correct (egemathprof table = 2 points)
       if (isCorrect) {
+        const result = await awardEnergyPoints(user.id, 'problem', undefined, 'egemathprof');
+        if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
+          (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
+        }
         toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
       } else {
         toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);

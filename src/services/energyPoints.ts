@@ -14,10 +14,18 @@ const ENERGY_POINTS = {
 export const awardEnergyPoints = async (
   userId: string,
   activityType: ActivityType,
-  customPoints?: number
+  customPoints?: number,
+  tableName?: string
 ): Promise<{ success: boolean; pointsAwarded?: number; error?: string }> => {
   try {
-    const pointsToAward = customPoints || ENERGY_POINTS[activityType];
+    // Determine points based on table name if provided
+    let pointsToAward: number;
+    if (tableName) {
+      // 1 point for oge_math_skills_questions, 2 points for other tables
+      pointsToAward = tableName === 'oge_math_skills_questions' ? 1 : 2;
+    } else {
+      pointsToAward = customPoints || ENERGY_POINTS[activityType];
+    }
 
     // Get current user statistics
     const { data: currentStats, error: fetchError } = await supabase

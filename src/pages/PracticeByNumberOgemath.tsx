@@ -508,8 +508,17 @@ const PracticeByNumberOgemath = () => {
       }
       
       await awardStreakPoints(user.id, reward);
-
+      
+      // Award energy points if correct (oge_math_fipi_bank table = 2 points)
       if (isCorrect) {
+        const { awardEnergyPoints: awardPoints } = await import('@/services/energyPoints');
+        const result = await awardPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
+        
+        // Trigger header animation with awarded points
+        if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
+          (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
+        }
+        
         toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
       } else {
         toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);

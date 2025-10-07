@@ -10,6 +10,7 @@ import { useStreakTracking } from '@/hooks/useStreakTracking';
 import MathRenderer from '@/components/MathRenderer';
 import Header from '@/components/Header';
 import { toast } from '@/hooks/use-toast';
+import { awardEnergyPoints } from '@/services/energyPoints';
 
 interface Question {
   question_id: string;
@@ -189,7 +190,7 @@ const OgemathRevision = () => {
     }
   };
 
-  const handleAnswerSelect = (optionIndex: number) => {
+  const handleAnswerSelect = async (optionIndex: number) => {
     if (showResult) return;
     
     const answerLetter = options[optionIndex];
@@ -209,11 +210,16 @@ const OgemathRevision = () => {
     };
     setSession(newSession);
 
-    // Track activity for streak
-    if (correct) {
-      trackActivity('problem', 3); // More time for revision
-      if ((window as any).triggerEnergyPointsAnimation) {
-        (window as any).triggerEnergyPointsAnimation(15);
+    // Track activity for streak and award energy points
+    if (correct && user) {
+      trackActivity('problem', 3);
+      
+      // Award energy points based on table (oge_math_skills_questions = 1 point)
+      const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_skills_questions');
+      
+      // Trigger header animation with awarded points
+      if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
+        (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
       }
     }
 

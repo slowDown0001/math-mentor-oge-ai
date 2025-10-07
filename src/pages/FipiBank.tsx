@@ -11,7 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { supabase as supabaseLib } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { awardEnergyPoints } from '@/services/energyPoints';
-import { PointsAnimation } from '@/components/PointsAnimation';
 import MathRenderer from '@/components/MathRenderer';
 import Header from '@/components/Header';
 import { toast } from 'sonner';
@@ -47,8 +46,6 @@ const FipiBank = () => {
   const [loading, setLoading] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
-  const [showStreakAnimation, setShowStreakAnimation] = useState(false);
-  const [pointsGained, setPointsGained] = useState(0);
   const [markingSolution, setMarkingSolution] = useState<string>('');
   const [isMarking, setIsMarking] = useState(false);
   const [showMarkingSolution, setShowMarkingSolution] = useState(false);
@@ -152,25 +149,19 @@ const FipiBank = () => {
     setShowAnswer(true);
 
     if (isCorrect && user) {
-      const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
-      setPointsGained(points);
-      setShowStreakAnimation(true);
-      await awardEnergyPoints(user.id, 'practice_test', points);
+      // Award energy points based on table (oge_math_fipi_bank = 2 points)
+      const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
+      
       // Trigger energy points animation in header
-      if ((window as any).triggerEnergyPointsAnimation) {
-        (window as any).triggerEnergyPointsAnimation(points);
+      if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
+        (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
       }
       
       // Auto advance only for questions 1-19, not for 20-26
       if (currentQuestion.problem_number_type <= 19) {
         setTimeout(() => {
-          setShowStreakAnimation(false);
           nextQuestion();
-        }, 3000);
-      } else {
-        setTimeout(() => {
-          setShowStreakAnimation(false);
-        }, 3000);
+        }, 2000);
       }
     }
   };
@@ -241,18 +232,13 @@ const FipiBank = () => {
     }, 2000);
 
     if (isCorrect && user) {
-      const points = currentQuestion.problem_number_type <= 19 ? 100 : 200;
-      setPointsGained(points);
-      setShowStreakAnimation(true);
-      await awardEnergyPoints(user.id, 'practice_test', points);
-      // Trigger energy points animation in header
-      if ((window as any).triggerEnergyPointsAnimation) {
-        (window as any).triggerEnergyPointsAnimation(points);
-      }
+      // Award energy points based on table (oge_math_fipi_bank = 2 points)
+      const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
       
-      setTimeout(() => {
-        setShowStreakAnimation(false);
-      }, 3000);
+      // Trigger energy points animation in header
+      if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
+        (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
+      }
     }
   };
 
@@ -679,13 +665,6 @@ const FipiBank = () => {
           </div>
         </div>
 
-        {showStreakAnimation && (
-          <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50">
-            <div className="bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded-lg shadow-lg animate-fade-in">
-              +{pointsGained} баллов
-            </div>
-          </div>
-        )}
       </div>
     );
   }
