@@ -153,17 +153,6 @@ export const DailyTaskStory = () => {
             {/* Navigation Buttons */}
             <div className="flex-shrink-0 p-6 border-b border-border/20">
               <div className="flex flex-wrap gap-3 justify-center">
-                {/* Revision Button */}
-                <Button
-                  onClick={() => {
-                    navigate('/ogemath-revision');
-                    setIsOpen(false);
-                  }}
-                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                >
-                  Повторение
-                </Button>
-
                 {/* Learning Platform Buttons */}
                 {learningTopics.length > 0 ? (
                   learningTopics.slice(0, 2).map((topic, index) => (
@@ -190,15 +179,15 @@ export const DailyTaskStory = () => {
                   </Button>
                 )}
 
-                {/* Practice by Number Button */}
+                {/* Homework Button */}
                 <Button
                   onClick={() => {
-                    navigate('/practice-by-number-ogemath');
+                    navigate('/homework');
                     setIsOpen(false);
                   }}
                   className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                 >
-                  Практика по номерам
+                  Домашнее Задание
                 </Button>
               </div>
             </div>
