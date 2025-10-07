@@ -153,62 +153,64 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
       <div 
         ref={containerRef}
         onScroll={handleScroll}
-        className="h-full overflow-y-auto overflow-x-hidden p-4 space-y-4 scroll-smooth scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400"
+        className="h-full overflow-y-auto overflow-x-hidden scroll-smooth scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400"
         style={{ fontFamily: 'Inter, Poppins, Montserrat, sans-serif' }}
       >
-        {/* Load more history button */}
-        {hasMoreHistory && onLoadMoreHistory && (
-          <div className="flex justify-center py-4">
-            <button
-              onClick={onLoadMoreHistory}
-              disabled={isLoadingHistory}
-              className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 
-                         hover:from-blue-400 hover:to-purple-500 text-white rounded-full 
-                         shadow-lg transform transition-all duration-300 ease-in-out 
-                         hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30 
-                         disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-            >
-              {isLoadingHistory ? 'Загрузка...' : 'Загрузить больше прошлых сообщений'}
-            </button>
-          </div>
-        )}
-
-        {messages.length === 0 ? (
-          <div className="text-muted-foreground/60 text-center py-8 text-sm">
-            Начните беседу...
-          </div>
-        ) : (
-          messages.map((message, index) => {
-            const isLastUserMessage = message.isUser && 
-              messages.slice(index + 1).every(msg => !msg.isUser);
-            
-            return (
-              <div 
-                key={message.id} 
-                ref={isLastUserMessage ? lastUserMessageRef : null}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 space-y-4">
+          {/* Load more history button */}
+          {hasMoreHistory && onLoadMoreHistory && (
+            <div className="flex justify-center py-4">
+              <button
+                onClick={onLoadMoreHistory}
+                disabled={isLoadingHistory}
+                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 
+                           hover:from-blue-400 hover:to-purple-500 text-white rounded-full 
+                           shadow-lg transform transition-all duration-300 ease-in-out 
+                           hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30 
+                           disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
               >
-                <CourseChatMessage message={message} />
+                {isLoadingHistory ? 'Загрузка...' : 'Загрузить больше прошлых сообщений'}
+              </button>
+            </div>
+          )}
+
+          {messages.length === 0 ? (
+            <div className="text-muted-foreground/60 text-center py-8 text-sm">
+              Начните беседу...
+            </div>
+          ) : (
+            messages.map((message, index) => {
+              const isLastUserMessage = message.isUser && 
+                messages.slice(index + 1).every(msg => !msg.isUser);
+              
+              return (
+                <div 
+                  key={message.id} 
+                  ref={isLastUserMessage ? lastUserMessageRef : null}
+                >
+                  <CourseChatMessage message={message} />
+                </div>
+              );
+            })
+          )}
+          
+          {isTyping && (
+            <div className="flex justify-start items-start gap-3 animate-fade-in">
+              <div className="flex-shrink-0">
+                <img 
+                  src={tutorAvatar || "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png"}
+                  alt="AI avatar"
+                  className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
+                />
               </div>
-            );
-          })
-        )}
-        
-        {isTyping && (
-          <div className="flex justify-start items-start gap-3 animate-fade-in">
-            <div className="flex-shrink-0">
-              <img 
-                src={tutorAvatar || "https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png"}
-                alt="AI avatar"
-                className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
-              />
+              <div className="bg-white/60 backdrop-blur-md px-4 py-3 rounded-2xl rounded-tl-md shadow-lg border border-white/30">
+                <TypingIndicator />
+              </div>
             </div>
-            <div className="bg-white/60 backdrop-blur-md px-4 py-3 rounded-2xl rounded-tl-md shadow-lg border border-white/30">
-              <TypingIndicator />
-            </div>
-          </div>
-        )}
-        
-        <div ref={messagesEndRef} />
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Floating scroll-to-bottom button */}

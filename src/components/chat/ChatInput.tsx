@@ -29,7 +29,7 @@ const ChatInput = ({ onSendMessage, isTyping }: ChatInputProps) => {
 
   return (
     <div className="bg-transparent">
-      <div className="p-4">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
         <div className="flex gap-2 items-center bg-gray-100/90 backdrop-blur-sm rounded-2xl p-2 shadow-inner">
           <Toggle
             pressed={isDatabaseMode}
