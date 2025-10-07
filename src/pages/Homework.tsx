@@ -1412,7 +1412,7 @@ const Homework = () => {
               <Progress value={currentProgress} className="h-3 mb-2" />
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>
-                  Вопрос {Math.min(currentQuestionIndex + 1, currentQuestions.length)} из {currentQuestions.length}
+                  {Math.min(currentQuestionIndex + 1, currentQuestions.length)} из {currentQuestions.length}
                 </span>
                 <span>
                   {completedQuestions.size} из {totalMCQ + totalFRQ} выполнено
