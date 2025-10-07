@@ -94,7 +94,7 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
         );
       case 'proficient':
         return (
-          <div className="w-8 h-8 bg-gradient-to-t from-orange-500 from-75% to-gray-200 to-75% rounded border-2 border-orange-500" />
+          <div className="w-8 h-8 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded" />
         );
       case 'familiar':
         return (
