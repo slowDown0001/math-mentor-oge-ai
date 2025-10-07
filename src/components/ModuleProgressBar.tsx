@@ -104,7 +104,12 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
         );
       case 'familiar':
         return (
-          <div className="w-8 h-8 bg-gradient-to-t from-orange-500 from-50% to-gray-200 to-50% rounded border-2 border-orange-500" />
+          <div 
+            className="w-8 h-8 rounded" 
+            style={{ 
+              backgroundImage: 'linear-gradient(to top, #f97316 0%, #f97316 20%, #e5e7eb 20%, #e5e7eb 100%)' 
+            }} 
+          />
         );
       case 'attempted':
         return (
