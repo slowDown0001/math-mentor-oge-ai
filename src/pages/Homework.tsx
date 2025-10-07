@@ -1325,7 +1325,7 @@ const Homework = () => {
               <div className="flex items-center gap-4">
                 <Target className="w-4 h-4 text-purple-600 flex-shrink-0" />
                 <div className="flex-1">
-                  <Progress value={currentProgress} className="h-2" />
+                  <Progress value={currentProgress} className="h-2 bg-black [&>div]:bg-orange-500" />
                 </div>
                 <Badge variant="secondary" className={questionType === 'mcq' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
                   {questionType === 'mcq' ? 'MCQ' : 'ФИПИ'}
