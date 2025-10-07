@@ -481,31 +481,31 @@ const PracticeByNumberOgemath = () => {
         return newResults;
       });
 
-      // Update student_activity directly instead of using failing edge function
+      // Trigger animation IMMEDIATELY if correct (before backend operations)
+      if (isCorrect) {
+        console.log('Triggering energy points animation immediately');
+        if (typeof (window as any).triggerEnergyPointsAnimation === 'function') {
+          (window as any).triggerEnergyPointsAnimation(2); // Default 2 points for oge_math_fipi_bank
+        } else {
+          console.warn('triggerEnergyPointsAnimation function not found on window');
+        }
+      }
+
+      // Now perform backend operations (non-blocking for UI)
+      // Update student_activity directly
       await updateStudentActivity(isCorrect, 0);
 
       // Call handle-submission to update mastery data
       await submitToHandleSubmission(isCorrect);
 
-      // Award streak points immediately (regardless of correctness)
+      // Award streak points (regardless of correctness)
       const reward = calculateStreakReward(currentQuestion.difficulty);
       await awardStreakPoints(user.id, reward);
       
       // Award energy points if correct (oge_math_fipi_bank table = 2 points)
       if (isCorrect) {
         const { awardEnergyPoints: awardPoints } = await import('@/services/energyPoints');
-        const result = await awardPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
-        
-        console.log('Energy points result:', result);
-        
-        // Trigger header animation with awarded points (default to 2 if not returned)
-        const pointsToShow = result?.pointsAwarded || 2;
-        if (typeof (window as any).triggerEnergyPointsAnimation === 'function') {
-          console.log('Triggering energy points animation with', pointsToShow, 'points');
-          (window as any).triggerEnergyPointsAnimation(pointsToShow);
-        } else {
-          console.warn('triggerEnergyPointsAnimation function not found on window');
-        }
+        await awardPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
       }
     } catch (error) {
       console.error('Error in checkAnswer:', error);
