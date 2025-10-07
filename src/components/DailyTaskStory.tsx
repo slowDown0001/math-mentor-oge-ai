@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { X, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -147,9 +148,9 @@ export const DailyTaskStory = () => {
         </div>
       </div>
 
-      {/* Story Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      {/* Story Modal - Rendered via Portal */}
+      {isOpen && ReactDOM.createPortal(
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[9999] p-4 overflow-y-auto">
           <div className="relative w-full max-w-4xl max-h-[85vh] my-auto bg-gradient-to-br from-background to-muted rounded-3xl overflow-hidden shadow-2xl flex flex-col">
             {/* Header */}
             <div className="flex items-center gap-3 p-6 border-b border-border/20 flex-shrink-0">
@@ -182,7 +183,7 @@ export const DailyTaskStory = () => {
                         Повторить <ChevronDown className="ml-2 h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-background border-border shadow-xl z-[60]">
+                    <DropdownMenuContent className="bg-background border-border shadow-xl z-[10000]">
                       {failedTopics.map((topicIdentifier, index) => {
                         const route = findTopicRoute(topicIdentifier);
                         return (
@@ -213,7 +214,7 @@ export const DailyTaskStory = () => {
                       Изучить <ChevronDown className="ml-2 h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-background border-border shadow-xl z-[60]">
+                  <DropdownMenuContent className="bg-background border-border shadow-xl z-[10000]">
                     {learningTopics.length > 0 ? (
                       learningTopics.map((topicIdentifier, index) => {
                         const route = findTopicRoute(topicIdentifier);
@@ -277,7 +278,8 @@ export const DailyTaskStory = () => {
               <div className="h-full w-full bg-primary"></div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
