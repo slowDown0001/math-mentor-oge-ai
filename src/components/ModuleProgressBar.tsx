@@ -99,7 +99,7 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
         );
       case 'familiar':
         return (
-          <div className="w-8 h-8 rounded border border-gray-300 bg-[linear-gradient(to_top,theme(colors.orange.500)_20%,theme(colors.gray.200)_20%)]" />
+          <div className="w-8 h-8 rounded border border-orange-500 bg-[linear-gradient(to_top,theme(colors.orange.500)_20%,white_20%)]" />
         );
       case 'attempted':
         return (
