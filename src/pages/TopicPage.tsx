@@ -203,26 +203,6 @@ const TopicPage: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg p-4 border border-white/20 shadow-sm"
           >
-            {/* Читать учебник — highlighted */}
-            <div
-              className="p-4 mb-4 rounded-xl border-2 border-purple-300/70 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 transition cursor-pointer"
-              onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-purple-100">
-                  <BookOpen className="h-5 w-5 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-purple-900">
-                    Читать учебник (тема {topicNumber})
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    Конспект и примеры перед практикой
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Videos list */}
             <div className="mb-5">
               <h4 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
