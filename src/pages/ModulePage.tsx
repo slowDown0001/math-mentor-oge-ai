@@ -355,7 +355,8 @@ const ModulePage = () => {
               <span className="text-sm">Владею</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded border border-gray-300 bg-[linear-gradient(to_top,theme(colors.orange.500)_20%,theme(colors.gray.200)_20%)]" />
+              <div className="w-4 h-4 rounded border border-gray-300
+             bg-gradient-to-t from-orange-500 from-[20%] to-gray-200 to-[20%]" />
               <span className="text-sm">Знаком</span>
             </div>
             <div className="flex items-center gap-2">
