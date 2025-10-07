@@ -5,8 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import ChatRenderer2 from './chat/ChatRenderer2';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { buildTopicRoutingMap } from '@/lib/topic-routing';
-import topicMappingData from '@/data/topic_skill_mapping_with_names.json';
+import { findTopicRoute } from '@/lib/topic-routing';
 
 interface StoryData {
   upload_id: number;
@@ -157,14 +156,9 @@ export const DailyTaskStory = () => {
               <div className="flex flex-wrap gap-3 justify-center">
                 {/* Learning Platform Buttons */}
                 {learningTopics.length > 0 ? (
-                  learningTopics.slice(0, 2).map((topicName, index) => {
-                    // Find topic number by name
-                    const topicEntry = topicMappingData.find(t => t.name === topicName);
-                    const topicNumber = topicEntry?.topic;
-                    
-                    // Get route from topic routing map
-                    const topicRoutes = buildTopicRoutingMap();
-                    const route = topicNumber ? topicRoutes[topicNumber] : null;
+                  learningTopics.slice(0, 2).map((topicIdentifier, index) => {
+                    // Find route using topic number or name
+                    const route = findTopicRoute(topicIdentifier);
                     
                     return (
                       <Button
@@ -173,13 +167,13 @@ export const DailyTaskStory = () => {
                           if (route) {
                             navigate(`/module/${route.moduleSlug}/topic/${route.topicId}`);
                           } else {
-                            navigate(`/learning-platform?topic=${topicName}`);
+                            navigate(`/learning-platform?topic=${topicIdentifier}`);
                           }
                           setIsOpen(false);
                         }}
                         className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                       >
-                        Изучить {topicName}
+                        Изучить {topicIdentifier}
                       </Button>
                     );
                   })
