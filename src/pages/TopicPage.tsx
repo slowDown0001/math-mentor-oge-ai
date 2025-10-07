@@ -141,7 +141,7 @@ const TopicPage: React.FC = () => {
 
       {selectedExercise && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
-          <div className="w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+          <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
             <OgeExerciseQuiz
               title={selectedExercise.title}
               skills={selectedExercise.skills}

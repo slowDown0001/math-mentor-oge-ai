@@ -388,7 +388,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
   return (
     <>
-      <Card className="shadow-2xl border-2 border-sage/30 bg-gradient-to-br from-white via-white to-sage/5 overflow-hidden mx-auto rounded-2xl max-w-5xl backdrop-blur-lg">
+      <Card className="shadow-2xl border-2 border-sage/30 bg-gradient-to-br from-white via-white to-sage/5 overflow-hidden mx-auto rounded-2xl max-w-6xl backdrop-blur-lg">
         <CardHeader className="p-4 border-b border-sage/10 bg-gradient-to-r from-gold/5 via-transparent to-sage/5">
           <div className="flex items-center justify-between mb-2">
             <div className="flex-1">
