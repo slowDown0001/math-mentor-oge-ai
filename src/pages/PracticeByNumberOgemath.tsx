@@ -496,9 +496,15 @@ const PracticeByNumberOgemath = () => {
         const { awardEnergyPoints: awardPoints } = await import('@/services/energyPoints');
         const result = await awardPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
         
-        // Trigger header animation immediately with awarded points
-        if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
-          (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
+        console.log('Energy points result:', result);
+        
+        // Trigger header animation with awarded points (default to 2 if not returned)
+        const pointsToShow = result?.pointsAwarded || 2;
+        if (typeof (window as any).triggerEnergyPointsAnimation === 'function') {
+          console.log('Triggering energy points animation with', pointsToShow, 'points');
+          (window as any).triggerEnergyPointsAnimation(pointsToShow);
+        } else {
+          console.warn('triggerEnergyPointsAnimation function not found on window');
         }
       }
     } catch (error) {
