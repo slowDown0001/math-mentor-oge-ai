@@ -18,7 +18,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 const ModulePage = () => {
   const { moduleSlug } = useParams<{ moduleSlug: string }>();
   const navigate = useNavigate();
-  const { refetch } = useModuleProgress();
+  const { refetch, getProgressStatus } = useModuleProgress();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string; description: string } | null>(null);
@@ -160,6 +160,28 @@ const ModulePage = () => {
                 ? module.getExerciseData(topic.id, i)
                 : { title: `${topic.title} (упражнение ${i + 1})`, skills: [] };
 
+              const itemId = `${moduleSlug}-${topic.id}-ex${i}`;
+              const status = getProgressStatus(itemId, 'exercise');
+
+              const renderProgressCell = () => {
+                switch (status) {
+                  case 'mastered':
+                    return (
+                      <div className="relative w-6 h-6 bg-purple-600 rounded flex items-center justify-center">
+                        <Crown className="h-3 w-3 text-white" />
+                      </div>
+                    );
+                  case 'proficient':
+                    return <div className="w-6 h-6 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded" />;
+                  case 'familiar':
+                    return <div className="w-6 h-6 rounded border border-orange-500 bg-[linear-gradient(to_top,theme(colors.orange.500)_20%,white_20%)]" />;
+                  case 'attempted':
+                    return <div className="w-6 h-6 border-2 border-orange-400 rounded bg-white" />;
+                  default:
+                    return <div className="w-6 h-6 border-2 border-gray-300 rounded bg-white" />;
+                }
+              };
+
               return (
                 <div key={`exercise-${i}`} className="p-4 bg-white/70 rounded-lg border border-green-200/40">
                   <div className="flex items-center space-x-3 mb-2">
@@ -176,18 +198,17 @@ const ModulePage = () => {
                         )}
                       </span>
                     </div>
-                    <span className="text-sm text-gray-600">Не начато</span>
                   </div>
                   <p className="text-xs text-gray-600 mb-3 ml-11">
                     Ответьте правильно на 3 из 4 вопросов для повышения уровня!
                   </p>
-                  <div className="ml-11">
+                  <div className="ml-11 flex items-center gap-3">
+                    {renderProgressCell()}
                     <Button
                       variant="outline"
                       size="sm"
                       className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                       onClick={() => {
-                        const itemId = `${moduleSlug}-${topic.id}-ex${i}`;
                         setSelectedExercise({ ...exerciseData, itemId });
                       }}
                       disabled={exerciseData.skills.length === 0}

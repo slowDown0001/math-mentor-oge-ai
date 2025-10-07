@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Play, BookOpen, Target, X } from "lucide-react";
+import { ArrowLeft, Play, BookOpen, Target, X, Crown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
@@ -25,7 +25,7 @@ type TopicArticleRow = {
 
 const TopicPage: React.FC = () => {
   const navigate = useNavigate();
-  const { refetch } = useModuleProgress();
+  const { refetch, getProgressStatus } = useModuleProgress();
 
   // /module/:moduleSlug/topic/:topicId
   const { moduleSlug = "", topicId = "" } = useParams<{
@@ -264,40 +264,67 @@ const TopicPage: React.FC = () => {
                 Практика (MCQ)
               </h4>
               <div className="space-y-2">
-                {exercises.map((ex, i) => (
-                  <div
-                    key={`ex-${i}`}
-                    className="p-3 rounded-lg border bg-white/70"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-green-100 rounded-full">
-                        <Target className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">
-                          {ex.title}
-                          {ex.isAdvanced && (
-                            <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
-                              * Дополнительно
-                            </span>
-                          )}
+                {exercises.map((ex, i) => {
+                  const itemId = `${moduleSlug}-${topicId}-ex${i}`;
+                  const status = getProgressStatus(itemId, 'exercise');
+
+                  const renderProgressCell = () => {
+                    switch (status) {
+                      case 'mastered':
+                        return (
+                          <div className="relative w-6 h-6 bg-purple-600 rounded flex items-center justify-center">
+                            <Crown className="h-3 w-3 text-white" />
+                          </div>
+                        );
+                      case 'proficient':
+                        return <div className="w-6 h-6 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded" />;
+                      case 'familiar':
+                        return <div className="w-6 h-6 rounded border border-orange-500 bg-[linear-gradient(to_top,theme(colors.orange.500)_20%,white_20%)]" />;
+                      case 'attempted':
+                        return <div className="w-6 h-6 border-2 border-orange-400 rounded bg-white" />;
+                      default:
+                        return <div className="w-6 h-6 border-2 border-gray-300 rounded bg-white" />;
+                    }
+                  };
+
+                  return (
+                    <div
+                      key={`ex-${i}`}
+                      className="p-3 rounded-lg border bg-white/70"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 bg-green-100 rounded-full">
+                          <Target className="h-4 w-4 text-green-600" />
                         </div>
-                        <div className="text-[11px] text-gray-600">
-                          Навыки: {ex.skills.join(", ")}
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">
+                            {ex.title}
+                            {ex.isAdvanced && (
+                              <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                                * Дополнительно
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-gray-600">
+                            Навыки: {ex.skills.join(", ")}
+                          </div>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                        onClick={() => setSelectedExercise(ex)}
-                        disabled={!ex.skills.length}
-                      >
-                        Практика
-                      </Button>
+                      <div className="flex items-center gap-3 ml-11">
+                        {renderProgressCell()}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                          onClick={() => setSelectedExercise(ex)}
+                          disabled={!ex.skills.length}
+                        >
+                          Практика
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {exercises.length === 0 && (
                   <div className="text-xs text-gray-600">Упражнения для темы пока нет</div>
                 )}
