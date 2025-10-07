@@ -1446,7 +1446,7 @@ const Homework = () => {
                     <>
                       <Button
                         onClick={handleNextQuestion}
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                         size="lg"
                       >
                         {currentQuestionIndex === currentQuestions.length - 1 ? (
@@ -1460,6 +1460,10 @@ const Homework = () => {
                             <ArrowRight className="ml-2 h-5 w-5" />
                           </>
                         )}
+                      </Button>
+                      <Button onClick={handleShowSolution} variant="outline" className="flex items-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        Показать решение
                       </Button>
                       <Button
                         onClick={() => {
