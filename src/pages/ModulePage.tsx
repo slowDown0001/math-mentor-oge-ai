@@ -217,9 +217,13 @@ const ModulePage = () => {
                       </Button>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center pt-1">
+                  <button 
+                    onClick={() => setSelectedExercise({ ...exerciseData, itemId })}
+                    className="flex items-center justify-center pt-1 hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                    disabled={exerciseData.skills.length === 0}
+                  >
                     {renderProgressCell()}
-                  </div>
+                  </button>
                 </div>
               );
             })}

@@ -311,7 +311,13 @@ const TopicPage: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-3 ml-11">
-                        {renderProgressCell()}
+                        <button 
+                          onClick={() => setSelectedExercise(ex)}
+                          className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                          disabled={!ex.skills.length}
+                        >
+                          {renderProgressCell()}
+                        </button>
                         <Button
                           variant="outline"
                           size="sm"
