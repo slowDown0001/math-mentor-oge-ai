@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import ChatRenderer2 from './chat/ChatRenderer2';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { findTopicRoute } from '@/lib/topic-routing';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface StoryData {
   upload_id: number;
@@ -24,6 +30,7 @@ export const DailyTaskStory = () => {
   const [seen, setSeen] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [learningTopics, setLearningTopics] = useState<string[]>([]);
+  const [failedTopics, setFailedTopics] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -47,7 +54,7 @@ export const DailyTaskStory = () => {
         // Fetch latest story for this user
         const { data: stories } = await supabase
           .from('stories_and_telegram')
-          .select('upload_id, task, created_at, seen, hardcode_task')
+          .select('upload_id, task, created_at, seen, hardcode_task, previously_failed_topics')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1);
@@ -68,6 +75,19 @@ export const DailyTaskStory = () => {
               }
             } catch (error) {
               console.error('Error parsing hardcode_task:', error);
+            }
+          }
+          
+          // Parse failed topics from previously_failed_topics
+          if (story.previously_failed_topics) {
+            try {
+              const parsedFailedTopics = JSON.parse(story.previously_failed_topics);
+              const topics = parsedFailedTopics["темы с ошибками"];
+              if (Array.isArray(topics) && topics.length > 0) {
+                setFailedTopics(topics);
+              }
+            } catch (error) {
+              console.error('Error parsing previously_failed_topics:', error);
             }
           }
         }
@@ -154,40 +174,79 @@ export const DailyTaskStory = () => {
             {/* Navigation Buttons */}
             <div className="flex-shrink-0 p-6 border-b border-border/20">
               <div className="flex flex-wrap gap-3 justify-center">
-                {/* Learning Platform Buttons */}
-                {learningTopics.length > 0 ? (
-                  learningTopics.slice(0, 2).map((topicIdentifier, index) => {
-                    // Find route using topic number or name
-                    const route = findTopicRoute(topicIdentifier);
-                    
-                    return (
-                      <Button
-                        key={index}
+                {/* Повторить Dropdown - Only show if there are failed topics */}
+                {failedTopics.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                        Повторить <ChevronDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-background border-border shadow-xl z-[60]">
+                      {failedTopics.map((topicIdentifier, index) => {
+                        const route = findTopicRoute(topicIdentifier);
+                        return (
+                          <DropdownMenuItem
+                            key={index}
+                            onClick={() => {
+                              if (route) {
+                                navigate(`/module/${route.moduleSlug}/topic/${route.topicId}`);
+                              } else {
+                                navigate(`/learning-platform?topic=${topicIdentifier}`);
+                              }
+                              setIsOpen(false);
+                            }}
+                            className="cursor-pointer hover:bg-muted"
+                          >
+                            {route?.topicName || topicIdentifier}
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+
+                {/* Изучить Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                      Изучить <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-background border-border shadow-xl z-[60]">
+                    {learningTopics.length > 0 ? (
+                      learningTopics.map((topicIdentifier, index) => {
+                        const route = findTopicRoute(topicIdentifier);
+                        return (
+                          <DropdownMenuItem
+                            key={index}
+                            onClick={() => {
+                              if (route) {
+                                navigate(`/module/${route.moduleSlug}/topic/${route.topicId}`);
+                              } else {
+                                navigate(`/learning-platform?topic=${topicIdentifier}`);
+                              }
+                              setIsOpen(false);
+                            }}
+                            className="cursor-pointer hover:bg-muted"
+                          >
+                            {route?.topicName || topicIdentifier}
+                          </DropdownMenuItem>
+                        );
+                      })
+                    ) : (
+                      <DropdownMenuItem
                         onClick={() => {
-                          if (route) {
-                            navigate(`/module/${route.moduleSlug}/topic/${route.topicId}`);
-                          } else {
-                            navigate(`/learning-platform?topic=${topicIdentifier}`);
-                          }
+                          navigate('/learning-platform');
                           setIsOpen(false);
                         }}
-                        className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                        className="cursor-pointer hover:bg-muted"
                       >
-                        Изучить {topicIdentifier}
-                      </Button>
-                    );
-                  })
-                ) : (
-                  <Button
-                    onClick={() => {
-                      navigate('/learning-platform');
-                      setIsOpen(false);
-                    }}
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                  >
-                    Изучение
-                  </Button>
-                )}
+                        Платформа для изучения
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* Homework Button */}
                 <Button
