@@ -378,12 +378,6 @@ const OgeMath = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full">
-        {/* Header */}
-        <div className="h-14 border-b border-border bg-background flex items-center justify-between px-4">
-          <h1 className="text-xl font-semibold">ОГЭ Математика</h1>
-          {user && <StreakDisplay />}
-        </div>
-
         {/* Chat Messages Area - Scrollable */}
         <div className="flex-1 overflow-hidden">
           <CourseChatMessages messages={messages} isTyping={isTyping} onLoadMoreHistory={loadMoreHistory} isLoadingHistory={isLoadingHistory} hasMoreHistory={hasMoreHistory} />
