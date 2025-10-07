@@ -26,6 +26,7 @@ type TopicArticleRow = {
 const TopicPage: React.FC = () => {
   const navigate = useNavigate();
   const { refetch, getProgressStatus } = useModuleProgress();
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // /module/:moduleSlug/topic/:topicId
   const { moduleSlug = "", topicId = "" } = useParams<{
@@ -143,6 +144,7 @@ const TopicPage: React.FC = () => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
           <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
             <OgeExerciseQuiz
+              key={refreshKey}
               title={selectedExercise.title}
               skills={selectedExercise.skills}
               questionCount={selectedExercise.questionCount}
@@ -150,6 +152,7 @@ const TopicPage: React.FC = () => {
               onBack={() => {
                 setSelectedExercise(null);
                 refetch();
+                setRefreshKey(prev => prev + 1);
               }}
             />
           </div>
