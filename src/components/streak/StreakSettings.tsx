@@ -87,7 +87,7 @@ export const StreakSettings = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 font-medium">
               <Clock className="h-4 w-4" />
-              Дневная цель
+              Недельная цель
             </div>
             <div className="text-lg font-semibold text-primary">
               {selectedGoal} {selectedGoal === 1 ? 'минута' : selectedGoal < 5 ? 'минуты' : 'минут'}
