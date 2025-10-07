@@ -1297,17 +1297,17 @@ const Homework = () => {
 
       <div className="pt-8 px-4 pb-8 relative z-10">
         <div className="max-w-4xl mx-auto">
-          {/* Back button */}
-          <div className="mb-8">
+          {/* Header with back button and title */}
+          <div className="mb-8 flex items-center justify-between">
             <button
               onClick={() => navigate('/ogemath-practice')}
               className="bg-yellow-500 text-[#1a1f36] px-6 py-3 rounded-lg hover:bg-yellow-400 font-medium transition-all hover:shadow-lg"
             >
-              ← Назад к практике
+              ← Назад
             </button>
+            <h1 className="text-3xl font-bold text-white">Домашнее задание</h1>
+            <div className="w-32"></div>
           </div>
-
-          <h1 className="text-3xl font-bold text-white mb-8 text-center">Домашнее задание</h1>
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
