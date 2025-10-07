@@ -98,7 +98,7 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
           <div 
             className="w-8 h-8 rounded" 
             style={{ 
-              backgroundImage: 'linear-gradient(to top, #f97316 0%, #f97316 33%, #e5e7eb 33%, #e5e7eb 100%)' 
+              background: 'linear-gradient(to top, #f97316 0%, #f97316 33%, #e5e7eb 33%, #e5e7eb 100%)' 
             }} 
           />
         );
@@ -107,7 +107,7 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
           <div 
             className="w-8 h-8 rounded" 
             style={{ 
-              backgroundImage: 'linear-gradient(to top, #f97316 0%, #f97316 20%, #e5e7eb 20%, #e5e7eb 100%)' 
+              background: 'linear-gradient(to top, #f97316 0%, #f97316 20%, #e5e7eb 20%, #e5e7eb 100%)' 
             }} 
           />
         );
