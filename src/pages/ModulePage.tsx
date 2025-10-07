@@ -183,38 +183,42 @@ const ModulePage = () => {
               };
 
               return (
-                <div key={`exercise-${i}`} className="p-4 bg-white/70 rounded-lg border border-green-200/40">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <div className="p-2 bg-green-100 rounded-full">
-                      <Target className="h-4 w-4 text-green-600" />
+                <div key={`exercise-${i}`} className="p-4 bg-white/70 rounded-lg border border-green-200/40 flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className="p-2 bg-green-100 rounded-full">
+                        <Target className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-sm font-medium">
+                          {exerciseData.title}
+                          {exerciseData.isAdvanced && (
+                            <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">
+                              * Не в программе ОГЭ
+                            </span>
+                          )}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <span className="text-sm font-medium">
-                        {exerciseData.title}
-                        {exerciseData.isAdvanced && (
-                          <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">
-                            * Не в программе ОГЭ
-                          </span>
-                        )}
-                      </span>
+                    <p className="text-xs text-gray-600 mb-3 ml-11">
+                      Ответьте правильно на 3 из 4 вопросов для повышения уровня!
+                    </p>
+                    <div className="ml-11">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                        onClick={() => {
+                          setSelectedExercise({ ...exerciseData, itemId });
+                        }}
+                        disabled={exerciseData.skills.length === 0}
+                      >
+                        Практика
+                      </Button>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mb-3 ml-11">
-                    Ответьте правильно на 3 из 4 вопросов для повышения уровня!
-                  </p>
-                  <div className="ml-11 flex items-center gap-3">
+                  <div className="flex items-center justify-center pt-1">
                     {renderProgressCell()}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                      onClick={() => {
-                        setSelectedExercise({ ...exerciseData, itemId });
-                      }}
-                      disabled={exerciseData.skills.length === 0}
-                    >
-                      Практика
-                    </Button>
                   </div>
                 </div>
               );
