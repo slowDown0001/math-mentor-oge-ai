@@ -418,7 +418,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
         </CardHeader>
         
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
             {/* Left Column - Question and Buttons */}
             <div className="space-y-3">
               {/* Question */}
