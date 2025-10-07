@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play, Edit3, Send, ChevronLeft, Calculator, Highlighter } from 'lucide-react';
+import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play, Edit3, Send, ChevronLeft, Calculator, Highlighter, Search, Filter } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import newSyllabusData from '../data/newSyllabusStructure.json';
 import ArticleRenderer from '../components/ArticleRenderer';
@@ -132,6 +132,7 @@ const DigitalTextbook = () => {
   useMathJaxSelection();
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [progressFilter, setProgressFilter] = useState<'all' | 'not_started' | 'in_progress' | 'completed'>('all');
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<number | null>(null);
@@ -346,6 +347,26 @@ const DigitalTextbook = () => {
     setShowPractice(false);
   };
 
+  const getFilteredSkillsByProgress = (skills: Skill[]) => {
+    // Filter by search term first
+    let filtered = getFilteredSkills(skills, searchTerm);
+    
+    // Then filter by progress status
+    // For demo purposes, we'll use skill number to simulate progress
+    // In production, you'd check actual user progress data
+    if (progressFilter !== 'all') {
+      filtered = filtered.filter(skill => {
+        const mockProgress = skill.number % 3; // 0: not_started, 1: in_progress, 2: completed
+        if (progressFilter === 'not_started') return mockProgress === 0;
+        if (progressFilter === 'in_progress') return mockProgress === 1;
+        if (progressFilter === 'completed') return mockProgress === 2;
+        return true;
+      });
+    }
+    
+    return filtered;
+  };
+
   const renderFullSyllabus = () => {
     const syllabusData = newSyllabusData as SyllabusStructure;
     
@@ -353,7 +374,7 @@ const DigitalTextbook = () => {
       <div className="space-y-6">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Программа ОГЭ по математике</h2>
-          <p className="text-lg text-gray-600">Выберите любой навык для изучения</p>
+          <p className="text-lg text-gray-600">Выберите тему из бокового меню для начала изучения</p>
         </div>
         {/* Chat Toggle Button - Fixed to right edge */}
         <button
@@ -364,49 +385,19 @@ const DigitalTextbook = () => {
           <span className="font-medium">ЧАТ</span>
         </button>
         
-        <div className="grid gap-6">
-          {Object.entries(syllabusData).map(([moduleName, module]) => (
-            <Card key={moduleName} className="overflow-hidden bg-white/90 backdrop-blur-sm border-white/50 hover:border-blue-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <CardHeader className="bg-gradient-to-br from-blue-100 to-purple-100">
-                <CardTitle className="text-xl text-blue-700">{moduleName}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid gap-4">
-                  {Object.entries(module).map(([topicKey, topic]) => (
-                    <div 
-                      key={topicKey} 
-                      className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => handleTopicSelect(topicKey)}
-                    >
-                      <h4 className="font-semibold text-lg mb-3 text-gray-800 hover:text-primary">
-                        {topicKey} {topic.name}
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                        {getFilteredSkills(topic.skills, searchTerm).map((skill) => (
-                          <Button
-                            key={skill.number}
-                            variant="outline"
-                            size="sm"
-                            className="justify-start text-left h-auto py-2 hover:bg-primary/10"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSkillSelect(skill.number);
-                              // Update URL with skill parameter
-                              setSearchParams({ skill: skill.number.toString() });
-                            }}
-                          >
-                            <BookOpen className="h-3 w-3 mr-2 flex-shrink-0" />
-                            <span className="text-xs">{skill.number}. {skill.name}</span>
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Empty state when no topic selected */}
+        <Card className="bg-white/90 backdrop-blur-sm border-white/50">
+          <CardContent className="p-12 text-center">
+            <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">Добро пожаловать в учебник!</h3>
+            <p className="text-muted-foreground mb-4">
+              Используйте боковое меню слева, чтобы выбрать модуль и тему для изучения
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Также вы можете использовать поиск и фильтры выше для быстрого доступа к нужным навыкам
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   };
@@ -432,6 +423,8 @@ const DigitalTextbook = () => {
 
     if (!currentTopicData) return null;
 
+    const filteredSkills = getFilteredSkillsByProgress(currentTopicData.skills);
+
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
@@ -439,12 +432,12 @@ const DigitalTextbook = () => {
             {currentTopic} {currentTopicData.name}
           </h2>
           <p className="text-lg text-gray-600">
-            Все навыки по теме - выберите для изучения
+            {filteredSkills.length} {filteredSkills.length === 1 ? 'навык' : 'навыков'} для изучения
           </p>
         </div>
 
         <div className="grid gap-4">
-          {getFilteredSkills(currentTopicData.skills, searchTerm).map((skill) => (
+          {filteredSkills.map((skill) => (
             <Card 
               key={skill.number}
               className="transition-all duration-200 hover:shadow-lg cursor-pointer hover:bg-primary/5"
@@ -610,7 +603,58 @@ const DigitalTextbook = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full">
-
+        
+        {/* Search and Filter Bar */}
+        <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="flex items-center gap-4">
+              {/* Search */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Поиск навыков..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              {/* Progress Filters */}
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Button
+                  variant={progressFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setProgressFilter('all')}
+                >
+                  Все
+                </Button>
+                <Button
+                  variant={progressFilter === 'not_started' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setProgressFilter('not_started')}
+                >
+                  Не начато
+                </Button>
+                <Button
+                  variant={progressFilter === 'in_progress' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setProgressFilter('in_progress')}
+                >
+                  В процессе
+                </Button>
+                <Button
+                  variant={progressFilter === 'completed' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setProgressFilter('completed')}
+                >
+                  Завершено
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto relative">
