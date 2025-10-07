@@ -1,5 +1,4 @@
-// src/pages/Homework.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,10 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import {
-  BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye,
-  BarChart3, MessageSquare, ArrowLeft, Highlighter
-} from 'lucide-react';
+import { BookOpen, Trophy, Target, Clock, ArrowRight, Check, X, Eye, BarChart3, MessageSquare, ArrowLeft, Highlighter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -104,15 +100,6 @@ const Homework = () => {
   // Chat context
   const { messages, setMessages, isTyping, setIsTyping, addMessage, isDatabaseMode } = useChatContext();
 
-  // ---------- Flicker guards (React 18 StrictMode) ----------
-  const didInitRef = useRef(false);               // 🔒 run initial loads once
-  const didCheckRef = useRef(false);              // 🔒 run checkExistingProgress once
-  const didLoadQuestionsRef = useRef(false);      // 🔒 loadQuestions once per session
-  const sessionStartedRef = useRef(false);        // 🔒 recordSessionStart once
-  const mountedRef = useRef(false);               // helps avoid setState after unmount
-
-  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
-
   // Initialize MathJax selection
   useMathJaxSelection();
 
@@ -127,8 +114,9 @@ const Homework = () => {
       console.error('Error loading user profile:', error);
       return;
     }
-    if (mountedRef.current) setUserProfile(data);
+    setUserProfile(data);
   };
+
 
   const startFIPIAttempt = async (questionId: string) => {
     if (!user) return;
@@ -170,17 +158,15 @@ const Homework = () => {
         .single();
 
       if (!error && data) {
-        if (mountedRef.current) {
-          setCurrentAttemptId(data.attempt_id);
-          setAttemptStartTime(new Date());
-        }
+        setCurrentAttemptId(data.attempt_id);
+        setAttemptStartTime(new Date());
       }
     } catch (error) {
       console.error('Error starting FIPI attempt:', error);
     }
   };
 
-  // -------- Text selection handlers ----------
+  // Text selection handler
   useEffect(() => {
     if (!isSelecterActive) return;
 
@@ -190,18 +176,23 @@ const Homework = () => {
 
       const text = getSelectedTextWithMath();
       if (text.trim().length > 0) {
-        if (!mountedRef.current) return;
         setSelectedText(text);
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
-        setSelectionPosition({ x: rect.left + rect.width / 2, y: rect.top - 10 });
+        setSelectionPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.top - 10
+        });
       }
     };
 
-    const handleMouseUp = () => setTimeout(handleTextSelection, 10);
+    const handleMouseUp = () => {
+      setTimeout(handleTextSelection, 10);
+    };
 
     document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('touchend', handleMouseUp);
+
     return () => {
       document.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('touchend', handleMouseUp);
@@ -216,6 +207,7 @@ const Homework = () => {
 
   const handleAskHedgehog = async () => {
     if (!selectedText) return;
+
     setIsChatOpen(true);
     closeSelectionPopup();
 
@@ -232,91 +224,225 @@ const Homework = () => {
     try {
       const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
-      try { await saveChatLog(newUserMessage.text, aiResponse.text, '1'); } catch (logError) {
+      
+      // Save to chat_logs
+      try {
+        await saveChatLog(newUserMessage.text, aiResponse.text, '1');
+      } catch (logError) {
         console.error('Error saving chat log:', logError);
       }
     } catch (error) {
       console.error('Error getting AI response:', error);
-      toast({ title: "Ошибка", description: "Не удалось получить ответ от Ёжика", variant: "destructive" });
+      toast({
+        title: "Ошибка",
+        description: "Не удалось получить ответ от Ёжика",
+        variant: "destructive"
+      });
     } finally {
       setIsTyping(false);
     }
+
     setSelectedText('');
   };
 
   const handleSendChatMessage = async (userInput: string) => {
     if (!userInput.trim()) return;
-    const userMessage = { id: Date.now(), text: userInput, isUser: true, timestamp: new Date() };
+
+    const userMessage = {
+      id: Date.now(),
+      text: userInput,
+      isUser: true,
+      timestamp: new Date()
+    };
+
     setMessages([...messages, userMessage]);
     setIsTyping(true);
 
     try {
       const aiResponse = await sendChatMessage(userMessage, messages, false);
       setMessages([...messages, userMessage, aiResponse]);
-      try { await saveChatLog(userInput, aiResponse.text, '1'); } catch (logError) {
+      
+      // Save to chat_logs
+      try {
+        await saveChatLog(userInput, aiResponse.text, '1');
+      } catch (logError) {
         console.error('Error saving chat log:', logError);
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      toast({ title: 'Ошибка', description: 'Не удалось отправить сообщение', variant: 'destructive' });
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось отправить сообщение',
+        variant: 'destructive'
+      });
     } finally {
       setIsTyping(false);
     }
   };
 
-  // -------- Initial load: run once --------
   useEffect(() => {
-    if (!user || didInitRef.current) return;
-    didInitRef.current = true; // 🔒
-    (async () => {
-      await loadHomeworkData();
-      await loadUserProfile();
-      setLoading(false);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (user) {
+      loadHomeworkData();
+      loadUserProfile();
+    }
   }, [user]);
 
-  // After both homework & profile are in, check previous progress (once)
   useEffect(() => {
-    if (!user || !homeworkData || !userProfile || didCheckRef.current) return;
-    didCheckRef.current = true; // 🔒
-    checkExistingProgress();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, homeworkData, userProfile]);
+    if (homeworkData && user && userProfile) {
+      checkExistingProgress();
+    }
+  }, [homeworkData, user, userProfile]);
 
-  // Set initial question index when questions first load OR when completed set changes
+  // Set initial question index only when questions first load
   useEffect(() => {
     if (!currentQuestions.length) return;
+    
     const firstIncomplete = currentQuestions.findIndex(q => !completedQuestions.has(q.id));
-    const nextIndex = firstIncomplete >= 0 ? firstIncomplete : 0;
-    setCurrentQuestionIndex(prev => (prev === nextIndex ? prev : nextIndex)); // avoid state churn
-  }, [currentQuestions, completedQuestions]);
+    setCurrentQuestionIndex(firstIncomplete >= 0 ? firstIncomplete : 0);
+  }, [currentQuestions]);
 
   // When question changes, prepare timer / FIPI attempt
   useEffect(() => {
     if (!currentQuestions.length) return;
     setQuestionStartTime(Date.now());
+
     const currentQuestion = currentQuestions[currentQuestionIndex];
     if (currentQuestion && questionType === 'frq' && user) {
       startFIPIAttempt(currentQuestion.id);
     }
   }, [currentQuestionIndex, currentQuestions, questionType, user]);
 
-  // Start a session only once per mount
+  // Start a session as soon as we know homeworkName + we loaded first batch of questions
   useEffect(() => {
-    if (!user?.id || !homeworkName || !currentQuestions.length || sessionStartedRef.current) return;
-    sessionStartedRef.current = true; // 🔒
-    recordSessionStart();
+    if (user?.id && homeworkName && currentQuestions.length > 0) {
+      recordSessionStart();
+    }
   }, [user?.id, homeworkName, currentQuestions.length]);
+
+  const checkExistingProgress = async () => {
+    if (!user?.id || !homeworkData || !userProfile?.homework) return;
+
+    try {
+      const homeworkJson = typeof userProfile.homework === 'string'
+        ? JSON.parse(userProfile.homework)
+        : userProfile.homework;
+
+      const currentHomeworkName = homeworkJson.homework_name || 'Homework';
+      setHomeworkName(currentHomeworkName);
+
+      const { data: existingSessions, error } = await supabase
+        .from('homework_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('homework_name', currentHomeworkName)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error checking existing progress:', error);
+        await loadQuestions();
+        return;
+      }
+
+      if (existingSessions && existingSessions.length > 0) {
+        // Check if Summary record exists
+        const summaryRecord = existingSessions.find(s => s.question_id === 'Summary');
+        
+        // Seed completed/correct sets (excluding Summary)
+        const completedQuestionsList = existingSessions
+          .filter(s => s.question_id && s.question_id !== 'Summary')
+          .map(s => s.question_id as string);
+        const correctQuestionsList = existingSessions
+          .filter(s => s.question_id && s.question_id !== 'Summary' && s.is_correct)
+          .map(s => s.question_id as string);
+
+        setCompletedQuestions(new Set(completedQuestionsList));
+        setCorrectAnswers(new Set(correctQuestionsList));
+
+        await loadQuestions();
+
+        if (summaryRecord) {
+          // Load review mode
+          await loadReviewModeData(existingSessions);
+          await loadProgressStats();
+          setReviewMode(true);
+          return;
+        }
+
+        // If all MCQs done, switch to FRQ
+        const allMCQCompleted = homeworkData.mcq_questions?.every(qid => completedQuestionsList.includes(qid)) || false;
+        if (allMCQCompleted && homeworkData?.fipi_questions?.length > 0) {
+          await loadFRQQuestions();
+          setQuestionType('frq');
+        }
+
+        setExistingProgress(existingSessions[0]);
+      } else {
+        await loadQuestions();
+      }
+    } catch (error) {
+      console.error('Error checking existing progress:', error);
+      await loadQuestions();
+    }
+  };
+
+  const recordSessionStart = async () => {
+    if (!user?.id || !homeworkName) return;
+    try {
+      // Check if session start already recorded
+      const { data: existingStart, error: checkError } = await supabase
+        .from('homework_progress')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('homework_name', homeworkName)
+        .ilike('homework_task', '%Session Start%')
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking existing session start:', checkError);
+        return;
+      }
+
+      // If session already started, don't create duplicate
+      if (existingStart) {
+        console.log('Session already started for:', homeworkName);
+        return;
+      }
+
+      // Insert new session start record
+      const { error } = await supabase
+        .from('homework_progress')
+        .insert({
+          user_id: user.id,
+          homework_task: `Homework ${new Date().toLocaleDateString()} - Session Start`,
+          homework_name: homeworkName,
+          total_questions: (homeworkData?.mcq_questions?.length || 0) + (homeworkData?.fipi_questions?.length || 0),
+          questions_completed: 0,
+          questions_correct: 0,
+          completion_status: 'in_progress'
+        });
+
+      if (error) console.error('Error recording session start:', error);
+      else console.log('New session started for:', homeworkName);
+    } catch (error) {
+      console.error('Error recording session start:', error);
+    }
+  };
 
   const loadHomeworkData = async () => {
     if (!user) return;
     try {
-      const { data, error } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
       if (error) {
         console.error('Error loading homework:', error);
+        setLoading(false);
         return;
       }
+
       if (data && (data as any).homework) {
         try {
           const parsedHomework = JSON.parse((data as any).homework);
@@ -326,28 +452,35 @@ const Homework = () => {
             assigned_date: parsedHomework.assigned_date,
             due_date: parsedHomework.due_date
           };
-          if (mountedRef.current) setHomeworkData(transformedHomework);
+          setHomeworkData(transformedHomework);
         } catch (parseError) {
           console.error('Error parsing homework JSON:', parseError);
-          toast({ title: 'Ошибка', description: 'Неверный формат домашнего задания', variant: 'destructive' });
+          toast({
+            title: 'Ошибка',
+            description: 'Неверный формат домашнего задания',
+            variant: 'destructive'
+          });
         }
       }
     } catch (error) {
       console.error('Error fetching homework:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const loadQuestions = async () => {
-    if (!homeworkData || didLoadQuestionsRef.current) return;
-    didLoadQuestionsRef.current = true; // 🔒
+    if (!homeworkData) return;
     setLoadingQuestions(true);
-    if (homeworkData.mcq_questions?.length) {
+
+    if (homeworkData.mcq_questions?.length > 0) {
       await loadMCQQuestions();
       setQuestionType('mcq');
-    } else if (homeworkData.fipi_questions?.length) {
+    } else if (homeworkData.fipi_questions?.length > 0) {
       await loadFRQQuestions();
       setQuestionType('frq');
     }
+
     setLoadingQuestions(false);
   };
 
@@ -365,25 +498,25 @@ const Homework = () => {
         return;
       }
 
+      // Sort questions to match homework assignment order
       const sortedData = homeworkData.mcq_questions
         .map(qid => mcqData?.find(q => q.question_id === qid))
-        .filter(Boolean) as any[];
+        .filter(Boolean);
 
-      const mcqQuestions: Question[] = sortedData.map((q, index) => ({
-        id: q.question_id,
-        text: q.problem_text || '',
-        options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
-        correct_answer: q.answer || '',
-        solution_text: q.solution_text || '',
-        problem_number: typeof q.problem_number_type === 'string'
-          ? parseInt(q.problem_number_type) || index + 1
-          : q.problem_number_type || index + 1,
-        difficulty: q.difficulty || null,
-        skills: q.skills || null,
-        problem_image: q.problem_image || undefined
-      }));
+      const mcqQuestions: Question[] =
+        sortedData.map((q, index) => ({
+          id: q.question_id,
+          text: q.problem_text || '',
+          options: [q.option1, q.option2, q.option3, q.option4].filter(Boolean),
+          correct_answer: q.answer || '',
+          solution_text: q.solution_text || '',
+          problem_number: typeof q.problem_number_type === 'string' ? parseInt(q.problem_number_type) || index + 1 : q.problem_number_type || index + 1,
+          difficulty: q.difficulty || null,
+          skills: q.skills || null,
+          problem_image: q.problem_image || undefined
+        }));
 
-      if (mountedRef.current) setCurrentQuestions(mcqQuestions);
+      setCurrentQuestions(mcqQuestions);
     } catch (error) {
       console.error('Error loading MCQ questions:', error);
       toast({ title: 'Ошибка', description: 'Произошла ошибка при загрузке вопросов', variant: 'destructive' });
@@ -404,120 +537,26 @@ const Homework = () => {
         return;
       }
 
+      // Sort questions to match homework assignment order
       const sortedData = homeworkData.fipi_questions
         .map(qid => frqData?.find(q => q.question_id === qid))
-        .filter(Boolean) as any[];
+        .filter(Boolean);
 
-      const frqQuestions: Question[] = sortedData.map((q, index) => ({
-        id: q.question_id,
-        text: q.problem_text || '',
-        correct_answer: q.answer || '',
-        solution_text: q.solution_text || '',
-        problem_number: q.problem_number_type || index + 1,
-        difficulty: q.difficulty || null,
-        problem_image: q.problem_image || undefined
-      }));
+      const frqQuestions: Question[] =
+        sortedData.map((q, index) => ({
+          id: q.question_id,
+          text: q.problem_text || '',
+          correct_answer: q.answer || '',
+          solution_text: q.solution_text || '',
+          problem_number: q.problem_number_type || index + 1,
+          difficulty: q.difficulty || null,
+          problem_image: q.problem_image || undefined
+        }));
 
-      if (mountedRef.current) setCurrentQuestions(frqQuestions);
+      setCurrentQuestions(frqQuestions);
     } catch (error) {
       console.error('Error loading FRQ questions:', error);
       toast({ title: 'Ошибка', description: 'Произошла ошибка при загрузке задач', variant: 'destructive' });
-    }
-  };
-
-  const checkExistingProgress = async () => {
-    if (!user?.id || !homeworkData || !userProfile?.homework) { await loadQuestions(); return; }
-
-    try {
-      const homeworkJson = typeof userProfile.homework === 'string'
-        ? JSON.parse(userProfile.homework)
-        : userProfile.homework;
-
-      const currentHomeworkName = homeworkJson.homework_name || 'Homework';
-      setHomeworkName(prev => (prev === currentHomeworkName ? prev : currentHomeworkName));
-
-      const { data: existingSessions, error } = await supabase
-        .from('homework_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('homework_name', currentHomeworkName)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error checking existing progress:', error);
-        await loadQuestions();
-        return;
-      }
-
-      if (existingSessions && existingSessions.length > 0) {
-        const summaryRecord = existingSessions.find(s => s.question_id === 'Summary');
-
-        const completedQuestionsList = existingSessions
-          .filter(s => s.question_id && s.question_id !== 'Summary')
-          .map(s => s.question_id as string);
-        const correctQuestionsList = existingSessions
-          .filter(s => s.question_id && s.question_id !== 'Summary' && s.is_correct)
-          .map(s => s.question_id as string);
-
-        setCompletedQuestions(new Set(completedQuestionsList));
-        setCorrectAnswers(new Set(correctQuestionsList));
-
-        await loadQuestions(); // guarded by didLoadQuestionsRef
-
-        if (summaryRecord) {
-          await loadReviewModeData(existingSessions);
-          await loadProgressStats();
-          setReviewMode(true);
-          return;
-        }
-
-        const allMCQCompleted = homeworkData.mcq_questions?.every(qid => completedQuestionsList.includes(qid)) || false;
-        if (allMCQCompleted && homeworkData?.fipi_questions?.length > 0) {
-          await loadFRQQuestions();
-          setQuestionType('frq');
-        }
-
-        setExistingProgress(existingSessions[0]);
-      } else {
-        await loadQuestions();
-      }
-    } catch (error) {
-      console.error('Error checking existing progress:', error);
-      await loadQuestions();
-    }
-  };
-
-  const recordSessionStart = async () => {
-    if (!user?.id || !homeworkName) return;
-    try {
-      const { data: existingStart, error: checkError } = await supabase
-        .from('homework_progress')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('homework_name', homeworkName)
-        .ilike('homework_task', '%Session Start%')
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('Error checking existing session start:', checkError);
-        return;
-      }
-      if (existingStart) return;
-
-      const totalQ = (homeworkData?.mcq_questions?.length || 0) + (homeworkData?.fipi_questions?.length || 0);
-
-      const { error } = await supabase.from('homework_progress').insert({
-        user_id: user.id,
-        homework_task: `Homework ${new Date().toLocaleDateString()} - Session Start`,
-        homework_name: homeworkName,
-        total_questions: totalQ,
-        questions_completed: 0,
-        questions_correct: 0,
-        completion_status: 'in_progress'
-      });
-      if (error) console.error('Error recording session start:', error);
-    } catch (error) {
-      console.error('Error recording session start:', error);
     }
   };
 
@@ -530,6 +569,7 @@ const Homework = () => {
     showedSolution: boolean
   ) => {
     if (!user?.id || !homeworkName) return;
+
     try {
       const currentQuestion = currentQuestions.find(q => q.id === questionId);
       const qType = homeworkData?.mcq_questions?.includes(questionId) ? 'mcq' : 'fipi';
@@ -555,13 +595,21 @@ const Homework = () => {
   };
 
   const loadReviewModeData = async (progressRecords: any[]) => {
-    const results: Array<{ question: Question; type: 'mcq' | 'frq'; userAnswer: string; isCorrect: boolean; correctAnswer: string; }> = [];
+    const results: Array<{
+      question: Question;
+      type: 'mcq' | 'frq';
+      userAnswer: string;
+      isCorrect: boolean;
+      correctAnswer: string;
+    }> = [];
 
     for (const record of progressRecords) {
       if (record.question_id === 'Summary') continue;
 
+      // Try to find question in current questions
       let question = currentQuestions.find(q => q.id === record.question_id);
-
+      
+      // If not found, try to load it
       if (!question) {
         const isMCQ = homeworkData?.mcq_questions?.includes(record.question_id);
         if (isMCQ) {
@@ -602,6 +650,7 @@ const Homework = () => {
           }
         }
       }
+      
       if (!question) continue;
 
       results.push({
@@ -612,7 +661,8 @@ const Homework = () => {
         correctAnswer: record.correct_answer || question.correct_answer || ''
       });
     }
-    if (mountedRef.current) setAllQuestionResults(results);
+
+    setAllQuestionResults(results);
   };
 
   const loadProgressStats = async () => {
@@ -639,7 +689,7 @@ const Homework = () => {
             return acc;
           }, {} as Record<string, number>)
         };
-        if (mountedRef.current) setProgressStats(stats);
+        setProgressStats(stats);
       }
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -656,6 +706,7 @@ const Homework = () => {
       return;
     }
 
+    // For MCQ questions, use the old logic
     if (questionType === 'mcq') {
       const correct = answer === currentQuestion.correct_answer;
       const responseTime = Math.floor((Date.now() - questionStartTime) / 1000);
@@ -674,29 +725,38 @@ const Homework = () => {
       return;
     }
 
+    // For FIPI questions, use check-text-answer edge function
     if (questionType === 'frq') {
       setCheckingAnswer(true);
       setAnswerCheckMethod(null);
 
       try {
         const { data, error } = await supabase.functions.invoke('check-text-answer', {
-          body: { user_id: user.id, question_id: currentQuestion.id, submitted_answer: answer }
+          body: {
+            user_id: user.id,
+            question_id: currentQuestion.id,
+            submitted_answer: answer
+          }
         });
 
         if (error) {
           console.error('Error checking answer:', error);
-          toast({ title: 'Ошибка проверки', description: 'Не удалось проверить ответ. Попробуйте снова.', variant: 'destructive' });
+          toast({ 
+            title: 'Ошибка проверки', 
+            description: 'Не удалось проверить ответ. Попробуйте снова.', 
+            variant: 'destructive' 
+          });
           setCheckingAnswer(false);
           return;
         }
 
-        const { is_correct } = data;
-
-        const isNumericAnswer =
-          !isNaN(parseFloat(answer)) &&
-          !isNaN(parseFloat(currentQuestion.correct_answer || ''));
-
+        const { is_correct, duration_seconds, scores_fipi } = data;
+        
+        // Determine check method (numeric vs AI)
+        // The edge function tries numeric first, then falls back to AI
+        const isNumericAnswer = !isNaN(parseFloat(answer)) && !isNaN(parseFloat(currentQuestion.correct_answer || ''));
         setAnswerCheckMethod(isNumericAnswer ? 'numeric' : 'ai');
+
         setIsCorrect(is_correct);
         setShowAnswer(true);
 
@@ -705,11 +765,11 @@ const Homework = () => {
 
         const responseTime = Math.floor((Date.now() - questionStartTime) / 1000);
         await recordQuestionProgress(
-          currentQuestion.id,
-          answer,
-          currentQuestion.correct_answer || '',
-          is_correct,
-          responseTime,
+          currentQuestion.id, 
+          answer, 
+          currentQuestion.correct_answer || '', 
+          is_correct, 
+          responseTime, 
           false
         );
 
@@ -721,7 +781,11 @@ const Homework = () => {
 
       } catch (error) {
         console.error('Error in handleSubmitAnswer for FIPI:', error);
-        toast({ title: 'Ошибка', description: 'Произошла ошибка при проверке ответа', variant: 'destructive' });
+        toast({ 
+          title: 'Ошибка', 
+          description: 'Произошла ошибка при проверке ответа', 
+          variant: 'destructive' 
+        });
       } finally {
         setCheckingAnswer(false);
       }
@@ -730,6 +794,7 @@ const Homework = () => {
 
   const processMCQSkillAttempt = async (question: Question, isCorrectAns: boolean, duration: number) => {
     if (!user || !question.skills) return;
+
     try {
       const { error } = await supabase.functions.invoke('process-mcq-skill-attempt', {
         body: {
@@ -847,7 +912,7 @@ const Homework = () => {
     } else {
       if (questionType === 'mcq' && (homeworkData?.fipi_questions?.length || 0) > 0) {
         setQuestionType('frq');
-        loadFRQQuestions(); // safe: not gated so you can transition once MCQ ends
+        loadFRQQuestions();
       } else {
         completeHomework();
       }
@@ -866,6 +931,7 @@ const Homework = () => {
     const accuracy = completedCount > 0 ? (correctCount / completedCount) * 100 : 0;
 
     try {
+      // Save Summary record
       const { error: completionError } = await supabase
         .from('homework_progress')
         .insert({
@@ -885,6 +951,7 @@ const Homework = () => {
         console.error('Error inserting Summary record:', completionError);
       }
 
+      // Load all progress records for review
       const { data: existingProgress } = await supabase
         .from('homework_progress')
         .select('*')
@@ -907,7 +974,6 @@ const Homework = () => {
     }
   };
 
-  // --------------------- RENDER ---------------------
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
@@ -992,193 +1058,228 @@ const Homework = () => {
 
     return (
       <>
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 md:p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Statistics at the top */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">Результаты домашнего задания</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="text-sm text-muted-foreground">Всего вопросов</div>
+                  <div className="text-2xl font-bold">{totalQuestions}</div>
+                </div>
+                <div className="bg-green-500/10 p-4 rounded-lg">
+                  <div className="text-sm text-muted-foreground">Правильно</div>
+                  <div className="text-2xl font-bold text-green-600">{correctAnswersCount}</div>
+                </div>
+                <div className="bg-red-500/10 p-4 rounded-lg">
+                  <div className="text-sm text-muted-foreground">Неправильно</div>
+                  <div className="text-2xl font-bold text-red-600">{totalQuestions - correctAnswersCount}</div>
+                </div>
+                <div className="bg-primary/10 p-4 rounded-lg">
+                  <div className="text-sm text-muted-foreground">Точность</div>
+                  <div className="text-2xl font-bold text-primary">{accuracy}%</div>
+                </div>
+              </div>
+              
+              {/* Go to AI Teacher button */}
+              <Button 
+                onClick={() => {
+                  const completionData = {
+                    homeworkName,
+                    timestamp: Date.now()
+                  };
+                  localStorage.setItem('homeworkCompletionData', JSON.stringify(completionData));
+                  
+                  toast({
+                    title: 'Данные отправлены ИИ учителю! 🤖',
+                    description: 'Ваши результаты будут проанализированы автоматически',
+                    duration: 2000
+                  });
+                  
+                  navigate('/ogemath');
+                }}
+                className="w-full bg-purple-600 hover:bg-purple-700"
+                size="lg"
+              >
+                <MessageSquare className="mr-2 h-5 w-5" />
+                Перейти к AI учителю
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Grid of question cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {allQuestionResults.map((result, index) => (
+              <Card
+                key={result.question.id}
+                className={cn(
+                  "cursor-pointer transition-all hover:scale-105",
+                  result.isCorrect 
+                    ? "border-green-500 bg-green-500/10" 
+                    : "border-red-500 bg-red-500/10",
+                  currentQuestionIndex === index && "ring-2 ring-primary"
+                )}
+                onClick={() => setCurrentQuestionIndex(index)}
+              >
+                <CardContent className="p-4 text-center">
+                  <div className="text-lg font-bold mb-1">№{index + 1}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {result.type === 'mcq' ? 'MCQ' : 'FIPI'}
+                  </div>
+                  {result.isCorrect ? (
+                    <Check className="w-6 h-6 text-green-600 mx-auto mt-2" />
+                  ) : (
+                    <X className="w-6 h-6 text-red-600 mx-auto mt-2" />
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Current question display */}
+          {allQuestionResults[currentQuestionIndex] && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl">Результаты домашнего задания</CardTitle>
+                <CardTitle>Вопрос {currentQuestionIndex + 1} из {totalQuestions}</CardTitle>
+                <Badge className={allQuestionResults[currentQuestionIndex].isCorrect ? "bg-green-500" : "bg-red-500"}>
+                  {allQuestionResults[currentQuestionIndex].isCorrect ? "Правильно ✓" : "Неправильно ✗"}
+                </Badge>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <div className="text-sm text-muted-foreground">Всего вопросов</div>
-                    <div className="text-2xl font-bold">{totalQuestions}</div>
+              <CardContent className="space-y-6">
+                {/* Question image */}
+                {allQuestionResults[currentQuestionIndex].question.problem_image && (
+                  <div className="flex justify-center">
+                    <img 
+                      src={allQuestionResults[currentQuestionIndex].question.problem_image} 
+                      alt="Problem illustration"
+                      className="max-w-full h-auto rounded-lg shadow-md"
+                    />
                   </div>
-                  <div className="bg-green-500/10 p-4 rounded-lg">
-                    <div className="text-sm text-muted-foreground">Правильно</div>
-                    <div className="text-2xl font-bold text-green-600">{correctAnswersCount}</div>
-                  </div>
-                  <div className="bg-red-500/10 p-4 rounded-lg">
-                    <div className="text-sm text-muted-foreground">Неправильно</div>
-                    <div className="text-2xl font-bold text-red-600">{totalQuestions - correctAnswersCount}</div>
-                  </div>
-                  <div className="bg-primary/10 p-4 rounded-lg">
-                    <div className="text-sm text-muted-foreground">Точность</div>
-                    <div className="text-2xl font-bold text-primary">{accuracy}%</div>
+                )}
+                
+                {/* Question text */}
+                <div className="space-y-2">
+                  <div className="font-semibold">Вопрос:</div>
+                  <MathRenderer text={allQuestionResults[currentQuestionIndex].question.text} />
+                </div>
+
+                {/* User's answer */}
+                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                  <div className="font-semibold text-sm">Ваш ответ:</div>
+                  <div className={cn(
+                    "text-lg font-medium",
+                    allQuestionResults[currentQuestionIndex].isCorrect ? "text-green-600" : "text-red-600"
+                  )}>
+                    {allQuestionResults[currentQuestionIndex].userAnswer || "Не отвечено"}
                   </div>
                 </div>
 
-                <Button
-                  onClick={() => {
-                    const completionData = { homeworkName, timestamp: Date.now() };
-                    localStorage.setItem('homeworkCompletionData', JSON.stringify(completionData));
-                    toast({
-                      title: 'Данные отправлены ИИ учителю! 🤖',
-                      description: 'Ваши результаты будут проанализированы автоматически',
-                      duration: 2000
-                    });
-                    navigate('/ogemath');
-                  }}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                  size="lg"
-                >
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Перейти к AI учителю
-                </Button>
+                {/* Correct answer */}
+                <div className="bg-green-500/10 p-4 rounded-lg space-y-2">
+                  <div className="font-semibold text-sm">Правильный ответ:</div>
+                  <div className="text-lg font-medium text-green-600">
+                    {allQuestionResults[currentQuestionIndex].correctAnswer}
+                  </div>
+                </div>
+
+                {/* Solution if available */}
+                {allQuestionResults[currentQuestionIndex].question.solution_text && (
+                  <div className="space-y-2">
+                    <div className="font-semibold">Решение:</div>
+                    <div className="bg-primary/5 p-4 rounded-lg">
+                      <MathRenderer text={allQuestionResults[currentQuestionIndex].question.solution_text} />
+                    </div>
+                  </div>
+                )}
+
+                 {/* Navigation buttons */}
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                    disabled={currentQuestionIndex === 0}
+                    className="flex-1"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Предыдущий
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentQuestionIndex(Math.min(totalQuestions - 1, currentQuestionIndex + 1))}
+                    disabled={currentQuestionIndex === totalQuestions - 1}
+                    className="flex-1"
+                  >
+                    Следующий
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setIsSelecterActive(!isSelecterActive);
+                      if (isSelecterActive) {
+                        closeSelectionPopup();
+                      }
+                    }}
+                    variant={isSelecterActive ? "default" : "outline"}
+                    className={cn(
+                      "flex items-center gap-2",
+                      isSelecterActive && "bg-purple-600 hover:bg-purple-700"
+                    )}
+                  >
+                    <Highlighter className="w-4 h-4" />
+                    {isSelecterActive ? "Выкл. выделение" : "Вкл. выделение"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {allQuestionResults.map((result, index) => (
-                <Card
-                  key={result.question.id}
-                  className={cn(
-                    "cursor-pointer transition-all hover:scale-105",
-                    result.isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10",
-                    currentQuestionIndex === index && "ring-2 ring-primary"
-                  )}
-                  onClick={() => setCurrentQuestionIndex(index)}
-                >
-                  <CardContent className="p-4 text-center">
-                    <div className="text-lg font-bold mb-1">№{index + 1}</div>
-                    <div className="text-sm text-muted-foreground">{result.type === 'mcq' ? 'MCQ' : 'FIPI'}</div>
-                    {result.isCorrect
-                      ? <Check className="w-6 h-6 text-green-600 mx-auto mt-2" />
-                      : <X className="w-6 h-6 text-red-600 mx-auto mt-2" />}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {allQuestionResults[currentQuestionIndex] && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Вопрос {currentQuestionIndex + 1} из {totalQuestions}</CardTitle>
-                  <Badge className={allQuestionResults[currentQuestionIndex].isCorrect ? "bg-green-500" : "bg-red-500"}>
-                    {allQuestionResults[currentQuestionIndex].isCorrect ? "Правильно ✓" : "Неправильно ✗"}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {allQuestionResults[currentQuestionIndex].question.problem_image && (
-                    <div className="flex justify-center">
-                      <img
-                        src={allQuestionResults[currentQuestionIndex].question.problem_image}
-                        alt="Problem illustration"
-                        className="max-w-full h-auto rounded-lg shadow-md"
-                      />
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <div className="font-semibold">Вопрос:</div>
-                    <MathRenderer text={allQuestionResults[currentQuestionIndex].question.text} />
-                  </div>
-
-                  <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                    <div className="font-semibold text-sm">Ваш ответ:</div>
-                    <div className={cn(
-                      "text-lg font-medium",
-                      allQuestionResults[currentQuestionIndex].isCorrect ? "text-green-600" : "text-red-600"
-                    )}>
-                      {allQuestionResults[currentQuestionIndex].userAnswer || "Не отвечено"}
-                    </div>
-                  </div>
-
-                  <div className="bg-green-500/10 p-4 rounded-lg space-y-2">
-                    <div className="font-semibold text-sm">Правильный ответ:</div>
-                    <div className="text-lg font-medium text-green-600">
-                      {allQuestionResults[currentQuestionIndex].correctAnswer}
-                    </div>
-                  </div>
-
-                  {allQuestionResults[currentQuestionIndex].question.solution_text && (
-                    <div className="space-y-2">
-                      <div className="font-semibold">Решение:</div>
-                      <div className="bg-primary/5 p-4 rounded-lg">
-                        <MathRenderer text={allQuestionResults[currentQuestionIndex].question.solution_text} />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
-                      disabled={currentQuestionIndex === 0}
-                      className="flex-1"
-                    >
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Предыдущий
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentQuestionIndex(Math.min(totalQuestions - 1, currentQuestionIndex + 1))}
-                      disabled={currentQuestionIndex === totalQuestions - 1}
-                      className="flex-1"
-                    >
-                      Следующий
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setIsSelecterActive(!isSelecterActive);
-                        if (isSelecterActive) closeSelectionPopup();
-                      }}
-                      variant={isSelecterActive ? "default" : "outline"}
-                      className={cn("flex items-center gap-2", isSelecterActive && "bg-purple-600 hover:bg-purple-700")}
-                    >
-                      <Highlighter className="w-4 h-4" />
-                      {isSelecterActive ? "Выкл. выделение" : "Вкл. выделение"}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          )}
         </div>
+      </div>
 
-        {selectedText && selectionPosition && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="fixed z-50 bg-white rounded-lg shadow-xl border-2 border-purple-500 p-3"
-            style={{ left: `${selectionPosition.x}px`, top: `${selectionPosition.y}px`, transform: 'translate(-50%, -100%)' }}
+      {/* Selection popup */}
+      {selectedText && selectionPosition && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed z-50 bg-white rounded-lg shadow-xl border-2 border-purple-500 p-3"
+          style={{
+            left: `${selectionPosition.x}px`,
+            top: `${selectionPosition.y}px`,
+            transform: 'translate(-50%, -100%)'
+          }}
+        >
+          <Button
+            onClick={handleAskHedgehog}
+            className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
           >
-            <Button onClick={handleAskHedgehog} className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              Спросить Ёжика
-            </Button>
-          </motion.div>
-        )}
+            <MessageSquare className="w-4 h-4" />
+            Спросить Ёжика
+          </Button>
+        </motion.div>
+      )}
 
-        <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
-          <SheetContent side="right" className="w-full sm:w-[540px] flex flex-col h-full p-0">
-            <SheetHeader className="px-6 py-4 border-b">
-              <SheetTitle className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-purple-600" />
-                Чат с Ёжиком
-              </SheetTitle>
-            </SheetHeader>
-            <div className="flex-1 overflow-hidden flex flex-col">
-              <div className="flex-1 overflow-y-auto px-6">
-                <CourseChatMessages messages={messages} isTyping={isTyping} />
-              </div>
-              <div className="border-t px-6 py-4">
-                <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
-              </div>
+      {/* Chat Sheet */}
+      <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <SheetContent side="right" className="w-full sm:w-[540px] flex flex-col h-full p-0">
+          <SheetHeader className="px-6 py-4 border-b">
+            <SheetTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-purple-600" />
+              Чат с Ёжиком
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto px-6">
+              <CourseChatMessages messages={messages} isTyping={isTyping} />
             </div>
-          </SheetContent>
-        </Sheet>
+            <div className="border-t px-6 py-4">
+              <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
       </>
     );
   }
@@ -1190,8 +1291,9 @@ const Homework = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-3">
+        {/* Top Bar */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             <Button
               onClick={() => navigate('/ogemath-practice')}
@@ -1205,6 +1307,7 @@ const Homework = () => {
         </div>
       </div>
 
+      {/* Congrats Modal */}
       {showCongrats && (
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
@@ -1265,14 +1368,19 @@ const Homework = () => {
 
             <div className="flex flex-col gap-2">
               <Button
-                onClick={() => {
-                  const completionData = { homeworkName, timestamp: Date.now() };
+                onClick={async () => {
+                  const completionData = {
+                    homeworkName,
+                    timestamp: Date.now()
+                  };
                   localStorage.setItem('homeworkCompletionData', JSON.stringify(completionData));
+
                   toast({
                     title: 'Данные отправлены ИИ учителю! 🤖',
                     description: 'Ваши результаты будут проанализированы автоматически',
                     duration: 2000
                   });
+
                   navigate('/ogemath');
                 }}
                 className="bg-purple-600 hover:bg-purple-700 w-full"
@@ -1289,6 +1397,7 @@ const Homework = () => {
 
       <div className="pt-8 px-4 pb-8">
         <div className="max-w-4xl mx-auto">
+          {/* Progress Header */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1302,33 +1411,41 @@ const Homework = () => {
             <CardContent>
               <Progress value={currentProgress} className="h-3 mb-2" />
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>{Math.min(currentQuestionIndex + 1, currentQuestions.length)} из {currentQuestions.length}</span>
-                <span>{completedQuestions.size} из {totalMCQ + totalFRQ} выполнено</span>
+                <span>
+                  {Math.min(currentQuestionIndex + 1, currentQuestions.length)} из {currentQuestions.length}
+                </span>
+                <span>
+                  {completedQuestions.size} из {totalMCQ + totalFRQ} выполнено
+                </span>
               </div>
             </CardContent>
           </Card>
 
+          {/* Question Card */}
           {currentQuestion && (
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle className="text-lg">
                   {questionType === 'mcq' ? 'Вопрос с выбором ответа' : 'Задача ФИПИ'}
                   {currentQuestion.problem_number && (
-                    <Badge variant="outline" className="ml-2">№{currentQuestion.problem_number}</Badge>
+                    <Badge variant="outline" className="ml-2">
+                      №{currentQuestion.problem_number}
+                    </Badge>
                   )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Question image */}
                 {currentQuestion.problem_image && (
                   <div className="flex justify-center mb-4">
-                    <img
-                      src={currentQuestion.problem_image}
+                    <img 
+                      src={currentQuestion.problem_image} 
                       alt="Problem illustration"
                       className="max-w-full h-auto rounded-lg shadow-md"
                     />
                   </div>
                 )}
-
+                
                 <MathRenderer text={currentQuestion.text} className="text-lg leading-relaxed" compiler="mathjax" />
 
                 {questionType === 'mcq' && currentQuestion.options ? (
@@ -1417,3 +1534,127 @@ const Homework = () => {
                     </>
                   ) : (
                     <>
+                      <Button onClick={handleNextQuestion} className="bg-purple-600 hover:bg-purple-700">
+                        {currentQuestionIndex < currentQuestions.length - 1 ||
+                        (questionType === 'mcq' && totalFRQ > 0) ? (
+                          <>
+                            Следующий вопрос
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </>
+                        ) : (
+                          'Завершить'
+                        )}
+                      </Button>
+                      {!showSolution && (
+                        <Button onClick={handleShowSolution} variant="outline" className="flex items-center gap-2">
+                          <Eye className="w-4 h-4" />
+                          Показать решение
+                        </Button>
+                      )}
+                      {showSolution && (
+                        <Button
+                          onClick={() => {
+                            setIsSelecterActive(!isSelecterActive);
+                            if (isSelecterActive) {
+                              closeSelectionPopup();
+                            }
+                          }}
+                          variant={isSelecterActive ? "default" : "outline"}
+                          className={cn(
+                            "flex items-center gap-2",
+                            isSelecterActive && "bg-purple-600 hover:bg-purple-700"
+                          )}
+                        >
+                          <Highlighter className="w-4 h-4" />
+                          {isSelecterActive ? "Выкл. выделение" : "Вкл. выделение"}
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-purple-600" />
+                Статистика
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div className="p-4 bg-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">{completedQuestions.size}</div>
+                  <div className="text-sm text-purple-700">Выполнено</div>
+                </div>
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{correctAnswers.size}</div>
+                  <div className="text-sm text-green-700">Правильно</div>
+                </div>
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {completedQuestions.size > 0 ? Math.round((correctAnswers.size / completedQuestions.size) * 100) : 0}%
+                  </div>
+                  <div className="text-sm text-blue-700">Точность</div>
+                </div>
+                <div className="p-4 bg-orange-50 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {totalMCQ + totalFRQ - completedQuestions.size}
+                  </div>
+                  <div className="text-sm text-orange-700">Осталось</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Selection popup */}
+      {selectedText && selectionPosition && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed z-50 bg-white rounded-lg shadow-xl border-2 border-purple-500 p-3"
+          style={{
+            left: `${selectionPosition.x}px`,
+            top: `${selectionPosition.y}px`,
+            transform: 'translate(-50%, -100%)'
+          }}
+        >
+          <Button
+            onClick={handleAskHedgehog}
+            className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Спросить Ёжика
+          </Button>
+        </motion.div>
+      )}
+
+      {/* Chat Sheet */}
+      <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <SheetContent side="right" className="w-full sm:w-[540px] flex flex-col h-full p-0">
+          <SheetHeader className="px-6 py-4 border-b">
+            <SheetTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-purple-600" />
+              Чат с Ёжиком
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto px-6">
+              <CourseChatMessages messages={messages} isTyping={isTyping} />
+            </div>
+            <div className="border-t px-6 py-4">
+              <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+};
+
+export default Homework;
