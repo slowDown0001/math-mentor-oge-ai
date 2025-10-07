@@ -14,20 +14,30 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { generateAIHomeworkFeedback } from "@/services/homeworkAIFeedbackService";
 import { type Message } from "@/contexts/ChatContext";
-
 const OgeMath = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
+  const {
+    user
+  } = useAuth();
+  const {
+    messages,
+    isTyping,
+    isDatabaseMode,
+    setMessages,
+    setIsTyping,
+    addMessage
+  } = useChatContext();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Пользователь';
-  const { toast } = useToast();
-  
+  const {
+    toast
+  } = useToast();
+
   // State for chat history pagination
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [historyOffset, setHistoryOffset] = useState(0);
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
-  
+
   // Initialize KaTeX
   useKaTeXInitializer();
 
@@ -40,13 +50,11 @@ const OgeMath = () => {
         const textbookData = localStorage.getItem('textbookExerciseCompletionData');
         let shouldGenerateHomeworkFeedback = false;
         let homeworkFeedbackMessage = '';
-
         if (homeworkData) {
           try {
             console.log('📋 Homework completion data found in localStorage:', homeworkData);
             const completionData = JSON.parse(homeworkData);
             console.log('✅ Parsed completion data:', completionData);
-            
             if (!completionData.homeworkName) {
               console.error('❌ No homeworkName in completion data');
               localStorage.removeItem('homeworkCompletionData');
@@ -55,33 +63,29 @@ const OgeMath = () => {
 
             // Query all records for this homework by homework_name
             console.log('🔍 Querying homework_progress for homework_name:', completionData.homeworkName);
-            const { data: sessionRows, error } = await supabase
-              .from('homework_progress')
-              .select('*')
-              .eq('user_id', user.id)
-              .eq('homework_name', completionData.homeworkName)
-              .order('created_at', { ascending: true });
-        
+            const {
+              data: sessionRows,
+              error
+            } = await supabase.from('homework_progress').select('*').eq('user_id', user.id).eq('homework_name', completionData.homeworkName).order('created_at', {
+              ascending: true
+            });
             if (error) {
               console.error('❌ Database error fetching session:', error);
               throw error;
             }
-        
             console.log(`📊 Found ${sessionRows?.length || 0} records for session`);
-            
             if (sessionRows && sessionRows.length > 0) {
               // Show loading toast
               toast({
                 title: "Генерация обратной связи",
-                description: "ИИ анализирует ваше домашнее задание...",
+                description: "ИИ анализирует ваше домашнее задание..."
               });
-
               console.log('🤖 Generating AI feedback for session data...');
               // Generate AI feedback from the session data
               homeworkFeedbackMessage = await generateAIHomeworkFeedback(sessionRows);
               console.log('✨ AI feedback generated successfully');
               shouldGenerateHomeworkFeedback = true;
-        
+
               // prevent duplicate feedback on next open
               localStorage.removeItem('homeworkCompletionData');
             } else {
@@ -93,31 +97,18 @@ const OgeMath = () => {
             toast({
               title: "Ошибка",
               description: "Не удалось сгенерировать обратную связь по ДЗ",
-              variant: "destructive",
+              variant: "destructive"
             });
             localStorage.removeItem('homeworkCompletionData');
           }
-        
-
         } else if (textbookData) {
           try {
             const completionData = JSON.parse(textbookData);
             // Generate feedback for textbook exercise
-            const activityTypeRu = completionData.activityType === 'exam' ? 'экзамен' : 
-                                   completionData.activityType === 'test' ? 'тест' : 'упражнение';
-            
-            homeworkFeedbackMessage = `**${activityTypeRu.toUpperCase()}: ${completionData.activityName}**\n\n` +
-              `✅ Правильных ответов: ${completionData.questionsCorrect} из ${completionData.totalQuestions}\n` +
-              `📊 Точность: ${completionData.accuracy}%\n` +
-              `🎯 Навыки: #${completionData.skills.join(', #')}\n\n` +
-              (completionData.accuracy >= 75 ? 
-                '🎉 Отличная работа! Ты хорошо освоил этот материал.' : 
-                completionData.accuracy >= 50 ? 
-                '👍 Неплохой результат! Продолжай практиковаться.' : 
-                '💪 Не останавливайся! Изучи теорию и попробуй еще раз.');
-            
+            const activityTypeRu = completionData.activityType === 'exam' ? 'экзамен' : completionData.activityType === 'test' ? 'тест' : 'упражнение';
+            homeworkFeedbackMessage = `**${activityTypeRu.toUpperCase()}: ${completionData.activityName}**\n\n` + `✅ Правильных ответов: ${completionData.questionsCorrect} из ${completionData.totalQuestions}\n` + `📊 Точность: ${completionData.accuracy}%\n` + `🎯 Навыки: #${completionData.skills.join(', #')}\n\n` + (completionData.accuracy >= 75 ? '🎉 Отличная работа! Ты хорошо освоил этот материал.' : completionData.accuracy >= 50 ? '👍 Неплохой результат! Продолжай практиковаться.' : '💪 Не останавливайся! Изучи теорию и попробуй еще раз.');
             shouldGenerateHomeworkFeedback = true;
-            
+
             // Clear the stored data to avoid repeated feedback
             localStorage.removeItem('textbookExerciseCompletionData');
           } catch (error) {
@@ -125,63 +116,50 @@ const OgeMath = () => {
             localStorage.removeItem('textbookExerciseCompletionData');
           }
         }
-
         try {
           const history = await loadChatHistory('1', 3, 0);
           let initialMessages = [];
-
           if (shouldGenerateHomeworkFeedback) {
             // Add homework feedback as the first message with special formatting
-            initialMessages = [
-              {
-                id: 1,
-                text: `🎯 **Автоматический анализ домашнего задания**\n\n${homeworkFeedbackMessage}`,
-                isUser: false,
-                timestamp: new Date()
-              }
-            ];
+            initialMessages = [{
+              id: 1,
+              text: `🎯 **Автоматический анализ домашнего задания**\n\n${homeworkFeedbackMessage}`,
+              isUser: false,
+              timestamp: new Date()
+            }];
 
             // Save the homework feedback to chat logs with context
             await saveChatLog('Домашнее задание завершено - автоматический анализ ИИ учителя', `🎯 **Автоматический анализ домашнего задания**\n\n${homeworkFeedbackMessage}`, '1');
           }
-
           if (history.length > 0) {
             // Convert chat logs to messages format and reverse to show chronologically
-            const historyMessages = history.reverse().flatMap((log, index) => [
-              {
-                id: (index + initialMessages.length) * 2 + 1,
-                text: log.user_message,
-                isUser: true,
-                timestamp: new Date(log.time_of_user_message)
-              },
-              {
-                id: (index + initialMessages.length) * 2 + 2,
-                text: log.response,
-                isUser: false,
-                timestamp: new Date(log.time_of_response)
-              }
-            ]);
-            
+            const historyMessages = history.reverse().flatMap((log, index) => [{
+              id: (index + initialMessages.length) * 2 + 1,
+              text: log.user_message,
+              isUser: true,
+              timestamp: new Date(log.time_of_user_message)
+            }, {
+              id: (index + initialMessages.length) * 2 + 2,
+              text: log.response,
+              isUser: false,
+              timestamp: new Date(log.time_of_response)
+            }]);
             setMessages([...initialMessages, ...historyMessages]);
             setHistoryOffset(3);
             setHasMoreHistory(history.length === 3);
           } else {
             // Set welcome messages if no history
-            const welcomeMessages = [
-              {
-                id: initialMessages.length + 1,
-                text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
-                isUser: false,
-                timestamp: new Date()
-              },
-              {
-                id: initialMessages.length + 2,
-                text: "Хочешь пройти тренировочные задания или разобрать конкретную тему?",
-                isUser: false,
-                timestamp: new Date()
-              }
-            ];
-            
+            const welcomeMessages = [{
+              id: initialMessages.length + 1,
+              text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
+              isUser: false,
+              timestamp: new Date()
+            }, {
+              id: initialMessages.length + 2,
+              text: "Хочешь пройти тренировочные задания или разобрать конкретную тему?",
+              isUser: false,
+              timestamp: new Date()
+            }];
             setMessages([...initialMessages, ...welcomeMessages]);
             setHasMoreHistory(false);
           }
@@ -189,41 +167,33 @@ const OgeMath = () => {
         } catch (error) {
           console.error('Error loading chat history:', error);
           // Fallback to welcome messages
-          const fallbackMessages = shouldGenerateHomeworkFeedback ? [
-            {
-              id: 1,
-              text: homeworkFeedbackMessage,
-              isUser: false,
-              timestamp: new Date()
-            },
-            {
-              id: 2,
-              text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
-              isUser: false,
-              timestamp: new Date()
-            }
-          ] : [
-            {
-              id: 1,
-              text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
-              isUser: false,
-              timestamp: new Date()
-            },
-            {
-              id: 2,
-              text: "Хочешь пройти тренировочные задания или разобрать конкретную тему?",
-              isUser: false,
-              timestamp: new Date()
-            }
-          ];
-          
+          const fallbackMessages = shouldGenerateHomeworkFeedback ? [{
+            id: 1,
+            text: homeworkFeedbackMessage,
+            isUser: false,
+            timestamp: new Date()
+          }, {
+            id: 2,
+            text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
+            isUser: false,
+            timestamp: new Date()
+          }] : [{
+            id: 1,
+            text: `Привет, ${userName}! Я твой ИИ-репетитор по ОГЭ математике. Готов помочь тебе подготовиться к экзамену!`,
+            isUser: false,
+            timestamp: new Date()
+          }, {
+            id: 2,
+            text: "Хочешь пройти тренировочные задания или разобрать конкретную тему?",
+            isUser: false,
+            timestamp: new Date()
+          }];
           setMessages(fallbackMessages);
           setIsHistoryLoaded(true);
           setHasMoreHistory(false);
         }
       }
     };
-
     loadInitialHistory();
   }, [user, userName, setMessages, isHistoryLoaded]);
 
@@ -234,82 +204,66 @@ const OgeMath = () => {
   // Set up real-time subscription for new chat messages
   useEffect(() => {
     if (!user) return;
-    
-    const channel = supabase
-      .channel('chat_logs_realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_logs',
-          filter: `user_id=eq.${user.id}&course_id=eq.1`
-        },
-        (payload) => {
-          console.log('New chat log received:', payload);
-          const newLog = payload.new as any;
-          
-          // Check if this is a homework feedback message (generic completion message)
-          const isHomeworkFeedback = newLog.user_message === 'Домашнее задание завершено - автоматический анализ ИИ учителя';
-          
-          if (isHomeworkFeedback) {
-            // For homework feedback, only add the AI response
-            addMessageRef.current({
-              id: Date.now(),
-              text: newLog.response,
-              isUser: false,
-              timestamp: new Date(newLog.time_of_response)
-            });
-          } else {
-            // For regular chat messages, add both user and AI messages
-            addMessageRef.current({
-              id: Date.now() * 2 + 1,
-              text: newLog.user_message,
-              isUser: true,
-              timestamp: new Date(newLog.time_of_user_message)
-            });
-            
-            addMessageRef.current({
-              id: Date.now() * 2 + 2,
-              text: newLog.response,
-              isUser: false,
-              timestamp: new Date(newLog.time_of_response)
-            });
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('Chat realtime subscription status:', status);
-      });
+    const channel = supabase.channel('chat_logs_realtime').on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'chat_logs',
+      filter: `user_id=eq.${user.id}&course_id=eq.1`
+    }, payload => {
+      console.log('New chat log received:', payload);
+      const newLog = payload.new as any;
 
+      // Check if this is a homework feedback message (generic completion message)
+      const isHomeworkFeedback = newLog.user_message === 'Домашнее задание завершено - автоматический анализ ИИ учителя';
+      if (isHomeworkFeedback) {
+        // For homework feedback, only add the AI response
+        addMessageRef.current({
+          id: Date.now(),
+          text: newLog.response,
+          isUser: false,
+          timestamp: new Date(newLog.time_of_response)
+        });
+      } else {
+        // For regular chat messages, add both user and AI messages
+        addMessageRef.current({
+          id: Date.now() * 2 + 1,
+          text: newLog.user_message,
+          isUser: true,
+          timestamp: new Date(newLog.time_of_user_message)
+        });
+        addMessageRef.current({
+          id: Date.now() * 2 + 2,
+          text: newLog.response,
+          isUser: false,
+          timestamp: new Date(newLog.time_of_response)
+        });
+      }
+    }).subscribe(status => {
+      console.log('Chat realtime subscription status:', status);
+    });
     return () => {
       supabase.removeChannel(channel);
     };
   }, [user]);
-
   const loadMoreHistory = async () => {
     if (!hasMoreHistory || isLoadingHistory) return;
-    
     setIsLoadingHistory(true);
     try {
       const history = await loadChatHistory('1', 3, historyOffset);
       if (history.length > 0) {
         // Convert chat logs to messages format and reverse to show chronologically
-        const historyMessages = history.reverse().flatMap((log, index) => [
-          {
-            id: (historyOffset + index) * 2 + 1,
-            text: log.user_message,
-            isUser: true,
-            timestamp: new Date(log.time_of_user_message)
-          },
-          {
-            id: (historyOffset + index) * 2 + 2,
-            text: log.response,
-            isUser: false,
-            timestamp: new Date(log.time_of_response)
-          }
-        ]);
-        
+        const historyMessages = history.reverse().flatMap((log, index) => [{
+          id: (historyOffset + index) * 2 + 1,
+          text: log.user_message,
+          isUser: true,
+          timestamp: new Date(log.time_of_user_message)
+        }, {
+          id: (historyOffset + index) * 2 + 2,
+          text: log.response,
+          isUser: false,
+          timestamp: new Date(log.time_of_response)
+        }]);
+
         // Prepend history messages to current messages
         setMessages([...historyMessages, ...messages]);
         setHistoryOffset(prev => prev + 3);
@@ -324,7 +278,6 @@ const OgeMath = () => {
       setIsLoadingHistory(false);
     }
   };
-
   const handleSendMessage = async (userInput: string) => {
     // Add user message
     const newUserMessage = {
@@ -333,15 +286,13 @@ const OgeMath = () => {
       isUser: true,
       timestamp: new Date()
     };
-    
     addMessage(newUserMessage);
     setIsTyping(true);
-
     try {
       // Send message to AI and get response
       const aiResponse = await sendChatMessage(newUserMessage, messages, isDatabaseMode);
       addMessage(aiResponse);
-      
+
       // Save chat interaction to database
       await saveChatLog(userInput, aiResponse.text, '1');
     } catch (error) {
@@ -350,104 +301,71 @@ const OgeMath = () => {
       setIsTyping(false);
     }
   };
-
   const handleNavigateToProfile = () => {
     navigate("/mydashboard");
   };
-
   const handlePracticeClick = () => {
     navigate("/ogemath-practice");
   };
-
   const handleTextbookClick = () => {
     navigate("/learning-platform");
   };
-
   const handleProgressClick = () => {
     navigate("/ogemath-progress2");
   };
-
   const handleCreateTask = async () => {
     if (!user) {
       toast({
         title: "Ошибка",
         description: "Необходимо войти в систему",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     try {
-      const { data, error } = await supabase.functions.invoke('create-task', {
-        body: { user_id: user.id }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('create-task', {
+        body: {
+          user_id: user.id
+        }
       });
-
       if (error) throw error;
-
       toast({
         title: "Задание создано",
-        description: "Персональное задание успешно создано!",
+        description: "Персональное задание успешно создано!"
       });
     } catch (error) {
       console.error('Error creating task:', error);
       toast({
         title: "Ошибка",
         description: "Не удалось создать задание",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
-  return (
-    <div className="flex h-screen w-full bg-background">
+  return <div className="flex h-screen w-full bg-background">
       {/* Left Sidebar - Fixed */}
       <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0">
         {/* Logo area */}
-        <div className="p-4">
-          <button 
-            onClick={() => navigate("/mydb3")}
-            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
-          >
-            <img 
-              src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png" 
-              alt="EGEChat Logo" 
-              className="w-8 h-8"
-            />
-            <span className="font-bold text-lg text-sidebar-foreground">EGEChat</span>
-          </button>
-        </div>
+        
         
         {/* Menu items */}
         <div className="p-4 space-y-2">
-          <Button
-            onClick={handlePracticeClick}
-            variant="ghost"
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          >
+          <Button onClick={handlePracticeClick} variant="ghost" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
             Практика
           </Button>
           
-          <Button
-            onClick={() => navigate('/cellard-lp2')}
-            variant="ghost"
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          >
+          <Button onClick={() => navigate('/cellard-lp2')} variant="ghost" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
             Платформа
           </Button>
           
-          <Button
-            onClick={handleProgressClick}
-            variant="ghost"
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          >
+          <Button onClick={handleProgressClick} variant="ghost" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
             Прогресс
           </Button>
           
-          <Button
-            onClick={handleCreateTask}
-            variant="ghost"
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          >
+          <Button onClick={handleCreateTask} variant="ghost" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
             Создать задание
           </Button>
         </div>
@@ -468,13 +386,7 @@ const OgeMath = () => {
 
         {/* Chat Messages Area - Scrollable */}
         <div className="flex-1 overflow-hidden">
-          <CourseChatMessages 
-            messages={messages} 
-            isTyping={isTyping} 
-            onLoadMoreHistory={loadMoreHistory}
-            isLoadingHistory={isLoadingHistory}
-            hasMoreHistory={hasMoreHistory}
-          />
+          <CourseChatMessages messages={messages} isTyping={isTyping} onLoadMoreHistory={loadMoreHistory} isLoadingHistory={isLoadingHistory} hasMoreHistory={hasMoreHistory} />
         </div>
 
         {/* Chat Input Area - Fixed at bottom */}
@@ -484,8 +396,6 @@ const OgeMath = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default OgeMath;
