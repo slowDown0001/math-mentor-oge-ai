@@ -889,12 +889,12 @@ export default function OgemathProgress2() {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="relative flex items-center justify-center">
             <button onClick={recalculateProgress} disabled={refreshing} className="flex items-center gap-2 px-4 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-slate-950 hover:bg-slate-800 font-bold rounded-sm">
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               <span>{refreshing ? 'Обновление...' : 'Обновить прогресс'}</span>
             </button>
-            <button onClick={() => navigate('/ogemath')} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
+            <button onClick={() => navigate('/ogemath')} className="absolute right-0 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
               <ArrowLeft className="h-4 w-4" />
               <span>Назад</span>
             </button>
