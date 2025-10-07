@@ -1146,39 +1146,6 @@ const Homework = () => {
             )}
           </div>
         </div>
-
-        {selectedText && selectionPosition && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="fixed z-50 bg-white rounded-lg shadow-xl border-2 border-purple-500 p-3"
-            style={{ left: `${selectionPosition.x}px`, top: `${selectionPosition.y}px`, transform: 'translate(-50%, -100%)' }}
-          >
-            <Button onClick={handleAskHedgehog} className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              Спросить Ёжика
-            </Button>
-          </motion.div>
-        )}
-
-        <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
-          <SheetContent side="right" className="w-full sm:w-[540px] flex flex-col h-full p-0">
-            <SheetHeader className="px-6 py-4 border-b">
-              <SheetTitle className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-purple-600" />
-                Чат с Ёжиком
-              </SheetTitle>
-            </SheetHeader>
-            <div className="flex-1 overflow-hidden flex flex-col">
-              <div className="flex-1 overflow-y-auto px-6">
-                <CourseChatMessages messages={messages} isTyping={isTyping} />
-              </div>
-              <div className="border-t px-6 py-4">
-                <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
       </>
     );
   }
@@ -1417,3 +1384,77 @@ const Homework = () => {
                     </>
                   ) : (
                     <>
+                      <Button
+                        onClick={handleNextQuestion}
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        size="lg"
+                      >
+                        {currentQuestionIndex === currentQuestions.length - 1 ? (
+                          <>
+                            <Trophy className="mr-2 h-5 w-5" />
+                            Завершить домашнее задание
+                          </>
+                        ) : (
+                          <>
+                            Следующий вопрос
+                            <ArrowRight className="ml-2 h-5 w-5" />
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setIsSelecterActive(!isSelecterActive);
+                          if (isSelecterActive) closeSelectionPopup();
+                        }}
+                        variant={isSelecterActive ? "default" : "outline"}
+                        className={cn("flex items-center gap-2", isSelecterActive && "bg-purple-600 hover:bg-purple-700")}
+                      >
+                        <Highlighter className="w-4 h-4" />
+                        {isSelecterActive ? "Выкл. выделение" : "Вкл. выделение"}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          </div>
+        </div>
+
+        {selectedText && selectionPosition && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed z-50 bg-white rounded-lg shadow-xl border-2 border-purple-500 p-3"
+          style={{ left: `${selectionPosition.x}px`, top: `${selectionPosition.y}px`, transform: 'translate(-50%, -100%)' }}
+        >
+          <Button onClick={handleAskHedgehog} className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            Спросить Ёжика
+          </Button>
+        </motion.div>
+      )}
+
+      <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <SheetContent side="right" className="w-full sm:w-[540px] flex flex-col h-full p-0">
+          <SheetHeader className="px-6 py-4 border-b">
+            <SheetTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-purple-600" />
+              Чат с Ёжиком
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto px-6">
+              <CourseChatMessages messages={messages} isTyping={isTyping} />
+            </div>
+            <div className="border-t px-6 py-4">
+              <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+};
+
+export default Homework;
