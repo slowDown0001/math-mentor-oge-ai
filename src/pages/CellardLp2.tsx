@@ -135,25 +135,22 @@ const CellardLp2: React.FC = () => {
 
         setModules(modulesWithProgress);
 
-        // Extract stats from computed_summary (stats are nested inside)
-        if (snapshot.computed_summary) {
-          const summary = snapshot.computed_summary as any;
-          
-          // Set general progress
-          if (summary.general_progress !== undefined) {
-            setGeneralProgress(Math.round(summary.general_progress || 0));
-          }
-          
-          // Extract stats if available in the summary
-          if (summary.stats) {
-            const statsData = summary.stats;
-            setStats({
-              solvedProblems: statsData['Решено задач'] || 0,
-              correctAnswers: statsData['Правильных ответов'] || 0,
-              studyTime: statsData['Время обучения'] || 0,
-              streak: statsData['Дней подряд'] || 0
-            });
-          }
+        // Extract stats from the stats column (using type assertion as types may be outdated)
+        const snapshotData = snapshot as any;
+        if (snapshotData.stats) {
+          const statsData = snapshotData.stats;
+          setStats({
+            solvedProblems: statsData['Решено задач'] || 0,
+            correctAnswers: statsData['Правильных ответов'] || 0,
+            studyTime: statsData['Время обучения'] || 0,
+            streak: statsData['Дней подряд'] || 0
+          });
+        }
+
+        // Extract general progress from computed_summary
+        if (snapshotData.computed_summary) {
+          const summary = snapshotData.computed_summary;
+          setGeneralProgress(Math.round(summary.general_progress || 0));
         }
       } catch (err) {
         console.error('Error loading progress data:', err);
