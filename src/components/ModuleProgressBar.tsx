@@ -85,6 +85,7 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
   });
 
   const renderExerciseBox = (status: string) => {
+    console.log('Exercise status:', status);
     switch (status) {
       case 'mastered':
         return (
@@ -94,7 +95,12 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
         );
       case 'proficient':
         return (
-          <div className="w-8 h-8 rounded" style={{ background: 'linear-gradient(to top, rgb(249 115 22) 0%, rgb(249 115 22) 33%, rgb(229 231 235) 33%, rgb(229 231 235) 100%)' }} />
+          <div 
+            className="w-8 h-8 rounded" 
+            style={{ 
+              backgroundImage: 'linear-gradient(to top, #f97316 0%, #f97316 33%, #e5e7eb 33%, #e5e7eb 100%)' 
+            }} 
+          />
         );
       case 'familiar':
         return (
