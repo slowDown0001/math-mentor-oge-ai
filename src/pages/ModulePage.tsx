@@ -351,21 +351,11 @@ const ModulePage = () => {
               <span className="text-sm">Освоено</span>
             </div>
             <div className="flex items-center gap-2">
-              <div 
-                className="w-4 h-4 rounded" 
-                style={{ 
-                  background: 'linear-gradient(to top, #f97316 0%, #f97316 33%, #e5e7eb 33%, #e5e7eb 100%)' 
-                }} 
-              />
+              <div className="w-4 h-4 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded" />
               <span className="text-sm">Владею</span>
             </div>
             <div className="flex items-center gap-2">
-              <div 
-                className="w-4 h-4 rounded" 
-                style={{ 
-                  background: 'linear-gradient(to top, #f97316 0%, #f97316 20%, #e5e7eb 20%, #e5e7eb 100%)' 
-                }} 
-              />
+              <div className="w-4 h-4 bg-gradient-to-t from-orange-500 from-20% to-gray-200 to-20% rounded" />
               <span className="text-sm">Знаком</span>
             </div>
             <div className="flex items-center gap-2">
