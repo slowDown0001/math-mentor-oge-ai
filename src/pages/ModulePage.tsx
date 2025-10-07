@@ -347,7 +347,7 @@ const ModulePage = () => {
           {/* Legend */}
           <div className="flex flex-wrap gap-4 mb-6">
             <div className="flex items-center gap-2">
-              <Crown className="h-4 w-4 text-orange-500" />
+              <Crown className="h-4 w-4 text-purple-700" />
               <span className="text-sm">Освоено</span>
             </div>
             <div className="flex items-center gap-2">
