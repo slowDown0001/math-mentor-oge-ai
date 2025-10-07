@@ -894,7 +894,7 @@ export default function OgemathProgress2() {
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               <span>{refreshing ? 'Обновление...' : 'Обновить прогресс'}</span>
             </button>
-            <button onClick={() => navigate('/ogemath')} className="absolute right-0 flex items-center gap-2 transition-colors text-lg font-normal text-gray-100 bg-slate-900 hover:bg-slate-800 rounded-md">
+            <button onClick={() => navigate('/ogemath')} className="absolute right-0 flex items-center gap-2 transition-colors text-lg font-normal rounded-md bg-slate-50 text-slate-900">
               <ArrowLeft className="h-4 w-4" />
               <span>Назад</span>
             </button>
