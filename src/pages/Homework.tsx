@@ -1212,20 +1212,6 @@ const Homework = () => {
   return (
     <div className="min-h-screen text-white relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
       <FlyingMathBackground />
-      <div className="bg-white shadow-sm border-b relative z-20">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
-            <Button
-              onClick={() => navigate('/ogemath-practice')}
-              className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-            >
-              Назад
-            </Button>
-            <h1 className="text-xl font-bold text-purple-800">Домашнее задание</h1>
-            <div className="w-24"></div>
-          </div>
-        </div>
-      </div>
 
       {showCongrats && (
         <motion.div
@@ -1311,6 +1297,17 @@ const Homework = () => {
 
       <div className="pt-8 px-4 pb-8 relative z-10">
         <div className="max-w-4xl mx-auto">
+          {/* Back button */}
+          <div className="mb-8">
+            <button
+              onClick={() => navigate('/ogemath-practice')}
+              className="bg-yellow-500 text-[#1a1f36] px-6 py-3 rounded-lg hover:bg-yellow-400 font-medium transition-all hover:shadow-lg"
+            >
+              ← Назад к практике
+            </button>
+          </div>
+
+          <h1 className="text-3xl font-bold text-white mb-8 text-center">Домашнее задание</h1>
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
