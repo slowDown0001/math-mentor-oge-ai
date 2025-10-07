@@ -388,15 +388,15 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
   return (
     <>
-      <Card className="shadow-2xl border-2 border-sage/30 bg-gradient-to-br from-white via-white to-sage/5 overflow-hidden mx-auto rounded-2xl max-w-4xl backdrop-blur-lg">
-        <CardHeader className="p-6 border-b-2 border-sage/10 bg-gradient-to-r from-gold/5 via-transparent to-sage/5">
-          <div className="flex items-center justify-between mb-3">
+      <Card className="shadow-2xl border-2 border-sage/30 bg-gradient-to-br from-white via-white to-sage/5 overflow-hidden mx-auto rounded-2xl max-w-5xl backdrop-blur-lg">
+        <CardHeader className="p-4 border-b border-sage/10 bg-gradient-to-r from-gold/5 via-transparent to-sage/5">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex-1">
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-gold via-sage to-gold bg-clip-text text-transparent mb-1">
+              <CardTitle className="text-lg font-bold bg-gradient-to-r from-gold via-sage to-gold bg-clip-text text-transparent mb-0.5">
                 {title}
               </CardTitle>
-              <div className="flex items-center gap-3">
-                <p className="text-navy/60 text-sm font-medium">вопрос {currentQuestionIndex + 1} из {questions.length}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-navy/60 text-xs font-medium">вопрос {currentQuestionIndex + 1} из {questions.length}</p>
                 {questions[currentQuestionIndex]?.skills && (
                   <span className="text-xs text-sage/50 font-mono bg-sage/5 px-2 py-0.5 rounded-full">
                     #{questions[currentQuestionIndex].skills}
@@ -404,116 +404,76 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                 )}
               </div>
             </div>
-            <Button onClick={onBack} size="sm" variant="ghost" className="text-navy/60 hover:text-navy hover:bg-sage/10 rounded-xl px-3 py-2 text-sm transition-all">
-              <ArrowLeft className="w-4 h-4 mr-1.5" />
+            <Button onClick={onBack} size="sm" variant="ghost" className="text-navy/60 hover:text-navy hover:bg-sage/10 rounded-lg px-2 py-1.5 text-xs transition-all">
+              <ArrowLeft className="w-3 h-3 mr-1" />
               назад
             </Button>
           </div>
           <div className="relative">
-            <div className="h-2 bg-gradient-to-r from-sage/10 to-gold/10 rounded-full overflow-hidden shadow-inner">
-              <div className="h-full bg-gradient-to-r from-gold via-sage to-gold rounded-full transition-all duration-500 shadow-lg" 
+            <div className="h-1.5 bg-gradient-to-r from-sage/10 to-gold/10 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-gold via-sage to-gold rounded-full transition-all duration-500" 
                    style={{width: `${(currentQuestionIndex / questions.length) * 100}%`}} />
             </div>
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-4 p-6">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-4">
+            {/* Left Column - Question and Buttons */}
+            <div className="space-y-3">
               {/* Question */}
-              <div className="p-5 bg-gradient-to-br from-navy/5 to-sage/5 rounded-2xl border-2 border-navy/10 shadow-inner">
+              <div className="p-4 bg-gradient-to-br from-navy/5 to-sage/5 rounded-xl border border-navy/10">
                 <MathRenderer 
                   text={questions[currentQuestionIndex]?.problem_text || ''} 
-                  className="text-base text-navy font-medium leading-relaxed"
+                  className="text-sm text-navy font-medium leading-relaxed"
                   compiler="mathjax"
                 />
               </div>
 
-              {/* Answer Options */}
-              <div className="grid grid-cols-1 gap-3">
-                {options.map((letter, index) => (
-                  <div
-                    key={letter}
-                    className={`p-4 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${getOptionStyle(index)}`}
-                    onClick={() => handleAnswerSelect(index)}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div className={`
-                        w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-md transition-all
-                        ${!showResult && selectedAnswer === letter 
-                          ? 'bg-gradient-to-br from-gold to-sage text-white shadow-lg scale-110' 
-                          : showResult && letter === questions[currentQuestionIndex]?.answer?.toUpperCase()
-                          ? 'bg-gradient-to-br from-sage to-emerald-600 text-white shadow-lg'
-                          : showResult && selectedAnswer === letter && letter !== questions[currentQuestionIndex]?.answer?.toUpperCase()
-                          ? 'bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg'
-                          : 'bg-gradient-to-br from-navy/10 to-sage/10 text-navy'
-                        }
-                      `}>
-                        {letter}
-                      </div>
-                      <MathRenderer 
-                        text={getOptionContent(index)} 
-                        className="flex-1 text-sm text-navy/90"
-                        compiler="mathjax"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
               {/* Result */}
               {showResult && (
-                <div className="py-2">
+                <div className="py-1">
                   {selectedAnswer === questions[currentQuestionIndex]?.answer?.toUpperCase() ? (
-                    <div className="flex items-center justify-center space-x-3 bg-gradient-to-r from-sage/20 to-emerald-500/20 rounded-2xl p-4 border-2 border-sage shadow-lg">
-                      <div className="w-8 h-8 bg-gradient-to-br from-sage to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
-                        <Check className="w-5 h-5 text-white" strokeWidth={3} />
+                    <div className="flex items-center space-x-2 bg-gradient-to-r from-sage/20 to-emerald-500/20 rounded-xl p-3 border border-sage">
+                      <div className="w-6 h-6 bg-gradient-to-br from-sage to-emerald-600 rounded-full flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" strokeWidth={3} />
                       </div>
-                      <p className="text-sm font-bold text-sage">Правильно!</p>
+                      <p className="text-xs font-bold text-sage">Правильно!</p>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center space-x-3 bg-gradient-to-r from-red-50 to-red-100 rounded-2xl p-4 border-2 border-red-400 shadow-lg">
-                      <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
-                        <X className="w-5 h-5 text-white" strokeWidth={3} />
+                    <div className="flex items-center space-x-2 bg-gradient-to-r from-red-50 to-red-100 rounded-xl p-3 border border-red-400">
+                      <div className="w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center">
+                        <X className="w-4 h-4 text-white" strokeWidth={3} />
                       </div>
-                      <p className="text-sm font-bold text-red-700">Неверно</p>
+                      <p className="text-xs font-bold text-red-700">Неверно</p>
                     </div>
                   )}
-                </div>
-              )}
-              
-              {/* Solution Display */}
-              {showSolution && questions[currentQuestionIndex]?.solution_text && (
-                <div 
-                  ref={solutionRef}
-                  className="p-5 bg-gradient-to-br from-navy/5 to-sage/5 rounded-2xl border-2 border-navy/10 shadow-inner"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gold/20 to-sage/20 flex items-center justify-center">
-                      <BookOpen className="w-4 h-4 text-gold" />
-                    </div>
-                    <h4 className="font-bold text-navy text-base">Решение</h4>
-                  </div>
-                  {viewedSolutionBeforeAnswer && !showResult && (
-                    <div className="mb-3 p-3 bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl">
-                      <p className="text-orange-800 text-sm font-medium">⚠️ Просмотр решения до ответа засчитается как неверный ответ</p>
-                    </div>
-                  )}
-                  <div className="space-y-2 bg-white rounded-xl p-4 shadow-sm">
-                    {questions[currentQuestionIndex].solution_text.split('\\n').map((line: string, index: number) => (
-                      <div key={index} className="text-left">
-                        <MathRenderer 
-                          text={line.trim()} 
-                          className="text-navy text-sm leading-relaxed"
-                          compiler="mathjax"
-                        />
-                      </div>
-                    ))}
-                  </div>
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="flex justify-between items-center gap-3 pt-2">
-                {/* Left Side Buttons */}
+              <div className="space-y-2">
+                {/* Submit/Next Button */}
+                {!showResult ? (
+                  <Button
+                    size="sm"
+                    onClick={handleSubmitAnswer}
+                    disabled={!selectedAnswer}
+                    className="w-full bg-gradient-to-r from-gold to-sage hover:from-gold/90 hover:to-sage/90 text-white rounded-lg px-4 py-2 text-sm font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-50"
+                  >
+                    ответить
+                  </Button>
+                ) : (
+                  <Button 
+                    size="sm"
+                    onClick={handleNextQuestion} 
+                    className="w-full bg-gradient-to-r from-sage to-emerald-600 hover:from-sage/90 hover:to-emerald-700 text-white rounded-lg px-4 py-2 text-sm font-bold shadow-md hover:shadow-lg transition-all"
+                  >
+                    {currentQuestionIndex < questions.length - 1 ? 'дальше →' : 'финиш'}
+                  </Button>
+                )}
+
+                {/* Helper Buttons Row */}
                 <div className="flex gap-2">
                   {/* Solution Button */}
                   {questions[currentQuestionIndex]?.solution_text && (
@@ -521,9 +481,9 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                       size="sm"
                       onClick={handleShowSolution}
                       variant="outline"
-                      className="text-navy/70 border-2 border-navy/20 hover:bg-sage/10 hover:border-sage/30 rounded-xl px-3 py-2 text-xs font-medium transition-all"
+                      className="flex-1 text-navy/70 border border-navy/20 hover:bg-sage/10 rounded-lg px-2 py-1.5 text-xs font-medium"
                     >
-                      <Eye className="w-4 h-4 mr-1.5" />
+                      <Eye className="w-3 h-3 mr-1" />
                       {showSolution ? 'скрыть' : 'решение'}
                     </Button>
                   )}
@@ -534,35 +494,80 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                       size="sm"
                       onClick={handleReadArticle}
                       variant="outline"
-                      className="text-navy/70 border-2 border-navy/20 hover:bg-gold/10 hover:border-gold/30 rounded-xl px-3 py-2 text-xs font-medium transition-all"
+                      className="flex-1 text-navy/70 border border-navy/20 hover:bg-gold/10 rounded-lg px-2 py-1.5 text-xs font-medium"
                     >
-                      <BookOpen className="w-4 h-4 mr-1.5" />
+                      <BookOpen className="w-3 h-3 mr-1" />
                       статья
                     </Button>
                   )}
                 </div>
-                
-                {/* Submit/Next Button */}
-                {!showResult ? (
-                  <Button
-                    size="sm"
-                    onClick={handleSubmitAnswer}
-                    disabled={!selectedAnswer}
-                    className="bg-gradient-to-r from-gold to-sage hover:from-gold/90 hover:to-sage/90 text-white rounded-xl px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    ответить
-                  </Button>
-                ) : (
-                  <Button 
-                    size="sm"
-                    onClick={handleNextQuestion} 
-                    className="bg-gradient-to-r from-sage to-emerald-600 hover:from-sage/90 hover:to-emerald-700 text-white rounded-xl px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
-                  >
-                    {currentQuestionIndex < questions.length - 1 ? 'дальше →' : 'финиш'}
-                  </Button>
-                )}
               </div>
-            </CardContent>
+            </div>
+
+            {/* Right Column - Answer Options */}
+            <div className="space-y-2">
+              {options.map((letter, index) => (
+                <div
+                  key={letter}
+                  className={`p-3 rounded-lg cursor-pointer transition-all duration-200 hover:scale-[1.01] ${getOptionStyle(index)}`}
+                  onClick={() => handleAnswerSelect(index)}
+                >
+                  <div className="flex items-start space-x-2">
+                    <div className={`
+                      w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 transition-all
+                      ${!showResult && selectedAnswer === letter 
+                        ? 'bg-gradient-to-br from-gold to-sage text-white shadow-md scale-105' 
+                        : showResult && letter === questions[currentQuestionIndex]?.answer?.toUpperCase()
+                        ? 'bg-gradient-to-br from-sage to-emerald-600 text-white shadow-md'
+                        : showResult && selectedAnswer === letter && letter !== questions[currentQuestionIndex]?.answer?.toUpperCase()
+                        ? 'bg-gradient-to-br from-red-500 to-red-600 text-white shadow-md'
+                        : 'bg-gradient-to-br from-navy/10 to-sage/10 text-navy'
+                      }
+                    `}>
+                      {letter}
+                    </div>
+                    <MathRenderer 
+                      text={getOptionContent(index)} 
+                      className="flex-1 text-sm text-navy/90"
+                      compiler="mathjax"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Solution Display - Full Width Below */}
+          {showSolution && questions[currentQuestionIndex]?.solution_text && (
+            <div 
+              ref={solutionRef}
+              className="mt-4 p-4 bg-gradient-to-br from-navy/5 to-sage/5 rounded-xl border border-navy/10"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-gold/20 to-sage/20 flex items-center justify-center">
+                  <BookOpen className="w-3 h-3 text-gold" />
+                </div>
+                <h4 className="font-bold text-navy text-sm">Решение</h4>
+              </div>
+              {viewedSolutionBeforeAnswer && !showResult && (
+                <div className="mb-2 p-2 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-300 rounded-lg">
+                  <p className="text-orange-800 text-xs font-medium">⚠️ Просмотр решения до ответа засчитается как неверный ответ</p>
+                </div>
+              )}
+              <div className="space-y-1 bg-white rounded-lg p-3">
+                {questions[currentQuestionIndex].solution_text.split('\\n').map((line: string, index: number) => (
+                  <div key={index} className="text-left">
+                    <MathRenderer 
+                      text={line.trim()} 
+                      className="text-navy text-xs leading-relaxed"
+                      compiler="mathjax"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       {/* Final Results Dialog */}
