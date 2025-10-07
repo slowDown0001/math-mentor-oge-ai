@@ -173,16 +173,16 @@ export const StreakDisplay = () => {
       {/* Clickable Streak Info */}
       <button 
         onClick={() => setShowDropdown(!showDropdown)}
-        className="flex items-center gap-3 text-sm hover:bg-muted/50 rounded-md px-2 py-1 transition-colors duration-200"
+        className="flex items-center gap-3 text-sm bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 rounded-md px-3 py-2"
       >
         <div className="flex items-center gap-1">
-          <span className="font-medium text-foreground">{streakData.currentStreak}</span>
+          <span className="font-medium">{streakData.currentStreak}</span>
           <span className="text-base">🔥</span>
         </div>
-        <div className="text-muted-foreground">
+        <div className="font-medium">
           {Math.round(streakData.todayProgress)}м
         </div>
-        <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown Menu */}
