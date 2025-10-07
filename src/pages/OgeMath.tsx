@@ -345,14 +345,14 @@ const OgeMath = () => {
       });
     }
   };
-  return <div className="flex h-screen w-full bg-background overflow-hidden">
+  return <div className="flex h-[calc(100vh-68px)] w-full bg-background overflow-hidden">
       {/* Left Sidebar - Fixed */}
-      <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0">
+      <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0 flex flex-col overflow-hidden">
         {/* Logo area */}
         
         
         {/* Menu items */}
-        <div className="p-4 space-y-2">
+        <div className="p-4 space-y-2 flex-shrink-0">
           <Button onClick={handlePracticeClick} variant="ghost" className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
             Практика
           </Button>
@@ -371,15 +371,15 @@ const OgeMath = () => {
         </div>
 
         {/* Daily Task Story - 2 inches below Progress button */}
-        <div className="px-4 mt-[144px]">
+        <div className="px-4 mt-[144px] flex-1 overflow-y-auto">
           <DailyTaskStory />
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full min-h-0">
         {/* Chat Messages Area - Scrollable */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden min-h-0">
           <CourseChatMessages messages={messages} isTyping={isTyping} onLoadMoreHistory={loadMoreHistory} isLoadingHistory={isLoadingHistory} hasMoreHistory={hasMoreHistory} />
         </div>
 
