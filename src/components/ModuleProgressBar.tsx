@@ -88,7 +88,7 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
     switch (status) {
       case 'mastered':
         return (
-          <div className="relative w-8 h-8 bg-purple-600 rounded flex items-center justify-center">
+          <div className="relative w-8 h-8 bg-orange-500 rounded flex items-center justify-center">
             <Crown className="h-4 w-4 text-white" />
           </div>
         );
