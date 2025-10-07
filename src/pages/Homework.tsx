@@ -26,7 +26,6 @@ import ChatInput from '@/components/chat/ChatInput';
 import { sendChatMessage } from '@/services/chatService';
 import { saveChatLog } from '@/services/chatLogsService';
 import { awardEnergyPoints } from '@/services/energyPoints';
-import FlyingMathBackground from '@/components/FlyingMathBackground';
 
 interface HomeworkData {
   mcq_questions: string[];
@@ -960,7 +959,6 @@ const Homework = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-        <FlyingMathBackground />
         <div className="pt-20 px-4">
           <div className="max-w-2xl mx-auto text-center">
             <p className="text-lg text-muted-foreground">Войдите в систему для доступа к домашнему заданию</p>
@@ -973,7 +971,6 @@ const Homework = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-        <FlyingMathBackground />
         <div className="pt-20 px-4">
           <div className="max-w-2xl mx-auto text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
@@ -987,7 +984,6 @@ const Homework = () => {
   if (!homeworkData || (!homeworkData.mcq_questions?.length && !homeworkData.fipi_questions?.length)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-        <FlyingMathBackground />
         <div className="bg-white shadow-sm border-b">
           <div className="container mx-auto px-4 py-3">
             <div className="flex justify-start">
@@ -1026,7 +1022,6 @@ const Homework = () => {
   if (loadingQuestions) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-        <FlyingMathBackground />
         <div className="pt-20 px-4">
           <div className="max-w-2xl mx-auto text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
@@ -1045,7 +1040,6 @@ const Homework = () => {
 
     return (
       <>
-        <FlyingMathBackground />
         <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 md:p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <Card>
@@ -1211,7 +1205,6 @@ const Homework = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-      <FlyingMathBackground />
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
