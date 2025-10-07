@@ -114,7 +114,7 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
 
   const renderTestIcon = (status: string) => {
     if (status === 'completed') {
-      return <Zap className="h-6 w-6 text-green-600 fill-green-600 mx-1" />;
+      return <Zap className="h-6 w-6 text-blue-600 fill-blue-600 mx-1" />;
     } else if (status === 'attempted') {
       return <Zap className="h-6 w-6 text-blue-400 mx-1" />;
     }
