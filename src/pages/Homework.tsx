@@ -685,6 +685,15 @@ const Homework = () => {
 
       // Only update state and record progress if not already completed
       if (!completedQuestions.has(currentQuestion.id)) {
+        // Award energy points and trigger animation IMMEDIATELY if correct
+        if (correct) {
+          const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_skills_questions');
+          if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
+            (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
+          }
+        }
+        
+        // Backend operations run after animation trigger
         setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
         if (correct) setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
 
@@ -692,14 +701,6 @@ const Homework = () => {
 
         if (currentQuestion.skills) {
           await processMCQSkillAttempt(currentQuestion, correct, responseTime);
-        }
-        
-        // Award energy points if correct (oge_math_skills_questions = 1 point)
-        if (correct) {
-          const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_skills_questions');
-          if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
-            (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
-          }
         }
       }
       return;
@@ -733,6 +734,15 @@ const Homework = () => {
 
         // Only update state and record progress if not already completed
         if (!completedQuestions.has(currentQuestion.id)) {
+          // Award energy points and trigger animation IMMEDIATELY if correct
+          if (is_correct) {
+            const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
+            if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
+              (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
+            }
+          }
+          
+          // Backend operations run after animation trigger
           setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
           if (is_correct) setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
 
@@ -745,14 +755,6 @@ const Homework = () => {
             responseTime,
             false
           );
-          
-          // Award energy points if correct (oge_math_fipi_bank = 2 points for FRQ)
-          if (is_correct) {
-            const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
-            if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
-              (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
-            }
-          }
         }
 
         toast({
