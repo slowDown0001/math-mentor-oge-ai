@@ -500,10 +500,6 @@ const PracticeByNumberOgemath = () => {
         if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
           (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
         }
-        
-        toast.success('Правильно! Получены очки прогресса.');
-      } else {
-        toast.error('Неправильно. Попробуйте ещё раз!');
       }
     } catch (error) {
       console.error('Error in checkAnswer:', error);
