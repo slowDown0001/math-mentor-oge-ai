@@ -171,14 +171,14 @@ const VideoPlayerWithChat = ({ video, onClose }: VideoPlayerWithChatProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-      <div className="bg-background rounded-lg shadow-lg w-full max-w-7xl h-[90vh] flex overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center pt-20 p-4 overflow-y-auto">
+      <div className="bg-background rounded-lg shadow-lg w-full max-w-7xl max-h-[85vh] flex overflow-hidden relative">
         {/* Close Button */}
         <Button
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-background/80 hover:bg-background"
+          className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-background"
         >
           <X className="h-4 w-4" />
         </Button>
