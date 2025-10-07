@@ -345,7 +345,7 @@ const OgeMath = () => {
       });
     }
   };
-  return <div className="flex h-screen w-full bg-background">
+  return <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Left Sidebar - Fixed */}
       <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0">
         {/* Logo area */}
