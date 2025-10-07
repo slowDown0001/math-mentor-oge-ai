@@ -323,8 +323,8 @@ const ModulePage = () => {
             Назад к карте
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              {module.title}
+            <h1 className="text-3xl font-bold font-display bg-gradient-to-r from-yellow-500 to-emerald-500 bg-clip-text text-transparent">
+              {module.title.replace(/Модуль/g, 'Урок')}
             </h1>
             <p className="text-gray-200/90 mt-1">{module.subtitle}</p>
           </div>
