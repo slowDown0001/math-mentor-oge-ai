@@ -268,16 +268,16 @@ const ModulePage = () => {
       )}
 
       {selectedArticle && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-6xl bg-white rounded-lg overflow-hidden max-h-[90vh]">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center pt-20 p-4 overflow-y-auto">
+          <div className="w-full max-w-6xl bg-white rounded-lg overflow-hidden max-h-[85vh] relative">
             <div className="">
               <div className="flex items-center justify-between border-b p-4">
                 <h2 className="text-xl font-bold">{selectedArticle.title}</h2>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedArticle(null)}>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedArticle(null)} className="absolute top-2 right-2 z-10">
                   <X className="h-5 w-5" />
                 </Button>
               </div>
-              <div className="overflow-y-auto max-h-[calc(90vh-4rem)] p-6">
+              <div className="overflow-y-auto max-h-[calc(85vh-4rem)] p-6">
                 <ArticleRenderer
                   text={selectedArticle.content}
                   article={{ skill: 1, art: selectedArticle.content }}
