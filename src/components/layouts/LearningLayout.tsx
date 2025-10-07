@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import FlyingMathBackground from "@/components/FlyingMathBackground";
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
+import { EnergyPointsHeaderAnimation } from "@/components/streak/EnergyPointsHeaderAnimation";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { X } from "lucide-react";
@@ -21,6 +22,7 @@ const LearningLayout: React.FC = () => {
   const [storyId, setStoryId] = useState<number | null>(null);
   const [seen, setSeen] = useState(1);
   const [learningTopics, setLearningTopics] = useState<string[]>([]);
+  const [energyPointsAnimation, setEnergyPointsAnimation] = useState({ isVisible: false, points: 0 });
 
   useEffect(() => {
     async function fetchData() {
@@ -71,6 +73,16 @@ const LearningLayout: React.FC = () => {
 
     fetchData();
   }, [user]);
+
+  // Set up global trigger for energy points animation
+  useEffect(() => {
+    (window as any).triggerEnergyPointsAnimation = (points: number) => {
+      setEnergyPointsAnimation({ isVisible: true, points });
+    };
+    return () => {
+      delete (window as any).triggerEnergyPointsAnimation;
+    };
+  }, []);
 
   async function handleStoryOpen() {
     setIsStoryOpen(true);
@@ -135,7 +147,14 @@ const LearningLayout: React.FC = () => {
                 </div>
               </div>
             )}
-            <StreakDisplay />
+            <div className="relative">
+              <StreakDisplay />
+              <EnergyPointsHeaderAnimation
+                points={energyPointsAnimation.points}
+                isVisible={energyPointsAnimation.isVisible}
+                onAnimationComplete={() => setEnergyPointsAnimation({ isVisible: false, points: 0 })}
+              />
+            </div>
           </div>
         </div>
       </nav>

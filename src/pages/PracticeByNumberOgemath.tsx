@@ -496,14 +496,14 @@ const PracticeByNumberOgemath = () => {
         const { awardEnergyPoints: awardPoints } = await import('@/services/energyPoints');
         const result = await awardPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
         
-        // Trigger header animation with awarded points
+        // Trigger header animation immediately with awarded points
         if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
           (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
         }
         
-        toast.success(`Правильно! +${reward.minutes} мин к дневной цели.`);
+        toast.success('Правильно! Получены очки прогресса.');
       } else {
-        toast.error(`Неправильно. +${reward.minutes} мин к дневной цели за попытку.`);
+        toast.error('Неправильно. Попробуйте ещё раз!');
       }
     } catch (error) {
       console.error('Error in checkAnswer:', error);
