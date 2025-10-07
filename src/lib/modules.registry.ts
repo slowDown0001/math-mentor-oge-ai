@@ -264,11 +264,11 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
     }
   },
 
-  'algebraic-expressions': {
+ 'algebraic-expressions': {
     slug: 'algebraic-expressions',
     moduleNumber: 2,
     title: 'Модуль 2: Алгебраические выражения',
-    subtitle: '5 тем • 15 видео • 5 статей • 15 упражнений',
+    subtitle: '5 тем • 15 видео • 5 статей • 14 упражнений',
     masteryPoints: 1500,
     skillsDescription: 'Навыки: Выражения, Степени, Многочлены, Дроби, Корни',
     topicMapping: ['2.1', '2.2', '2.3', '2.4', '2.5'],
@@ -276,7 +276,8 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
       { id: 'literal-expressions', title: 'Буквенные выражения', videos: 3, articles: 1, exercises: 2 },
       { id: 'powers', title: 'Степени', videos: 3, articles: 1, exercises: 3 },
       { id: 'polynomials', title: 'Многочлены', videos: 3, articles: 1, exercises: 3 },
-      { id: 'algebraic-fractions', title: 'Алгебраические дроби', videos: 3, articles: 1, exercises: 3 },
+      // ↓ was 3, now 2
+      { id: 'algebraic-fractions', title: 'Алгебраические дроби', videos: 3, articles: 1, exercises: 2 },
       { id: 'arithmetic-roots', title: 'Арифметические корни', videos: 3, articles: 1, exercises: 3 }
     ],
     quizzes: [
@@ -296,28 +297,28 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
     getExerciseData: (topicId: string, exerciseIndex: number) => {
       if (topicId === 'literal-expressions') {
         return exerciseIndex === 0
-          ? { title: 'Буквенные выражения 1', skills: [35, 36] }
-          : { title: 'Буквенные выражения 2', skills: [37, 38] };
+          ? { title: 'Буквенные выражения: подстановка и упрощение', skills: [35, 36] }
+          : { title: 'Буквенные выражения: формулы и преобразования', skills: [37, 38] };
       }
       if (topicId === 'powers') {
-        if (exerciseIndex === 0) return { title: 'Степени 1', skills: [39, 40] };
-        if (exerciseIndex === 1) return { title: 'Степени 2', skills: [41, 42, 43] };
-        if (exerciseIndex === 2) return { title: 'Степени 3', skills: [44] };
+        if (exerciseIndex === 0) return { title: 'Степени: свойства и упрощение', skills: [39, 40] };
+        if (exerciseIndex === 1) return { title: 'Степени: степень произведения и дроби', skills: [41, 42, 43] };
+        if (exerciseIndex === 2) return { title: 'Показательные выражения и сравнение', skills: [44] };
       }
       if (topicId === 'polynomials') {
-        if (exerciseIndex === 0) return { title: 'Многочлены 1', skills: [45, 46] };
-        if (exerciseIndex === 1) return { title: 'Многочлены 2', skills: [47, 48] };
-        if (exerciseIndex === 2) return { title: 'Многочлены 3', skills: [49, 179] };
+        if (exerciseIndex === 0) return { title: 'Многочлены: приведение подобных', skills: [45, 46] };
+        if (exerciseIndex === 1) return { title: 'Многочлены: разложение на множители', skills: [47, 48] };
+        if (exerciseIndex === 2) return { title: 'Многочлены: формулы сокращённого умножения', skills: [49, 179] };
       }
       if (topicId === 'algebraic-fractions') {
-        if (exerciseIndex === 0) return { title: 'Алгебраические дроби 1', skills: [50, 51] };
-        if (exerciseIndex === 1) return { title: 'Алгебраические дроби 2', skills: [52, 53] };
-        if (exerciseIndex === 2) return { title: 'Алгебраические дроби 3', skills: [] };
+        if (exerciseIndex === 0) return { title: 'Алгебраические дроби: сокращение и ОДЗ', skills: [50, 51] };
+        if (exerciseIndex === 1) return { title: 'Алгебраические дроби: общий знаменатель, сложение/вычитание', skills: [52, 53] };
+        // (exerciseIndex === 2) — удалено
       }
       if (topicId === 'arithmetic-roots') {
-        if (exerciseIndex === 0) return { title: 'Арифметические корни 1', skills: [54, 55] };
-        if (exerciseIndex === 1) return { title: 'Арифметические корни 2', skills: [56] };
-        if (exerciseIndex === 2) return { title: 'Арифметические корни 3', skills: [57] };
+        if (exerciseIndex === 0) return { title: 'Корни: свойства и извлечение', skills: [54, 55] };
+        if (exerciseIndex === 1) return { title: 'Корни: рационализация знаменателя', skills: [56] };
+        if (exerciseIndex === 2) return { title: 'Смешанные выражения с корнями', skills: [57] };
       }
       return { title: `Упражнение ${exerciseIndex + 1}`, skills: [] };
     },
@@ -359,11 +360,8 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
     skillsDescription: 'Навыки: Уравнения, Неравенства, Системы, Текстовые задачи',
     topicMapping: ['3.1', '3.2', '3.3'],
     topics: [
-      // 3.1: Уравнения и системы — 5 упражнений
       { id: 'equations-systems', title: 'Уравнения и системы', videos: 3, articles: 1, exercises: 5 },
-      // 3.2: Неравенства и системы — 4 упражнения
       { id: 'inequalities-systems', title: 'Неравенства и системы', videos: 3, articles: 1, exercises: 4 },
-      // 3.3: Текстовые задачи — 4 упражнения
       { id: 'word-problems', title: 'Текстовые задачи', videos: 3, articles: 1, exercises: 4 }
     ],
     quizzes: [
@@ -381,64 +379,56 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
       { type: 'quiz', isFinalTest: true }
     ],
     getExerciseData: (topicId: string, exerciseIndex: number) => {
-      // 0-based indices -> exercise # = index + 1
       if (topicId === 'equations-systems') {
-        // ex1: 58,59; ex2: 60; ex3: 61; ex4: 62; ex5*: 188,190,191
-        if (exerciseIndex === 0) return { title: 'Уравнения и системы — 1', skills: [58, 59] };
-        if (exerciseIndex === 1) return { title: 'Уравнения и системы — 2', skills: [60] };
-        if (exerciseIndex === 2) return { title: 'Уравнения и системы — 3', skills: [61] };
-        if (exerciseIndex === 3) return { title: 'Уравнения и системы — 4', skills: [62] };
-        if (exerciseIndex === 4) return { title: 'Уравнения и системы — 5', skills: [188, 190, 191], isAdvanced: true };
+        if (exerciseIndex === 0) return { title: 'Линейные/квадратные уравнения, системы — базовые', skills: [58, 59] };
+        if (exerciseIndex === 1) return { title: 'Рациональные уравнения', skills: [60] };
+        if (exerciseIndex === 2) return { title: 'Иррациональные/модульные уравнения', skills: [61] };
+        if (exerciseIndex === 3) return { title: 'Рациональные системы уравнений', skills: [62] };
+        if (exerciseIndex === 4) return { title: 'Параметры и продвинутые задачи*', skills: [188, 190, 191], isAdvanced: true };
       }
       if (topicId === 'inequalities-systems') {
-        // ex1: 63,64; ex2: 65; ex3: 66; ex4: 67,68
-        if (exerciseIndex === 0) return { title: 'Неравенства и системы — 1', skills: [63, 64] };
-        if (exerciseIndex === 1) return { title: 'Неравенства и системы — 2', skills: [65] };
-        if (exerciseIndex === 2) return { title: 'Неравенства и системы — 3', skills: [66] };
-        if (exerciseIndex === 3) return { title: 'Неравенства и системы — 4', skills: [67, 68] };
+        if (exerciseIndex === 0) return { title: 'Линейные/квадратные неравенства — базовые', skills: [63, 64] };
+        if (exerciseIndex === 1) return { title: 'Рациональные неравенства', skills: [65] };
+        if (exerciseIndex === 2) return { title: 'Иррациональные/модульные неравенства', skills: [66] };
+        if (exerciseIndex === 3) return { title: 'Системы неравенств', skills: [67, 68] };
       }
       if (topicId === 'word-problems') {
-        // ex1: 69; ex2: 70-74; ex3: 75,184; ex4*: 185
-        if (exerciseIndex === 0) return { title: 'Текстовые задачи — 1', skills: [69] };
-        if (exerciseIndex === 1) return { title: 'Текстовые задачи — 2', skills: Array.from({ length: 5 }, (_, i) => 70 + i) };
-        if (exerciseIndex === 2) return { title: 'Текстовые задачи — 3', skills: [75, 184] };
-        if (exerciseIndex === 3) return { title: 'Текстовые задачи — 4', skills: [185], isAdvanced: true };
+        if (exerciseIndex === 0) return { title: 'Текстовые задачи на уравнение', skills: [69] };
+        if (exerciseIndex === 1) return { title: 'Текстовые задачи: смеси, проценты, движение', skills: Array.from({ length: 5 }, (_, i) => 70 + i) };
+        if (exerciseIndex === 2) return { title: 'Задачи на прогрессию и пропорции', skills: [75, 184] };
+        if (exerciseIndex === 3) return { title: 'Сложные текстовые задачи*', skills: [185], isAdvanced: true };
       }
       return { title: `Упражнение ${exerciseIndex + 1}`, skills: [] };
     },
     getQuizData: (quizId: string) => {
       if (quizId === 'quiz-1') {
-        // test1: 58–62
         return {
           title: 'Тест 1: Уравнения и системы',
-          skills: Array.from({ length: 5 }, (_, i) => 58 + i), // 58..62
+          skills: Array.from({ length: 5 }, (_, i) => 58 + i),
           questionCount: 6,
           isTest: true
         };
       }
       if (quizId === 'quiz-2') {
-        // test2: 63–68
         return {
           title: 'Тест 2: Неравенства и системы',
-          skills: Array.from({ length: 6 }, (_, i) => 63 + i), // 63..68
+          skills: Array.from({ length: 6 }, (_, i) => 63 + i),
           questionCount: 6,
           isTest: true
         };
       }
       if (quizId === 'quiz-3') {
-        // test3: 69–75, 184
         return {
           title: 'Тест 3: Текстовые задачи',
-          skills: [...Array.from({ length: 7 }, (_, i) => 69 + i), 184], // 69..75, 184
+          skills: [...Array.from({ length: 7 }, (_, i) => 69 + i), 184],
           questionCount: 6,
           isTest: true
         };
       }
       if (quizId === 'module-exam') {
-        // Final exam: 58–75, 184
         return {
           title: 'Итоговый экзамен модуля',
-          skills: [...Array.from({ length: 18 }, (_, i) => 58 + i), 184], // 58..75, 184
+          skills: [...Array.from({ length: 18 }, (_, i) => 58 + i), 184],
           questionCount: 10,
           isExam: true
         };
