@@ -284,13 +284,13 @@ const Homework = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, homeworkData, userProfile]);
 
-  // Set initial question index when questions first load OR when completed set changes
+  // Set initial question index ONLY when questions first load (not when completedQuestions changes)
   useEffect(() => {
-    if (!currentQuestions.length) return;
+    if (!currentQuestions.length || didLoadQuestionsRef.current === false) return;
     const firstIncomplete = currentQuestions.findIndex(q => !completedQuestions.has(q.id));
     const nextIndex = firstIncomplete >= 0 ? firstIncomplete : 0;
-    setCurrentQuestionIndex(prev => (prev === nextIndex ? prev : nextIndex)); // avoid state churn
-  }, [currentQuestions, completedQuestions]);
+    setCurrentQuestionIndex(nextIndex);
+  }, [currentQuestions]); // Remove completedQuestions dependency to prevent re-running
 
   // When question changes, prepare timer / FIPI attempt
   useEffect(() => {
@@ -418,7 +418,12 @@ const Homework = () => {
         problem_image: q.problem_image || undefined
       }));
 
-      if (mountedRef.current) setCurrentQuestions(frqQuestions);
+      if (mountedRef.current) {
+        setCurrentQuestions(frqQuestions);
+        // Reset to first unanswered FRQ question
+        const firstIncomplete = frqQuestions.findIndex(q => !completedQuestions.has(q.id));
+        setCurrentQuestionIndex(firstIncomplete >= 0 ? firstIncomplete : 0);
+      }
     } catch (error) {
       console.error('Error loading FRQ questions:', error);
       toast({ title: 'Ошибка', description: 'Произошла ошибка при загрузке задач', variant: 'destructive' });
@@ -531,6 +536,20 @@ const Homework = () => {
   ) => {
     if (!user?.id || !homeworkName) return;
     try {
+      // Check if this question already has a record to prevent duplicates
+      const { data: existingRecord } = await supabase
+        .from('homework_progress')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('homework_name', homeworkName)
+        .eq('question_id', questionId)
+        .maybeSingle();
+
+      if (existingRecord) {
+        console.log('Question already recorded, skipping duplicate insert');
+        return;
+      }
+
       const currentQuestion = currentQuestions.find(q => q.id === questionId);
       const qType = homeworkData?.mcq_questions?.includes(questionId) ? 'mcq' : 'fipi';
 
@@ -663,13 +682,16 @@ const Homework = () => {
       setIsCorrect(correct);
       setShowAnswer(true);
 
-      setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
-      if (correct) setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
+      // Only update state and record progress if not already completed
+      if (!completedQuestions.has(currentQuestion.id)) {
+        setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
+        if (correct) setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
 
-      await recordQuestionProgress(currentQuestion.id, answer, currentQuestion.correct_answer || '', correct, responseTime, false);
+        await recordQuestionProgress(currentQuestion.id, answer, currentQuestion.correct_answer || '', correct, responseTime, false);
 
-      if (currentQuestion.skills) {
-        await processMCQSkillAttempt(currentQuestion, correct, responseTime);
+        if (currentQuestion.skills) {
+          await processMCQSkillAttempt(currentQuestion, correct, responseTime);
+        }
       }
       return;
     }
@@ -700,18 +722,21 @@ const Homework = () => {
         setIsCorrect(is_correct);
         setShowAnswer(true);
 
-        setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
-        if (is_correct) setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
+        // Only update state and record progress if not already completed
+        if (!completedQuestions.has(currentQuestion.id)) {
+          setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
+          if (is_correct) setCorrectAnswers(prev => new Set([...prev, currentQuestion.id]));
 
-        const responseTime = Math.floor((Date.now() - questionStartTime) / 1000);
-        await recordQuestionProgress(
-          currentQuestion.id,
-          answer,
-          currentQuestion.correct_answer || '',
-          is_correct,
-          responseTime,
-          false
-        );
+          const responseTime = Math.floor((Date.now() - questionStartTime) / 1000);
+          await recordQuestionProgress(
+            currentQuestion.id,
+            answer,
+            currentQuestion.correct_answer || '',
+            is_correct,
+            responseTime,
+            false
+          );
+        }
 
         toast({
           title: is_correct ? 'Правильно! ✓' : 'Неправильно ✗',
@@ -818,10 +843,14 @@ const Homework = () => {
     setShowSolution(true);
     setIsCorrect(false);
     setShowAnswer(true);
-    setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
 
-    const answer = questionType === 'mcq' ? selectedOption : userAnswer;
-    await recordQuestionProgress(currentQuestion.id, answer || '', currentQuestion.correct_answer || '', false, responseTime, true);
+    // Only update state and record progress if not already completed
+    if (!completedQuestions.has(currentQuestion.id)) {
+      setCompletedQuestions(prev => new Set([...prev, currentQuestion.id]));
+
+      const answer = questionType === 'mcq' ? selectedOption : userAnswer;
+      await recordQuestionProgress(currentQuestion.id, answer || '', currentQuestion.correct_answer || '', false, responseTime, true);
+    }
 
     if (questionType === 'mcq' && currentQuestion.skills) {
       await processMCQSkillAttempt(currentQuestion, false, responseTime);
