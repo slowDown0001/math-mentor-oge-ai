@@ -1297,17 +1297,29 @@ const Homework = () => {
 
       <div className="pt-8 px-4 pb-8 relative z-10">
         <div className="max-w-4xl mx-auto">
-          {/* Header with back button and title */}
-          <div className="mb-8 flex items-center justify-between">
-            <button
+          {/* Header with back button and title - matching ModulePage style */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-6 mb-8"
+          >
+            <Button
               onClick={() => navigate('/ogemath-practice')}
-              className="bg-yellow-500 text-[#1a1f36] px-6 py-3 rounded-lg hover:bg-yellow-400 font-medium transition-all hover:shadow-lg"
+              variant="ghost"
+              className="text-white hover:bg-white/10"
             >
-              ← Назад
-            </button>
-            <h1 className="text-3xl font-bold text-white">Домашнее задание</h1>
-            <div className="w-32"></div>
-          </div>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Назад к карте
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold font-display bg-gradient-to-r from-yellow-500 to-emerald-500 bg-clip-text text-transparent">
+                Домашнее задание
+              </h1>
+              <p className="text-gray-200/90 mt-1">
+                {homeworkData.mcq_questions?.length || 0} MCQ • {homeworkData.fipi_questions?.length || 0} ФИПИ
+              </p>
+            </div>
+          </motion.div>
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
