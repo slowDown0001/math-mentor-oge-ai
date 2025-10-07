@@ -170,15 +170,15 @@ const TopicPage: React.FC = () => {
             Назад к карте
           </Button>
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl font-bold font-display bg-gradient-to-r from-yellow-500 to-emerald-500 bg-clip-text text-transparent">
               {topic.title}
             </h1>
             <Link
               to={`/module/${moduleSlug}`}
               className="text-gray-200/90 hover:text-yellow-400 inline-block cursor-pointer transition-colors"
             >
-              Тема {topicNumber} • Модуль {moduleEntry.moduleNumber}:{" "}
-              {moduleEntry.title.replace(/^Модуль \d+:\s*/, "")}
+              Тема {topicNumber} • Урок {moduleEntry.moduleNumber}:{" "}
+              {moduleEntry.title.replace(/^Модуль \d+:\s*/, "").replace(/Модуль/g, 'Урок')}
             </Link>
           </div>
           <Button
