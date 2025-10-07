@@ -149,8 +149,8 @@ export const DailyTaskStory = () => {
 
       {/* Story Modal */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-          <div className="relative w-full max-w-4xl h-[80vh] bg-gradient-to-br from-background to-muted rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="relative w-full max-w-4xl max-h-[85vh] my-auto bg-gradient-to-br from-background to-muted rounded-3xl overflow-hidden shadow-2xl flex flex-col">
             {/* Header */}
             <div className="flex items-center gap-3 p-6 border-b border-border/20 flex-shrink-0">
               <div className="w-12 h-12 rounded-full overflow-hidden">
