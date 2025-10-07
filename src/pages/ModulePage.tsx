@@ -19,6 +19,7 @@ const ModulePage = () => {
   const { moduleSlug } = useParams<{ moduleSlug: string }>();
   const navigate = useNavigate();
   const { refetch } = useModuleProgress();
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string; description: string } | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<{ title: string; content: string } | null>(null);
@@ -296,6 +297,7 @@ const ModulePage = () => {
               onBack={() => {
                 setSelectedExercise(null);
                 refetch();
+                setRefreshKey(prev => prev + 1);
               }}
               questionCount={selectedExercise.questionCount}
               isModuleTest={selectedExercise.isModuleTest}
@@ -376,6 +378,7 @@ const ModulePage = () => {
 
           {/* Progress Grid */}
           <ModuleProgressBar
+            key={refreshKey}
             moduleSlug={moduleSlug!}
             orderedContent={module.orderedContent}
             topics={module.topics}
