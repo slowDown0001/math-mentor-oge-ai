@@ -294,8 +294,8 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
     
     if (!showResult) {
       return selectedAnswer === options[optionIndex] 
-        ? 'border border-yellow-400 bg-yellow-50' 
-        : 'border border-gray-200 hover:border-gray-300 hover:bg-gray-50';
+        ? 'border-2 border-gold bg-gradient-to-r from-gold/10 to-sage/10 shadow-lg' 
+        : 'border-2 border-navy/10 hover:border-sage/30 hover:bg-sage/5 bg-white shadow-sm';
     }
     
     const answerLetter = options[optionIndex];
@@ -303,14 +303,14 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
     const isCorrectAnswer = answerLetter === currentQuestion?.answer?.toUpperCase();
     
     if (isCorrectAnswer) {
-      return 'border border-green-500 bg-green-50';
+      return 'border-2 border-sage bg-gradient-to-r from-sage/20 to-emerald-500/20 shadow-lg';
     }
     
     if (isSelected && !isCorrectAnswer) {
-      return 'border border-red-500 bg-red-50';
+      return 'border-2 border-red-500 bg-gradient-to-r from-red-50 to-red-100 shadow-lg';
     }
     
-    return 'border border-gray-200 opacity-60 bg-gray-50';
+    return 'border-2 border-navy/5 opacity-50 bg-gray-50/50';
   };
 
   const correctAnswers = answers.filter(Boolean).length;
@@ -350,13 +350,13 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
   if (loading) {
     return (
-      <Card className="shadow-lg border border-white/20 bg-white/95 mx-auto rounded-lg backdrop-blur-sm">
-        <CardContent className="p-4 text-center">
+      <Card className="shadow-xl border-2 border-sage/20 bg-gradient-to-br from-white via-sage/5 to-gold/5 mx-auto rounded-2xl backdrop-blur-md">
+        <CardContent className="p-8 text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-yellow-500 mx-auto mb-2"></div>
-            <Sparkles className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-yellow-500 animate-pulse" />
+            <div className="animate-spin rounded-full h-12 w-12 border-3 border-sage/20 border-t-gold mx-auto mb-3"></div>
+            <Sparkles className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-5 h-5 text-gold animate-pulse" />
           </div>
-          <p className="text-sm font-semibold text-gray-700">
+          <p className="text-base font-semibold bg-gradient-to-r from-gold to-sage bg-clip-text text-transparent">
             загружаем вопросы...
           </p>
         </CardContent>
@@ -366,17 +366,19 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
   if (questions.length === 0) {
     return (
-      <Card className="shadow-lg border border-white/20 bg-white/95 mx-auto rounded-lg backdrop-blur-sm">
-        <CardContent className="p-4 text-center">
-          <Target className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-          <h2 className="text-lg font-bold text-gray-900 mb-1">
+      <Card className="shadow-xl border-2 border-sage/20 bg-gradient-to-br from-white via-sage/5 to-gold/5 mx-auto rounded-2xl backdrop-blur-md">
+        <CardContent className="p-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gold/20 to-sage/20 flex items-center justify-center mx-auto mb-4">
+            <Target className="w-8 h-8 text-gold" />
+          </div>
+          <h2 className="text-xl font-bold bg-gradient-to-r from-gold to-sage bg-clip-text text-transparent mb-2">
             Вопросы не найдены
           </h2>
-          <p className="text-gray-600 mb-3 text-sm">
+          <p className="text-navy/60 mb-6 text-sm">
             Для этого упражнения пока нет доступных вопросов
           </p>
-          <Button onClick={onBack} className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white rounded-lg px-4 py-2 text-sm">
-            <ArrowLeft className="w-4 h-4 mr-1" />
+          <Button onClick={onBack} className="bg-gradient-to-r from-gold to-sage hover:from-gold/90 hover:to-sage/90 text-white rounded-xl px-6 py-3 text-sm font-semibold shadow-lg hover:shadow-xl transition-all">
+            <ArrowLeft className="w-4 h-4 mr-2" />
             назад
           </Button>
         </CardContent>
@@ -386,70 +388,70 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
   return (
     <>
-      <Card className="shadow-lg border border-white/20 bg-white/95 overflow-hidden mx-auto rounded-lg max-w-4xl backdrop-blur-sm">
-        <CardHeader className="p-3 border-b border-black/5">
-          <div className="flex items-center justify-between mb-2">
+      <Card className="shadow-2xl border-2 border-sage/30 bg-gradient-to-br from-white via-white to-sage/5 overflow-hidden mx-auto rounded-2xl max-w-4xl backdrop-blur-lg">
+        <CardHeader className="p-6 border-b-2 border-sage/10 bg-gradient-to-r from-gold/5 via-transparent to-sage/5">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex-1">
-              <CardTitle className="text-base font-bold bg-gradient-to-r from-yellow-500 to-emerald-500 bg-clip-text text-transparent">
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-gold via-sage to-gold bg-clip-text text-transparent mb-1">
                 {title}
               </CardTitle>
-              <div className="flex items-center gap-2">
-                <p className="text-gray-600 text-xs">вопрос {currentQuestionIndex + 1} из {questions.length}</p>
+              <div className="flex items-center gap-3">
+                <p className="text-navy/60 text-sm font-medium">вопрос {currentQuestionIndex + 1} из {questions.length}</p>
                 {questions[currentQuestionIndex]?.skills && (
-                  <span className="text-[10px] text-muted-foreground/40 font-mono">
+                  <span className="text-xs text-sage/50 font-mono bg-sage/5 px-2 py-0.5 rounded-full">
                     #{questions[currentQuestionIndex].skills}
                   </span>
                 )}
               </div>
             </div>
-            <Button onClick={onBack} size="sm" variant="ghost" className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg px-2 py-1 text-xs">
-              <ArrowLeft className="w-3 h-3 mr-1" />
+            <Button onClick={onBack} size="sm" variant="ghost" className="text-navy/60 hover:text-navy hover:bg-sage/10 rounded-xl px-3 py-2 text-sm transition-all">
+              <ArrowLeft className="w-4 h-4 mr-1.5" />
               назад
             </Button>
           </div>
           <div className="relative">
-            <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-yellow-500 to-emerald-500 rounded-full transition-all duration-500" 
+            <div className="h-2 bg-gradient-to-r from-sage/10 to-gold/10 rounded-full overflow-hidden shadow-inner">
+              <div className="h-full bg-gradient-to-r from-gold via-sage to-gold rounded-full transition-all duration-500 shadow-lg" 
                    style={{width: `${(currentQuestionIndex / questions.length) * 100}%`}} />
             </div>
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-2 p-3">
+        <CardContent className="space-y-4 p-6">
               {/* Question */}
-              <div className="p-2.5 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="p-5 bg-gradient-to-br from-navy/5 to-sage/5 rounded-2xl border-2 border-navy/10 shadow-inner">
                 <MathRenderer 
                   text={questions[currentQuestionIndex]?.problem_text || ''} 
-                  className="text-sm text-gray-900"
+                  className="text-base text-navy font-medium leading-relaxed"
                   compiler="mathjax"
                 />
               </div>
 
               {/* Answer Options */}
-              <div className="grid grid-cols-1 gap-1.5">
+              <div className="grid grid-cols-1 gap-3">
                 {options.map((letter, index) => (
                   <div
                     key={letter}
-                    className={`p-2 rounded-lg cursor-pointer transition-all duration-200 ${getOptionStyle(index)}`}
+                    className={`p-4 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${getOptionStyle(index)}`}
                     onClick={() => handleAnswerSelect(index)}
                   >
-                    <div className="flex items-start space-x-2">
+                    <div className="flex items-start space-x-3">
                       <div className={`
-                        w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0
+                        w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-md transition-all
                         ${!showResult && selectedAnswer === letter 
-                          ? 'bg-gradient-to-r from-yellow-500 to-emerald-500 text-white' 
+                          ? 'bg-gradient-to-br from-gold to-sage text-white shadow-lg scale-110' 
                           : showResult && letter === questions[currentQuestionIndex]?.answer?.toUpperCase()
-                          ? 'bg-green-600 text-white'
+                          ? 'bg-gradient-to-br from-sage to-emerald-600 text-white shadow-lg'
                           : showResult && selectedAnswer === letter && letter !== questions[currentQuestionIndex]?.answer?.toUpperCase()
-                          ? 'bg-red-600 text-white'
-                          : 'bg-gray-200 text-gray-700'
+                          ? 'bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg'
+                          : 'bg-gradient-to-br from-navy/10 to-sage/10 text-navy'
                         }
                       `}>
                         {letter}
                       </div>
                       <MathRenderer 
                         text={getOptionContent(index)} 
-                        className="flex-1 text-xs"
+                        className="flex-1 text-sm text-navy/90"
                         compiler="mathjax"
                       />
                     </div>
@@ -459,20 +461,20 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
               {/* Result */}
               {showResult && (
-                <div className="py-1">
+                <div className="py-2">
                   {selectedAnswer === questions[currentQuestionIndex]?.answer?.toUpperCase() ? (
-                    <div className="flex items-center justify-center space-x-2 bg-green-50 rounded-lg p-1.5 border border-green-200">
-                      <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
-                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                    <div className="flex items-center justify-center space-x-3 bg-gradient-to-r from-sage/20 to-emerald-500/20 rounded-2xl p-4 border-2 border-sage shadow-lg">
+                      <div className="w-8 h-8 bg-gradient-to-br from-sage to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
+                        <Check className="w-5 h-5 text-white" strokeWidth={3} />
                       </div>
-                      <p className="text-xs font-semibold text-green-700">Правильно</p>
+                      <p className="text-sm font-bold text-sage">Правильно!</p>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center space-x-2 bg-red-50 rounded-lg p-1.5 border border-red-200">
-                      <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
-                        <X className="w-3 h-3 text-white" strokeWidth={3} />
+                    <div className="flex items-center justify-center space-x-3 bg-gradient-to-r from-red-50 to-red-100 rounded-2xl p-4 border-2 border-red-400 shadow-lg">
+                      <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+                        <X className="w-5 h-5 text-white" strokeWidth={3} />
                       </div>
-                      <p className="text-xs font-semibold text-red-700">Неверно</p>
+                      <p className="text-sm font-bold text-red-700">Неверно</p>
                     </div>
                   )}
                 </div>
@@ -482,23 +484,25 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
               {showSolution && questions[currentQuestionIndex]?.solution_text && (
                 <div 
                   ref={solutionRef}
-                  className="p-2.5 bg-gray-50 rounded-lg border border-gray-200"
+                  className="p-5 bg-gradient-to-br from-navy/5 to-sage/5 rounded-2xl border-2 border-navy/10 shadow-inner"
                 >
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <BookOpen className="w-3.5 h-3.5 text-gray-600" />
-                    <h4 className="font-semibold text-gray-900 text-xs">Решение</h4>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gold/20 to-sage/20 flex items-center justify-center">
+                      <BookOpen className="w-4 h-4 text-gold" />
+                    </div>
+                    <h4 className="font-bold text-navy text-base">Решение</h4>
                   </div>
                   {viewedSolutionBeforeAnswer && !showResult && (
-                    <div className="mb-1.5 p-1.5 bg-orange-50 border border-orange-200 rounded">
-                      <p className="text-orange-700 text-[10px]">⚠️ Просмотр решения до ответа засчитается как неверный ответ</p>
+                    <div className="mb-3 p-3 bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl">
+                      <p className="text-orange-800 text-sm font-medium">⚠️ Просмотр решения до ответа засчитается как неверный ответ</p>
                     </div>
                   )}
-                  <div className="space-y-1 bg-white rounded p-1.5">
+                  <div className="space-y-2 bg-white rounded-xl p-4 shadow-sm">
                     {questions[currentQuestionIndex].solution_text.split('\\n').map((line: string, index: number) => (
                       <div key={index} className="text-left">
                         <MathRenderer 
                           text={line.trim()} 
-                          className="text-gray-900 text-[11px] leading-relaxed"
+                          className="text-navy text-sm leading-relaxed"
                           compiler="mathjax"
                         />
                       </div>
@@ -508,18 +512,18 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
               )}
 
               {/* Action Buttons */}
-              <div className="flex justify-between items-center gap-2">
+              <div className="flex justify-between items-center gap-3 pt-2">
                 {/* Left Side Buttons */}
-                <div className="flex gap-1.5">
+                <div className="flex gap-2">
                   {/* Solution Button */}
                   {questions[currentQuestionIndex]?.solution_text && (
                     <Button
                       size="sm"
                       onClick={handleShowSolution}
                       variant="outline"
-                      className="text-gray-600 border-gray-300 hover:bg-gray-50 rounded px-2 py-1 text-[11px] h-auto"
+                      className="text-navy/70 border-2 border-navy/20 hover:bg-sage/10 hover:border-sage/30 rounded-xl px-3 py-2 text-xs font-medium transition-all"
                     >
-                      <Eye className="w-3 h-3 mr-1" />
+                      <Eye className="w-4 h-4 mr-1.5" />
                       {showSolution ? 'скрыть' : 'решение'}
                     </Button>
                   )}
@@ -530,9 +534,9 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                       size="sm"
                       onClick={handleReadArticle}
                       variant="outline"
-                      className="text-gray-600 border-gray-300 hover:bg-gray-50 rounded px-2 py-1 text-[11px] h-auto"
+                      className="text-navy/70 border-2 border-navy/20 hover:bg-gold/10 hover:border-gold/30 rounded-xl px-3 py-2 text-xs font-medium transition-all"
                     >
-                      <BookOpen className="w-3 h-3 mr-1" />
+                      <BookOpen className="w-4 h-4 mr-1.5" />
                       статья
                     </Button>
                   )}
@@ -544,7 +548,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                     size="sm"
                     onClick={handleSubmitAnswer}
                     disabled={!selectedAnswer}
-                    className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white rounded px-3 py-1 text-xs h-auto disabled:opacity-50"
+                    className="bg-gradient-to-r from-gold to-sage hover:from-gold/90 hover:to-sage/90 text-white rounded-xl px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     ответить
                   </Button>
@@ -552,7 +556,7 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                   <Button 
                     size="sm"
                     onClick={handleNextQuestion} 
-                    className="bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1 text-xs h-auto"
+                    className="bg-gradient-to-r from-sage to-emerald-600 hover:from-sage/90 hover:to-emerald-700 text-white rounded-xl px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
                   >
                     {currentQuestionIndex < questions.length - 1 ? 'дальше →' : 'финиш'}
                   </Button>
@@ -563,41 +567,41 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
 
       {/* Final Results Dialog */}
       <AlertDialog open={showFinalResults} onOpenChange={setShowFinalResults}>
-        <AlertDialogContent className="sm:max-w-md border border-white/20 rounded-lg bg-white/95 backdrop-blur-sm">
+        <AlertDialogContent className="sm:max-w-md border-2 border-sage/30 rounded-3xl bg-gradient-to-br from-white via-sage/5 to-gold/5 backdrop-blur-xl shadow-2xl">
           <AlertDialogHeader className="text-center">
-            <div className="flex justify-center mb-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-emerald-500 rounded-full flex items-center justify-center">
+            <div className="flex justify-center mb-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-gold to-sage rounded-full flex items-center justify-center shadow-xl animate-bounce-in">
                 {getResultMessage().icon}
               </div>
             </div>
-            <AlertDialogTitle className={`text-xl font-bold ${getResultMessage().color}`}>
+            <AlertDialogTitle className={`text-2xl font-bold bg-gradient-to-r from-gold to-sage bg-clip-text text-transparent mb-2`}>
               {getResultMessage().title}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm text-gray-600">
+            <AlertDialogDescription className="text-base text-navy/70 font-medium">
               {getResultMessage().message}
             </AlertDialogDescription>
           </AlertDialogHeader>
           
-          <div className="text-center space-y-2 my-3">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="text-2xl font-bold text-gray-900">{correctAnswers}</div>
-                <div className="text-xs font-medium text-gray-600">из {questions.length}</div>
+          <div className="text-center space-y-3 my-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-5 bg-gradient-to-br from-sage/10 to-sage/5 rounded-2xl border-2 border-sage/20 shadow-lg">
+                <div className="text-4xl font-bold bg-gradient-to-r from-gold to-sage bg-clip-text text-transparent">{correctAnswers}</div>
+                <div className="text-sm font-semibold text-navy/60 mt-1">из {questions.length}</div>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="text-2xl font-bold text-gray-900">{score}%</div>
-                <div className="text-xs font-medium text-gray-600">точность</div>
+              <div className="p-5 bg-gradient-to-br from-gold/10 to-gold/5 rounded-2xl border-2 border-gold/20 shadow-lg">
+                <div className="text-4xl font-bold bg-gradient-to-r from-gold to-sage bg-clip-text text-transparent">{score}%</div>
+                <div className="text-sm font-semibold text-navy/60 mt-1">точность</div>
               </div>
             </div>
           </div>
 
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+          <AlertDialogFooter className="flex-col sm:flex-row gap-3 pt-4">
             {correctAnswers < 3 && (
               <AlertDialogAction
                 onClick={handleRetry}
-                className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-4 py-2 text-sm"
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
               >
-                <RotateCcw className="w-4 h-4 mr-1" />
+                <RotateCcw className="w-4 h-4 mr-2" />
                 попробовать еще раз
               </AlertDialogAction>
             )}
@@ -619,13 +623,13 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                 
                 navigate('/ogemath');
               }}
-              className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 text-sm"
+              className="bg-gradient-to-r from-navy to-navy/80 hover:from-navy/90 hover:to-navy/70 text-white rounded-xl px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
             >
               💬 к ИИ ассистенту
             </AlertDialogAction>
             <AlertDialogAction 
               onClick={onBack}
-              className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white rounded-lg px-4 py-2 text-sm"
+              className="bg-gradient-to-r from-gold to-sage hover:from-gold/90 hover:to-sage/90 text-white rounded-xl px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
             >
               ← назад к модулю
             </AlertDialogAction>
