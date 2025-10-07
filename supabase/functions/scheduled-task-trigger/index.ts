@@ -31,7 +31,7 @@ Deno.serve(async (req)=>{
       console.log(`\n🔍 Checking user ${userId}`);
       try {
         // 1️⃣ Get most recent story
-        const { data: recentStory, error: storyError } = await supabase.from("stories_and_telegram").select("id, seen, created_at").eq("user_id", userId).order("created_at", {
+        const { data: recentStory, error: storyError } = await supabase.from("stories_and_telegram").select("upload_id, seen, created_at").eq("user_id", userId).order("created_at", {
           ascending: false
         }).limit(1).maybeSingle();
         if (storyError) {
@@ -59,7 +59,7 @@ Deno.serve(async (req)=>{
         if (recentStory.seen === 1 && noRecentActivity && noActivityAfterStory) {
           const { error: resetError } = await supabase.from("stories_and_telegram").update({
             seen: 0
-          }).eq("id", recentStory.id);
+          }).eq("upload_id", recentStory.upload_id);
           if (resetError) {
             console.error(`❌ Failed to reset seen for user ${userId}`, resetError);
           } else {
