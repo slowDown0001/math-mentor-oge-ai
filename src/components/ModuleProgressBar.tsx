@@ -95,21 +95,11 @@ export const ModuleProgressBar: React.FC<ModuleProgressBarProps> = ({
         );
       case 'proficient':
         return (
-          <div 
-            className="w-8 h-8 rounded" 
-            style={{ 
-              background: 'linear-gradient(to top, #f97316 0%, #f97316 33%, #e5e7eb 33%, #e5e7eb 100%)' 
-            }} 
-          />
+          <div className="w-8 h-8 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded" />
         );
       case 'familiar':
         return (
-          <div 
-            className="w-8 h-8 rounded" 
-            style={{ 
-              background: 'linear-gradient(to top, #f97316 0%, #f97316 20%, #e5e7eb 20%, #e5e7eb 100%)' 
-            }} 
-          />
+          <div className="w-8 h-8 rounded border border-gray-300 bg-[linear-gradient(to_top,theme(colors.orange.500)_20%,theme(colors.gray.200)_20%)]" />
         );
       case 'attempted':
         return (
