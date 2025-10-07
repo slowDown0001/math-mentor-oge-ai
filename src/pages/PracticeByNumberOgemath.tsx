@@ -12,7 +12,6 @@ import { Link } from "react-router-dom";
 import MathRenderer from "@/components/MathRenderer";
 import { useStreakTracking } from "@/hooks/useStreakTracking";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
-import { StreakRingAnimation } from "@/components/streak/StreakRingAnimation";
 import { awardStreakPoints, calculateStreakReward, getCurrentStreakData } from "@/services/streakPointsService";
 import { toast } from "sonner";
 import TestStatisticsWindow from "@/components/TestStatisticsWindow";
@@ -73,13 +72,7 @@ const PracticeByNumberOgemath = () => {
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [reviewQuestionIndex, setReviewQuestionIndex] = useState<number | null>(null);
   
-  // Streak animation state
-  const [showStreakAnimation, setShowStreakAnimation] = useState(false);
-  const [streakData, setStreakData] = useState({
-    currentMinutes: 0,
-    targetMinutes: 30,
-    addedMinutes: 0
-  });
+  // Removed streak animation popup state (no longer needed)
   
   // Auth required message state
   const [showAuthRequiredMessage, setShowAuthRequiredMessage] = useState(false);
@@ -496,17 +489,6 @@ const PracticeByNumberOgemath = () => {
 
       // Award streak points immediately (regardless of correctness)
       const reward = calculateStreakReward(currentQuestion.difficulty);
-      const currentStreakInfo = await getCurrentStreakData(user.id);
-      
-      if (currentStreakInfo) {
-        setStreakData({
-          currentMinutes: currentStreakInfo.todayMinutes,
-          targetMinutes: currentStreakInfo.goalMinutes,
-          addedMinutes: reward.minutes
-        });
-        setShowStreakAnimation(true);
-      }
-      
       await awardStreakPoints(user.id, reward);
       
       // Award energy points if correct (oge_math_fipi_bank table = 2 points)
@@ -1367,16 +1349,7 @@ const PracticeByNumberOgemath = () => {
         </div>
       </div>
 
-      {/* Streak Animation */}
-      {showStreakAnimation && (
-        <StreakRingAnimation
-          isVisible={showStreakAnimation}
-          onAnimationComplete={() => setShowStreakAnimation(false)}
-          currentMinutes={streakData.currentMinutes}
-          targetMinutes={streakData.targetMinutes}
-          addedMinutes={streakData.addedMinutes}
-        />
-      )}
+      {/* Streak Animation removed - energy points animation is now in header */}
 
       {/* Telegram Not Connected Dialog */}
       <Dialog open={showTelegramNotConnected} onOpenChange={setShowTelegramNotConnected}>

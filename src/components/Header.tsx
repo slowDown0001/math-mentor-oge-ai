@@ -1,15 +1,17 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, LogOut, User, BookOpen, ScanLine, Play, ClipboardList, Target, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "./auth/AuthModal";
 import { StreakDisplay } from "./streak/StreakDisplay";
+import { EnergyPointsHeaderAnimation } from "./streak/EnergyPointsHeaderAnimation";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [energyPointsAnimation, setEnergyPointsAnimation] = useState({ isVisible: false, points: 0 });
   const { user, signOut } = useAuth();
   const location = useLocation();
 
@@ -22,6 +24,16 @@ const Header = () => {
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  // Set up global trigger for energy points animation
+  React.useEffect(() => {
+    (window as any).triggerEnergyPointsAnimation = (points: number) => {
+      setEnergyPointsAnimation({ isVisible: true, points });
+    };
+    return () => {
+      delete (window as any).triggerEnergyPointsAnimation;
+    };
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md shadow-sm z-50">
@@ -123,7 +135,16 @@ const Header = () => {
 
           {/* Streak Display and Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
-            {user && <StreakDisplay />}
+            {user && (
+              <div className="relative">
+                <StreakDisplay />
+                <EnergyPointsHeaderAnimation
+                  points={energyPointsAnimation.points}
+                  isVisible={energyPointsAnimation.isVisible}
+                  onAnimationComplete={() => setEnergyPointsAnimation({ isVisible: false, points: 0 })}
+                />
+              </div>
+            )}
             
             {user ? (
               <div className="flex items-center space-x-2">
