@@ -1,17 +1,25 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Flag, Trophy, Medal, Calculator, BookOpen, Target, TrendingUp, LineChart, MapPin, Shapes, PieChart, Zap, Star, Info, Play, X, MessageCircle } from "lucide-react";
+import {
+  Calculator,
+  BookOpen,
+  Target,
+  TrendingUp,
+  LineChart,
+  MapPin,
+  Shapes,
+  PieChart,
+  Zap,
+  Star,
+  Info,
+  Play,
+  X,
+  MessageCircle,
+  Trophy,
+} from "lucide-react";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Send } from "lucide-react";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
-import ChatMessage from "@/components/chat/ChatMessage";
-import TypingIndicator from "@/components/chat/TypingIndicator";
-import { type Message } from "@/components/ChatSection";
-import { sendVideoAwareChatMessage } from "@/services/videoAwareChatService";
 
 interface UnitData {
   id: string;
@@ -24,28 +32,27 @@ interface UnitData {
   completedExercises: number;
   completedQuizzes: number;
   testCompleted: boolean;
-  exerciseData?: Array<{title: string; questions: number}>;
-  quizData?: Array<{title: string; questions: number}>;
-  examData?: {title: string; questions: number};
+  exerciseData?: Array<{ title: string; questions: number }>;
+  quizData?: Array<{ title: string; questions: number }>;
+  examData?: { title: string; questions: number };
 }
 
 const LearningPlatform = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [userInput, setUserInput] = useState("");
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
+  // Simulation popup state
+  const [isSimOpen, setIsSimOpen] = useState(false);
+
   // Video popup modal state
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<{ title: string; src: string } | null>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll anchor (kept in case you later add chat again)
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, isTyping]);
+  }, []);
 
   function openVideo(v: { title: string; src: string }) {
     setSelectedVideo(v);
@@ -54,28 +61,26 @@ const LearningPlatform = () => {
 
   function closeVideo() {
     setIsVideoModalOpen(false);
-    // ensure playback stops
     setTimeout(() => setSelectedVideo(null), 0);
   }
-  
-  // Sample videos array for demonstration
+
   const sampleVideos = [
     {
       title: "Демо видео платформы подготовки к ОГЭ математика",
       src: "https://vk.com/video_ext.php?oid=-232034222&id=456239025&hd=2&autoplay=1",
-      thumbnail: "/placeholder-video.jpg"
+      thumbnail: "/placeholder-video.jpg",
     },
     {
       title: "Введение в числа и вычисления",
       src: "https://vk.com/video_ext.php?oid=-232034222&id=456239026&hd=2&autoplay=1",
-      thumbnail: "/placeholder-video2.jpg"
-    }
+      thumbnail: "/placeholder-video2.jpg",
+    },
   ];
 
   const units: UnitData[] = [
     {
-      id: 'unit-1',
-      title: 'Числа и вычисления',
+      id: "unit-1",
+      title: "Числа и вычисления",
       icon: <Calculator className="h-5 w-5" />,
       exercises: 12,
       quizzes: 2,
@@ -85,28 +90,28 @@ const LearningPlatform = () => {
       completedQuizzes: 1,
       testCompleted: false,
       exerciseData: [
-        {title: "Упражнение 1: Основы натуральных и целых чисел", questions: 4},
-        {title: "Упражнение 2: Работа с числами", questions: 4},
-        {title: "Упражнение 1: Дроби", questions: 4},
-        {title: "Упражнение 2: Проценты", questions: 4},
-        {title: "Упражнение 3: Сложные дроби*", questions: 4},
-        {title: "Упражнение 1: Рациональные числа", questions: 4},
-        {title: "Упражнение 2: Арифметические действия", questions: 4},
-        {title: "Упражнение 3: Операции с рациональными числами", questions: 4},
-        {title: "Упражнение 1: Действительные числа", questions: 4},
-        {title: "Упражнение 2: Операции с действительными числами", questions: 4},
-        {title: "Упражнение 1: Приближённые вычисления", questions: 4},
-        {title: "Упражнение 2: Округление", questions: 4}
+        { title: "Упражнение 1: Основы натуральных и целых чисел", questions: 4 },
+        { title: "Упражнение 2: Работа с числами", questions: 4 },
+        { title: "Упражнение 1: Дроби", questions: 4 },
+        { title: "Упражнение 2: Проценты", questions: 4 },
+        { title: "Упражнение 3: Сложные дроби*", questions: 4 },
+        { title: "Упражнение 1: Рациональные числа", questions: 4 },
+        { title: "Упражнение 2: Арифметические действия", questions: 4 },
+        { title: "Упражнение 3: Операции с рациональными числами", questions: 4 },
+        { title: "Упражнение 1: Действительные числа", questions: 4 },
+        { title: "Упражнение 2: Операции с действительными числами", questions: 4 },
+        { title: "Упражнение 1: Приближённые вычисления", questions: 4 },
+        { title: "Упражнение 2: Округление", questions: 4 },
       ],
       quizData: [
-        {title: "Тест 1: Натуральные числа и дроби", questions: 6},
-        {title: "Тест 2: Рациональные и действительные числа", questions: 6}
+        { title: "Тест 1: Натуральные числа и дроби", questions: 6 },
+        { title: "Тест 2: Рациональные и действительные числа", questions: 6 },
       ],
-      examData: {title: "Итоговый тест модуля", questions: 10}
+      examData: { title: "Итоговый тест модуля", questions: 10 },
     },
     {
-      id: 'unit-2',
-      title: 'Алгебраические выражения',
+      id: "unit-2",
+      title: "Алгебраические выражения",
       icon: <BookOpen className="h-5 w-5" />,
       exercises: 6,
       quizzes: 1,
@@ -114,11 +119,11 @@ const LearningPlatform = () => {
       isUnlocked: true,
       completedExercises: 0,
       completedQuizzes: 0,
-      testCompleted: false
+      testCompleted: false,
     },
     {
-      id: 'unit-3',
-      title: 'Уравнения и неравенства',
+      id: "unit-3",
+      title: "Уравнения и неравенства",
       icon: <Target className="h-5 w-5" />,
       exercises: 9,
       quizzes: 2,
@@ -126,11 +131,11 @@ const LearningPlatform = () => {
       isUnlocked: true,
       completedExercises: 0,
       completedQuizzes: 0,
-      testCompleted: false
+      testCompleted: false,
     },
     {
-      id: 'unit-4',
-      title: 'Числовые последовательности',
+      id: "unit-4",
+      title: "Числовые последовательности",
       icon: <TrendingUp className="h-5 w-5" />,
       exercises: 5,
       quizzes: 1,
@@ -138,11 +143,11 @@ const LearningPlatform = () => {
       isUnlocked: true,
       completedExercises: 0,
       completedQuizzes: 0,
-      testCompleted: false
+      testCompleted: false,
     },
     {
-      id: 'unit-5',
-      title: 'Функции',
+      id: "unit-5",
+      title: "Функции",
       icon: <LineChart className="h-5 w-5" />,
       exercises: 7,
       quizzes: 2,
@@ -150,11 +155,11 @@ const LearningPlatform = () => {
       isUnlocked: true,
       completedExercises: 0,
       completedQuizzes: 0,
-      testCompleted: false
+      testCompleted: false,
     },
     {
-      id: 'unit-6',
-      title: 'Координаты на прямой и плоскости',
+      id: "unit-6",
+      title: "Координаты на прямой и плоскости",
       icon: <MapPin className="h-5 w-5" />,
       exercises: 6,
       quizzes: 1,
@@ -162,11 +167,11 @@ const LearningPlatform = () => {
       isUnlocked: true,
       completedExercises: 0,
       completedQuizzes: 0,
-      testCompleted: false
+      testCompleted: false,
     },
     {
-      id: 'unit-7',
-      title: 'Геометрия',
+      id: "unit-7",
+      title: "Геометрия",
       icon: <Shapes className="h-5 w-5" />,
       exercises: 10,
       quizzes: 3,
@@ -174,11 +179,11 @@ const LearningPlatform = () => {
       isUnlocked: true,
       completedExercises: 0,
       completedQuizzes: 0,
-      testCompleted: false
+      testCompleted: false,
     },
     {
-      id: 'unit-8',
-      title: 'Вероятность и статистика',
+      id: "unit-8",
+      title: "Вероятность и статистика",
       icon: <PieChart className="h-5 w-5" />,
       exercises: 5,
       quizzes: 1,
@@ -186,11 +191,11 @@ const LearningPlatform = () => {
       isUnlocked: false,
       completedExercises: 0,
       completedQuizzes: 0,
-      testCompleted: false
+      testCompleted: false,
     },
     {
-      id: 'unit-9',
-      title: 'Применение математики к прикладным задачам',
+      id: "unit-9",
+      title: "Применение математики к прикладным задачам",
       icon: <Zap className="h-5 w-5" />,
       exercises: 4,
       quizzes: 1,
@@ -198,30 +203,34 @@ const LearningPlatform = () => {
       isUnlocked: false,
       completedExercises: 0,
       completedQuizzes: 0,
-      testCompleted: false
-    }
+      testCompleted: false,
+    },
   ];
 
-  const renderProgressSquare = (completed: boolean, index: number, unitId: string, exerciseData?: Array<{title: string; questions: number}>) => (
+  const renderProgressSquare = (
+    completed: boolean,
+    index: number,
+    unitId: string,
+    exerciseData?: Array<{ title: string; questions: number }>
+  ) => (
     <div key={index} className="relative group">
       <div
-        className={`
-          w-8 h-8 rounded-lg border-2 transition-all duration-200 flex items-center justify-center cursor-pointer
-          ${completed 
-            ? 'bg-gradient-to-br from-green-400 to-green-600 border-green-500 shadow-lg' 
-            : 'bg-white border-gray-300 hover:border-orange-400 hover:shadow-md'
+        className={`w-8 h-8 rounded-lg border-2 transition-all duration-200 flex items-center justify-center cursor-pointer
+          ${
+            completed
+              ? "bg-gradient-to-br from-green-400 to-green-600 border-green-500 shadow-lg"
+              : "bg-white border-gray-300 hover:border-orange-400 hover:shadow-md"
           }
-          ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
-        `}
+          ${unitId === "unit-1" ? "hover:scale-110" : ""}`}
         onClick={() => {
-          if (unitId === 'unit-1') {
+          if (unitId === "unit-1") {
             window.location.href = `/practice-exercise?skill=${120 + index}&topic=numbers-calculations`;
           }
         }}
       >
         {completed && <Target className="h-4 w-4 text-white" />}
       </div>
-      {unitId === 'unit-1' && exerciseData && exerciseData[index] && (
+      {unitId === "unit-1" && exerciseData && exerciseData[index] && (
         <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
           {exerciseData[index].title} • {exerciseData[index].questions} вопроса
         </div>
@@ -229,30 +238,26 @@ const LearningPlatform = () => {
     </div>
   );
 
-  const renderQuizIcon = (completed: boolean, index: number, unitId: string, quizData?: Array<{title: string; questions: number}>) => (
+  const renderQuizIcon = (
+    completed: boolean,
+    index: number,
+    unitId: string,
+    quizData?: Array<{ title: string; questions: number }>
+  ) => (
     <div key={`quiz-${index}`} className="relative group">
       <div
-        className={`
-          w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer
-          ${completed 
-            ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg' 
-            : 'bg-gray-100 hover:bg-blue-50 hover:shadow-md'
-          }
-          ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
-        `}
+        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer
+          ${completed ? "bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg" : "bg-gray-100 hover:bg-blue-50 hover:shadow-md"}
+          ${unitId === "unit-1" ? "hover:scale-110" : ""}`}
         onClick={() => {
-          if (unitId === 'unit-1') {
+          if (unitId === "unit-1") {
             window.location.href = `/practice-exercise?skill=${120 + index}&topic=numbers-calculations`;
           }
         }}
       >
-        <Zap
-          className={`h-4 w-4 ${
-            completed ? 'text-white' : 'text-gray-400'
-          }`}
-        />
+        <Zap className={`h-4 w-4 ${completed ? "text-white" : "text-gray-400"}`} />
       </div>
-      {unitId === 'unit-1' && quizData && quizData[index] && (
+      {unitId === "unit-1" && quizData && quizData[index] && (
         <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
           {quizData[index].title} • {quizData[index].questions} вопросов
         </div>
@@ -260,30 +265,21 @@ const LearningPlatform = () => {
     </div>
   );
 
-  const renderTestIcon = (completed: boolean, unitId: string, examData?: {title: string; questions: number}) => (
+  const renderTestIcon = (completed: boolean, unitId: string, examData?: { title: string; questions: number }) => (
     <div className="relative group">
       <div
-        className={`
-          w-10 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer
-          ${completed 
-            ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-lg' 
-            : 'bg-gray-100 hover:bg-yellow-50 hover:shadow-md'
-          }
-          ${unitId === 'unit-1' ? 'hover:scale-110' : ''}
-        `}
+        className={`w-10 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer
+          ${completed ? "bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-lg" : "bg-gray-100 hover:bg-yellow-50 hover:shadow-md"}
+          ${unitId === "unit-1" ? "hover:scale-110" : ""}`}
         onClick={() => {
-          if (unitId === 'unit-1') {
-            window.location.href = '/diagnostic-test?course=ogemath';
+          if (unitId === "unit-1") {
+            window.location.href = "/diagnostic-test?course=ogemath";
           }
         }}
       >
-        <Star
-          className={`h-5 w-5 ${
-            completed ? 'text-white' : 'text-gray-400'
-          }`}
-        />
+        <Star className={`h-5 w-5 ${completed ? "text-white" : "text-gray-400"}`} />
       </div>
-      {unitId === 'unit-1' && examData && (
+      {unitId === "unit-1" && examData && (
         <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
           {examData.title} • {examData.questions} вопросов
         </div>
@@ -296,25 +292,20 @@ const LearningPlatform = () => {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.1 }}
-      className={`
-        p-6 rounded-xl border-2 mb-4 cursor-pointer transition-all duration-300 relative overflow-hidden
-        ${unit.isUnlocked 
-          ? 'bg-white/90 backdrop-blur-sm hover:bg-white border-white/50 hover:border-blue-300 hover:shadow-xl transform hover:-translate-y-1' 
-          : 'bg-gray-50/80 backdrop-blur-sm border-gray-200'
-        }
-      `}
+      className={`p-6 rounded-xl border-2 mb-4 cursor-pointer transition-all duration-300 relative overflow-hidden
+        ${unit.isUnlocked ? "bg-white/90 backdrop-blur-sm hover:bg-white border-white/50 hover:border-blue-300 hover:shadow-xl transform hover:-translate-y-1" : "bg-gray-50/80 backdrop-blur-sm border-gray-200"}`}
       onClick={() => {
         if (unit.isUnlocked) {
           const moduleRoutes = {
-            'unit-1': '/module/numbers-calculations',
-            'unit-2': '/module/algebraic-expressions',
-            'unit-3': '/module/equations-inequalities',
-            'unit-4': '/module/sequences',
-            'unit-5': '/module/functions',
-            'unit-6': '/module/coordinates',
-            'unit-7': '/module/geometry',
-            'unit-8': '/module/probability-statistics',
-            'unit-9': '/module/applied-math'
+            "unit-1": "/module/numbers-calculations",
+            "unit-2": "/module/algebraic-expressions",
+            "unit-3": "/module/equations-inequalities",
+            "unit-4": "/module/sequences",
+            "unit-5": "/module/functions",
+            "unit-6": "/module/coordinates",
+            "unit-7": "/module/geometry",
+            "unit-8": "/module/probability-statistics",
+            "unit-9": "/module/applied-math",
           };
           const route = moduleRoutes[unit.id as keyof typeof moduleRoutes];
           if (route) {
@@ -324,40 +315,31 @@ const LearningPlatform = () => {
       }}
     >
       {/* Gradient overlay for unlocked units */}
-      {unit.isUnlocked && (
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/20 to-purple-50/20 pointer-events-none" />
-      )}
-      
+      {unit.isUnlocked && <div className="absolute inset-0 bg-gradient-to-r from-blue-50/20 to-purple-50/20 pointer-events-none" />}
+
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <div className={`
-              p-3 rounded-xl shadow-md
-              ${unit.isUnlocked 
-                ? 'bg-gradient-to-br from-blue-100 to-purple-100 text-blue-600' 
-                : 'bg-gray-200 text-gray-500'
-              }
-            `}>
+            <div
+              className={`p-3 rounded-xl shadow-md
+              ${unit.isUnlocked ? "bg-gradient-to-br from-blue-100 to-purple-100 text-blue-600" : "bg-gray-200 text-gray-500"}`}
+            >
               {unit.icon}
             </div>
             <div>
-              <h3 className={`font-bold text-lg ${
-                unit.isUnlocked ? 'text-gray-800' : 'text-gray-500'
-              }`}>
-                {unit.title}
-              </h3>
+              <h3 className={`font-bold text-lg ${unit.isUnlocked ? "text-gray-800" : "text-gray-500"}`}>{unit.title}</h3>
               <p className="text-sm text-gray-500 mt-1">
                 {unit.exercises} упражнений • {unit.quizzes} тестов
               </p>
             </div>
           </div>
-          {unit.id === 'unit-1' && (
+          {unit.id === "unit-1" && (
             <div className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold rounded-full shadow-lg">
               СЛЕДУЮЩИЙ!
             </div>
           )}
         </div>
-        
+
         {/* Progress Section */}
         <div className="space-y-3">
           {/* Exercises Row */}
@@ -367,7 +349,7 @@ const LearningPlatform = () => {
               <span className="text-sm font-medium text-gray-600">Упражнения</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {Array.from({ length: unit.exercises }, (_, i) => 
+              {Array.from({ length: unit.exercises }, (_, i) =>
                 renderProgressSquare(i < unit.completedExercises, i, unit.id, unit.exerciseData)
               )}
             </div>
@@ -375,7 +357,7 @@ const LearningPlatform = () => {
               {unit.completedExercises}/{unit.exercises}
             </span>
           </div>
-          
+
           {/* Quizzes Row */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 min-w-[100px]">
@@ -383,15 +365,13 @@ const LearningPlatform = () => {
               <span className="text-sm font-medium text-gray-600">Тесты</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {Array.from({ length: unit.quizzes }, (_, i) => 
-                renderQuizIcon(i < unit.completedQuizzes, i, unit.id, unit.quizData)
-              )}
+              {Array.from({ length: unit.quizzes }, (_, i) => renderQuizIcon(i < unit.completedQuizzes, i, unit.id, unit.quizData))}
             </div>
             <span className="text-xs text-gray-500 ml-auto">
               {unit.completedQuizzes}/{unit.quizzes}
             </span>
           </div>
-          
+
           {/* Unit Test Row */}
           {unit.hasTest && (
             <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
@@ -399,12 +379,8 @@ const LearningPlatform = () => {
                 <Star className="h-4 w-4 text-gray-600" />
                 <span className="text-sm font-medium text-gray-600">Экзамен</span>
               </div>
-              <div className="flex items-center gap-2">
-                {renderTestIcon(unit.testCompleted, unit.id, unit.examData)}
-              </div>
-              <span className="text-xs text-gray-500 ml-auto">
-                {unit.testCompleted ? 'Завершен' : 'Не начат'}
-              </span>
+              <div className="flex items-center gap-2">{renderTestIcon(unit.testCompleted, unit.id, unit.examData)}</div>
+              <span className="text-xs text-gray-500 ml-auto">{unit.testCompleted ? "Завершен" : "Не начат"}</span>
             </div>
           )}
         </div>
@@ -421,8 +397,8 @@ const LearningPlatform = () => {
           <div className="absolute top-40 right-20 w-16 h-16 bg-pink-200 rounded-full opacity-40 animate-bounce"></div>
           <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-blue-200 rounded-full opacity-25 animate-pulse"></div>
           <div className="absolute top-1/3 right-1/3 w-12 h-12 bg-green-200 rounded-full opacity-35 animate-bounce"></div>
-          <div className="absolute bottom-40 right-10 w-18 h-18 bg-purple-200 rounded-full opacity-30 animate-pulse"></div>
-          
+          <div className="absolute bottom-40 right-10 w-[72px] h-[72px] bg-purple-200 rounded-full opacity-30 animate-pulse"></div>
+
           {/* Decorative Math Symbols */}
           <div className="absolute top-20 left-1/3 text-6xl text-blue-200 opacity-20 rotate-12">π</div>
           <div className="absolute top-1/2 right-20 text-5xl text-pink-200 opacity-20 -rotate-12">∑</div>
@@ -447,20 +423,15 @@ const LearningPlatform = () => {
           <div className="absolute top-1/6 right-2/3 text-4xl text-pink-200 opacity-15 rotate-65">×</div>
           <div className="absolute bottom-1/6 left-2/3 text-5xl text-green-200 opacity-17 -rotate-20">∝</div>
         </div>
-        
+
         <div className="container mx-auto px-4 py-6 relative z-10">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
-          >
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h1 className="text-3xl font-bold text-gray-800">
-                ОГЭ Математика 2025
-              </h1>
+              <h1 className="text-3xl font-bold text-gray-800">ОГЭ Математика 2025</h1>
               <div className="flex items-center gap-3">
                 <StreakDisplay />
+
                 <motion.a
                   href="/ogemath"
                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-full hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -470,6 +441,18 @@ const LearningPlatform = () => {
                   <MessageCircle className="h-5 w-5 mr-2" />
                   ОГЭ Чат
                 </motion.a>
+
+                {/* NEW: open simulation popup */}
+                <motion.button
+                  onClick={() => setIsSimOpen(true)}
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-full hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Play className="h-5 w-5 mr-2" />
+                  Симуляция НОД/НОК
+                </motion.button>
+
                 <motion.a
                   href="/textbook"
                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -481,7 +464,7 @@ const LearningPlatform = () => {
                 </motion.a>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
               <span className="font-medium">11,300 возможных баллов мастерства</span>
               <Tooltip>
@@ -527,40 +510,35 @@ const LearningPlatform = () => {
             </div>
           </motion.div>
 
+          {/* Sample Video Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {sampleVideos.map((video, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white rounded-lg p-4 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                onClick={() => openVideo(video)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openVideo(video);
+                  }
+                }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <Play className="h-6 w-6 text-blue-600" />
+                  <h3 className="text-lg font-bold text-gray-800">{video.title}</h3>
+                </div>
+                <p className="text-gray-600 text-sm">Нажмите для просмотра видео с интерактивным чатом</p>
+              </motion.div>
+            ))}
+          </div>
 
-        {/* Sample Video Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {sampleVideos.map((video, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-lg p-4 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
-              onClick={() => openVideo(video)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  openVideo(video);
-                }
-              }}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <Play className="h-6 w-6 text-blue-600" />
-                <h3 className="text-lg font-bold text-gray-800">
-                  {video.title}
-                </h3>
-              </div>
-              <p className="text-gray-600 text-sm">
-                Нажмите для просмотра видео с интерактивным чатом
-              </p>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Units Grid */}
+          {/* Units Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-6xl">
             {units.map((unit, index) => (
               <UnitRow key={unit.id} unit={unit} index={index} />
@@ -576,13 +554,9 @@ const LearningPlatform = () => {
           >
             <div className="flex items-center gap-3 mb-3">
               <Trophy className="h-6 w-6 text-purple-600" />
-              <h3 className="text-lg font-bold text-gray-800">
-                ИТОГОВЫЙ ВЫЗОВ
-              </h3>
+              <h3 className="text-lg font-bold text-gray-800">ИТОГОВЫЙ ВЫЗОВ</h3>
             </div>
-            <p className="text-gray-600 text-sm mb-4">
-              Проверь свои знания навыков этого курса.
-            </p>
+            <p className="text-gray-600 text-sm mb-4">Проверь свои знания навыков этого курса.</p>
             <motion.button
               className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-medium hover:from-purple-600 hover:to-purple-700 transition-all duration-300"
               whileHover={{ scale: 1.05 }}
@@ -591,8 +565,50 @@ const LearningPlatform = () => {
               Начать итоговый вызов
             </motion.button>
           </motion.div>
+
+          <div ref={messagesEndRef} />
         </div>
       </div>
+
+      {/* NEW: GCD/LCM Simulation Popup */}
+      <Dialog open={isSimOpen} onOpenChange={setIsSimOpen}>
+        <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden">
+          <div className="relative h-[80vh]">
+            <iframe
+              title="Симуляция НОД и НОК"
+              src="/simulations/gcd-lcm.html"
+              className="w-full h-full border-0"
+            />
+            <DialogClose asChild>
+              <button
+                className="absolute top-3 right-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 hover:bg-white shadow"
+                aria-label="Закрыть"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Simple Video Modal (optional, for your demo cards) */}
+      <Dialog open={isVideoModalOpen} onOpenChange={(open) => (open ? setIsVideoModalOpen(true) : closeVideo())}>
+        <DialogContent className="max-w-4xl w-[95vw] p-0 overflow-hidden">
+          {selectedVideo && (
+            <div className="relative h-[70vh]">
+              <iframe title={selectedVideo.title} src={selectedVideo.src} className="w-full h-full border-0" allow="autoplay" />
+              <DialogClose asChild>
+                <button
+                  className="absolute top-3 right-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 hover:bg-white shadow"
+                  aria-label="Закрыть"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </DialogClose>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </TooltipProvider>
   );
 };
