@@ -181,13 +181,18 @@ const TopicPage: React.FC = () => {
               {moduleEntry.title.replace(/^Модуль \d+:\s*/, "").replace(/Модуль/g, 'Урок')}
             </Link>
           </div>
-          <Button
-            onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 px-6"
-          >
-            <BookOpen className="h-5 w-5 mr-2" />
-            TEXTBOOK
-          </Button>
+          <div className="text-right">
+            <Button
+              onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
+              className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 px-6"
+            >
+              <BookOpen className="h-5 w-5 mr-2" />
+              УЧЕБНИК
+            </Button>
+            <p className="text-xs text-gray-200/80 mt-1">
+              Подробные объяснения с примерами для углубленного изучения
+            </p>
+          </div>
         </div>
 
         {/* Split layout */}
