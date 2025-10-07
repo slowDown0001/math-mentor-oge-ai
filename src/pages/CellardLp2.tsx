@@ -36,6 +36,13 @@ const CellardLp2: React.FC = () => {
   const p5InstanceRef = useRef<p5 | null>(null);
   const [modules, setModules] = useState<ModuleCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    solvedProblems: 0,
+    correctAnswers: 0,
+    studyTime: 0,
+    streak: 0
+  });
+  const [generalProgress, setGeneralProgress] = useState(0);
 
   const goToModule = (n: number) => {
     const moduleSlugMap: Record<number, string> = {
@@ -73,7 +80,7 @@ const CellardLp2: React.FC = () => {
       try {
         const { data: snapshot, error } = await supabase
           .from('mastery_snapshots')
-          .select('raw_data')
+          .select('*')
           .eq('user_id', user.id)
           .eq('course_id', '1')
           .order('run_timestamp', { ascending: false })
@@ -127,6 +134,27 @@ const CellardLp2: React.FC = () => {
         });
 
         setModules(modulesWithProgress);
+
+        // Extract stats from computed_summary (stats are nested inside)
+        if (snapshot.computed_summary) {
+          const summary = snapshot.computed_summary as any;
+          
+          // Set general progress
+          if (summary.general_progress !== undefined) {
+            setGeneralProgress(Math.round(summary.general_progress || 0));
+          }
+          
+          // Extract stats if available in the summary
+          if (summary.stats) {
+            const statsData = summary.stats;
+            setStats({
+              solvedProblems: statsData['Решено задач'] || 0,
+              correctAnswers: statsData['Правильных ответов'] || 0,
+              studyTime: statsData['Время обучения'] || 0,
+              streak: statsData['Дней подряд'] || 0
+            });
+          }
+        }
       } catch (err) {
         console.error('Error loading progress data:', err);
         setModules(moduleDefinitions.map(m => ({ ...m, progress: 0 })));
@@ -259,10 +287,12 @@ const CellardLp2: React.FC = () => {
   const completedCount = useMemo(() => modules.filter((m) => m.progress === 100).length, [modules]);
   
   const overallProgress = useMemo(() => {
+    // Use general_progress from computed_summary if available, otherwise calculate from modules
+    if (generalProgress > 0) return generalProgress;
     if (modules.length === 0) return 0;
     const totalProgress = modules.reduce((sum, m) => sum + m.progress, 0);
     return Math.round(totalProgress / modules.length);
-  }, [modules]);
+  }, [modules, generalProgress]);
 
   return (
     <div
@@ -442,10 +472,10 @@ const CellardLp2: React.FC = () => {
             <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6">
               <h3 className="font-display text-xl font-semibold mb-4 text-center">Статистика</h3>
               <div className="space-y-4">
-                <div className="flex justify-between"><span className="text-gray-300">Дней подряд</span><span className="font-bold text-yellow-500">5</span></div>
-                <div className="flex justify-between"><span className="text-gray-300">Решено задач</span><span className="font-bold text-emerald-500">127</span></div>
-                <div className="flex justify-between"><span className="text-gray-300">Правильных ответов</span><span className="font-bold text-yellow-500">89%</span></div>
-                <div className="flex justify-between"><span className="text-gray-300">Время обучения</span><span className="font-bold text-emerald-500">12ч 30м</span></div>
+                <div className="flex justify-between"><span className="text-gray-300">Дней подряд</span><span className="font-bold text-yellow-500">{stats.streak}</span></div>
+                <div className="flex justify-between"><span className="text-gray-300">Решено задач</span><span className="font-bold text-emerald-500">{stats.solvedProblems}</span></div>
+                <div className="flex justify-between"><span className="text-gray-300">Правильных ответов</span><span className="font-bold text-yellow-500">{stats.correctAnswers}%</span></div>
+                <div className="flex justify-between"><span className="text-gray-300">Время обучения</span><span className="font-bold text-emerald-500">{Math.floor(stats.studyTime)}ч {Math.round((stats.studyTime % 1) * 60)}м</span></div>
               </div>
             </div>
           </div>
