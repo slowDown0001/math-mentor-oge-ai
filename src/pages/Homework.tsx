@@ -1321,20 +1321,16 @@ const Homework = () => {
             </div>
           </motion.div>
           <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-purple-600" />
-                Прогресс выполнения
+            <CardContent className="py-4">
+              <div className="flex items-center gap-4">
+                <Target className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <Progress value={currentProgress} className="h-2" />
+                </div>
                 <Badge variant="secondary" className={questionType === 'mcq' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
                   {questionType === 'mcq' ? 'MCQ' : 'ФИПИ'}
                 </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Progress value={currentProgress} className="h-3 mb-2" />
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>{Math.min(currentQuestionIndex + 1, currentQuestions.length)} из {currentQuestions.length}</span>
-                <span>{completedQuestions.size} из {totalMCQ + totalFRQ} выполнено</span>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">{completedQuestions.size} из {totalMCQ + totalFRQ} выполнено</span>
               </div>
             </CardContent>
           </Card>
