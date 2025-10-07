@@ -959,7 +959,7 @@ const Homework = () => {
   // --------------------- RENDER ---------------------
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
+      <div className="min-h-screen text-white relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
         <FlyingMathBackground />
         <div className="pt-20 px-4">
           <div className="max-w-2xl mx-auto text-center">
@@ -972,7 +972,7 @@ const Homework = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
+      <div className="min-h-screen text-white relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
         <FlyingMathBackground />
         <div className="pt-20 px-4">
           <div className="max-w-2xl mx-auto text-center">
@@ -986,7 +986,7 @@ const Homework = () => {
 
   if (!homeworkData || (!homeworkData.mcq_questions?.length && !homeworkData.fipi_questions?.length)) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
+      <div className="min-h-screen text-white relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
         <FlyingMathBackground />
         <div className="bg-white shadow-sm border-b">
           <div className="container mx-auto px-4 py-3">
@@ -1025,7 +1025,7 @@ const Homework = () => {
 
   if (loadingQuestions) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
+      <div className="min-h-screen text-white relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
         <FlyingMathBackground />
         <div className="pt-20 px-4">
           <div className="max-w-2xl mx-auto text-center">
@@ -1046,8 +1046,8 @@ const Homework = () => {
     return (
       <>
         <FlyingMathBackground />
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4 md:p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <div className="min-h-screen text-white relative p-4 md:p-8" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
+          <div className="max-w-7xl mx-auto space-y-6 relative z-10">
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl">Результаты домашнего задания</CardTitle>
@@ -1210,9 +1210,9 @@ const Homework = () => {
   const currentProgress = (completedQuestions.size / (totalMCQ + totalFRQ || 1)) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
+    <div className="min-h-screen text-white relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
       <FlyingMathBackground />
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-sm border-b relative z-20">
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             <Button
