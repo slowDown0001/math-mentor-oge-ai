@@ -26,6 +26,7 @@ export const DailyTaskStory = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [tutorName, setTutorName] = useState('AI Tutor');
   const [task, setTask] = useState('');
   const [storyId, setStoryId] = useState<number | null>(null);
   const [seen, setSeen] = useState(1);
@@ -38,10 +39,10 @@ export const DailyTaskStory = () => {
       if (!user) return;
       
       try {
-        // Fetch avatar from profiles
+        // Fetch avatar and tutor name from profiles
         const { data: profile } = await supabase
           .from('profiles')
-          .select('tutor_avatar_url')
+          .select('tutor_avatar_url, tutor_name')
           .eq('user_id', user.id)
           .single();
 
@@ -50,6 +51,10 @@ export const DailyTaskStory = () => {
         } else {
           // Use a default avatar URL if none exists
           setAvatarUrl('https://api.dicebear.com/7.x/avataaars/svg?seed=tutor');
+        }
+
+        if (profile?.tutor_name) {
+          setTutorName(profile.tutor_name);
         }
 
         // Fetch latest story for this user
@@ -141,7 +146,7 @@ export const DailyTaskStory = () => {
           <div className="w-full h-full rounded-full overflow-hidden bg-background">
             <img
               src={avatarUrl}
-              alt="AI Tutor Avatar"
+              alt={`${tutorName} Avatar`}
               className="w-full h-full object-cover"
             />
           </div>
@@ -157,11 +162,11 @@ export const DailyTaskStory = () => {
               <div className="w-12 h-12 rounded-full overflow-hidden">
                 <img
                   src={avatarUrl}
-                  alt="AI Tutor Avatar"
+                  alt={`${tutorName} Avatar`}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className="font-semibold text-foreground text-lg">AI Tutor</span>
+              <span className="font-semibold text-foreground text-lg">{tutorName}</span>
               
               {/* Close button */}
               <button
@@ -172,8 +177,11 @@ export const DailyTaskStory = () => {
               </button>
             </div>
 
-            {/* Navigation Buttons */}
+            {/* Work for Today Section */}
             <div className="flex-shrink-0 p-6 border-b border-border/20">
+              <h2 className="text-xl font-bold text-center mb-4 text-foreground">
+                Работа на сегодня
+              </h2>
               <div className="flex flex-wrap gap-3 justify-center">
                 {/* Повторить Dropdown - Only show if there are failed topics */}
                 {failedTopics.length > 0 && (
@@ -262,8 +270,11 @@ export const DailyTaskStory = () => {
               </div>
             </div>
 
-            {/* Task Content with Scroll */}
+            {/* Detailed Feedback Section */}
             <div className="flex-1 overflow-y-auto p-6">
+              <h2 className="text-xl font-bold mb-4 text-foreground">
+                Подробная обратная связь от AI-преподавателя
+              </h2>
               <div className="max-w-none prose prose-lg dark:prose-invert">
                 <ChatRenderer2 
                   text={task || 'У вас пока нет новых заданий. Продолжайте практиковаться!'} 
