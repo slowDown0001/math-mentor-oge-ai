@@ -74,7 +74,7 @@ const ModulePage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Column - Learn */}
         <div>
-          <h4 className="text-sm font-medium text-gray-600 mb-3 uppercase tracking-wide">Learn</h4>
+          <h4 className="text-sm font-medium text-gray-600 mb-3 uppercase tracking-wide">Изучение</h4>
           <div className="space-y-3">
             {/* Videos */}
             {Array.from({ length: topic.videos }, (_, i) => (
@@ -153,7 +153,7 @@ const ModulePage = () => {
 
         {/* Right Column - Practice */}
         <div>
-          <h4 className="text-sm font-medium text-gray-600 mb-3 uppercase tracking-wide">Practice</h4>
+          <h4 className="text-sm font-medium text-gray-600 mb-3 uppercase tracking-wide">Практика</h4>
           <div className="space-y-3">
             {Array.from({ length: topic.exercises }, (_, i) => {
               const exerciseData = module.getExerciseData
