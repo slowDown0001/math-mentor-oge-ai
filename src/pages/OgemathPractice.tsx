@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, Hash, RefreshCw } from "lucide-react";
 import { useState } from "react";
+import FlyingMathBackground from "@/components/FlyingMathBackground";
 
 const OgemathPractice = () => {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
@@ -55,24 +56,8 @@ const OgemathPractice = () => {
     <div className="min-h-screen relative overflow-hidden" style={{
       background: 'linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)'
     }}>
-      {/* Floating Math Symbols Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {['∑', '∫', 'π', '∞', 'Σ', '√', '∆', 'θ'].map((symbol, i) => (
-          <div
-            key={i}
-            className="absolute text-6xl font-mono opacity-5 text-white animate-math-fade-in"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${i * 0.5}s`,
-              animationDuration: `${3 + Math.random() * 2}s`,
-              transform: `rotate(${Math.random() * 360}deg)`
-            }}
-          >
-            {symbol}
-          </div>
-        ))}
-      </div>
+      {/* Flying Math Symbols Background */}
+      <FlyingMathBackground />
 
       {/* Navigation Bar */}
       <div className="relative z-10 backdrop-blur-md bg-white/5 border-b border-white/10">
