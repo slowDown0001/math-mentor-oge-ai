@@ -8,8 +8,7 @@ const FlyingMathBackground: React.FC = () => {
   return (
     <div
       ref={parentRef}
-      className="absolute inset-0 pointer-events-none"
-      style={{ zIndex: 0 }}
+      className="fixed inset-0 z-0 pointer-events-none"
       aria-hidden="true"
     />
   );
