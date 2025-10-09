@@ -4,11 +4,14 @@ import { Outlet, useNavigate, Link } from "react-router-dom";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
 import { EnergyPointsHeaderAnimation } from "@/components/streak/EnergyPointsHeaderAnimation";
 import { DailyTaskStory } from "@/components/DailyTaskStory";
+import { ChevronDown } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
 
 
 
 const LearningLayout: React.FC = () => {
   const navigate = useNavigate();
+  const { profile } = useProfile();
   const startMock = () => navigate("/practice-now");
   
   const [energyPointsAnimation, setEnergyPointsAnimation] = useState({ isVisible: false, points: 0 });
@@ -57,8 +60,9 @@ const LearningLayout: React.FC = () => {
                 onAnimationComplete={() => setEnergyPointsAnimation({ isVisible: false, points: 0 })}
               />
             </div>
-            <button onClick={startMock} className="bg-yellow-500 text-[#1a1f36] px-4 py-2 rounded-lg hover:bg-yellow-400 font-medium">
-              Экзамен
+            <button onClick={startMock} className="bg-yellow-500 text-[#1a1f36] px-4 py-2 rounded-lg hover:bg-yellow-400 font-medium flex items-center gap-2">
+              {profile?.full_name || 'Пользователь'}
+              <ChevronDown size={16} />
             </button>
           </div>
         </div>
