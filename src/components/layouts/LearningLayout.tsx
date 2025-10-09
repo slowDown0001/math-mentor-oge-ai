@@ -43,7 +43,7 @@ const LearningLayout: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
-              src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png" 
+              src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/167bd930-0ea0-439a-bab1-5e561f369bac.png" 
               alt="Logo"
               className="w-10 h-10 rounded-lg"
             />
