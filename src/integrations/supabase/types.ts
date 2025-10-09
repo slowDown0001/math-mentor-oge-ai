@@ -1764,6 +1764,8 @@ export type Database = {
           testmark2: number | null
           testmark3: number | null
           tutor_avatar_url: string | null
+          tutor_id: string | null
+          tutor_name: string | null
           updated_at: string
           user_id: string
         }
@@ -1793,6 +1795,8 @@ export type Database = {
           testmark2?: number | null
           testmark3?: number | null
           tutor_avatar_url?: string | null
+          tutor_id?: string | null
+          tutor_name?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1822,6 +1826,8 @@ export type Database = {
           testmark2?: number | null
           testmark3?: number | null
           tutor_avatar_url?: string | null
+          tutor_id?: string | null
+          tutor_name?: string | null
           updated_at?: string
           user_id?: string
         }
