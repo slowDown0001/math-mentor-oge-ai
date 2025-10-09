@@ -52,7 +52,7 @@ const DropdownMenu = ({ title, items, isOpen, onToggle }: DropdownMenuProps) => 
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={onToggle}
-        className="flex items-center gap-1 px-3 py-2 text-foreground hover:text-primary transition-colors duration-200"
+        className="flex items-center gap-1 px-3 py-2 text-white hover:text-yellow-400 transition-colors duration-200"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
@@ -145,8 +145,8 @@ export default function LandingHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/10 backdrop-blur supports-[backdrop-filter]:bg-white/5">
+      <nav className="container mx-auto px-4 h-16 flex items-center justify-between text-white">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-3">
           <img 
@@ -154,7 +154,7 @@ export default function LandingHeader() {
             alt="EGEChat Logo" 
             className="w-12 h-12"
           />
-          <span className="font-bold text-xl text-foreground">EGEChat</span>
+          <span className="font-bold text-xl text-white">EGEChat</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -177,14 +177,14 @@ export default function LandingHeader() {
 
           <Link
             to="/about"
-            className="text-foreground hover:text-primary transition-colors duration-200"
+            className="text-white hover:text-yellow-400 transition-colors duration-200"
           >
             О Платформе
           </Link>
 
           <Link
             to="/faq"
-            className="text-foreground hover:text-primary transition-colors duration-200"
+            className="text-white hover:text-yellow-400 transition-colors duration-200"
           >
             FAQ
           </Link>
