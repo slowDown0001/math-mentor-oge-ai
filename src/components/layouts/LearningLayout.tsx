@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import FlyingMathBackground from "@/components/FlyingMathBackground";
-import { Outlet, useNavigate, Link } from "react-router-dom";
+import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
 import { EnergyPointsHeaderAnimation } from "@/components/streak/EnergyPointsHeaderAnimation";
 import { DailyTaskStory } from "@/components/DailyTaskStory";
 import { ChevronDown } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
+import { getCourseFromRoute } from "@/lib/courses.registry";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +19,11 @@ import {
 
 const LearningLayout: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile } = useProfile();
+  
+  // Detect current course from route
+  const currentCourse = getCourseFromRoute(location.pathname);
   
   const [energyPointsAnimation, setEnergyPointsAnimation] = useState({ isVisible: false, points: 0 });
 
@@ -53,13 +58,18 @@ const LearningLayout: React.FC = () => {
               alt="Logo"
               className="w-12 h-12 rounded-lg"
             />
-            <Link 
-              to="/ogemath" 
-              className="font-display text-xl font-semibold text-white hover:text-yellow-500 transition-colors"
-            >
-              Математика ОГЭ
-            </Link>
-
+            {currentCourse ? (
+              <Link 
+                to={currentCourse.homeRoute} 
+                className="font-display text-xl font-semibold text-white hover:text-yellow-500 transition-colors"
+              >
+                {currentCourse.title}
+              </Link>
+            ) : (
+              <span className="font-display text-xl font-semibold text-white">
+                Платформа обучения
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-6 ml-auto">
             <DailyTaskStory />
