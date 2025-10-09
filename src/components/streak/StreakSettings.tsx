@@ -8,7 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { Target, Clock, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { BADGE_CATEGORIES, getBadgeForPoints, getPointsLabel } from '@/utils/streakBadges';
+import { GOAL_BADGE_CATEGORIES, getBadgeForGoal, getPointsLabel } from '@/utils/streakBadges';
 
 export const StreakSettings = () => {
   const { user } = useAuth();
@@ -57,7 +57,7 @@ export const StreakSettings = () => {
       if (error) throw error;
 
       setSelectedGoal(points);
-      const badge = getBadgeForPoints(points);
+      const badge = getBadgeForGoal(points);
       toast({
         title: "Цель обновлена!",
         description: `Ваша недельная цель установлена на ${points} ${getPointsLabel(points)}. Вы в категории ${badge.emoji} ${badge.name}!`,
@@ -74,7 +74,7 @@ export const StreakSettings = () => {
     }
   };
 
-  const currentBadge = getBadgeForPoints(selectedGoal);
+  const currentBadge = getBadgeForGoal(selectedGoal);
 
   return (
     <Card className="p-6">
@@ -124,7 +124,7 @@ export const StreakSettings = () => {
             
             {/* Visual threshold markers */}
             <div className="relative w-full h-6 mt-1">
-              {BADGE_CATEGORIES.map((badge, index) => {
+              {GOAL_BADGE_CATEGORIES.map((badge, index) => {
                 const position = ((badge.minPoints - 10) / (1000 - 10)) * 100;
                 return (
                   <div
@@ -147,7 +147,7 @@ export const StreakSettings = () => {
           
           {/* Badge categories legend */}
           <div className="grid grid-cols-2 gap-2 mt-4 p-3 bg-muted/30 rounded-lg">
-            {BADGE_CATEGORIES.map((badge) => (
+            {GOAL_BADGE_CATEGORIES.map((badge) => (
               <div 
                 key={badge.name} 
                 className={`flex items-center gap-2 text-xs p-2 rounded ${

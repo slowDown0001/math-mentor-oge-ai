@@ -14,6 +14,7 @@ interface StreakData {
   todayProgress: number;
   currentStreak: number;
   energyPoints: number;
+  earnedEnergyPoints: number; // Actual earned points from user_statistics
 }
 
 export const StreakDisplay = () => {
@@ -24,7 +25,8 @@ export const StreakDisplay = () => {
     dailyGoalMinutes: 30,
     todayProgress: 0,
     currentStreak: 0,
-    energyPoints: 0
+    energyPoints: 0,
+    earnedEnergyPoints: 0
   });
   const [showCelebration, setShowCelebration] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -74,11 +76,19 @@ export const StreakDisplay = () => {
       // Get current energy points
       const currentEnergyPoints = await getCurrentEnergyPoints(user.id);
       
+      // Get earned energy points from user_statistics
+      const { data: userStats } = await supabase
+        .from('user_statistics')
+        .select('energy_points')
+        .eq('user_id', user.id)
+        .single();
+      
       setStreakData({
         dailyGoalMinutes: goalMinutes,
         todayProgress,
         currentStreak: streakInfo?.current_streak || 0,
-        energyPoints: currentEnergyPoints
+        energyPoints: currentEnergyPoints,
+        earnedEnergyPoints: userStats?.energy_points || 0
       });
 
       // Show celebration if goal is reached
@@ -97,7 +107,7 @@ export const StreakDisplay = () => {
   const progressPercentage = Math.min((timeProgress * 0.6 + energyProgress * 0.4), 100);
   const isCompleted = progressPercentage >= 100;
   
-  const currentBadge = getBadgeForPoints(streakData.dailyGoalMinutes);
+  const earnedBadge = getBadgeForPoints(streakData.earnedEnergyPoints);
 
   // Method to trigger energy points animation and update progress
   const triggerEnergyPointsAnimation = async (points: number) => {
@@ -195,9 +205,14 @@ export const StreakDisplay = () => {
             <div className="flex items-center justify-between p-2 bg-primary/10 rounded-lg">
               <span className="text-sm font-medium text-foreground">Ваш уровень</span>
               <div className="flex items-center gap-2">
-                <span className="text-xl">{currentBadge.emoji}</span>
-                <span className="text-sm font-semibold text-primary">{currentBadge.name}</span>
+                <span className="text-xl">{earnedBadge.emoji}</span>
+                <span className="text-sm font-semibold text-primary">{earnedBadge.name}</span>
               </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">Заработано очков</span>
+              <span className="text-sm text-muted-foreground">{streakData.earnedEnergyPoints} {getPointsLabel(streakData.earnedEnergyPoints)}</span>
             </div>
             
             <div className="flex items-center justify-between">

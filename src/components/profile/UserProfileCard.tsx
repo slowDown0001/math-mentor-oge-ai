@@ -44,28 +44,28 @@ export const UserProfileCard = ({ userName, userEmail, joinedDate, userData }: U
   const [isEditing, setIsEditing] = useState(false);
   const { profile, updateProfile, getDisplayName, getAvatarUrl } = useProfile();
   const { user } = useAuth();
-  const [dailyGoal, setDailyGoal] = useState(0);
+  const [energyPoints, setEnergyPoints] = useState(0);
 
   useEffect(() => {
-    const fetchDailyGoal = async () => {
+    const fetchEnergyPoints = async () => {
       if (!user) return;
       
       try {
         const { data } = await supabase
-          .from('user_streaks')
-          .select('daily_goal_minutes')
+          .from('user_statistics')
+          .select('energy_points')
           .eq('user_id', user.id)
           .single();
         
         if (data) {
-          setDailyGoal(data.daily_goal_minutes);
+          setEnergyPoints(data.energy_points);
         }
       } catch (error) {
-        console.error('Error fetching daily goal:', error);
+        console.error('Error fetching energy points:', error);
       }
     };
     
-    fetchDailyGoal();
+    fetchEnergyPoints();
   }, [user]);
 
   const handleSaveProfile = (newProfile: Profile) => {
@@ -75,7 +75,7 @@ export const UserProfileCard = ({ userName, userEmail, joinedDate, userData }: U
 
   const displayName = getDisplayName();
   const avatarUrl = getAvatarUrl();
-  const currentBadge = getBadgeForPoints(dailyGoal);
+  const earnedBadge = getBadgeForPoints(energyPoints);
 
   if (isEditing) {
     return (
@@ -103,12 +103,10 @@ export const UserProfileCard = ({ userName, userEmail, joinedDate, userData }: U
         </div>
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold text-gray-800">{userName}</h1>
-          {dailyGoal > 0 && (
-            <div className="flex items-center gap-1 px-2 py-1 bg-primary/10 rounded-full">
-              <span className="text-xl">{currentBadge.emoji}</span>
-              <span className="text-xs font-semibold text-primary">{currentBadge.name}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1 px-2 py-1 bg-primary/10 rounded-full">
+            <span className="text-xl">{earnedBadge.emoji}</span>
+            <span className="text-xs font-semibold text-primary">{earnedBadge.name}</span>
+          </div>
         </div>
         <p className="text-gray-600">{userEmail}</p>
         {profile?.bio && (
