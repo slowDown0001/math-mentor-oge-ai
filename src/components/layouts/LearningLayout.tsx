@@ -34,9 +34,11 @@ const LearningLayout: React.FC = () => {
       <nav className="fixed top-0 w-full z-30 backdrop-blur-lg bg-[#1a1f36]/80 border-b border-yellow-500/20">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded-lg flex items-center justify-center">
-              <span className="text-[#1a1f36] font-bold text-xl">M</span>
-            </div>
+            <img 
+              src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png" 
+              alt="Logo"
+              className="w-10 h-10 rounded-lg"
+            />
             <Link 
               to="/ogemath" 
               className="font-display text-xl font-semibold text-white hover:text-yellow-500 transition-colors"
