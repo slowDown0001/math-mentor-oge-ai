@@ -2,15 +2,11 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { BookOpen, Target } from "lucide-react";
-import FloatingElements from "./FloatingElements";
 import PromptBar from "../PromptBar";
 
 export default function LandingHero() {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-      {/* Floating Math Elements */}
-      <FloatingElements />
-      
       {/* Main Content */}
       <div className="container mx-auto px-4 py-20 relative z-10 bg-transparent">
         <div className="max-w-4xl mx-auto text-center p-8 rounded-2xl shadow-lg" style={{ backgroundColor: 'rgba(248, 250, 252, 0.95)' }}>
