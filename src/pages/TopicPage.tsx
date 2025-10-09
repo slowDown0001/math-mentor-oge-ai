@@ -188,15 +188,10 @@ const TopicPage: React.FC = () => {
           </div>
           <Button
             onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
-            className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-4 h-auto flex flex-col items-center gap-1"
+            className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            <div className="flex items-center">
-              <BookOpen className="h-5 w-5 mr-2" />
-              УЧЕБНИК
-            </div>
-            <p className="text-xs font-normal leading-tight">
-              Подробные объяснения с примерами для углубленного изучения
-            </p>
+            <BookOpen className="h-4 w-4 mr-2" />
+            УЧЕБНИК
           </Button>
         </div>
 
