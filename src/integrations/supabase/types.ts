@@ -965,6 +965,7 @@ export type Database = {
           id: number
           raw_data: Json
           run_timestamp: string
+          stats: Json | null
           user_id: string
         }
         Insert: {
@@ -973,6 +974,7 @@ export type Database = {
           id?: number
           raw_data: Json
           run_timestamp?: string
+          stats?: Json | null
           user_id: string
         }
         Update: {
@@ -981,6 +983,7 @@ export type Database = {
           id?: number
           raw_data?: Json
           run_timestamp?: string
+          stats?: Json | null
           user_id?: string
         }
         Relationships: [
@@ -2745,33 +2748,39 @@ export type Database = {
           completed_lessons: number
           created_at: string
           energy_points: number
+          energy_points_history: Json | null
           id: string
           practice_problems: number
           quizzes_completed: number
           updated_at: string
           user_id: string
+          weekly_goal_set_at: string | null
         }
         Insert: {
           average_score?: number
           completed_lessons?: number
           created_at?: string
           energy_points?: number
+          energy_points_history?: Json | null
           id?: string
           practice_problems?: number
           quizzes_completed?: number
           updated_at?: string
           user_id: string
+          weekly_goal_set_at?: string | null
         }
         Update: {
           average_score?: number
           completed_lessons?: number
           created_at?: string
           energy_points?: number
+          energy_points_history?: Json | null
           id?: string
           practice_problems?: number
           quizzes_completed?: number
           updated_at?: string
           user_id?: string
+          weekly_goal_set_at?: string | null
         }
         Relationships: []
       }

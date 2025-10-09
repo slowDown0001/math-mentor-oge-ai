@@ -33,3 +33,7 @@ timeout = 120
 [functions.boost-low-mastery-skills]
 verify_jwt = true
 timeout = 60
+
+[functions.weekly-energy-points-reset]
+verify_jwt = false
+timeout = 120

@@ -10,7 +10,7 @@ import { getCurrentEnergyPoints } from '@/services/energyPoints';
 import { getBadgeForPoints, getPointsLabel } from '@/utils/streakBadges';
 
 interface StreakData {
-  dailyGoalMinutes: number;
+  weeklyGoalPoints: number;
   todayProgress: number;
   currentStreak: number;
   energyPoints: number;
@@ -22,7 +22,7 @@ export const StreakDisplay = () => {
   const navigate = useNavigate();
   const { getAvatarUrl, getDisplayName } = useProfile();
   const [streakData, setStreakData] = useState<StreakData>({
-    dailyGoalMinutes: 30,
+    weeklyGoalPoints: 60,
     todayProgress: 0,
     currentStreak: 0,
     energyPoints: 0,
@@ -55,14 +55,14 @@ export const StreakDisplay = () => {
     if (!user) return;
 
     try {
-      // Get user streak preferences
+      // Get user streak preferences (weekly goal points)
       const { data: streakInfo } = await supabase
         .from('user_streaks')
         .select('daily_goal_minutes, current_streak')
         .eq('user_id', user.id)
         .single();
 
-      // Get today's activities
+      // Get today's activities for display
       const today = new Date().toISOString().split('T')[0];
       const { data: todayActivities } = await supabase
         .from('daily_activities')
@@ -71,28 +71,21 @@ export const StreakDisplay = () => {
         .eq('activity_date', today);
 
       const todayProgress = todayActivities?.reduce((sum, activity) => sum + (activity.duration_minutes || 0), 0) || 0;
-      const goalMinutes = streakInfo?.daily_goal_minutes || 30;
+      const weeklyGoalPoints = streakInfo?.daily_goal_minutes || 60;
       
-      // Get current energy points
+      // Get current energy points from user_statistics
       const currentEnergyPoints = await getCurrentEnergyPoints(user.id);
       
-      // Get earned energy points from user_statistics
-      const { data: userStats } = await supabase
-        .from('user_statistics')
-        .select('energy_points')
-        .eq('user_id', user.id)
-        .single();
-      
       setStreakData({
-        dailyGoalMinutes: goalMinutes,
+        weeklyGoalPoints,
         todayProgress,
         currentStreak: streakInfo?.current_streak || 0,
         energyPoints: currentEnergyPoints,
-        earnedEnergyPoints: userStats?.energy_points || 0
+        earnedEnergyPoints: currentEnergyPoints
       });
 
-      // Show celebration if goal is reached
-      if (todayProgress >= goalMinutes && todayProgress > 0) {
+      // Show celebration if weekly goal is reached
+      if (currentEnergyPoints >= weeklyGoalPoints && weeklyGoalPoints > 0) {
         setShowCelebration(true);
         setTimeout(() => setShowCelebration(false), 3000);
       }
@@ -101,10 +94,10 @@ export const StreakDisplay = () => {
     }
   };
 
-  // Calculate progress based on both time and energy points (weighted)
-  const timeProgress = (streakData.todayProgress / streakData.dailyGoalMinutes) * 100;
-  const energyProgress = Math.min((streakData.energyPoints / 500) * 100, 100); // 500 points = 100%
-  const progressPercentage = Math.min((timeProgress * 0.6 + energyProgress * 0.4), 100);
+  // Calculate progress: energy points / weekly goal
+  const progressPercentage = streakData.weeklyGoalPoints > 0 
+    ? Math.min((streakData.energyPoints / streakData.weeklyGoalPoints) * 100, 100)
+    : 0;
   const isCompleted = progressPercentage >= 100;
   
   const earnedBadge = getBadgeForPoints(streakData.earnedEnergyPoints);
@@ -222,17 +215,12 @@ export const StreakDisplay = () => {
             
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Недельная цель</span>
-              <span className="text-sm text-muted-foreground">{streakData.dailyGoalMinutes} {getPointsLabel(streakData.dailyGoalMinutes)}</span>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-foreground">Занятия на неделе</span>
-              <span className="text-sm text-muted-foreground">{Math.round(streakData.todayProgress)} {getPointsLabel(Math.round(streakData.todayProgress))}</span>
+              <span className="text-sm text-muted-foreground">{streakData.weeklyGoalPoints} {getPointsLabel(streakData.weeklyGoalPoints)}</span>
             </div>
             
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Энергетические очки</span>
-              <span className="text-sm text-muted-foreground">{streakData.energyPoints}</span>
+              <span className="text-sm text-muted-foreground">{streakData.energyPoints} / {streakData.weeklyGoalPoints}</span>
             </div>
             
             <div className="pt-2 border-t border-border">
@@ -248,7 +236,7 @@ export const StreakDisplay = () => {
               </div>
               {isCompleted && (
                 <div className="text-xs text-primary font-medium mt-2">
-                  ✓ Цель на сегодня выполнена!
+                  ✓ Недельная цель выполнена!
                 </div>
               )}
             </div>

@@ -45,7 +45,8 @@ export const StreakSettings = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
+      // Update user_streaks
+      const { error: streakError } = await supabase
         .from('user_streaks')
         .upsert({
           user_id: user.id,
@@ -54,7 +55,20 @@ export const StreakSettings = () => {
           onConflict: 'user_id'
         });
 
-      if (error) throw error;
+      if (streakError) throw streakError;
+
+      // Update user_statistics to set weekly_goal_set_at
+      const { error: statsError } = await supabase
+        .from('user_statistics')
+        .upsert({
+          user_id: user.id,
+          weekly_goal_set_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (statsError) throw statsError;
 
       setSelectedGoal(points);
       const badge = getBadgeForGoal(points);
