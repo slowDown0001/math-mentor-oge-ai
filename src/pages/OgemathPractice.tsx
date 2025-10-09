@@ -59,21 +59,6 @@ const OgemathPractice = () => {
       {/* Flying Math Symbols Background */}
       <FlyingMathBackground />
 
-      {/* Navigation Bar */}
-      <div className="relative z-10 backdrop-blur-md bg-white/5 border-b border-white/10">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-start">
-            <Link to="/ogemath">
-              <Button 
-                className="bg-gradient-to-r from-gold to-amber-600 hover:from-amber-600 hover:to-gold text-navy shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-semibold"
-              >
-                Назад
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-
       <div className="relative z-10 pt-12 pb-16 container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
