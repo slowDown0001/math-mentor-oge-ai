@@ -169,7 +169,7 @@ export default function LandingHeader() {
 
           
           <DropdownMenu
-            title="Practice"
+            title="Практика"
             items={dropdownItems.practice}
             isOpen={openDropdown === "practice"}
             onToggle={() => handleDropdownToggle("practice")}
