@@ -176,20 +176,47 @@ export const StreakDisplay = () => {
         />
       </div>
 
-      {/* Clickable Streak Info */}
-      <button 
-        onClick={() => setShowDropdown(!showDropdown)}
-        className="flex items-center gap-3 text-sm text-white hover:opacity-80 transition-opacity duration-200"
-      >
-        <div className="flex items-center gap-1">
-          <span className="font-medium">{streakData.currentStreak}</span>
-          <span className="text-base">🔥</span>
-        </div>
-        <div className="font-medium">
-          {Math.round(streakData.todayProgress)}м
-        </div>
-        <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
-      </button>
+      {/* Clickable Streak Info with Progress Ring */}
+      <div className="relative">
+        <svg className="absolute w-14 h-14 transform -rotate-90 -left-1 -top-1" viewBox="0 0 56 56">
+          {/* Background circle */}
+          <circle
+            cx="28"
+            cy="28"
+            r="22"
+            fill="none"
+            stroke="hsl(var(--muted-foreground) / 0.2)"
+            strokeWidth="3"
+          />
+          {/* Progress circle */}
+          <circle
+            cx="28"
+            cy="28"
+            r="22"
+            fill="none"
+            stroke={isCompleted ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.7)"}
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray={`${2 * Math.PI * 22}`}
+            strokeDashoffset={`${2 * Math.PI * 22 * (1 - progressPercentage / 100)}`}
+            className="transition-all duration-1000 ease-out"
+          />
+        </svg>
+        
+        <button 
+          onClick={() => setShowDropdown(!showDropdown)}
+          className="flex items-center gap-3 text-sm text-white hover:opacity-80 transition-opacity duration-200 relative z-10"
+        >
+          <div className="flex items-center gap-1">
+            <span className="font-medium">{streakData.currentStreak}</span>
+            <span className="text-base">🔥</span>
+          </div>
+          <div className="font-medium">
+            {Math.round(streakData.todayProgress)}м
+          </div>
+          <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
 
       {/* Dropdown Menu */}
       {showDropdown && (
