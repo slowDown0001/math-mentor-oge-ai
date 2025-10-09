@@ -118,18 +118,43 @@ const Homework = () => {
   // Initialize MathJax selection
   useMathJaxSelection();
 
-  const loadUserProfile = async () => {
-    if (!user?.id) return;
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('homework')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    if (error) {
-      console.error('Error loading user profile:', error);
-      return;
+  const loadHomeworkData = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
+      if (error) {
+        console.error('Error loading homework:', error);
+        return;
+      }
+      if (data && (data as any).homework) {
+        try {
+          const parsedHomework = JSON.parse((data as any).homework);
+          const transformedHomework: HomeworkData = {
+            mcq_questions: parsedHomework.MCQ || parsedHomework.mcq_questions || [],
+            fipi_questions: parsedHomework.FIPI || parsedHomework.fipi_questions || [],
+            assigned_date: parsedHomework.assigned_date,
+            due_date: parsedHomework.due_date
+          };
+          if (mountedRef.current) setHomeworkData(transformedHomework);
+        } catch (parseError) {
+          console.error('Error parsing homework JSON:', parseError);
+          toast({ title: 'Ошибка', description: 'Неверный формат домашнего задания', variant: 'destructive' });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching homework:', error);
     }
-    if (mountedRef.current) setUserProfile(data);
+  };
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
+      if (error) throw error;
+      if (mountedRef.current) setUserProfile(data);
+    } catch (err) {
+      console.error('Error loading profile:', err);
+    }
   };
 
   const startFIPIAttempt = async (questionId: string) => {
@@ -312,33 +337,6 @@ const Homework = () => {
     recordSessionStart();
   }, [user?.id, homeworkName, currentQuestions.length]);
 
-  const loadHomeworkData = async () => {
-    if (!user) return;
-    try {
-      const { data, error } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
-      if (error) {
-        console.error('Error loading homework:', error);
-        return;
-      }
-      if (data && (data as any).homework) {
-        try {
-          const parsedHomework = JSON.parse((data as any).homework);
-          const transformedHomework: HomeworkData = {
-            mcq_questions: parsedHomework.MCQ || parsedHomework.mcq_questions || [],
-            fipi_questions: parsedHomework.FIPI || parsedHomework.fipi_questions || [],
-            assigned_date: parsedHomework.assigned_date,
-            due_date: parsedHomework.due_date
-          };
-          if (mountedRef.current) setHomeworkData(transformedHomework);
-        } catch (parseError) {
-          console.error('Error parsing homework JSON:', parseError);
-          toast({ title: 'Ошибка', description: 'Неверный формат домашнего задания', variant: 'destructive' });
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching homework:', error);
-    }
-  };
 
   const loadQuestions = async () => {
     if (!homeworkData || didLoadQuestionsRef.current) return;

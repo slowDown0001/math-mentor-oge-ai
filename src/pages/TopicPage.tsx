@@ -6,6 +6,7 @@ import { ArrowLeft, Play, BookOpen, Target, X, Crown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
 import ArticleRenderer from "@/components/ArticleRenderer";
 import OgeExerciseQuiz from "@/components/OgeExerciseQuiz";
@@ -200,13 +201,14 @@ const TopicPage: React.FC = () => {
         </div>
 
         {/* Split layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_3.5fr] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_3.5fr] gap-6 items-start">
           {/* LEFT: Controls */}
           <motion.div
             initial={{ opacity: 0, x: -6 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg p-4 border border-white/20 shadow-sm"
+            className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg border border-white/20 shadow-sm lg:h-[calc(100vh-12rem)] flex flex-col"
           >
+            <ScrollArea className="flex-1 px-4 py-4">
             {/* Videos list */}
             <div className="mb-5">
               <h4 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
@@ -321,15 +323,16 @@ const TopicPage: React.FC = () => {
                 )}
               </div>
             </div>
+            </ScrollArea>
           </motion.div>
 
           {/* RIGHT: Обзор (Article) */}
           <motion.div
             initial={{ opacity: 0, x: 6 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg p-0 border border-white/20 shadow-sm overflow-hidden"
+            className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg border border-white/20 shadow-sm overflow-hidden lg:h-[calc(100vh-12rem)] flex flex-col"
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-black/10">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-black/10 flex-shrink-0">
               <div>
                 <div className="text-sm text-gray-600">Обзор темы</div>
                 <div className="text-lg font-semibold">
@@ -341,21 +344,23 @@ const TopicPage: React.FC = () => {
               </Button>
             </div>
 
-            <div className="p-4 overflow-y-auto max-h-[70vh]">
-              {loadingArticle ? (
-                <div className="text-sm text-gray-700">Загружаем обзор…</div>
-              ) : article?.topic_text ? (
-                <ArticleRenderer
-                  text={article.topic_text}
-                  article={{ skill: 0, art: article.topic_text }}
-                />
-              ) : (
-                <div className="text-sm text-gray-700">
-                  Обзор для этой темы пока не добавлен. Используйте учебник, видео и
-                  упражнения слева.
-                </div>
-              )}
-            </div>
+            <ScrollArea className="flex-1">
+              <div className="p-4">
+                {loadingArticle ? (
+                  <div className="text-sm text-gray-700">Загружаем обзор…</div>
+                ) : article?.topic_text ? (
+                  <ArticleRenderer
+                    text={article.topic_text}
+                    article={{ skill: 0, art: article.topic_text }}
+                  />
+                ) : (
+                  <div className="text-sm text-gray-700">
+                    Обзор для этой темы пока не добавлен. Используйте учебник, видео и
+                    упражнения слева.
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
           </motion.div>
         </div>
       </div>
