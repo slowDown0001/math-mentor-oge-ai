@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Play, BookOpen, Target, X, Crown, Clock } from "lucide-react";
+import { ArrowLeft, Play, BookOpen, Target, X, Crown, Clock, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
@@ -172,6 +172,65 @@ const TopicPage: React.FC = () => {
             <BookOpen className="h-4 w-4 mr-2" />
             УЧЕБНИК
           </Button>
+        </div>
+
+        {/* Lesson Description */}
+        <div className="bg-white/95 backdrop-blur-sm rounded-lg border border-white/20 shadow-sm p-6 mb-4">
+          <h2 className="text-xl font-semibold text-[#1a1f36] mb-3">
+            Изучение основ натуральных и целых чисел, их свойств и операций
+          </h2>
+          
+          <div className="flex items-center gap-6 text-sm text-gray-600 mb-6">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>2-3 часа</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              <span>5 навыков</span>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Skills */}
+            <div>
+              <h3 className="font-semibold text-[#1a1f36] mb-3">Навыки для изучения:</h3>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">Натуральные числа</span>
+                <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">Целые числа</span>
+                <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">Модуль числа</span>
+                <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">Делимость</span>
+                <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">НОД и НОК</span>
+              </div>
+            </div>
+
+            {/* Learning Goals */}
+            <div>
+              <h3 className="font-semibold text-[#1a1f36] mb-3">Цели обучения:</h3>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span>Понимать разницу между натуральными и целыми числами</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span>Выполнять операции с целыми числами</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span>Применять признаки делимости</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span>Находить НОД и НОК чисел</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span>Работать с модулем числа</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         {/* Single block with tabs */}
