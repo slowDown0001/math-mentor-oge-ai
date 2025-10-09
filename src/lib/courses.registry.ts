@@ -36,7 +36,7 @@ export const COURSES: Record<CourseId, Course> = {
   'ege-basic': {
     id: 'ege-basic',
     numericId: 2,
-    title: 'Математика ЕГЭ (Базовый уровень)',
+    title: 'Математика ЕГЭ (База)',
     tag: 'EGE Basic',
     homeRoute: '/egemathbasic',
     routePatterns: [
@@ -50,7 +50,7 @@ export const COURSES: Record<CourseId, Course> = {
   'ege-advanced': {
     id: 'ege-advanced',
     numericId: 3,
-    title: 'Математика ЕГЭ (Профильный уровень)',
+    title: 'Математика ЕГЭ (Профиль)',
     tag: 'EGE Profi',
     homeRoute: '/egemathprof',
     routePatterns: [
