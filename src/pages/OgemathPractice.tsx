@@ -1,11 +1,12 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ClipboardList, Hash, RefreshCw } from "lucide-react";
+import { ClipboardList, Hash, RefreshCw, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import FlyingMathBackground from "@/components/FlyingMathBackground";
 
 const OgemathPractice = () => {
+  const navigate = useNavigate();
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   const questionTypes = [
@@ -59,8 +60,21 @@ const OgemathPractice = () => {
       {/* Flying Math Symbols Background */}
       <FlyingMathBackground />
 
-      <div className="relative z-10 pt-12 pb-16 container mx-auto px-4">
+      <div className="relative z-10 pt-8 pb-16 container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
+          {/* Back Button */}
+          <div className="mb-8">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/ogemath")}
+              className="hover:bg-white/20 text-white"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Назад
+            </Button>
+          </div>
+
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-5xl md:text-6xl font-display font-bold mb-4 bg-gradient-to-r from-gold to-sage bg-clip-text text-transparent">
