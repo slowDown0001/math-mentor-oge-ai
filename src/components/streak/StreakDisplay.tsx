@@ -177,35 +177,37 @@ export const StreakDisplay = () => {
       </div>
 
       {/* Clickable Streak Info with Progress Ring */}
-      <div className="relative">
-        <svg className="absolute w-14 h-14 transform -rotate-90 -left-1 -top-1" viewBox="0 0 56 56">
-          {/* Background circle */}
-          <circle
-            cx="28"
-            cy="28"
-            r="22"
+      <div className="relative flex items-center justify-center">
+        <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 100 50" style={{ width: '110px', height: '50px' }}>
+          {/* Background circle/arc */}
+          <ellipse
+            cx="50"
+            cy="25"
+            rx="48"
+            ry="22"
             fill="none"
             stroke="hsl(var(--muted-foreground) / 0.2)"
-            strokeWidth="3"
+            strokeWidth="2"
           />
-          {/* Progress circle */}
-          <circle
-            cx="28"
-            cy="28"
-            r="22"
+          {/* Progress circle/arc */}
+          <ellipse
+            cx="50"
+            cy="25"
+            rx="48"
+            ry="22"
             fill="none"
             stroke={isCompleted ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.7)"}
-            strokeWidth="3"
+            strokeWidth="2"
             strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 22}`}
-            strokeDashoffset={`${2 * Math.PI * 22 * (1 - progressPercentage / 100)}`}
+            strokeDasharray={`${Math.PI * 96}`}
+            strokeDashoffset={`${Math.PI * 96 * (1 - progressPercentage / 100)}`}
             className="transition-all duration-1000 ease-out"
           />
         </svg>
         
         <button 
           onClick={() => setShowDropdown(!showDropdown)}
-          className="flex items-center gap-3 text-sm text-white hover:opacity-80 transition-opacity duration-200 relative z-10"
+          className="flex items-center gap-3 text-sm text-white hover:opacity-80 transition-opacity duration-200 relative z-10 px-2"
         >
           <div className="flex items-center gap-1">
             <span className="font-medium">{streakData.currentStreak}</span>
