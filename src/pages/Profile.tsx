@@ -170,8 +170,8 @@ const Profile = () => {
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       <Header />
-      <main className="flex-1 pt-16 overflow-auto">
-        <div className="container mx-auto px-4 py-4">
+      <main className="flex-1 pt-16 overflow-hidden">
+        <div className="container mx-auto px-4 py-4 h-full overflow-auto">
           <ProfileTabs 
             userData={userData}
             userName={userName}
