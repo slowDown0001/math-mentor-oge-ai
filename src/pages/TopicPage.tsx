@@ -6,7 +6,6 @@ import { ArrowLeft, Play, BookOpen, Target, X, Crown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
 import ArticleRenderer from "@/components/ArticleRenderer";
@@ -163,7 +162,7 @@ const TopicPage: React.FC = () => {
       )}
 
       {/* Page content lives above the layout background */}
-      <div className="relative z-20 max-w-7xl mx-auto px-4 py-4">
+      <div className="relative z-20 max-w-7xl mx-auto px-4 py-4 pb-12">
         {/* Header */}
         <div className="flex items-center mb-4">
           <Button
@@ -200,9 +199,9 @@ const TopicPage: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg border border-white/20 shadow-sm overflow-hidden flex flex-col"
+          className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg border border-white/20 shadow-sm"
         >
-          <Tabs defaultValue="overview" className="flex-1 flex flex-col">
+          <Tabs defaultValue="overview">
             <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
               <TabsTrigger 
                 value="overview"
@@ -224,120 +223,108 @@ const TopicPage: React.FC = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview" className="m-0">
-              <ScrollArea className="h-[calc(100vh-16rem)]">
-                <div className="p-6">
-                  {loadingArticle ? (
-                    <div className="text-sm text-gray-700">Загружаем обзор…</div>
-                  ) : article?.topic_text ? (
-                    <ArticleRenderer
-                      text={article.topic_text}
-                      article={{ skill: 0, art: article.topic_text }}
-                    />
-                  ) : (
-                    <div className="text-sm text-gray-700">
-                      Обзор для этой темы пока не добавлен. Используйте учебник, видео и
-                      упражнения.
+            <TabsContent value="overview" className="m-0 p-6">
+              {loadingArticle ? (
+                <div className="text-sm text-gray-700">Загружаем обзор…</div>
+              ) : article?.topic_text ? (
+                <ArticleRenderer
+                  text={article.topic_text}
+                  article={{ skill: 0, art: article.topic_text }}
+                />
+              ) : (
+                <div className="text-sm text-gray-700">
+                  Обзор для этой темы пока не добавлен. Используйте учебник, видео и
+                  упражнения.
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="videos" className="m-0 p-6 space-y-3">
+              {Array.from({ length: topic.videos || 0 }, (_, i) => {
+                const vd = topic.videoData?.[i];
+                const label = vd?.title || `Видео ${i + 1}`;
+                return (
+                  <div
+                    key={`video-${i}`}
+                    className="flex items-center justify-between p-4 bg-white/70 rounded-lg border border-black/5 hover:bg-white hover:shadow-md cursor-pointer transition-all"
+                    onClick={() => {
+                      if (vd) setSelectedVideo(vd);
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 rounded-full">
+                        <Play className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <span className="text-base font-medium">{label}</span>
                     </div>
-                  )}
-                </div>
-              </ScrollArea>
+                    <span className="text-sm text-blue-600 font-medium">
+                      {vd ? "Доступно" : "Скоро"}
+                    </span>
+                  </div>
+                );
+              })}
+              {(!topic.videos || topic.videos === 0) && (
+                <div className="text-sm text-gray-600">Видео для темы пока нет</div>
+              )}
             </TabsContent>
 
-            <TabsContent value="videos" className="m-0">
-              <ScrollArea className="h-[calc(100vh-16rem)]">
-                <div className="p-6 space-y-3">
-                  {Array.from({ length: topic.videos || 0 }, (_, i) => {
-                    const vd = topic.videoData?.[i];
-                    const label = vd?.title || `Видео ${i + 1}`;
-                    return (
-                      <div
-                        key={`video-${i}`}
-                        className="flex items-center justify-between p-4 bg-white/70 rounded-lg border border-black/5 hover:bg-white hover:shadow-md cursor-pointer transition-all"
-                        onClick={() => {
-                          if (vd) setSelectedVideo(vd);
-                        }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-100 rounded-full">
-                            <Play className="h-5 w-5 text-blue-600" />
-                          </div>
-                          <span className="text-base font-medium">{label}</span>
+            <TabsContent value="practice" className="m-0 p-6 space-y-3">
+              {exercises.map((ex, i) => {
+                const itemId = `${moduleSlug}-${topicId}-ex${i}`;
+                const status = getProgressStatus(itemId, 'exercise');
+                const exerciseWithId = { ...ex, itemId };
+
+                const renderProgressCell = () => {
+                  switch (status) {
+                    case 'mastered':
+                      return (
+                        <div className="relative w-6 h-6 bg-purple-600 rounded flex items-center justify-center">
+                          <Crown className="h-3 w-3 text-white" />
                         </div>
-                        <span className="text-sm text-blue-600 font-medium">
-                          {vd ? "Доступно" : "Скоро"}
-                        </span>
+                      );
+                    case 'proficient':
+                      return <div className="w-6 h-6 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded" />;
+                    case 'familiar':
+                      return <div className="w-6 h-6 rounded border border-orange-500 bg-[linear-gradient(to_top,theme(colors.orange.500)_20%,white_20%)]" />;
+                    case 'attempted':
+                      return <div className="w-6 h-6 border-2 border-orange-400 rounded bg-white" />;
+                    default:
+                      return <div className="w-6 h-6 border-2 border-gray-300 rounded bg-white" />;
+                  }
+                };
+
+                return (
+                  <div
+                    key={`ex-${i}`}
+                    onClick={() => !ex.skills.length ? null : setSelectedExercise(exerciseWithId)}
+                    className={`relative p-4 rounded-lg border bg-white/70 transition-all ${
+                      ex.skills.length ? 'hover:bg-white hover:shadow-md cursor-pointer' : 'opacity-50 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-100 rounded-full">
+                        <Target className="h-5 w-5 text-green-600" />
                       </div>
-                    );
-                  })}
-                  {(!topic.videos || topic.videos === 0) && (
-                    <div className="text-sm text-gray-600">Видео для темы пока нет</div>
-                  )}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="practice" className="m-0">
-              <ScrollArea className="h-[calc(100vh-16rem)]">
-                <div className="p-6 space-y-3">
-                  {exercises.map((ex, i) => {
-                    const itemId = `${moduleSlug}-${topicId}-ex${i}`;
-                    const status = getProgressStatus(itemId, 'exercise');
-                    const exerciseWithId = { ...ex, itemId };
-
-                    const renderProgressCell = () => {
-                      switch (status) {
-                        case 'mastered':
-                          return (
-                            <div className="relative w-6 h-6 bg-purple-600 rounded flex items-center justify-center">
-                              <Crown className="h-3 w-3 text-white" />
-                            </div>
-                          );
-                        case 'proficient':
-                          return <div className="w-6 h-6 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded" />;
-                        case 'familiar':
-                          return <div className="w-6 h-6 rounded border border-orange-500 bg-[linear-gradient(to_top,theme(colors.orange.500)_20%,white_20%)]" />;
-                        case 'attempted':
-                          return <div className="w-6 h-6 border-2 border-orange-400 rounded bg-white" />;
-                        default:
-                          return <div className="w-6 h-6 border-2 border-gray-300 rounded bg-white" />;
-                      }
-                    };
-
-                    return (
-                      <div
-                        key={`ex-${i}`}
-                        onClick={() => !ex.skills.length ? null : setSelectedExercise(exerciseWithId)}
-                        className={`relative p-4 rounded-lg border bg-white/70 transition-all ${
-                          ex.skills.length ? 'hover:bg-white hover:shadow-md cursor-pointer' : 'opacity-50 cursor-not-allowed'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-green-100 rounded-full">
-                            <Target className="h-5 w-5 text-green-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="text-base font-medium">
-                              {ex.title}
-                              {ex.isAdvanced && (
-                                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
-                                  * Дополнительно
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex-shrink-0">
-                            {renderProgressCell()}
-                          </div>
+                      <div className="flex-1">
+                        <div className="text-base font-medium">
+                          {ex.title}
+                          {ex.isAdvanced && (
+                            <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                              * Дополнительно
+                            </span>
+                          )}
                         </div>
                       </div>
-                    );
-                  })}
-                  {exercises.length === 0 && (
-                    <div className="text-sm text-gray-600">Упражнения для темы пока нет</div>
-                  )}
-                </div>
-              </ScrollArea>
+                      <div className="flex-shrink-0">
+                        {renderProgressCell()}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {exercises.length === 0 && (
+                <div className="text-sm text-gray-600">Упражнения для темы пока нет</div>
+              )}
             </TabsContent>
           </Tabs>
         </motion.div>
