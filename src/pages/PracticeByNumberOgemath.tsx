@@ -443,21 +443,9 @@ const PracticeByNumberOgemath = () => {
         return newResults;
       });
 
-
-      // Now perform backend operations (non-blocking for UI)
-      // Update student_activity directly
-      await updateStudentActivity(isCorrect, 0);
-
-      // Call handle-submission to update mastery data
-      await submitToHandleSubmission(isCorrect);
-
-      // Award streak points (regardless of correctness)
-      const reward = calculateStreakReward(currentQuestion.difficulty);
-      await awardStreakPoints(user.id, reward);
-      
-      // Award energy points if correct (oge_math_fipi_bank table = 2 points)
+      // Trigger animation IMMEDIATELY if correct (before backend operations)
       if (isCorrect) {
-        // Fetch user's current streak
+        // Fetch streak for points calculation
         const { data: streakData } = await supabase
           .from('user_streaks')
           .select('current_streak')
@@ -465,16 +453,35 @@ const PracticeByNumberOgemath = () => {
           .single();
         
         const currentStreak = streakData?.current_streak || 0;
+        // Calculate points: 2 base points for oge_math_fipi_bank, x10 if streak >= 3
+        const basePoints = 2;
+        const pointsToShow = currentStreak >= 3 ? basePoints * 10 : basePoints;
         
-        // Award energy points with streak bonus
-        const { awardEnergyPoints: awardPoints } = await import('@/services/energyPoints');
-        const result = await awardPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank', currentStreak);
-        
-        // Trigger animation with actual points awarded
-        if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
-          (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
+        if ((window as any).triggerEnergyPointsAnimation) {
+          (window as any).triggerEnergyPointsAnimation(pointsToShow);
         }
       }
+
+      // Now perform backend operations in parallel (non-blocking for UI)
+      Promise.all([
+        updateStudentActivity(isCorrect, 0),
+        submitToHandleSubmission(isCorrect),
+        awardStreakPoints(user.id, calculateStreakReward(currentQuestion.difficulty)),
+        // Award energy points if correct
+        isCorrect ? (async () => {
+          const { data: streakData } = await supabase
+            .from('user_streaks')
+            .select('current_streak')
+            .eq('user_id', user.id)
+            .single();
+          
+          const currentStreak = streakData?.current_streak || 0;
+          const { awardEnergyPoints: awardPoints } = await import('@/services/energyPoints');
+          await awardPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank', currentStreak);
+        })() : Promise.resolve()
+      ]).catch(error => {
+        console.error('Error in background operations:', error);
+      });
     } catch (error) {
       console.error('Error in checkAnswer:', error);
       toast.error('Ошибка при проверке ответа');
