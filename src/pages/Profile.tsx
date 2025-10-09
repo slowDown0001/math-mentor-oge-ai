@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,6 +25,7 @@ export interface Message {
 }
 
 const Profile = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
   const { topicProgress, generalPreparedness, isLoading: skillsLoading } = useStudentSkills();
@@ -173,6 +175,18 @@ const Profile = () => {
       <Header />
       <main className="flex-1 pt-20">
         <div className="container mx-auto px-4 py-8">
+          {/* Big Dashboard Button */}
+          <div className="mb-8">
+            <Button
+              onClick={() => navigate('/mydb3')}
+              size="lg"
+              className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xl text-lg py-6 px-8 rounded-xl transform transition-all duration-200 hover:scale-105"
+            >
+              <MessageSquare className="w-6 h-6 mr-3" />
+              Открыть панель управления обучением
+            </Button>
+          </div>
+
           <div className="flex flex-col md:flex-row gap-6">
             {/* Left Column - User Info */}
             <div className="md:w-1/3">
