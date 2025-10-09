@@ -7,6 +7,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { User, ChevronDown } from 'lucide-react';
 import { EnergyPointsHeaderAnimation } from './EnergyPointsHeaderAnimation';
 import { getCurrentEnergyPoints } from '@/services/energyPoints';
+import { getBadgeForPoints, getPointsLabel } from '@/utils/streakBadges';
 
 interface StreakData {
   dailyGoalMinutes: number;
@@ -95,6 +96,8 @@ export const StreakDisplay = () => {
   const energyProgress = Math.min((streakData.energyPoints / 500) * 100, 100); // 500 points = 100%
   const progressPercentage = Math.min((timeProgress * 0.6 + energyProgress * 0.4), 100);
   const isCompleted = progressPercentage >= 100;
+  
+  const currentBadge = getBadgeForPoints(streakData.dailyGoalMinutes);
 
   // Method to trigger energy points animation and update progress
   const triggerEnergyPointsAnimation = async (points: number) => {
@@ -189,6 +192,14 @@ export const StreakDisplay = () => {
       {showDropdown && (
         <div className="absolute top-full right-0 mt-2 w-64 bg-background border border-border rounded-lg shadow-lg z-50 animate-fade-in">
           <div className="p-4 space-y-3">
+            <div className="flex items-center justify-between p-2 bg-primary/10 rounded-lg">
+              <span className="text-sm font-medium text-foreground">Ваш уровень</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{currentBadge.emoji}</span>
+                <span className="text-sm font-semibold text-primary">{currentBadge.name}</span>
+              </div>
+            </div>
+            
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Текущая серия</span>
               <span className="text-sm text-muted-foreground">{streakData.currentStreak} дней</span>
@@ -196,12 +207,12 @@ export const StreakDisplay = () => {
             
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Недельная цель</span>
-              <span className="text-sm text-muted-foreground">{streakData.dailyGoalMinutes} мин</span>
+              <span className="text-sm text-muted-foreground">{streakData.dailyGoalMinutes} {getPointsLabel(streakData.dailyGoalMinutes)}</span>
             </div>
             
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Занятия на неделе</span>
-              <span className="text-sm text-muted-foreground">{Math.round(streakData.todayProgress)} мин</span>
+              <span className="text-sm text-muted-foreground">{Math.round(streakData.todayProgress)} {getPointsLabel(Math.round(streakData.todayProgress))}</span>
             </div>
             
             <div className="flex items-center justify-between">
