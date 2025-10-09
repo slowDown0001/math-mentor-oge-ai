@@ -123,34 +123,8 @@ export const StreakDisplay = () => {
 
   return (
     <div className="relative flex items-center gap-3 group -ml-3" ref={dropdownRef}>
-      {/* Progress Ring */}
-      <div className="relative w-14 h-14">
-        <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 56 56">
-          {/* Background circle */}
-          <circle
-            cx="28"
-            cy="28"
-            r="22"
-            fill="none"
-            stroke="hsl(var(--muted-foreground) / 0.2)"
-            strokeWidth="3"
-          />
-          {/* Progress circle */}
-          <circle
-            cx="28"
-            cy="28"
-            r="22"
-            fill="none"
-            stroke={isCompleted ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.7)"}
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 22}`}
-            strokeDashoffset={`${2 * Math.PI * 22 * (1 - progressPercentage / 100)}`}
-            className="transition-all duration-1000 ease-out"
-          />
-        </svg>
-
-        {/* Energy Points Animation */}
+      {/* Energy Points Animation Container */}
+      <div className="relative">
         <EnergyPointsHeaderAnimation
           points={energyPointsAnimation.points}
           isVisible={energyPointsAnimation.isVisible}
