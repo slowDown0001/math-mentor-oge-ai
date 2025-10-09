@@ -107,6 +107,15 @@ export const DailyTaskStory = () => {
     fetchData();
   }, [user]);
 
+  // Helper function to convert tutor name to genitive case for Russian grammar
+  const getTutorNameGenitive = (name: string) => {
+    // Russian names that need genitive case
+    if (name === 'Ёжик') return 'Ёжика';
+    if (name === 'Сакура') return 'Сакуры';
+    // Foreign names like Kenji don't change
+    return name;
+  };
+
   async function handleOpen() {
     setIsOpen(true);
 
@@ -178,9 +187,9 @@ export const DailyTaskStory = () => {
             </div>
 
             {/* Work for Today Section */}
-            <div className="flex-shrink-0 p-6 border-b border-border/20">
+            <div className="flex-shrink-0 px-6 pt-4 pb-6 border-b border-border/20">
               <h2 className="text-xl font-bold text-center mb-4 text-foreground">
-                Работа на сегодня
+                Работа на сегодня:
               </h2>
               <div className="flex flex-wrap gap-3 justify-center">
                 {/* Повторить Dropdown - Only show if there are failed topics */}
@@ -273,7 +282,7 @@ export const DailyTaskStory = () => {
             {/* Detailed Feedback Section */}
             <div className="flex-1 overflow-y-auto p-6">
               <h2 className="text-xl font-bold mb-4 text-foreground">
-                Подробная обратная связь от AI-преподавателя
+                Подробная обратная связь от {getTutorNameGenitive(tutorName)}:
               </h2>
               <div className="max-w-none prose prose-lg dark:prose-invert">
                 <ChatRenderer2 
