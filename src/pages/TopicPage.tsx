@@ -200,7 +200,7 @@ const TopicPage: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg border border-white/20 shadow-sm overflow-hidden lg:h-[calc(100vh-12rem)] flex flex-col"
+          className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg border border-white/20 shadow-sm overflow-hidden flex flex-col"
         >
           <Tabs defaultValue="overview" className="flex-1 flex flex-col">
             <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
@@ -224,8 +224,8 @@ const TopicPage: React.FC = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview" className="flex-1 m-0 overflow-hidden">
-              <ScrollArea className="h-full">
+            <TabsContent value="overview" className="m-0">
+              <ScrollArea className="h-[calc(100vh-16rem)]">
                 <div className="p-6">
                   {loadingArticle ? (
                     <div className="text-sm text-gray-700">Загружаем обзор…</div>
@@ -244,8 +244,8 @@ const TopicPage: React.FC = () => {
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="videos" className="flex-1 m-0 overflow-hidden">
-              <ScrollArea className="h-full">
+            <TabsContent value="videos" className="m-0">
+              <ScrollArea className="h-[calc(100vh-16rem)]">
                 <div className="p-6 space-y-3">
                   {Array.from({ length: topic.videos || 0 }, (_, i) => {
                     const vd = topic.videoData?.[i];
@@ -277,8 +277,8 @@ const TopicPage: React.FC = () => {
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="practice" className="flex-1 m-0 overflow-hidden">
-              <ScrollArea className="h-full">
+            <TabsContent value="practice" className="m-0">
+              <ScrollArea className="h-[calc(100vh-16rem)]">
                 <div className="p-6 space-y-3">
                   {exercises.map((ex, i) => {
                     const itemId = `${moduleSlug}-${topicId}-ex${i}`;
