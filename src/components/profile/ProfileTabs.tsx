@@ -38,10 +38,7 @@ export const ProfileTabs = ({ userData }: ProfileTabsProps) => {
       </TabsList>
       
       <TabsContent value="activity" className="bg-white rounded-xl shadow-md p-6 border-0">
-        <ActivityTab 
-          streakDays={userData.streakDays} 
-          recentActivity={userData.recentActivity} 
-        />
+        <ActivityTab />
       </TabsContent>
       
       <TabsContent value="goals" className="bg-white rounded-xl shadow-md p-6 border-0">
