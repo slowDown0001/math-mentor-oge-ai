@@ -194,12 +194,6 @@ export default function LandingHeader() {
             FAQ
           </Link>
 
-          <Link
-            to="/cellard-lp2"
-            className="text-foreground hover:text-primary transition-colors duration-200"
-          >
-            Cellard LP2
-          </Link>
 
           <Button
             onClick={handleLoginClick}
