@@ -206,9 +206,8 @@ const TopicPage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, x: -6 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg border border-white/20 shadow-sm lg:h-[calc(100vh-12rem)] flex flex-col"
+            className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg border border-white/20 shadow-sm p-4"
           >
-            <ScrollArea className="flex-1 px-4 py-4">
             {/* Videos list */}
             <div className="mb-5">
               <h4 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
@@ -323,7 +322,6 @@ const TopicPage: React.FC = () => {
                 )}
               </div>
             </div>
-            </ScrollArea>
           </motion.div>
 
           {/* RIGHT: Обзор (Article) */}
