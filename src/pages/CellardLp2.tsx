@@ -479,18 +479,6 @@ const CellardLp2: React.FC = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 border-t border-yellow-500/20">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded-lg flex items-center justify-center">
-              <span className="text-[#1a1f36] font-bold text-xl">M</span>
-            </div>
-            <h3 className="font-display text-xl font-semibold">Математическая Платформа</h3>
-          </div>
-          <p className="text-gray-400">© 2024 Все права защищены. Сделано с ❤️ для студентов</p>
-        </div>
-      </footer>
     </div>
   );
 };
