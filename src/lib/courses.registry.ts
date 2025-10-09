@@ -1,3 +1,5 @@
+import { modulesRegistry } from './modules.registry';
+
 export type CourseId = 'oge-math' | 'ege-basic' | 'ege-advanced';
 
 export interface Course {
@@ -65,17 +67,9 @@ export const COURSES: Record<CourseId, Course> = {
 
 // Helper to get course from module slug
 export function getCourseFromModuleSlug(moduleSlug: string): Course | null {
-  // Dynamically import to avoid circular dependency issues
-  // We'll check the module registry at runtime
-  try {
-    // Use dynamic import or defer the import
-    const { modulesRegistry } = require('./modules.registry');
-    const module = modulesRegistry[moduleSlug];
-    if (module?.courseId) {
-      return COURSES[module.courseId] || null;
-    }
-  } catch (error) {
-    console.error('Error loading module registry:', error);
+  const module = modulesRegistry[moduleSlug];
+  if (module?.courseId) {
+    return COURSES[module.courseId] || null;
   }
   return null;
 }
