@@ -2,12 +2,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Play, BookOpen, Target, X, Crown } from "lucide-react";
+import { ArrowLeft, Play, BookOpen, Target, X, Crown, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
 import ArticleRenderer from "@/components/ArticleRenderer";
 import OgeExerciseQuiz from "@/components/OgeExerciseQuiz";
 
@@ -78,12 +77,12 @@ const TopicPage: React.FC = () => {
     };
   }, [topicNumber]);
 
-  // Modals
-  const [selectedVideo, setSelectedVideo] = useState<{
-    videoId: string;
-    title: string;
-    description: string;
-  } | null>(null);
+  // State for current video index and exercise
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const currentVideo = useMemo(() => {
+    if (!topic?.videoData || topic.videoData.length === 0) return null;
+    return topic.videoData[currentVideoIndex] || null;
+  }, [topic, currentVideoIndex]);
 
   const [selectedExercise, setSelectedExercise] = useState<ExerciseConfig & { itemId?: string } | null>(null);
 
@@ -125,21 +124,7 @@ const TopicPage: React.FC = () => {
 
   return (
     <>
-      {/* Modals (stay above navbar/background) */}
-      {selectedVideo && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-6xl bg-white rounded-lg overflow-hidden">
-            <VideoPlayerWithChat
-              video={{
-                videoId: selectedVideo.videoId,
-                title: selectedVideo.title,
-                description: selectedVideo.description,
-              }}
-              onClose={() => setSelectedVideo(null)}
-            />
-          </div>
-        </div>
-      )}
+      {/* Modal for exercises only */}
 
       {selectedExercise && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
@@ -239,33 +224,94 @@ const TopicPage: React.FC = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="videos" className="m-0 p-6 space-y-3">
-              {Array.from({ length: topic.videos || 0 }, (_, i) => {
-                const vd = topic.videoData?.[i];
-                const label = vd?.title || `Видео ${i + 1}`;
-                return (
-                  <div
-                    key={`video-${i}`}
-                    className="flex items-center justify-between p-4 bg-white/70 rounded-lg border border-black/5 hover:bg-white hover:shadow-md cursor-pointer transition-all"
-                    onClick={() => {
-                      if (vd) setSelectedVideo(vd);
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 rounded-full">
-                        <Play className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <span className="text-base font-medium">{label}</span>
-                    </div>
-                    <span className="text-sm text-blue-600 font-medium">
-                      {vd ? "Доступно" : "Скоро"}
-                    </span>
-                  </div>
-                );
-              })}
-              {(!topic.videos || topic.videos === 0) && (
+            <TabsContent value="videos" className="m-0 p-6">
+              {(!topic.videoData || topic.videoData.length === 0) ? (
                 <div className="text-sm text-gray-600">Видео для темы пока нет</div>
-              )}
+              ) : currentVideo ? (
+                <div className="space-y-6">
+                  {/* Video Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-[#1a1f36] mb-2 flex items-center gap-2">
+                        <Play className="h-5 w-5 text-blue-600" />
+                        {currentVideo.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-3">{currentVideo.description}</p>
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          15:23
+                        </span>
+                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">Новое</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Video Player and Transcript Grid */}
+                  <div className="grid lg:grid-cols-2 gap-6">
+                    {/* Video Player */}
+                    <div className="bg-gray-100 rounded-lg overflow-hidden aspect-video flex items-center justify-center">
+                      <iframe
+                        className="w-full h-full"
+                        src={`https://www.youtube.com/embed/${currentVideo.videoId}`}
+                        title={currentVideo.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+
+                    {/* Transcript */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <h4 className="font-semibold text-[#1a1f36] mb-3">Транскрипт:</h4>
+                      <div className="text-sm text-gray-700 space-y-3 max-h-[400px] overflow-y-auto">
+                        <p>В этом видео мы изучаем основы натуральных и целых чисел.</p>
+                        <p>Натуральные числа - это числа, которые используются для счёта предметов. Множество натуральных чисел обозначается как N и включает в себя числа 1, 2, 3, 4 и так далее.</p>
+                        <p>Целые числа включают в себя натуральные числа, ноль и отрицательные числа. Множество целых чисел обозначается как Z.</p>
+                        <p>Мы рассмотрим основные свойства этих чисел и научимся выполнять с ними различные операции.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Video Topics */}
+                  <div>
+                    <h4 className="font-semibold text-[#1a1f36] mb-3">Темы видео:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Определения</span>
+                      <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Множества чисел</span>
+                      <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Сравнение чисел</span>
+                    </div>
+                  </div>
+
+                  {/* Video Navigation */}
+                  {topic.videoData.length > 1 && (
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentVideoIndex(prev => Math.max(0, prev - 1))}
+                        disabled={currentVideoIndex === 0}
+                        className="gap-2"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Предыдущее видео
+                      </Button>
+                      <span className="text-sm text-gray-600">
+                        Видео {currentVideoIndex + 1} из {topic.videoData.length}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentVideoIndex(prev => Math.min(topic.videoData!.length - 1, prev + 1))}
+                        disabled={currentVideoIndex === topic.videoData.length - 1}
+                        className="gap-2"
+                      >
+                        Следующее видео
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </TabsContent>
 
             <TabsContent value="practice" className="m-0 p-6 space-y-3">
