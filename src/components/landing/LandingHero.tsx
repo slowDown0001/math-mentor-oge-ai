@@ -7,7 +7,7 @@ import PromptBar from "../PromptBar";
 
 export default function LandingHero() {
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-muted/50">
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Floating Math Elements */}
       <FloatingElements />
       
@@ -75,8 +75,6 @@ export default function LandingHero() {
         </div>
       </div>
       
-      {/* Background Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent pointer-events-none" />
     </section>
   );
 }
