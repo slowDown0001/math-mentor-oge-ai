@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Play, BookOpen, Target, X, Crown, Clock, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Play, BookOpen, Target, X, Crown, Clock, CheckCircle2, Zap } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
@@ -340,55 +340,80 @@ const TopicPage: React.FC = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="practice" className="m-0 p-6 space-y-3">
+            <TabsContent value="practice" className="m-0 p-6 space-y-4">
               {exercises.map((ex, i) => {
                 const itemId = `${moduleSlug}-${topicId}-ex${i}`;
                 const status = getProgressStatus(itemId, 'exercise');
                 const exerciseWithId = { ...ex, itemId };
 
-                const renderProgressCell = () => {
+                const getStatusBadge = () => {
                   switch (status) {
                     case 'mastered':
-                      return (
-                        <div className="relative w-6 h-6 bg-purple-600 rounded flex items-center justify-center">
-                          <Crown className="h-3 w-3 text-white" />
-                        </div>
-                      );
+                      return { text: 'Освоено', color: 'bg-purple-100 text-purple-700' };
                     case 'proficient':
-                      return <div className="w-6 h-6 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded" />;
+                      return { text: 'В процессе', color: 'bg-orange-100 text-orange-700' };
                     case 'familiar':
-                      return <div className="w-6 h-6 rounded border border-orange-500 bg-[linear-gradient(to_top,theme(colors.orange.500)_20%,white_20%)]" />;
+                      return { text: 'Начато', color: 'bg-blue-100 text-blue-700' };
                     case 'attempted':
-                      return <div className="w-6 h-6 border-2 border-orange-400 rounded bg-white" />;
+                      return { text: 'Начато', color: 'bg-blue-100 text-blue-700' };
                     default:
-                      return <div className="w-6 h-6 border-2 border-gray-300 rounded bg-white" />;
+                      return { text: 'Не начато', color: 'bg-gray-100 text-gray-700' };
                   }
                 };
+
+                const statusBadge = getStatusBadge();
+                const difficultyLabel = ex.isAdvanced ? 'Сложный' : 'Легкий';
 
                 return (
                   <div
                     key={`ex-${i}`}
-                    onClick={() => !ex.skills.length ? null : setSelectedExercise(exerciseWithId)}
-                    className={`relative p-4 rounded-lg border bg-white/70 transition-all ${
-                      ex.skills.length ? 'hover:bg-white hover:shadow-md cursor-pointer' : 'opacity-50 cursor-not-allowed'
-                    }`}
+                    className="relative p-6 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-all"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-green-100 rounded-full">
-                        <Target className="h-5 w-5 text-green-600" />
+                    <div className="flex items-start gap-4">
+                      {/* Icon */}
+                      <div className="p-3 bg-purple-100 rounded-lg flex-shrink-0">
+                        <Zap className="h-6 w-6 text-purple-600" />
                       </div>
-                      <div className="flex-1">
-                        <div className="text-base font-medium">
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-lg font-semibold text-[#1a1f36] mb-2">
                           {ex.title}
-                          {ex.isAdvanced && (
-                            <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
-                              * Дополнительно
-                            </span>
-                          )}
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Базовые упражнения на закрепление материала темы
+                        </p>
+
+                        {/* Metadata badges */}
+                        <div className="flex items-center gap-3 text-sm">
+                          <div className="flex items-center gap-1.5 text-gray-600">
+                            <Clock className="h-4 w-4" />
+                            <span>15 минут</span>
+                          </div>
+                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-md font-medium">
+                            {difficultyLabel}
+                          </span>
+                          <span className={`px-3 py-1 rounded-md font-medium ${statusBadge.color}`}>
+                            {statusBadge.text}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex-shrink-0">
-                        {renderProgressCell()}
+
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <Button
+                          onClick={() => !ex.skills.length ? null : setSelectedExercise(exerciseWithId)}
+                          disabled={!ex.skills.length}
+                          className="bg-[#1a1f36] text-white hover:bg-[#2d3748] px-6"
+                        >
+                          Начать упражнение
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="text-gray-700 border-gray-300 hover:bg-gray-50"
+                        >
+                          Отметить
+                        </Button>
                       </div>
                     </div>
                   </div>
