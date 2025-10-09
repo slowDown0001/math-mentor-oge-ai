@@ -63,7 +63,7 @@ const PromptBar = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4 p-4 border-2 border-primary rounded-xl bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500">
+    <div className="w-full max-w-2xl mx-auto space-y-4 p-4 border-2 border-yellow-500/30 rounded-xl bg-gradient-to-r from-yellow-500 via-emerald-500 to-yellow-500">
       {/* Input row */}
       <form onSubmit={handleSubmit} className="flex gap-3">
         <Input
@@ -88,7 +88,7 @@ const PromptBar = () => {
         <div className="rounded-xl border border-border bg-card p-4 min-h-[100px]">
           {isLoading && !response && (
             <div className="flex items-center justify-center">
-              <div className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-white" 
+              <div className="w-4 h-4 rounded-full bg-gradient-to-r from-yellow-500 to-white" 
                    style={{
                      animation: 'colorTransition 0.5s ease-in-out infinite alternate'
                    }}>
