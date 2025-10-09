@@ -160,18 +160,13 @@ export default function LandingHeader() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
           <DropdownMenu
-            title="Новый Учебник"
+            title="Учебник"
             items={dropdownItems.textbook}
             isOpen={openDropdown === "textbook"}
             onToggle={() => handleDropdownToggle("textbook")}
           />
           
-          <DropdownMenu
-            title="Learning platform"
-            items={dropdownItems.platform}
-            isOpen={openDropdown === "platform"}
-            onToggle={() => handleDropdownToggle("platform")}
-          />
+
           
           <DropdownMenu
             title="Practice"
