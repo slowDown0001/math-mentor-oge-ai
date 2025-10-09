@@ -14,7 +14,6 @@ import { useStudentSkills } from "@/hooks/useStudentSkills";
 import { useOptimizedProfile } from "@/hooks/useOptimizedProfile";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageSquare } from "lucide-react";
 
 export interface Message {
   id: number;
@@ -175,27 +174,13 @@ const Profile = () => {
       <Header />
       <main className="flex-1 pt-20">
         <div className="container mx-auto px-4 py-8">
-          {/* Big Dashboard Button */}
-          <div className="mb-8">
-            <Button
-              onClick={() => navigate('/mydb3')}
-              size="lg"
-              className="w-full md:w-auto bg-gradient-to-br from-[#f59e0b] to-[#10b981] hover:from-[#fbbf24] hover:to-[#34d399] text-white shadow-xl text-lg py-6 px-8 rounded-xl transform transition-all duration-200 hover:scale-105"
-            >
-              <MessageSquare className="w-6 h-6 mr-3" />
-              Курсы
-            </Button>
-          </div>
-
-          <div className="flex flex-col">
-            <ProfileTabs 
-              userData={userData}
-              userName={userName}
-              userEmail={userEmail}
-              joinedDate={joinedDate}
-              lastActivityDate={lastActivityDate}
-            />
-          </div>
+          <ProfileTabs 
+            userData={userData}
+            userName={userName}
+            userEmail={userEmail}
+            joinedDate={joinedDate}
+            lastActivityDate={lastActivityDate}
+          />
         </div>
       </main>
       <Footer />
