@@ -266,6 +266,7 @@ const Homework = () => {
     }
   };
 
+
   // -------- Initial load: run once --------
   useEffect(() => {
     if (!user || didInitRef.current) return;

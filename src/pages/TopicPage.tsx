@@ -275,9 +275,16 @@ const TopicPage: React.FC = () => {
                   return (
                     <div
                       key={`ex-${i}`}
-                      className="p-3 rounded-lg border bg-white/70"
+                      className="relative p-3 rounded-lg border bg-white/70"
                     >
-                      <div className="flex items-center gap-3 mb-2">
+                      <button 
+                        onClick={() => setSelectedExercise(exerciseWithId)}
+                        className="absolute top-2 right-2 hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                        disabled={!ex.skills.length}
+                      >
+                        {renderProgressCell()}
+                      </button>
+                      <div className="flex items-center gap-3 mb-2 pr-10">
                         <div className="p-2 bg-green-100 rounded-full">
                           <Target className="h-4 w-4 text-green-600" />
                         </div>
@@ -296,13 +303,6 @@ const TopicPage: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-3 ml-11">
-                        <button 
-                          onClick={() => setSelectedExercise(exerciseWithId)}
-                          className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-                          disabled={!ex.skills.length}
-                        >
-                          {renderProgressCell()}
-                        </button>
                         <Button
                           variant="outline"
                           size="sm"
