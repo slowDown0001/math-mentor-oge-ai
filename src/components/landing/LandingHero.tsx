@@ -13,7 +13,7 @@ export default function LandingHero() {
       
       {/* Main Content */}
       <div className="container mx-auto px-4 py-20 relative z-10 bg-transparent">
-        <div className="max-w-4xl mx-auto text-center bg-white p-8 rounded-2xl shadow-lg">
+        <div className="max-w-4xl mx-auto text-center p-8 rounded-2xl shadow-lg" style={{ backgroundColor: 'rgba(248, 250, 252, 0.95)' }}>
           <motion.h1 
             className="text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight"
             initial={{ opacity: 0, y: 30 }}
