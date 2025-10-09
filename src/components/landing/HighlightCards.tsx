@@ -48,7 +48,7 @@ export default function HighlightCards() {
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-foreground">300 заданий FIPI (Часть 1 + разборы)</span>
+                    <span className="text-foreground">300 заданий ФИПИ (Часть 1 + разборы)</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
