@@ -181,24 +181,24 @@ const TopicPage: React.FC = () => {
           className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg border border-white/20 shadow-sm"
         >
           <Tabs defaultValue="overview">
-            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
+            <TabsList className="w-full justify-start rounded-none border-b-0 bg-transparent p-0 h-auto gap-2 px-4 pt-4">
               <TabsTrigger 
                 value="overview"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+                className="rounded-t-lg rounded-b-none border border-b-0 border-gray-200 data-[state=active]:bg-white data-[state=active]:border-gray-300 data-[state=active]:shadow-sm data-[state=inactive]:bg-gray-50/50 data-[state=inactive]:text-gray-600 px-6 py-3 font-medium"
               >
                 Обзор
               </TabsTrigger>
               <TabsTrigger 
                 value="videos"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+                className="rounded-t-lg rounded-b-none border border-b-0 border-gray-200 data-[state=active]:bg-white data-[state=active]:border-gray-300 data-[state=active]:shadow-sm data-[state=inactive]:bg-gray-50/50 data-[state=inactive]:text-gray-600 px-6 py-3 font-medium"
               >
-                Видео
+                Видео ({topic.videoData?.length || topic.videos || 0})
               </TabsTrigger>
               <TabsTrigger 
                 value="practice"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+                className="rounded-t-lg rounded-b-none border border-b-0 border-gray-200 data-[state=active]:bg-white data-[state=active]:border-gray-300 data-[state=active]:shadow-sm data-[state=inactive]:bg-gray-50/50 data-[state=inactive]:text-gray-600 px-6 py-3 font-medium"
               >
-                Практика
+                Упражнения ({exercises.length})
               </TabsTrigger>
             </TabsList>
 
