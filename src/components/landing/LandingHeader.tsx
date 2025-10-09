@@ -150,7 +150,7 @@ export default function LandingHeader() {
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-3">
           <img 
-            src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/avatars/logo_yes.png" 
+            src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/avatars/logo-white.png" 
             alt="EGEChat Logo" 
             className="w-10 h-10"
           />
