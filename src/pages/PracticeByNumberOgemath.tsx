@@ -466,8 +466,20 @@ const PracticeByNumberOgemath = () => {
       
       // Award energy points if correct (oge_math_fipi_bank table = 2 points)
       if (isCorrect) {
+        // Fetch user's current streak
+        const { data: streakData } = await supabase
+          .from('user_streaks')
+          .select('current_streak')
+          .eq('user_id', user.id)
+          .single();
+        
+        const currentStreak = streakData?.current_streak || 0;
+        
+        // Award energy points with streak bonus
         const { awardEnergyPoints: awardPoints } = await import('@/services/energyPoints');
-        await awardPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
+        const result = await awardPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank', currentStreak);
+        
+        console.log('Energy points awarded:', result);
       }
     } catch (error) {
       console.error('Error in checkAnswer:', error);

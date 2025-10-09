@@ -15,7 +15,8 @@ export const awardEnergyPoints = async (
   userId: string,
   activityType: ActivityType,
   customPoints?: number,
-  tableName?: string
+  tableName?: string,
+  currentStreak?: number
 ): Promise<{ success: boolean; pointsAwarded?: number; error?: string }> => {
   try {
     // Determine points based on table name if provided
@@ -25,6 +26,11 @@ export const awardEnergyPoints = async (
       pointsToAward = tableName === 'oge_math_skills_questions' ? 1 : 2;
     } else {
       pointsToAward = customPoints || ENERGY_POINTS[activityType];
+    }
+
+    // Apply 10x multiplier if current_streak >= 3
+    if (currentStreak !== undefined && currentStreak >= 3) {
+      pointsToAward *= 10;
     }
 
     // Get current user statistics

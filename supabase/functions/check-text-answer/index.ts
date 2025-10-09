@@ -207,54 +207,6 @@ Deno.serve(async (req)=>{
         }
       });
     }
-    // Step 6: Award energy points with streak bonus
-    if (is_correct) {
-      try {
-        // Fetch current streak
-        const { data: streakData } = await supabaseClient
-          .from('user_streaks')
-          .select('current_streak')
-          .eq('user_id', user_id)
-          .single();
-
-        const currentStreak = streakData?.current_streak || 0;
-        let basePoints = 2; // FIPI questions base points
-        let pointsToAward = basePoints;
-
-        // Apply x10 multiplier if streak >= 3
-        if (currentStreak >= 3) {
-          pointsToAward = basePoints * 10;
-          console.log(`🔥 Streak bonus applied! Streak: ${currentStreak}, Points: ${pointsToAward}`);
-        }
-
-        // Get current energy points
-        const { data: statsData } = await supabaseClient
-          .from('user_statistics')
-          .select('energy_points')
-          .eq('user_id', user_id)
-          .maybeSingle();
-
-        const currentPoints = statsData?.energy_points || 0;
-        const newTotalPoints = currentPoints + pointsToAward;
-
-        // Update energy points
-        const { error: pointsError } = await supabaseClient
-          .from('user_statistics')
-          .update({
-            energy_points: newTotalPoints,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user_id);
-
-        if (pointsError) {
-          console.error('Error updating energy points:', pointsError);
-        } else {
-          console.log(`✅ Awarded ${pointsToAward} energy points (total: ${newTotalPoints})`);
-        }
-      } catch (pointsErr) {
-        console.error('Error in energy points awarding:', pointsErr);
-      }
-    }
 
     console.log(`Successfully checked answer for question ${question_id}`);
     return new Response(JSON.stringify({
