@@ -67,7 +67,7 @@ const LearningLayout: React.FC = () => {
               </Link>
             ) : (
               <span className="font-display text-xl font-semibold text-white">
-                EGEChat
+                EgeChat
               </span>
             )}
           </div>
