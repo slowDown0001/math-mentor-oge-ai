@@ -102,12 +102,13 @@ export const TeacherTab = () => {
     if (!selectedTutor) return;
 
     try {
-      // Update both tutor_avatar_url and tutor_name in profiles table
+      // Update tutor_avatar_url, tutor_name, and tutor_id in profiles table
       const { error } = await supabase
         .from("profiles")
         .update({
           tutor_avatar_url: selectedTutor.avatar,
           tutor_name: selectedTutor.name,
+          tutor_id: selectedTutor.id,
         })
         .eq("user_id", user.id);
 
