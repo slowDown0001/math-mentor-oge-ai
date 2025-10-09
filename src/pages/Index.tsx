@@ -19,7 +19,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
       <FlyingMathBackground />
       <div className="relative z-10">
         <LandingHeader />
