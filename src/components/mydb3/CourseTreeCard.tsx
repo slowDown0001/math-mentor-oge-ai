@@ -241,7 +241,12 @@ export const CourseTreeCard: React.FC<CourseTreeCardProps> = ({
     <Card className="rounded-lg shadow-sm h-full flex flex-col bg-white">
       <CardHeader className="pb-4">
         <div>
-          <CardTitle className="text-lg font-semibold">{course.title}</CardTitle>
+          <CardTitle 
+            className="text-lg font-semibold text-blue-700 hover:text-blue-800 cursor-pointer transition-colors"
+            onClick={() => onStart(course.id)}
+          >
+            {course.title}
+          </CardTitle>
           <div className="flex items-center gap-2 mt-1">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
