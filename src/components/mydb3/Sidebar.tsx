@@ -1,5 +1,5 @@
 import React from 'react';
-import { Book, BarChart3, User, Settings, MessageCircle, History } from 'lucide-react';
+import { Book, User, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -9,13 +9,11 @@ export const Sidebar = () => {
 
   const menuItems = [
     { icon: Book, label: 'Курсы', path: '/mydb3' },
-    { icon: BarChart3, label: 'Прогресс', path: '/mydashboard' },
     { icon: User, label: 'Профиль', path: '/profile' },
   ];
 
   const accountItems = [
-    { icon: Settings, label: 'Настройки', path: '/settings' },
-    { icon: MessageCircle, label: 'История чата', path: '/chat-history' },
+    { icon: Crown, label: 'Подписки', path: '/subscribe' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
