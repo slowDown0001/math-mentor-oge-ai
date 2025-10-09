@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Play, BookOpen, Target, X, Crown, Clock, CheckCircle2, Zap } from "lucide-react";
-import goldRocketIcon from "@/assets/gold-rocket-icon.png";
 
 import { Button } from "@/components/ui/button";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
@@ -372,8 +371,8 @@ const TopicPage: React.FC = () => {
                   >
                     <div className="flex items-start gap-4">
                       {/* Icon */}
-                      <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                        <img src={goldRocketIcon} alt="" className="w-10 h-10" />
+                      <div className="p-3 bg-purple-100 rounded-lg flex-shrink-0">
+                        <Zap className="h-6 w-6 text-purple-600" />
                       </div>
 
                       {/* Content */}

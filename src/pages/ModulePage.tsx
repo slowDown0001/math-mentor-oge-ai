@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Play, BookOpen, Target, Crown, Zap, Star, Info, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import goldRocketIcon from "@/assets/gold-rocket-icon.png";
 import { StreakDisplay } from "@/components/streak/StreakDisplay";
 import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
 import ArticleRenderer from "@/components/ArticleRenderer";
@@ -192,8 +191,8 @@ const ModulePage = () => {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 flex items-center justify-center">
-                      <img src={goldRocketIcon} alt="" className="w-6 h-6" />
+                    <div className="p-2 bg-green-100 rounded-full">
+                      <Target className="h-4 w-4 text-green-600" />
                     </div>
                     <span className="text-sm font-medium">
                       {exerciseData.title}

@@ -131,7 +131,7 @@ export const DailyTaskStory = () => {
       {/* Avatar Circle */}
       <div className="flex justify-center">
         <div
-          className={`w-20 h-20 rounded-full overflow-hidden cursor-pointer transition-all duration-200 hover:scale-105 ${
+          className={`w-12 h-12 rounded-full overflow-hidden cursor-pointer transition-all duration-200 hover:scale-105 ${
             seen === 0 
               ? 'p-0.5 bg-gradient-to-tr from-purple-500 via-pink-500 to-orange-500' 
               : 'border-2 border-muted'
