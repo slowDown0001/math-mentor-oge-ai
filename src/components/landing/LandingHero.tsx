@@ -40,7 +40,7 @@ export default function LandingHero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           >
-            Видео и статьи на каждое умение, база заданий как в FIPI, и умный AI-ассистент, который подскажет следующий шаг.
+            Видео и статьи на каждое умение, база заданий как в ФИПИ, и умный AI-ассистент, который подскажет следующий шаг.
           </motion.p>
           
           <motion.div 
