@@ -155,9 +155,9 @@ const Profile = () => {
 
   if (skillsLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 pt-20 flex items-center justify-center">
+        <main className="flex-1 pt-16 flex items-center justify-center overflow-auto">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-muted-foreground">Загрузка профиля...</p>
@@ -168,10 +168,10 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       <Header />
-      <main className="flex-1 pt-20">
-        <div className="container mx-auto px-4 py-8">
+      <main className="flex-1 pt-16 overflow-auto">
+        <div className="container mx-auto px-4 py-4">
           <ProfileTabs 
             userData={userData}
             userName={userName}
