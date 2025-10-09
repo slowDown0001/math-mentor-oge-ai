@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserProfileCard } from "@/components/profile/UserProfileCard";
 import { ProfileTabs } from "@/components/profile/ProfileTabs";
@@ -164,7 +163,6 @@ const Profile = () => {
             <p className="text-muted-foreground">Загрузка профиля...</p>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -183,7 +181,6 @@ const Profile = () => {
           />
         </div>
       </main>
-      <Footer />
     </div>
   );
 };
