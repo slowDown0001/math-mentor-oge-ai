@@ -152,7 +152,7 @@ export default function LandingHeader() {
           <img 
             src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/avatars/logo-nobg.png" 
             alt="EGEChat Logo" 
-            className="w-10 h-10"
+            className="w-12 h-12"
           />
           <span className="font-bold text-xl text-foreground">EGEChat</span>
         </Link>
