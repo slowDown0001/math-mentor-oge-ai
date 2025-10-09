@@ -29,6 +29,7 @@ interface ExerciseConfig {
 }
 
 interface ModuleConfig {
+  courseId: 'oge-math' | 'ege-basic' | 'ege-advanced';
   slug: string;
   moduleNumber: number;
   title: string;
@@ -46,6 +47,7 @@ interface ModuleConfig {
 
 export const modulesRegistry: Record<string, ModuleConfig> = {
   'numbers-calculations': {
+    courseId: 'oge-math',
     slug: 'numbers-calculations',
     moduleNumber: 1,
     title: 'Модуль 1: Числа и вычисления',
@@ -265,6 +267,7 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
   },
 
  'algebraic-expressions': {
+    courseId: 'oge-math',
     slug: 'algebraic-expressions',
     moduleNumber: 2,
     title: 'Модуль 2: Алгебраические выражения',
@@ -352,6 +355,7 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
   },
 
   'equations-inequalities': {
+    courseId: 'oge-math',
     slug: 'equations-inequalities',
     moduleNumber: 3,
     title: 'Модуль 3: Уравнения и неравенства',
@@ -439,6 +443,7 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
 
 
   'sequences': {
+    courseId: 'oge-math',
     slug: 'sequences',
     moduleNumber: 4,
     title: 'Модуль 4: Числовые последовательности',
@@ -506,6 +511,7 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
 
 
   'functions': {
+    courseId: 'oge-math',
     slug: 'functions',
     moduleNumber: 5,
     title: 'Модуль 5: Функции',
@@ -568,6 +574,7 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
 
 
   'coordinates': {
+    courseId: 'oge-math',
     slug: 'coordinates',
     moduleNumber: 6,
     title: 'Модуль 6: Координаты на прямой и плоскости',
@@ -622,6 +629,7 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
 
 
   'geometry': {
+    courseId: 'oge-math',
     slug: 'geometry',
     moduleNumber: 7,
     title: 'Модуль 7: Геометрия',
@@ -757,6 +765,7 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
 
 
   'probability-statistics': {
+    courseId: 'oge-math',
     slug: 'probability-statistics',
     moduleNumber: 8,
     title: 'Модуль 8: Вероятность и статистика',
@@ -843,6 +852,7 @@ export const modulesRegistry: Record<string, ModuleConfig> = {
 
 
   'applied-math': {
+    courseId: 'oge-math',
     slug: 'applied-math',
     moduleNumber: 9,
     title: 'Модуль 9: Прикладная математика',

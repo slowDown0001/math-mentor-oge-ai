@@ -6,7 +6,7 @@ export interface Course {
   title: string;
   tag: string;
   homeRoute: string;
-  routePatterns: string[];
+  staticRoutes: string[];
   topicsUrl: string;
 }
 
@@ -17,10 +17,11 @@ export const COURSES: Record<CourseId, Course> = {
     title: 'Математика ОГЭ',
     tag: 'OGE',
     homeRoute: '/ogemath',
-    routePatterns: [
+    staticRoutes: [
       '/ogemath',
       '/homework',
       '/cellard-lp2',
+      '/textbook',
       '/digital-textbook',
       '/ogemath-mock',
       '/ogemath-practice',
@@ -28,8 +29,7 @@ export const COURSES: Record<CourseId, Course> = {
       '/ogemath-revision',
       '/practice-by-number-ogemath',
       '/topics',
-      '/topic/',
-      '/modules/'
+      '/homework-fipi-practice'
     ],
     topicsUrl: 'https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/jsons_for_topic_skills/ogemath_topics_only_with_names.json'
   },
@@ -39,7 +39,7 @@ export const COURSES: Record<CourseId, Course> = {
     title: 'Математика ЕГЭ (База)',
     tag: 'EGE Basic',
     homeRoute: '/egemathbasic',
-    routePatterns: [
+    staticRoutes: [
       '/egemathbasic',
       '/egemathbasic-practice',
       '/egemathbasic-progress',
@@ -53,7 +53,7 @@ export const COURSES: Record<CourseId, Course> = {
     title: 'Математика ЕГЭ (Профиль)',
     tag: 'EGE Profi',
     homeRoute: '/egemathprof',
-    routePatterns: [
+    staticRoutes: [
       '/egemathprof',
       '/egemathprof-practice',
       '/egemathprof-progress',
@@ -63,13 +63,59 @@ export const COURSES: Record<CourseId, Course> = {
   }
 };
 
-// Helper to get course from current route
+// Helper to get course from module slug
+export function getCourseFromModuleSlug(moduleSlug: string): Course | null {
+  // Dynamically import to avoid circular dependency issues
+  // We'll check the module registry at runtime
+  try {
+    // Use dynamic import or defer the import
+    const { modulesRegistry } = require('./modules.registry');
+    const module = modulesRegistry[moduleSlug];
+    if (module?.courseId) {
+      return COURSES[module.courseId] || null;
+    }
+  } catch (error) {
+    console.error('Error loading module registry:', error);
+  }
+  return null;
+}
+
+// Helper to get course from topic number
+export function getCourseFromTopicNumber(topicNumber: string): Course | null {
+  // Topics 1.x through 7.x belong to OGE Math
+  // This can be extended based on topic numbering scheme
+  const firstDigit = topicNumber.split('.')[0];
+  const topicNum = parseInt(firstDigit);
+  
+  if (topicNum >= 1 && topicNum <= 7) {
+    return COURSES['oge-math'];
+  }
+  // Add logic for EGE topics when they're added
+  
+  return null;
+}
+
+// Enhanced helper to get course from current route
 export function getCourseFromRoute(pathname: string): Course | null {
+  // 1. Try exact static route matches first
   for (const course of Object.values(COURSES)) {
-    if (course.routePatterns.some(pattern => pathname.startsWith(pattern))) {
+    if (course.staticRoutes.some(route => pathname.startsWith(route))) {
       return course;
     }
   }
+  
+  // 2. Check if it's a module route: /module/:moduleSlug
+  const moduleMatch = pathname.match(/^\/module\/([^/]+)/);
+  if (moduleMatch) {
+    return getCourseFromModuleSlug(moduleMatch[1]);
+  }
+  
+  // 3. Check if it's a topic route: /topic/:topicNumber
+  const topicMatch = pathname.match(/^\/topic\/([^/]+)/);
+  if (topicMatch) {
+    return getCourseFromTopicNumber(topicMatch[1]);
+  }
+  
   return null;
 }
 
