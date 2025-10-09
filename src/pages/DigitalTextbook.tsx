@@ -355,14 +355,6 @@ const DigitalTextbook = () => {
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Программа ОГЭ по математике</h2>
           <p className="text-lg text-gray-600">Выберите любой навык для изучения</p>
         </div>
-        {/* Chat Toggle Button - Fixed to right edge */}
-        <button
-          onClick={() => setIsChatOpen(true)}
-          className="fixed right-0 top-20 z-50 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-3 py-2 rounded-l-lg shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center gap-2 text-sm"
-        >
-          <MessageCircle className="h-4 w-4" />
-          <span className="font-medium">ЧАТ</span>
-        </button>
         
         <div className="grid gap-6">
           {Object.entries(syllabusData).map(([moduleName, module]) => (
@@ -521,6 +513,15 @@ const DigitalTextbook = () => {
 
   return (
     <div className="flex h-screen w-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Chat Toggle Button - Fixed to right edge - ALWAYS VISIBLE */}
+      <button
+        onClick={() => setIsChatOpen(true)}
+        className="fixed right-0 top-20 z-50 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-3 py-2 rounded-l-lg shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center gap-2 text-sm"
+      >
+        <MessageCircle className="h-4 w-4" />
+        <span className="font-medium">ЧАТ</span>
+      </button>
+      
       {/* Left Sidebar - Fixed */}
       <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0 flex flex-col">
         
