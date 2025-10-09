@@ -45,7 +45,7 @@ const LearningLayout: React.FC = () => {
             <img 
               src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/167bd930-0ea0-439a-bab1-5e561f369bac.png" 
               alt="Logo"
-              className="w-10 h-10 rounded-lg"
+              className="w-12 h-12 rounded-lg"
             />
             <Link 
               to="/ogemath" 
