@@ -315,18 +315,6 @@ const TopicPage: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             className="bg-white/95 text-[#1a1f36] backdrop-blur-sm rounded-lg border border-white/20 shadow-sm overflow-hidden lg:h-[calc(100vh-12rem)] flex flex-col"
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-black/10 flex-shrink-0">
-              <div>
-                <div className="text-sm text-gray-600">Обзор темы</div>
-                <div className="text-lg font-semibold">
-                  {article?.topic_id ? `Тема ${article.topic_id}` : `Тема ${topicNumber}: ${topic.title}`}
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-
             <ScrollArea className="flex-1">
               <div className="p-4">
                 {loadingArticle ? (
