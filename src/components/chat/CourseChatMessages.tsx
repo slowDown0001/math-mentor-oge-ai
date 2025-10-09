@@ -217,10 +217,10 @@ const CourseChatMessages = ({ messages, isTyping, onLoadMoreHistory, isLoadingHi
       {showScrollButton && (
         <button
           onClick={handleScrollToBottomClick}
-          className="absolute bottom-4 right-4 w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 
-                     hover:from-blue-400 hover:to-purple-500 text-white rounded-full shadow-lg 
+          className="absolute bottom-4 right-4 w-12 h-12 bg-gradient-to-br from-[#f59e0b] to-[#10b981]
+                     hover:from-[#fbbf24] hover:to-[#34d399] text-white rounded-full shadow-lg 
                      transform transition-all duration-300 ease-in-out hover:scale-105 
-                     hover:shadow-xl hover:shadow-blue-500/30 animate-fade-in z-10"
+                     hover:shadow-xl hover:shadow-emerald-500/30 animate-fade-in z-10"
           aria-label="Scroll to user's last message"
         >
           <ChevronDown className="w-5 h-5 mx-auto" />
