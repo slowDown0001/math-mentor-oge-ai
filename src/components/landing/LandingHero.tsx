@@ -14,15 +14,6 @@ export default function LandingHero() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-20 relative z-10 bg-transparent">
         <div className="max-w-4xl mx-auto text-center bg-white p-8 rounded-2xl shadow-lg">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-            className="mb-8"
-          >
-            <PromptBar />
-          </motion.div>
-          
           <motion.h1 
             className="text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight"
             initial={{ opacity: 0, y: 30 }}
@@ -44,7 +35,7 @@ export default function LandingHero() {
           </motion.p>
           
           <motion.div 
-            className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+            className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
@@ -71,6 +62,14 @@ export default function LandingHero() {
                 Посмотреть практику
               </Link>
             </Button>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+          >
+            <PromptBar />
           </motion.div>
         </div>
       </div>
