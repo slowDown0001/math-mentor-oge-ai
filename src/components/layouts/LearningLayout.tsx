@@ -47,12 +47,7 @@ const LearningLayout: React.FC = () => {
             </Link>
 
           </div>
-          <div className="flex items-center gap-6">
-            <a href="#modules" className="text-white hover:text-yellow-500">Модули</a>
-            <a href="#progress" className="text-white hover:text-yellow-5000">Прогресс</a>
-            <button onClick={startMock} className="bg-yellow-500 text-[#1a1f36] px-4 py-2 rounded-lg hover:bg-yellow-400 font-medium">
-              Экзамен
-            </button>
+          <div className="flex items-center gap-6 ml-auto">
             <DailyTaskStory />
             <div className="relative">
               <StreakDisplay />
@@ -62,6 +57,9 @@ const LearningLayout: React.FC = () => {
                 onAnimationComplete={() => setEnergyPointsAnimation({ isVisible: false, points: 0 })}
               />
             </div>
+            <button onClick={startMock} className="bg-yellow-500 text-[#1a1f36] px-4 py-2 rounded-lg hover:bg-yellow-400 font-medium">
+              Экзамен
+            </button>
           </div>
         </div>
       </nav>
