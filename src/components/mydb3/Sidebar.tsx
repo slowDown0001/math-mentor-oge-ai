@@ -22,20 +22,6 @@ export const Sidebar = () => {
 
   return (
     <div className="w-64 bg-background border-r min-h-screen p-4">
-      {/* Logo */}
-      <div className="mb-8 flex justify-center">
-        <button 
-          onClick={() => navigate('/mydb3')}
-          className="hover:opacity-80 transition-opacity"
-        >
-          <img 
-            src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/txtbkimg/1001egechat_logo.png" 
-            alt="Logo"
-            className="h-12 w-auto"
-          />
-        </button>
-      </div>
-
       {/* My Stuff Section */}
       <div className="mb-8">
         <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wide">
