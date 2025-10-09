@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Check, X, ArrowRight, Trophy, Target, RefreshCw, Heart, BookOpen } from 'lucide-react';
+import { Check, X, ArrowRight, Trophy, Target, RefreshCw, Heart, BookOpen, StopCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStreakTracking } from '@/hooks/useStreakTracking';
@@ -54,6 +54,7 @@ const OgemathRevision = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [isHomeworkMode, setIsHomeworkMode] = useState(false);
   const [homeworkQuestions, setHomeworkQuestions] = useState<string[]>([]);
+  const [isStopped, setIsStopped] = useState(false);
 
   const options = ['А', 'Б', 'В', 'Г'];
 
@@ -232,8 +233,8 @@ const OgemathRevision = () => {
       }
     }
 
-    // Check if session is complete
-    if (newSession.questionsAttempted >= session.totalQuestions) {
+    // Only auto-complete in homework mode
+    if (isHomeworkMode && newSession.questionsAttempted >= session.totalQuestions) {
       setTimeout(() => {
         setShowSummary(true);
       }, 2000);
@@ -241,7 +242,7 @@ const OgemathRevision = () => {
   };
 
   const handleNextQuestion = () => {
-    if (session.questionsAttempted >= session.totalQuestions) {
+    if (isHomeworkMode && session.questionsAttempted >= session.totalQuestions) {
       setShowSummary(true);
     } else {
       if (isHomeworkMode) {
@@ -252,15 +253,21 @@ const OgemathRevision = () => {
     }
   };
 
+  const handleStopSession = () => {
+    setIsStopped(true);
+    setShowSummary(true);
+  };
+
   const handleRestartSession = () => {
     setSession({
       questionsAttempted: 0,
       correctAnswers: 0,
       pointsEarned: 0,
       startTime: new Date(),
-      totalQuestions: 5
+      totalQuestions: isHomeworkMode ? homeworkQuestions.length : 9999
     });
     setShowSummary(false);
+    setIsStopped(false);
     if (isHomeworkMode) {
       loadHomeworkQuestion(homeworkQuestions);
     } else {
@@ -425,6 +432,26 @@ const OgemathRevision = () => {
                       : "Отличное начало! Повторение поможет закрепить знания!"}
                   </p>
                 </div>
+
+                {session.questionsAttempted >= 10 && (
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p className="text-sm text-yellow-800">
+                      💡 <strong>Совет:</strong> {accuracy >= 70 
+                        ? "Вы отлично справляетесь! Такое регулярное повторение закрепляет навыки надолго." 
+                        : "Не расстраивайтесь! Ошибки - это часть обучения. Попробуйте еще раз, и результат улучшится!"}
+                    </p>
+                  </div>
+                )}
+
+                {session.questionsAttempted >= 10 && (
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p className="text-sm text-yellow-800">
+                      💡 <strong>Совет:</strong> {accuracy >= 70 
+                        ? "Вы отлично справляетесь! Такое регулярное повторение закрепляет навыки надолго." 
+                        : "Не расстраивайтесь! Ошибки - это часть обучения. Попробуйте еще раз, и результат улучшится!"}
+                    </p>
+                  </div>
+                )}
                 
                 <div className="flex gap-3">
                   <Button onClick={handleRestartSession} className="flex-1 bg-green-600 hover:bg-green-700" size="lg">
@@ -443,7 +470,9 @@ const OgemathRevision = () => {
     );
   }
 
-  const progressPercentage = (session.questionsAttempted / session.totalQuestions) * 100;
+  const progressPercentage = isHomeworkMode 
+    ? (session.questionsAttempted / session.totalQuestions) * 100 
+    : Math.min((session.questionsAttempted / 20) * 100, 100); // Show progress up to 20 questions in unlimited mode
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
@@ -465,7 +494,12 @@ const OgemathRevision = () => {
                 <h1 className="text-2xl font-bold text-green-800">
                   {isHomeworkMode ? 'Домашнее задание' : 'Повторение навыков'}
                 </h1>
-                <p className="text-sm text-green-600">Вопрос {session.questionsAttempted + 1} из {session.totalQuestions}</p>
+                <p className="text-sm text-green-600">
+                  {isHomeworkMode 
+                    ? `Вопрос ${session.questionsAttempted + 1} из ${session.totalQuestions}`
+                    : `Решено вопросов: ${session.questionsAttempted}`
+                  }
+                </p>
               </div>
               <div className="flex items-center space-x-4">
                 <div className="text-center">
@@ -476,6 +510,17 @@ const OgemathRevision = () => {
                   <div className="text-lg font-bold text-orange-600">{session.pointsEarned}</div>
                   <div className="text-xs text-orange-700">Баллов</div>
                 </div>
+                {!isHomeworkMode && (
+                  <Button
+                    onClick={handleStopSession}
+                    variant="destructive"
+                    size="sm"
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <StopCircle className="w-4 h-4 mr-1" />
+                    Стоп
+                  </Button>
+                )}
               </div>
             </div>
             <Progress value={progressPercentage} className="w-full h-3" />
@@ -555,7 +600,7 @@ const OgemathRevision = () => {
                             className="bg-green-600 hover:bg-green-700"
                             size="lg"
                           >
-                            {session.questionsAttempted >= session.totalQuestions ? (
+                            {isHomeworkMode && session.questionsAttempted >= session.totalQuestions ? (
                               <>Завершить</>
                             ) : (
                               <>Следующий вопрос <ArrowRight className="w-4 h-4 ml-2" /></>
