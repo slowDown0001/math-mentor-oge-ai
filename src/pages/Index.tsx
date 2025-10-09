@@ -8,6 +8,7 @@ import VideoEmbed from "@/components/landing/VideoEmbed";
 import ChatDemo from "@/components/landing/ChatDemo";
 import LandingCTA from "@/components/landing/LandingCTA";
 import LandingFooter from "@/components/landing/LandingFooter";
+import FlyingMathBackground from "@/components/FlyingMathBackground";
 
 const Index = () => {
   const { isLoading } = useAuth();
@@ -18,16 +19,19 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <LandingHeader />
-      <main>
-        <LandingHero />
-        <HighlightCards />
-        <VideoEmbed />
-        <ChatDemo />
-        <LandingCTA />
-      </main>
-      <LandingFooter />
+    <div className="min-h-screen bg-background relative">
+      <FlyingMathBackground />
+      <div className="relative z-10">
+        <LandingHeader />
+        <main>
+          <LandingHero />
+          <HighlightCards />
+          <VideoEmbed />
+          <ChatDemo />
+          <LandingCTA />
+        </main>
+        <LandingFooter />
+      </div>
     </div>
   );
 };

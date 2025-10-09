@@ -33,6 +33,11 @@ export default function useFlyingMathBackground(parentRef: React.RefObject<HTMLD
 
       p.draw = () => {
         p.clear();
+        
+        // Semi-transparent black background overlay
+        p.fill(0, 0, 0, 40);
+        p.noStroke();
+        p.rect(0, 0, p.width, p.height);
 
         parts.forEach((pt) => {
           pt.x += pt.vx; pt.y += pt.vy;
@@ -41,14 +46,14 @@ export default function useFlyingMathBackground(parentRef: React.RefObject<HTMLD
           if (pt.y < 0) pt.y = p.height;
           if (pt.y > p.height) pt.y = 0;
 
-          p.fill(245, 158, 11, pt.opacity * 255);
+          p.fill(255, 255, 255, pt.opacity * 100);
           p.noStroke();
           p.textAlign(p.CENTER, p.CENTER);
           p.textSize(pt.size * 8);
           p.text(pt.sym, pt.x, pt.y);
         });
 
-        p.stroke(245, 158, 11, 60);
+        p.stroke(255, 255, 255, 30);
         p.strokeWeight(1);
         for (let i = 0; i < parts.length; i++) {
           for (let j = i + 1; j < parts.length; j++) {
