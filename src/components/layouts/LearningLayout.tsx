@@ -44,7 +44,7 @@ const LearningLayout: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen text-foreground relative"
+      className="h-screen overflow-hidden text-foreground relative"
       style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}
     >
 
@@ -108,7 +108,7 @@ const LearningLayout: React.FC = () => {
         </div>
       </nav>
 
-      <main className="pt-[68px] relative z-20">
+      <main className="h-[calc(100vh-64px)] mt-16 overflow-y-auto relative z-20">
         <Outlet />
       </main>
     </div>
