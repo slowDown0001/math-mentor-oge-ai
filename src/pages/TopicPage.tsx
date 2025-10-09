@@ -84,7 +84,7 @@ const TopicPage: React.FC = () => {
     description: string;
   } | null>(null);
 
-  const [selectedExercise, setSelectedExercise] = useState<ExerciseConfig | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<ExerciseConfig & { itemId?: string } | null>(null);
 
   // Exercises resolved from registry
   const exercises: ExerciseConfig[] = useMemo(() => {
@@ -149,6 +149,7 @@ const TopicPage: React.FC = () => {
               skills={selectedExercise.skills}
               questionCount={selectedExercise.questionCount}
               isModuleTest={false}
+              itemId={selectedExercise.itemId}
               onBack={() => {
                 setSelectedExercise(null);
                 refetch();
@@ -250,6 +251,7 @@ const TopicPage: React.FC = () => {
                 {exercises.map((ex, i) => {
                   const itemId = `${moduleSlug}-${topicId}-ex${i}`;
                   const status = getProgressStatus(itemId, 'exercise');
+                  const exerciseWithId = { ...ex, itemId };
 
                   const renderProgressCell = () => {
                     switch (status) {
@@ -295,7 +297,7 @@ const TopicPage: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-3 ml-11">
                         <button 
-                          onClick={() => setSelectedExercise(ex)}
+                          onClick={() => setSelectedExercise(exerciseWithId)}
                           className="hover:scale-110 transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                           disabled={!ex.skills.length}
                         >
@@ -305,7 +307,7 @@ const TopicPage: React.FC = () => {
                           variant="outline"
                           size="sm"
                           className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                          onClick={() => setSelectedExercise(ex)}
+                          onClick={() => setSelectedExercise(exerciseWithId)}
                           disabled={!ex.skills.length}
                         >
                           Практика
