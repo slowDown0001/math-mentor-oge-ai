@@ -6,6 +6,7 @@ import { EnergyPointsHeaderAnimation } from "@/components/streak/EnergyPointsHea
 import { DailyTaskStory } from "@/components/DailyTaskStory";
 import { ChevronDown } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +31,11 @@ const LearningLayout: React.FC = () => {
       delete (window as any).triggerEnergyPointsAnimation;
     };
   }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   return (
     <div
@@ -82,6 +88,9 @@ const LearningLayout: React.FC = () => {
                   <Link to="/profile" className="cursor-pointer">
                     Профиль
                   </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 focus:text-red-600">
+                  Выйти
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
