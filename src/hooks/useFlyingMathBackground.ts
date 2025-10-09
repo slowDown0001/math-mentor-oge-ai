@@ -18,14 +18,14 @@ export default function useFlyingMathBackground(parentRef: React.RefObject<HTMLD
         p.pixelDensity(p.displayDensity());
         p.clear();
 
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 80; i++) {
           parts.push({
             x: p.random(p.width),
             y: p.random(p.height),
             vx: p.random(-0.5, 0.5),
             vy: p.random(-0.5, 0.5),
             size: p.random(2, 4),
-            opacity: p.random(0.2, 0.4),
+            opacity: p.random(0.4, 0.7),
             sym: syms[Math.floor(p.random(syms.length))],
           });
         }
@@ -48,7 +48,7 @@ export default function useFlyingMathBackground(parentRef: React.RefObject<HTMLD
           p.text(pt.sym, pt.x, pt.y);
         });
 
-        p.stroke(245, 158, 11, 60);
+        p.stroke(245, 158, 11, 100);
         p.strokeWeight(1);
         for (let i = 0; i < parts.length; i++) {
           for (let j = i + 1; j < parts.length; j++) {
