@@ -66,7 +66,7 @@ export const useActivityStats = (days: number | null = 30) => {
           if (days !== null) {
             const dateThreshold = new Date();
             dateThreshold.setDate(dateThreshold.getDate() - days);
-            query = query.gte('created_at', dateThreshold.toISOString());
+            query = query.gte('updated_at', dateThreshold.toISOString());
           }
 
           const { data: activityData } = await query;
@@ -76,7 +76,7 @@ export const useActivityStats = (days: number | null = 30) => {
             const correctAttempts = activityData.filter(a => a.is_correct).length;
             const accuracy = totalAttempts > 0 ? (correctAttempts / totalAttempts * 100) : 0;
             const uniqueQuestions = new Set(activityData.map(a => a.question_id)).size;
-            const lastActivity = activityData[0]?.created_at || null;
+            const lastActivity = activityData[0]?.updated_at || null;
 
             stats.push({
               courseId: courseIdStr,
