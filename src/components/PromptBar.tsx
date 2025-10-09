@@ -63,7 +63,7 @@ const PromptBar = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4 p-4 border-2 border-yellow-500/30 rounded-xl bg-gradient-to-r from-yellow-500 via-emerald-500 to-yellow-500">
+    <div className="w-full max-w-2xl mx-auto space-y-4 p-4 border-2 border-yellow-500/20 rounded-xl bg-gradient-to-r from-yellow-500/20 via-emerald-500/20 to-yellow-500/20">
       {/* Input row */}
       <form onSubmit={handleSubmit} className="flex gap-3">
         <Input
