@@ -176,38 +176,11 @@ export const StreakDisplay = () => {
         />
       </div>
 
-      {/* Clickable Streak Info with Progress Ring */}
-      <div className="relative flex items-center justify-center">
-        <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 100 50" style={{ width: '110px', height: '50px' }}>
-          {/* Background circle/arc */}
-          <ellipse
-            cx="50"
-            cy="25"
-            rx="48"
-            ry="22"
-            fill="none"
-            stroke="hsl(var(--muted-foreground) / 0.2)"
-            strokeWidth="2"
-          />
-          {/* Progress circle/arc */}
-          <ellipse
-            cx="50"
-            cy="25"
-            rx="48"
-            ry="22"
-            fill="none"
-            stroke={isCompleted ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.7)"}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeDasharray={`${Math.PI * 96}`}
-            strokeDashoffset={`${Math.PI * 96 * (1 - progressPercentage / 100)}`}
-            className="transition-all duration-1000 ease-out"
-          />
-        </svg>
-        
+      {/* Clickable Streak Info with Linear Progress Bar */}
+      <div className="flex flex-col gap-1">
         <button 
           onClick={() => setShowDropdown(!showDropdown)}
-          className="flex items-center gap-3 text-sm text-white hover:opacity-80 transition-opacity duration-200 relative z-10 px-2"
+          className="flex items-center gap-3 text-sm text-white hover:opacity-80 transition-opacity duration-200 px-2"
         >
           <div className="flex items-center gap-1">
             <span className="font-medium">{streakData.currentStreak}</span>
@@ -218,6 +191,14 @@ export const StreakDisplay = () => {
           </div>
           <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
         </button>
+        
+        {/* Linear Progress Bar */}
+        <div className="w-full h-1 bg-white/30 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-orange-500 transition-all duration-1000 ease-out rounded-full"
+            style={{ width: `${progressPercentage}%` }}
+          />
+        </div>
       </div>
 
       {/* Dropdown Menu */}
