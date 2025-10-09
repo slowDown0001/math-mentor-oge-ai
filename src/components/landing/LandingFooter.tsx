@@ -36,7 +36,7 @@ const footerSections = [
 
 export default function LandingFooter() {
   return (
-    <footer className="bg-muted/50 border-t">
+    <footer className="bg-gradient-to-b from-slate-800/95 to-slate-900/95 border-t border-white/10 text-white">
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           {footerSections.map((section, index) => (
@@ -47,7 +47,7 @@ export default function LandingFooter() {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
             >
-              <h3 className="font-semibold text-foreground mb-4 text-lg">
+              <h3 className="font-semibold text-white mb-4 text-lg">
                 {section.title}
               </h3>
               <ul className="space-y-3">
@@ -56,13 +56,13 @@ export default function LandingFooter() {
                     {link.enabled ? (
                       <Link
                         to={link.href}
-                        className="text-muted-foreground hover:text-primary transition-colors duration-200"
+                        className="text-slate-300 hover:text-yellow-400 transition-colors duration-200"
                       >
                         {link.label}
                       </Link>
                     ) : (
                       <span 
-                        className="text-muted-foreground/50 cursor-not-allowed"
+                        className="text-slate-500 cursor-not-allowed"
                         title={link.tooltip}
                       >
                         {link.label}
@@ -76,7 +76,7 @@ export default function LandingFooter() {
         </div>
 
         <motion.div 
-          className="border-t pt-8 flex flex-col md:flex-row justify-between items-center gap-4"
+          className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -89,19 +89,19 @@ export default function LandingFooter() {
                 alt="EGEChat Logo" 
                 className="w-8 h-8"
               />
-              <span className="font-bold text-xl text-foreground">EGEChat</span>
+              <span className="font-bold text-xl text-white">EGEChat</span>
             </Link>
-            <p className="text-muted-foreground">
+            <p className="text-slate-300">
               © {new Date().getFullYear()} EGEChat. Все права защищены.
             </p>
           </div>
           
           <div className="flex items-center gap-4">
-            <button className="text-muted-foreground hover:text-primary transition-colors duration-200 font-medium">
+            <button className="text-slate-300 hover:text-yellow-400 transition-colors duration-200 font-medium">
               RU
             </button>
-            <span className="text-muted-foreground">|</span>
-            <button className="text-muted-foreground hover:text-primary transition-colors duration-200">
+            <span className="text-slate-500">|</span>
+            <button className="text-slate-300 hover:text-yellow-400 transition-colors duration-200">
               EN
             </button>
           </div>
