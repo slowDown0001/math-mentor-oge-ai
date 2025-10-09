@@ -187,98 +187,14 @@ const Profile = () => {
             </Button>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Left Column - User Info */}
-            <div className="md:w-1/3">
-              <UserProfileCard 
-                userName={userName}
-                userEmail={userEmail}
-                joinedDate={joinedDate}
-                userData={userData}
-                lastActivityDate={lastActivityDate}
-              />
-              
-              {/* Telegram Bot Integration - Fancy Card */}
-              <Card className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-lg rounded-xl overflow-hidden">
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                      <MessageSquare className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800">Telegram Бот</h3>
-                      <p className="text-sm text-gray-600">Загружай фото решений</p>
-                    </div>
-                  </div>
-                  
-                  <Dialog>
-                    <DialogTrigger asChild>
-                        <Button 
-                          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg transition-all duration-200 transform hover:scale-105"
-                          size="lg"
-                        >
-                          <MessageSquare className="w-4 h-4 mr-2" />
-                          {profile?.telegram_user_id ? 'Управление Telegram ботом' : 'Подключить Telegram бот'}
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                          <MessageSquare className="w-5 h-5 text-blue-600" />
-                          Telegram бот
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <p className="text-sm text-blue-700 font-medium">
-                            Через бот в Telegram ты сможешь загружать фото решения и задач на платформу
-                          </p>
-                        </div>
-                        {profile?.telegram_code ? (
-                          <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm text-gray-600 mb-2">Ваш Telegram код:</p>
-                                <p className="text-blue-800 font-mono text-xl font-bold">
-                                  {profile.telegram_code}
-                                </p>
-                              </div>
-                              {profile?.telegram_user_id ? (
-                                <div className="flex items-center text-green-600 text-sm font-medium bg-green-100 px-3 py-1 rounded-full">
-                                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                                  Telegram код подтвержден
-                                </div>
-                              ) : null}
-                            </div>
-                            {!profile?.telegram_user_id && (
-                              <div className="mt-3 p-3 bg-blue-100 rounded-lg">
-                                <p className="text-sm text-blue-700 font-medium">
-                                  📱 Введите этот код в телеграм-боте @egechat_bot
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <Button
-                            onClick={generateTelegramCode}
-                            disabled={isGeneratingCode}
-                            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
-                            size="lg"
-                          >
-                            {isGeneratingCode ? 'Создаю код...' : 'Создать Telegram код'}
-                          </Button>
-                        )}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </Card>
-            </div>
-            
-            {/* Right Column - Tabs */}
-            <div className="md:w-2/3">
-              <ProfileTabs userData={userData} />
-            </div>
+          <div className="flex flex-col">
+            <ProfileTabs 
+              userData={userData}
+              userName={userName}
+              userEmail={userEmail}
+              joinedDate={joinedDate}
+              lastActivityDate={lastActivityDate}
+            />
           </div>
         </div>
       </main>

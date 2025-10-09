@@ -10,6 +10,8 @@ export interface Profile {
   bio?: string;
   created_at?: string;
   updated_at?: string;
+  telegram_code?: number;
+  telegram_user_id?: number;
 }
 
 export const useProfile = () => {
