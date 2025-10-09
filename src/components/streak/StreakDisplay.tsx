@@ -123,7 +123,7 @@ export const StreakDisplay = () => {
 
   return (
     <div className="relative flex items-center gap-3 group -ml-3" ref={dropdownRef}>
-      {/* Progress Ring - Made Bigger */}
+      {/* Progress Ring */}
       <div className="relative w-14 h-14">
         <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 56 56">
           {/* Background circle */}
@@ -149,24 +149,6 @@ export const StreakDisplay = () => {
             className="transition-all duration-1000 ease-out"
           />
         </svg>
-        
-        {/* User Profile Picture - Clickable */}
-        <button 
-          onClick={() => navigate("/profile")}
-          className="absolute inset-0 flex items-center justify-center hover:scale-105 transition-transform duration-200"
-        >
-          {getAvatarUrl() ? (
-            <img 
-              src={getAvatarUrl()!} 
-              alt={getDisplayName()}
-              className="w-8 h-8 object-cover rounded-full"
-            />
-          ) : (
-            <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-muted-foreground" />
-            </div>
-          )}
-        </button>
 
         {/* Energy Points Animation */}
         <EnergyPointsHeaderAnimation
