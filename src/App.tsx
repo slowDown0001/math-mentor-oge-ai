@@ -14,34 +14,11 @@ import TopicPage from "@/pages/TopicPage"; // if not already
 import LearningLayout from "@/components/layouts/LearningLayout";
 
 
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const MyDashboard = lazy(() => import("./pages/MyDashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const DiagnosticTest = lazy(() => import("./pages/DiagnosticTest"));
-const Statistics = lazy(() => import("./pages/Statistics"));
-const DetailedStatistics = lazy(() => import("./pages/DetailedStatistics"));
-const StatisticsVisual = lazy(() => import("./pages/StatisticsVisual"));
 const PracticeExercise = lazy(() => import("./pages/PracticeExercise"));
-const NewPractice = lazy(() => import("./pages/NewPractice"));
-const PracticeNow = lazy(() => import("./pages/PracticeNow"));
-const PracticeByNumber = lazy(() => import("./pages/PracticeByNumber"));
 const DigitalTextbook = lazy(() => import("./pages/DigitalTextbook"));
-const TriangleSimilarity = lazy(() => import("./pages/TriangleSimilarity"));
-const TriangleSimilarityVideo = lazy(() => import("./pages/TriangleSimilarityVideo"));
-const TriangleSimilarityBrainrot = lazy(() => import("./pages/TriangleSimilarityBrainrot"));
-const Textbook2 = lazy(() => import("./pages/Textbook2"));
-const MCQPractice = lazy(() => import("./pages/MCQPractice"));
-const MCQPracticeSkill120 = lazy(() => import("./pages/MCQPracticeSkill120"));
-const Scanner = lazy(() => import("./pages/Scanner"));
-const Videos = lazy(() => import("./pages/Videos"));
-const Questions = lazy(() => import("./pages/Questions"));
-const FipiBank = lazy(() => import("./pages/FipiBank"));
-const DailyPractice = lazy(() => import("./pages/DailyPractice"));
 const BookTest = lazy(() => import("./pages/BookTest"));
-const AfterRegistration = lazy(() => import("./pages/AfterRegistration"));
-const NewTextbook = lazy(() => import("./pages/NewTextbook"));
-const Textbook3 = lazy(() => import("./pages/Textbook3"));
-const Db2 = lazy(() => import("./pages/Db2"));
 const Subscribe = lazy(() => import("./pages/Subscribe"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const FAQ = lazy(() => import("./pages/FAQ"));
@@ -52,7 +29,6 @@ const OgeMath = lazy(() => import("./pages/OgeMath"));
 const OgemathPractice = lazy(() => import("./pages/OgemathPractice"));
 const OgemathMock = lazy(() => import("./pages/OgemathMock"));
 const OgemathRevision = lazy(() => import("./pages/OgemathRevision"));
-const OgemathProgress = lazy(() => import("./pages/OgemathProgress"));
 const OgemathProgress2 = lazy(() => import("./pages/OgemathProgress2"));
 const EgemathbasicProgress = lazy(() => import("./pages/EgemathbasicProgress"));
 const EgemathprofProgress = lazy(() => import("./pages/EgemathprofProgress"));
@@ -61,14 +37,11 @@ const PracticeByNumberEgeBasicMath = lazy(() => import("./pages/PracticeByNumber
 const PracticeByNumberEgeProfMath = lazy(() => import("./pages/PracticeByNumberEgeProfMath"));
 const EgemathprofPractice = lazy(() => import("./pages/EgemathprofPractice"));
 const EgemathbasicPractice = lazy(() => import("./pages/EgemathbasicPractice"));
-const NewPracticeSkills = lazy(() => import("./pages/NewPracticeSkills"));
-const LearningPlatform = lazy(() => import("./pages/LearningPlatform"));
 const ModulePage = lazy(() => import("./pages/ModulePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const MyDb3 = lazy(() => import("./pages/MyDb3"));
 const Homework = lazy(() => import("./pages/Homework"));
 const HomeworkFipiPractice = lazy(() => import("./pages/HomeworkFipiPractice"));
-const Test = lazy(() => import("./pages/Test"));
 const CellardLp2 = lazy(() => import("./pages/CellardLp2"));
 
 const queryClient = new QueryClient();
@@ -89,41 +62,20 @@ const App = () => (
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/about" element={<About />} />
-              <Route path="/test" element={<Test />} />
           
               {/* pages WITH the layout (shared gradient + flying symbols) */}
               <Route element={<LearningLayout />}>
-                <Route path="/learning-platform" element={<LearningPlatform />} />
                 <Route path="/module/:moduleSlug" element={<ModulePage />} />
                 <Route path="/module/:moduleSlug/topic/:topicId" element={<TopicPage />} />
-                <Route path="/practice-now" element={<PracticeNow />} />
                 <Route path="/cellard-lp2" element={<CellardLp2 />} />
           
                 {/* put any other pages that should share the look here: */}
                 <Route path="/textbook" element={<DigitalTextbook />} />
-                <Route path="/new-textbook" element={<NewTextbook />} />
-                <Route path="/triangle-similarity" element={<TriangleSimilarity />} />
-                <Route path="/triangle-similarity-video" element={<TriangleSimilarityVideo />} />
-                <Route path="/triangle-similarity-brainrot" element={<TriangleSimilarityBrainrot />} />
-                <Route path="/textbook2" element={<Textbook2 />} />
-                <Route path="/textbook3" element={<Textbook3 />} />
-                <Route path="/mcq-practice" element={<MCQPractice />} />
-                <Route path="/mcq-practice-skill-120" element={<MCQPracticeSkill120 />} />
-                <Route path="/scanner" element={<Scanner />} />
-                <Route path="/videos" element={<Videos />} />
-                <Route path="/questions" element={<Questions />} />
-                <Route path="/fipi-bank" element={<FipiBank />} />
-                <Route path="/new-practice" element={<NewPractice />} />
-                <Route path="/practice-by-number" element={<PracticeByNumber />} />
-                <Route path="/daily-practice" element={<DailyPractice />} />
                 <Route path="/book-test" element={<BookTest />} />
-                <Route path="/after-registration" element={<AfterRegistration />} />
-                <Route path="/db2" element={<Db2 />} />
                 <Route path="/ogemath" element={<OgeMath />} />
                 <Route path="/ogemath-practice" element={<OgemathPractice />} />
                 <Route path="/ogemath-mock" element={<OgemathMock />} />
                 <Route path="/ogemath-revision" element={<OgemathRevision />} />
-                <Route path="/ogemath-progress" element={<OgemathProgress />} />
                 <Route path="/ogemath-progress2" element={<OgemathProgress2 />} />
                 <Route path="/egemathbasic-progress" element={<EgemathbasicProgress />} />
                 <Route path="/egemathprof-progress" element={<EgemathprofProgress />} />
@@ -132,7 +84,6 @@ const App = () => (
                 <Route path="/practice-by-number-egeprofmath" element={<PracticeByNumberEgeProfMath />} />
                 <Route path="/egemathprof-practice" element={<EgemathprofPractice />} />
                 <Route path="/egemathbasic-practice" element={<EgemathbasicPractice />} />
-                <Route path="/new-practice-skills" element={<NewPracticeSkills />} />
                 <Route path="/egemathprof" element={<EgeMathProf />} />
                 <Route path="/egemathbasic" element={<EgeMathBasic />} />
               </Route>
@@ -141,16 +92,11 @@ const App = () => (
               <Route element={<PrivateRoute />}>
               {/* With layout */}
               <Route element={<LearningLayout />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/mydashboard" element={<MyDashboard />} />
                 <Route path="/mydb3" element={<MyDb3 />} />
                 <Route path="/topics" element={<TopicsIndex />} />
                 <Route path="/topic/:topicNumber" element={<TopicPage />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/diagnostic" element={<DiagnosticTest />} />
-                <Route path="/statistics" element={<Statistics />} />
-                <Route path="/statistics/detailed" element={<DetailedStatistics />} />
-                <Route path="/statistics/visual" element={<StatisticsVisual />} />
                 <Route path="/practice" element={<PracticeExercise />} />
                 <Route path="/homework" element={<Homework />} />
                 <Route path="/homework-fipi-practice" element={<HomeworkFipiPractice />} />
