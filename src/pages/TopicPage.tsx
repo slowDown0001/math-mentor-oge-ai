@@ -162,9 +162,9 @@ const TopicPage: React.FC = () => {
       )}
 
       {/* Page content lives above the layout background */}
-      <div className="relative z-20 max-w-7xl mx-auto px-4 py-8">
+      <div className="relative z-20 max-w-7xl mx-auto px-4 py-4">
         {/* Header */}
-        <div className="flex items-center mb-6">
+        <div className="flex items-center mb-4">
           <Button
             variant="ghost"
             size="sm"
