@@ -56,7 +56,7 @@ const ChatInput = ({ onSendMessage, isTyping }: ChatInputProps) => {
           <Button 
             onClick={handleSendMessage} 
             size="icon"
-            className="bg-purple-600 hover:bg-purple-700 rounded-full w-10 h-10 p-0 transition-all duration-200 shadow-md" 
+            className="bg-[#f59e0b] hover:bg-[#d97706] rounded-full w-10 h-10 p-0 transition-all duration-200 shadow-md" 
             disabled={!userInput.trim() || isTyping}
           >
             <Send className="h-4 w-4 text-white" />
