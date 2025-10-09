@@ -180,10 +180,10 @@ const Profile = () => {
             <Button
               onClick={() => navigate('/mydb3')}
               size="lg"
-              className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-xl text-lg py-6 px-8 rounded-xl transform transition-all duration-200 hover:scale-105"
+              className="w-full md:w-auto bg-gradient-to-br from-[#f59e0b] to-[#10b981] hover:from-[#fbbf24] hover:to-[#34d399] text-white shadow-xl text-lg py-6 px-8 rounded-xl transform transition-all duration-200 hover:scale-105"
             >
               <MessageSquare className="w-6 h-6 mr-3" />
-              Открыть панель управления обучением
+              Курсы
             </Button>
           </div>
 
