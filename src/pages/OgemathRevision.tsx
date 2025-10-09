@@ -214,8 +214,17 @@ const OgemathRevision = () => {
     if (correct && user) {
       trackActivity('problem', 3);
       
+      // Fetch current streak for bonus calculation
+      const { data: streakData } = await supabase
+        .from('user_streaks')
+        .select('current_streak')
+        .eq('user_id', user.id)
+        .single();
+      
+      const currentStreak = streakData?.current_streak || 0;
+      
       // Award energy points based on table (oge_math_skills_questions = 1 point)
-      const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_skills_questions');
+      const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_skills_questions', currentStreak);
       
       // Trigger header animation with awarded points
       if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {

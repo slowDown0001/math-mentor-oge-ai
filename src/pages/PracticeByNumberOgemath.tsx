@@ -443,15 +443,6 @@ const PracticeByNumberOgemath = () => {
         return newResults;
       });
 
-      // Trigger animation IMMEDIATELY if correct (before backend operations)
-      if (isCorrect) {
-        console.log('Triggering energy points animation immediately');
-        if (typeof (window as any).triggerEnergyPointsAnimation === 'function') {
-          (window as any).triggerEnergyPointsAnimation(2); // Default 2 points for oge_math_fipi_bank
-        } else {
-          console.warn('triggerEnergyPointsAnimation function not found on window');
-        }
-      }
 
       // Now perform backend operations (non-blocking for UI)
       // Update student_activity directly
@@ -479,7 +470,10 @@ const PracticeByNumberOgemath = () => {
         const { awardEnergyPoints: awardPoints } = await import('@/services/energyPoints');
         const result = await awardPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank', currentStreak);
         
-        console.log('Energy points awarded:', result);
+        // Trigger animation with actual points awarded
+        if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
+          (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
+        }
       }
     } catch (error) {
       console.error('Error in checkAnswer:', error);

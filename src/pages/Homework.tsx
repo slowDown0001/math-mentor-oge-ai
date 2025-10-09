@@ -687,7 +687,16 @@ const Homework = () => {
       if (!completedQuestions.has(currentQuestion.id)) {
         // Award energy points and trigger animation IMMEDIATELY if correct
         if (correct) {
-          const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_skills_questions');
+          // Fetch current streak for bonus calculation
+          const { data: streakData } = await supabase
+            .from('user_streaks')
+            .select('current_streak')
+            .eq('user_id', user.id)
+            .single();
+          
+          const currentStreak = streakData?.current_streak || 0;
+          
+          const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_skills_questions', currentStreak);
           if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
             (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
           }
@@ -736,7 +745,16 @@ const Homework = () => {
         if (!completedQuestions.has(currentQuestion.id)) {
           // Award energy points and trigger animation IMMEDIATELY if correct
           if (is_correct) {
-            const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank');
+            // Fetch current streak for bonus calculation
+            const { data: streakData } = await supabase
+              .from('user_streaks')
+              .select('current_streak')
+              .eq('user_id', user.id)
+              .single();
+            
+            const currentStreak = streakData?.current_streak || 0;
+            
+            const result = await awardEnergyPoints(user.id, 'problem', undefined, 'oge_math_fipi_bank', currentStreak);
             if (result.success && result.pointsAwarded && (window as any).triggerEnergyPointsAnimation) {
               (window as any).triggerEnergyPointsAnimation(result.pointsAwarded);
             }
