@@ -13,7 +13,7 @@ export default function LandingHero() {
       
       {/* Main Content */}
       <div className="container mx-auto px-4 py-20 relative z-10 bg-transparent">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-4xl mx-auto text-center bg-white p-8 rounded-2xl shadow-lg">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
