@@ -28,7 +28,7 @@ export const Sidebar = () => {
           Мое обучение
         </h3>
         <nav className="space-y-1">
-          {menuItems.map((item) => (
+          {menuItems.slice(1).map((item) => (
             <Button
               key={item.path}
               variant={isActive(item.path) ? "secondary" : "ghost"}
