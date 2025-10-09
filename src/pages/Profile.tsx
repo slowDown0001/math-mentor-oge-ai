@@ -17,7 +17,6 @@ import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageSquare } from "lucide-react";
-import { useActivityStats } from "@/hooks/useActivityStats";
 
 export interface Message {
   id: number;
@@ -37,58 +36,18 @@ const Profile = () => {
   const [telegramCode, setTelegramCode] = useState<number | null>(null);
   const [telegramUserId, setTelegramUserId] = useState<number | null>(null);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
-  const [lastActivityDate, setLastActivityDate] = useState<string>('Нет данных');
-  
-  // Prefetch activity stats data when component mounts
-  const { currentStreak } = useActivityStats(30);
   
   // Extract user information from Supabase user data and profile
   const userName = getDisplayName();
   const userEmail = user?.email || '';
   const joinedDate = new Date(user?.created_at || Date.now()).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
   
-  // Load telegram data and last activity
+  // Load telegram data
   useEffect(() => {
     if (user) {
       loadTelegramCode();
-      loadLastActivity();
     }
   }, [user]);
-
-  const loadLastActivity = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('student_activity')
-        .select('created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error loading last activity:', error);
-        return;
-      }
-
-      if (data) {
-        const activityDate = new Date(data.created_at);
-        const today = new Date();
-        const diffInDays = Math.floor((today.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (diffInDays === 0) {
-          setLastActivityDate('Сегодня');
-        } else if (diffInDays === 1) {
-          setLastActivityDate('Вчера');
-        } else {
-          setLastActivityDate(activityDate.toLocaleDateString('ru-RU'));
-        }
-      }
-    } catch (error) {
-      console.error('Error loading last activity:', error);
-    }
-  };
 
   const loadTelegramCode = async () => {
     if (!user) return;
@@ -249,7 +208,6 @@ const Profile = () => {
                 userEmail={userEmail}
                 joinedDate={joinedDate}
                 userData={userData}
-                lastActivityDate={lastActivityDate}
               />
               
               {/* Telegram Bot Integration - Fancy Card */}

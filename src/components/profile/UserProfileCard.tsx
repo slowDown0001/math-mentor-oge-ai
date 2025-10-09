@@ -38,10 +38,9 @@ interface UserProfileCardProps {
   userEmail: string;
   joinedDate: string;
   userData: UserData;
-  lastActivityDate?: string;
 }
 
-export const UserProfileCard = ({ userName, userEmail, joinedDate, userData, lastActivityDate = 'Сегодня' }: UserProfileCardProps) => {
+export const UserProfileCard = ({ userName, userEmail, joinedDate, userData }: UserProfileCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const { profile, updateProfile, getDisplayName, getAvatarUrl } = useProfile();
   const { user } = useAuth();
@@ -116,7 +115,7 @@ export const UserProfileCard = ({ userName, userEmail, joinedDate, userData, las
         <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
           <span>Присоединился: {joinedDate}</span>
           <span>•</span>
-          <span>Последняя активность: {lastActivityDate}</span>
+          <span>Активность: Сегодня</span>
         </div>
         <Button
           variant="outline"
