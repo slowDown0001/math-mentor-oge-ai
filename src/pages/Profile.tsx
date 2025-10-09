@@ -7,17 +7,13 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import ChatMessages from "@/components/chat/ChatMessages";
-import ChatInput from "@/components/chat/ChatInput";
 import { sendChatMessage } from "@/services/chatService";
 import { useChatContext } from "@/contexts/ChatContext";
 import { useStudentSkills } from "@/hooks/useStudentSkills";
-import { useUserStatistics } from "@/hooks/useUserStatistics";
-import { useProfile } from "@/hooks/useProfile";
+import { useOptimizedProfile } from "@/hooks/useOptimizedProfile";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageSquare } from "lucide-react";
-import { useActivityStats } from "@/hooks/useActivityStats";
 
 export interface Message {
   id: number;
@@ -31,93 +27,28 @@ const Profile = () => {
   const { user } = useAuth();
   const { messages, isTyping, isDatabaseMode, setMessages, setIsTyping, addMessage } = useChatContext();
   const { topicProgress, generalPreparedness, isLoading: skillsLoading } = useStudentSkills();
-  const { completedLessons, practiceProblems, quizzesCompleted, averageScore, isLoading: statsLoading } = useUserStatistics();
-  const { getDisplayName } = useProfile();
-  const { toast } = useToast();
-  const [telegramCode, setTelegramCode] = useState<number | null>(null);
-  const [telegramUserId, setTelegramUserId] = useState<number | null>(null);
-  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
-  const [lastActivityDate, setLastActivityDate] = useState<string>('Нет данных');
   
-  // Prefetch activity stats data when component mounts
-  const { currentStreak } = useActivityStats(30);
+  // Use optimized hook for all profile data (consolidates multiple queries)
+  const {
+    profile,
+    streak,
+    statistics,
+    isLoading: profileLoading,
+    getDisplayName,
+    getLastActivityText,
+  } = useOptimizedProfile();
+  
+  const { toast } = useToast();
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   
   // Extract user information from Supabase user data and profile
   const userName = getDisplayName();
   const userEmail = user?.email || '';
   const joinedDate = new Date(user?.created_at || Date.now()).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
-  
-  // Load telegram data and last activity
-  useEffect(() => {
-    if (user) {
-      loadTelegramCode();
-      loadLastActivity();
-    }
-  }, [user]);
-
-  const loadLastActivity = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('student_activity')
-        .select('created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error loading last activity:', error);
-        return;
-      }
-
-      if (data) {
-        const activityDate = new Date(data.created_at);
-        const today = new Date();
-        const diffInDays = Math.floor((today.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (diffInDays === 0) {
-          setLastActivityDate('Сегодня');
-        } else if (diffInDays === 1) {
-          setLastActivityDate('Вчера');
-        } else {
-          setLastActivityDate(activityDate.toLocaleDateString('ru-RU'));
-        }
-      }
-    } catch (error) {
-      console.error('Error loading last activity:', error);
-    }
-  };
-
-  const loadTelegramCode = async () => {
-    if (!user) return;
-
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('telegram_code, telegram_user_id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading telegram data:', error);
-        return;
-      }
-
-      if (profile?.telegram_code) {
-        setTelegramCode(profile.telegram_code);
-      }
-      if (profile?.telegram_user_id) {
-        setTelegramUserId(profile.telegram_user_id);
-      }
-    } catch (error) {
-      console.error('Error loading telegram data:', error);
-    }
-  };
+  const lastActivityDate = getLastActivityText();
 
   const generateTelegramCode = async () => {
-    if (!user) return;
+    if (!user || !profile) return;
 
     setIsGeneratingCode(true);
     // Generate random 6-digit number
@@ -139,9 +70,10 @@ const Profile = () => {
         return;
       }
 
-      setTelegramCode(randomCode);
+      // Update local state (optimized hook will refetch on next mount)
       toast({
         title: "Telegram код создан",
+        description: "Обновите страницу чтобы увидеть изменения",
         duration: 2000,
       });
     } catch (error) {
@@ -202,15 +134,15 @@ const Profile = () => {
   const userData = {
     progress: progressData,
     topicProgress: topicProgress,
-    completedLessons,
-    practiceProblems,
-    quizzesCompleted,
-    averageScore: Math.round(averageScore),
-    streakDays: 15, // TODO: Get from user_streaks table
+    completedLessons: statistics?.completed_lessons || 0,
+    practiceProblems: statistics?.practice_problems || 0,
+    quizzesCompleted: statistics?.quizzes_completed || 0,
+    averageScore: Math.round(statistics?.average_score || 0),
+    streakDays: streak?.current_streak || 0,
     achievements: [
-      { id: 1, name: "Первые шаги", description: "Завершено 5 уроков", date: "15 марта 2025", completed: completedLessons >= 5 },
-      { id: 2, name: "Математический гений", description: "Решено 100+ задач", date: "2 апреля 2025", completed: practiceProblems >= 100 },
-      { id: 3, name: "На отлично", description: "Получена оценка 90% или выше на 5 тестах подряд", date: "Не получено", completed: averageScore >= 90 && quizzesCompleted >= 5 },
+      { id: 1, name: "Первые шаги", description: "Завершено 5 уроков", date: "15 марта 2025", completed: (statistics?.completed_lessons || 0) >= 5 },
+      { id: 2, name: "Математический гений", description: "Решено 100+ задач", date: "2 апреля 2025", completed: (statistics?.practice_problems || 0) >= 100 },
+      { id: 3, name: "На отлично", description: "Получена оценка 90% или выше на 5 тестах подряд", date: "Не получено", completed: (statistics?.average_score || 0) >= 90 && (statistics?.quizzes_completed || 0) >= 5 },
       { id: 4, name: "Геометрический мастер", description: "Завершены все темы по геометрии", date: "Не получено", completed: (topicProgress.find(t => t.topic === "7")?.averageScore || 0) >= 80 }
     ],
     recentActivity: [
@@ -221,7 +153,7 @@ const Profile = () => {
     ]
   };
 
-  if (skillsLoading || statsLoading) {
+  if (skillsLoading || profileLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
@@ -267,13 +199,13 @@ const Profile = () => {
                   
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button 
-                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg transition-all duration-200 transform hover:scale-105"
-                        size="lg"
-                      >
-                        <MessageSquare className="w-4 h-4 mr-2" />
-                        {telegramUserId ? 'Управление Telegram ботом' : 'Подключить Telegram бот'}
-                      </Button>
+                        <Button 
+                          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg transition-all duration-200 transform hover:scale-105"
+                          size="lg"
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          {profile?.telegram_user_id ? 'Управление Telegram ботом' : 'Подключить Telegram бот'}
+                        </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
                       <DialogHeader>
@@ -288,23 +220,23 @@ const Profile = () => {
                             Через бот в Telegram ты сможешь загружать фото решения и задач на платформу
                           </p>
                         </div>
-                        {telegramCode ? (
+                        {profile?.telegram_code ? (
                           <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="text-sm text-gray-600 mb-2">Ваш Telegram код:</p>
                                 <p className="text-blue-800 font-mono text-xl font-bold">
-                                  {telegramCode}
+                                  {profile.telegram_code}
                                 </p>
                               </div>
-                              {telegramUserId ? (
+                              {profile?.telegram_user_id ? (
                                 <div className="flex items-center text-green-600 text-sm font-medium bg-green-100 px-3 py-1 rounded-full">
                                   <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                                   Telegram код подтвержден
                                 </div>
                               ) : null}
                             </div>
-                            {!telegramUserId && (
+                            {!profile?.telegram_user_id && (
                               <div className="mt-3 p-3 bg-blue-100 rounded-lg">
                                 <p className="text-sm text-blue-700 font-medium">
                                   📱 Введите этот код в телеграм-боте @egechat_bot
