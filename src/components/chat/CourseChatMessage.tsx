@@ -55,7 +55,7 @@ const CourseChatMessage = ({ message }: CourseChatMessageProps) => {
     return (
       <div ref={messageRef} data-message className="flex justify-end items-start gap-3 animate-fade-in slide-in-right mb-4">
         <div className="flex flex-col items-end max-w-[70%]">
-          <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 text-white font-medium text-[15px] px-4 py-3 rounded-2xl rounded-tr-md shadow-lg [&_.math-display]:text-center [&_.math-display]:my-3 [&_.math-inline]:text-white [&_.math-display]:text-white">
+          <div className="bg-gradient-to-r from-blue-500/10 via-blue-600/10 to-purple-600/10 text-black font-medium text-[15px] px-4 py-3 rounded-2xl rounded-tr-md shadow-lg [&_.math-display]:text-center [&_.math-display]:my-3 [&_.math-inline]:text-black [&_.math-display]:text-black">
             <ChatRenderer2 text={message.text} isUserMessage={true} />
           </div>
           <span className="text-[11px] text-muted-foreground/70 mt-1 mr-2">
