@@ -179,7 +179,7 @@ export const StreakDisplay = () => {
       {/* Clickable Streak Info */}
       <button 
         onClick={() => setShowDropdown(!showDropdown)}
-        className="flex items-center gap-3 text-sm bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 rounded-md px-3 py-2"
+        className="flex items-center gap-3 text-sm text-white hover:opacity-80 transition-opacity duration-200"
       >
         <div className="flex items-center gap-1">
           <span className="font-medium">{streakData.currentStreak}</span>
