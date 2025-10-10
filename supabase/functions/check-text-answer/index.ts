@@ -111,7 +111,16 @@ Deno.serve(async (req)=>{
           }
         });
       }
-      const prompt = `Given the problem: ${problem_text}. The correct answer is: ${correct_answer}. Is the submitted answer '${submitted_answer}' correct? Respond with True or False only.`;
+      const prompt = `Ты — математик.
+      Дано:
+      Правильный ответ на задачу: ${correct_answer}
+      Задача: ${problem_text}
+      Ответ ученика: ${submitted_answer}
+      Определи, означает ли ответ ученика то же самое, что и правильный ответ (даже если он записан по-другому — словами вместо чисел, в другом порядке или с тем же смыслом). Игнорируй несущественные слова, тебе нужно проверить математическую эквивалентность ответов.
+
+      **Выведи только:**
+      1, если ответ ученика математически верный
+      0, если ответ ученика математически неверный`;
       console.log('Making OpenRouter API call for text comparison');
       const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -120,7 +129,7 @@ Deno.serve(async (req)=>{
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-lite-preview-06-17',
+          model: 'google/gemini-2.5-flash-lite-preview-09-2025',
           temperature: 0,
           messages: [
             {
@@ -145,7 +154,7 @@ Deno.serve(async (req)=>{
       }
       const apiResult = await openrouterResponse.json();
       const apiOutput = apiResult.choices[0].message.content.trim();
-      is_correct = apiOutput.toLowerCase() === 'true';
+      is_correct = apiOutput.toLowerCase() === '1';
       console.log(`OpenRouter API result: ${apiOutput}, is_correct: ${is_correct}`);
     }
     // Step 3: Get the latest attempt for this user
@@ -207,7 +216,6 @@ Deno.serve(async (req)=>{
         }
       });
     }
-
     console.log(`Successfully checked answer for question ${question_id}`);
     return new Response(JSON.stringify({
       success: true,
