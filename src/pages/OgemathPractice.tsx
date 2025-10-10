@@ -16,7 +16,8 @@ const OgemathPractice = () => {
       icon: Hash,
       link: "/practice-by-number-ogemath",
       gradient: "from-gold to-sage",
-      mathSymbol: "∑"
+      mathSymbol: "∑",
+      comingSoon: false
     },
     {
       title: "По теме",
@@ -24,7 +25,8 @@ const OgemathPractice = () => {
       icon: ClipboardList,
       link: "/new-practice-skills",
       gradient: "from-amber-500 to-emerald-400",
-      mathSymbol: "∫"
+      mathSymbol: "∫",
+      comingSoon: true
     },
     {
       title: "Повторение",
@@ -32,7 +34,8 @@ const OgemathPractice = () => {
       icon: RefreshCw,
       link: "/ogemath-revision",
       gradient: "from-sage to-teal-400",
-      mathSymbol: "π"
+      mathSymbol: "π",
+      comingSoon: false
     },
     {
       title: "Домашнее задание",
@@ -40,7 +43,8 @@ const OgemathPractice = () => {
       icon: ClipboardList,
       link: "/homework",
       gradient: "from-purple-500 to-pink-500",
-      mathSymbol: "∞"
+      mathSymbol: "∞",
+      comingSoon: false
     }
   ];
 
@@ -87,71 +91,96 @@ const OgemathPractice = () => {
 
           {/* 2x2 Grid for Regular Practice Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {questionTypes.map((type, index) => (
-              <Link 
-                key={type.title} 
-                to={type.link}
-                onMouseEnter={() => setHoveredCard(index)}
-                onMouseLeave={() => setHoveredCard(null)}
-              >
-                <Card 
-                  className="h-full relative overflow-hidden border-0 transition-all duration-300 group"
-                  style={{
-                    background: 'rgba(248, 250, 252, 0.05)',
-                    backdropFilter: 'blur(10px)',
-                    transform: hoveredCard === index 
-                      ? 'translateY(-8px) rotateX(5deg) rotateY(5deg)' 
-                      : 'translateY(0) rotateX(0) rotateY(0)',
-                    transformStyle: 'preserve-3d',
-                    perspective: '1000px'
-                  }}
-                >
-                  {/* Gradient Border Effect */}
-                  <div 
-                    className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r ${type.gradient} p-[2px] rounded-lg`}
-                    style={{ zIndex: -1 }}
-                  />
-                  
-                  {/* Floating Math Symbol */}
-                  <div className="absolute top-4 right-4 text-6xl font-mono text-white/10 group-hover:text-white/20 transition-all duration-300 group-hover:rotate-12">
-                    {type.mathSymbol}
-                  </div>
-
-                  <CardHeader className="relative z-10 pb-4">
-                    <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-4 shadow-lg bg-gradient-to-r ${type.gradient} group-hover:scale-110 transition-transform duration-300`}>
-                      <type.icon className="w-10 h-10 text-white" />
+            {questionTypes.map((type, index) => {
+              const content = (
+                  <Card 
+                    className="h-full relative overflow-hidden border-0 transition-all duration-300 group"
+                    style={{
+                      background: type.comingSoon ? 'rgba(100, 100, 100, 0.2)' : 'rgba(248, 250, 252, 0.05)',
+                      backdropFilter: 'blur(10px)',
+                      transform: hoveredCard === index && !type.comingSoon
+                        ? 'translateY(-8px) rotateX(5deg) rotateY(5deg)' 
+                        : 'translateY(0) rotateX(0) rotateY(0)',
+                      transformStyle: 'preserve-3d',
+                      perspective: '1000px',
+                      opacity: type.comingSoon ? 0.6 : 1
+                    }}
+                  >
+                    {/* Gradient Border Effect */}
+                    {!type.comingSoon && (
+                      <div 
+                        className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r ${type.gradient} p-[2px] rounded-lg`}
+                        style={{ zIndex: -1 }}
+                      />
+                    )}
+                    
+                    {/* Floating Math Symbol */}
+                    <div className={`absolute top-4 right-4 text-6xl font-mono transition-all duration-300 ${type.comingSoon ? 'text-gray-500/20' : 'text-white/10 group-hover:text-white/20 group-hover:rotate-12'}`}>
+                      {type.mathSymbol}
                     </div>
-                    <CardTitle className="text-2xl font-display font-semibold text-white text-center">
-                      {type.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="relative z-10 text-center">
-                    <p className="text-cool-gray font-body leading-relaxed">{type.description}</p>
-                  </CardContent>
 
-                  {/* Progress Ring SVG (decorative) */}
-                  <svg className="absolute bottom-4 left-4 opacity-30 group-hover:opacity-50 transition-opacity" width="60" height="60">
-                    <circle 
-                      cx="30" 
-                      cy="30" 
-                      r="25" 
-                      fill="none" 
-                      stroke="url(#gradient)" 
-                      strokeWidth="3"
-                      strokeDasharray="157"
-                      strokeDashoffset="40"
-                      className="transition-all duration-500 group-hover:stroke-dashoffset-0"
-                    />
-                    <defs>
-                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#f59e0b" />
-                        <stop offset="100%" stopColor="#10b981" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </Card>
-              </Link>
-            ))}
+                    {/* Coming Soon Badge */}
+                    {type.comingSoon && (
+                      <div className="absolute top-4 left-4 bg-gray-600 text-white px-3 py-1 rounded-full text-sm font-semibold z-20">
+                        Скоро
+                      </div>
+                    )}
+
+                    <CardHeader className="relative z-10 pb-4">
+                      <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-4 shadow-lg transition-transform duration-300 ${type.comingSoon ? 'bg-gray-600' : `bg-gradient-to-r ${type.gradient} group-hover:scale-110`}`}>
+                        <type.icon className="w-10 h-10 text-white" />
+                      </div>
+                      <CardTitle className={`text-2xl font-display font-semibold text-center ${type.comingSoon ? 'text-gray-400' : 'text-white'}`}>
+                        {type.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="relative z-10 text-center">
+                      <p className={`font-body leading-relaxed ${type.comingSoon ? 'text-gray-500' : 'text-cool-gray'}`}>{type.description}</p>
+                    </CardContent>
+
+                    {/* Progress Ring SVG (decorative) */}
+                    <svg className="absolute bottom-4 left-4 opacity-30 group-hover:opacity-50 transition-opacity" width="60" height="60">
+                      <circle 
+                        cx="30" 
+                        cy="30" 
+                        r="25" 
+                        fill="none" 
+                        stroke="url(#gradient)" 
+                        strokeWidth="3"
+                        strokeDasharray="157"
+                        strokeDashoffset="40"
+                        className="transition-all duration-500 group-hover:stroke-dashoffset-0"
+                      />
+                      <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#f59e0b" />
+                          <stop offset="100%" stopColor="#10b981" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </Card>
+              );
+
+              return type.comingSoon ? (
+                <div 
+                  key={type.title}
+                  onMouseEnter={() => setHoveredCard(index)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                  className="cursor-not-allowed"
+                >
+                  {content}
+                </div>
+              ) : (
+                <Link 
+                  key={type.title}
+                  to={type.link}
+                  onMouseEnter={() => setHoveredCard(index)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
+                  {content}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Mock Exam - Full Width, Different Design */}
