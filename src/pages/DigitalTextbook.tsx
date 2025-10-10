@@ -562,7 +562,7 @@ const DigitalTextbook = () => {
       </button>
       
       {/* Left Sidebar - Fixed */}
-      <div className="w-64 h-screen bg-[#1a1f36]/80 backdrop-blur-lg border-r border-yellow-500/20 flex-shrink-0 flex flex-col overflow-auto">
+      <div className="w-64 h-screen bg-[#1a1f36]/80 backdrop-blur-lg border-r border-yellow-500/20 flex-shrink-0 flex flex-col overflow-auto pt-20">
         
         {/* Navigation buttons */}
         <div className="p-4 space-y-2 border-b border-yellow-500/20">
@@ -615,7 +615,7 @@ const DigitalTextbook = () => {
 
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto relative">
+        <div className="flex-1 overflow-auto relative pt-20">
           <div className="max-w-6xl mx-auto px-4 py-6">
             {/* Breadcrumb Navigation */}
             {(selectedModule || selectedTopic || selectedSkill) && (
