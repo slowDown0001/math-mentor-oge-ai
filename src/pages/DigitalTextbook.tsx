@@ -552,17 +552,6 @@ const DigitalTextbook = () => {
             К программе
           </Button>
           
-          {/* OGE Math Practice Link */}
-          <Link to="/ogemath">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-white hover:bg-yellow-500/10 hover:text-yellow-400"
-            >
-              <Calculator className="mr-2 h-4 w-4" />
-              Практика ОГЭ
-            </Button>
-          </Link>
-          
           <Button
             onClick={toggleSelecter}
             variant={isSelecting ? "default" : "ghost"}
