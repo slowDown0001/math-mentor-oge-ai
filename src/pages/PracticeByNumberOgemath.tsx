@@ -862,7 +862,7 @@ const PracticeByNumberOgemath = () => {
   const questionNumbers = Array.from({ length: 25 }, (_, i) => (i + 1).toString());
 
   return (
-    <div className="min-h-screen text-white" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Navigation Bar */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-3">

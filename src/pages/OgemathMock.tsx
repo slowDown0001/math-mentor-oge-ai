@@ -985,7 +985,7 @@ const OgemathMock = () => {
 
   if (!examStarted) {
     return (
-      <div className="min-h-screen text-white" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="bg-white shadow-sm border-b">
           <div className="container mx-auto px-4 py-3">
             <div className="flex justify-start">
@@ -1041,7 +1041,7 @@ const OgemathMock = () => {
   if (examFinished && !isReviewMode) {
     if (!examStats) {
       return (
-        <div className="min-h-screen text-white flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-lg text-gray-600">Обрабатываем результаты...</p>
@@ -1051,7 +1051,7 @@ const OgemathMock = () => {
     }
 
     return (
-      <div className="min-h-screen text-white" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="bg-white shadow-sm border-b">
           <div className="container mx-auto px-4 py-3">
             <div className="flex justify-between items-center">
@@ -1155,7 +1155,7 @@ const OgemathMock = () => {
     const reviewQuestion = questions[reviewQuestionIndex];
 
     return (
-      <div className="min-h-screen text-white" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="bg-white shadow-sm border-b">
           <div className="container mx-auto px-4 py-3">
             <div className="flex justify-between items-center">
@@ -1271,7 +1271,7 @@ const OgemathMock = () => {
   }
 
   return (
-    <div className="min-h-screen text-white" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header with timer */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-3">
