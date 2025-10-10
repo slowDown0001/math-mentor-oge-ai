@@ -143,7 +143,7 @@ export const StreakDisplay = () => {
             <span className="text-base">🔥</span>
           </div>
           <div className="font-medium">
-            {Math.round(streakData.todayProgress)}м
+            {Math.round(streakData.energyPoints)}
           </div>
           <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
         </button>
