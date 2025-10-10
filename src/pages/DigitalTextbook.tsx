@@ -152,14 +152,6 @@ const DigitalTextbook = () => {
   const [showPractice, setShowPractice] = useState(false);
   const navigate = useNavigate();
 
-  // Prevent body scroll when this page is mounted
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
-
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && selectedText) {
@@ -520,7 +512,7 @@ const DigitalTextbook = () => {
   }, [isSelecting]);
 
   return (
-    <div className="flex h-screen w-full bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
+    <div className="flex h-full w-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Chat Toggle Button - Fixed to right edge - ALWAYS VISIBLE */}
       <button
         onClick={() => setIsChatOpen(true)}
@@ -531,7 +523,7 @@ const DigitalTextbook = () => {
       </button>
       
       {/* Left Sidebar - Fixed */}
-      <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0 flex flex-col">
+      <div className="w-64 bg-sidebar border-r border-border flex-shrink-0 flex flex-col">
         
         {/* Navigation buttons */}
         <div className="p-4 space-y-2 border-b border-border">
@@ -586,11 +578,9 @@ const DigitalTextbook = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-
-
+      <div className="flex-1 flex flex-col">
         {/* Content Area */}
-        <div className="flex-1 overflow-auto relative">
+        <div className="flex-1">
           <div className="max-w-6xl mx-auto px-4 py-6">
             {/* Breadcrumb Navigation */}
             {(selectedModule || selectedTopic || selectedSkill) && (
