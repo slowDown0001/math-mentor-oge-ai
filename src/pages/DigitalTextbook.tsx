@@ -365,57 +365,50 @@ const DigitalTextbook = () => {
     const syllabusData = newSyllabusData as SyllabusStructure;
     
     return (
-      <div className="space-y-6">
-        <div className="text-center mb-8">
-          <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text">Программа ОГЭ по математике</h2>
-          <p className="text-xl text-gray-300">Выберите любой навык для изучения</p>
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="font-display text-3xl font-bold mb-2 bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text">
+            Программа ОГЭ по математике
+          </h1>
         </div>
         
-        <div className="grid gap-6">
+        <div className="bg-white/95 backdrop-blur-lg rounded-lg p-6 space-y-6 text-[#1a1f36]">
           {Object.entries(syllabusData).map(([moduleName, module]) => (
-            <Card key={moduleName} className="overflow-hidden bg-white/95 backdrop-blur-lg border-white/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-emerald-500/10 border-b border-yellow-500/20">
-                <CardTitle className="text-xl text-[#1a1f36] font-display">{moduleName}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid gap-4">
-                  {Object.entries(module).map(([topicKey, topic]) => (
-                    <div 
-                      key={topicKey} 
-                      className="border border-gray-200 rounded-lg p-4 hover:bg-yellow-50 cursor-pointer transition-colors"
+            <div key={moduleName} className="border-b border-gray-200 last:border-b-0 pb-6 last:pb-0">
+              <h2 className="text-xl font-bold mb-3 text-[#1a1f36]">
+                {moduleName}
+              </h2>
+              
+              <div className="space-y-4 ml-4">
+                {Object.entries(module).map(([topicKey, topic]) => (
+                  <div key={topicKey}>
+                    <button
                       onClick={() => handleTopicSelect(topicKey)}
+                      className="text-left hover:text-yellow-600 transition-colors font-medium mb-2 block"
                     >
-                      <h4 className="font-semibold text-lg mb-3 text-[#1a1f36] hover:text-yellow-600">
-                        {topicKey} {topic.name}
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                        {getFilteredSkills(topic.skills, searchTerm).map((skill) => (
-                          <Button
-                            key={skill.number}
-                            variant="outline"
-                            size="sm"
-                            className={`justify-start text-left h-auto py-2 px-3 whitespace-normal ${
-                              selectedSkill === skill.number 
-                                ? 'bg-orange-500 text-white border-orange-600 hover:bg-orange-600' 
-                                : 'text-[#1a1f36] border-gray-300 hover:bg-yellow-500/10 hover:border-yellow-500/50'
-                            }`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSkillSelect(skill.number);
-                              // Update URL with skill parameter
-                              setSearchParams({ skill: skill.number.toString() });
-                            }}
-                          >
-                            <BookOpen className="h-3 w-3 mr-2 flex-shrink-0" />
-                            <span className="text-xs break-words">{skill.number}. {skill.name}</span>
-                          </Button>
-                        ))}
-                      </div>
+                      {topicKey} {topic.name}
+                    </button>
+                    
+                    <div className="ml-6 space-y-1">
+                      {getFilteredSkills(topic.skills, searchTerm).map((skill) => (
+                        <button
+                          key={skill.number}
+                          onClick={() => {
+                            handleSkillSelect(skill.number);
+                            setSearchParams({ skill: skill.number.toString() });
+                          }}
+                          className={`block text-sm hover:text-yellow-600 transition-colors text-left w-full py-1 ${
+                            selectedSkill === skill.number ? 'text-orange-500 font-semibold' : 'text-gray-700'
+                          }`}
+                        >
+                          {skill.number}. {skill.name}
+                        </button>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
