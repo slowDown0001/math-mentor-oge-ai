@@ -531,7 +531,7 @@ const DigitalTextbook = () => {
       </button>
       
       {/* Left Sidebar - Fixed */}
-      <div className="w-64 h-full bg-sidebar border-r border-border flex-shrink-0 flex flex-col">
+      <div className="w-64 h-screen bg-sidebar border-r border-border flex-shrink-0 flex flex-col overflow-auto">
         
         {/* Navigation buttons */}
         <div className="p-4 space-y-2 border-b border-border">
