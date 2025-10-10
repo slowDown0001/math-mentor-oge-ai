@@ -15,7 +15,10 @@ const MathRenderer = ({ text, className = '', compiler = 'katex' }: MathRenderer
     if (!containerRef.current || !text) return;
 
     try {
-      containerRef.current.innerHTML = text;
+      // Fix escaped symbols like &amp; -> &
+      const decoded = text.replaceAll('&amp;', '&');
+      containerRef.current.innerHTML = decoded;
+
       
       if (compiler === 'katex') {
         // Use KaTeX manager to render math
