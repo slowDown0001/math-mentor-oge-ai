@@ -285,32 +285,29 @@ const TopicPage: React.FC = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="videos" className="m-0 p-6 space-y-4">
+            <TabsContent value="videos" className="m-0 p-6 space-y-6">
               {(!topic.videoData || topic.videoData.length === 0) ? (
                 <div className="text-sm text-gray-600">Видео для темы пока нет</div>
               ) : (
                 topic.videoData.map((video, index) => (
-                  <div 
-                    key={video.videoId} 
-                    className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => setSelectedVideo(video)}
-                  >
-                    <div className="flex-shrink-0 w-40 h-24 bg-gray-200 rounded overflow-hidden relative group">
-                      <img 
-                        src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
-                        alt={video.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/40 transition-colors">
-                        <Play className="h-8 w-8 text-white" />
-                      </div>
+                  <div key={video.videoId} className="space-y-3">
+                    <div>
+                      <h3 className="font-semibold text-[#1a1f36] mb-1 flex items-center gap-2">
+                        <Play className="h-4 w-4 text-blue-600" />
+                        {video.title}
+                      </h3>
+                      <p className="text-sm text-gray-600">{video.description}</p>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-[#1a1f36] mb-1">{video.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{video.description}</p>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded">Видео</span>
-                      </div>
+                    
+                    {/* Embedded YouTube Player */}
+                    <div className="bg-gray-100 rounded-lg overflow-hidden aspect-video w-full max-w-4xl">
+                      <iframe
+                        className="w-full h-full"
+                        src={`https://www.youtube.com/embed/${video.videoId}`}
+                        title={video.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
                     </div>
                   </div>
                 ))
