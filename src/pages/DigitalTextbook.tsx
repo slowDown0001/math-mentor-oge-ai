@@ -487,11 +487,6 @@ const DigitalTextbook = () => {
                       }`}>
                         {skill.number}. {skill.name}
                       </h3>
-                      <p className={`text-sm ${
-                        selectedSkill === skill.number ? 'text-white/80' : 'text-gray-600'
-                      }`}>
-                        Важность: {skill.importance}/4
-                      </p>
                     </div>
                   </div>
                   <Button 
