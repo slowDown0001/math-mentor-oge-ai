@@ -394,7 +394,11 @@ const DigitalTextbook = () => {
                             key={skill.number}
                             variant="outline"
                             size="sm"
-                            className="justify-start text-left h-auto py-2 text-[#1a1f36] border-gray-300 hover:bg-yellow-500/10 hover:border-yellow-500/50"
+                            className={`justify-start text-left h-auto py-2 px-3 whitespace-normal ${
+                              selectedSkill === skill.number 
+                                ? 'bg-orange-500 text-white border-orange-600 hover:bg-orange-600' 
+                                : 'text-[#1a1f36] border-gray-300 hover:bg-yellow-500/10 hover:border-yellow-500/50'
+                            }`}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSkillSelect(skill.number);
@@ -403,7 +407,7 @@ const DigitalTextbook = () => {
                             }}
                           >
                             <BookOpen className="h-3 w-3 mr-2 flex-shrink-0" />
-                            <span className="text-xs">{skill.number}. {skill.name}</span>
+                            <span className="text-xs break-words">{skill.number}. {skill.name}</span>
                           </Button>
                         ))}
                       </div>
@@ -454,7 +458,11 @@ const DigitalTextbook = () => {
           {getFilteredSkills(currentTopicData.skills, searchTerm).map((skill) => (
             <Card 
               key={skill.number}
-              className="transition-all duration-200 hover:shadow-lg cursor-pointer bg-white/95 backdrop-blur-lg border-white/20 hover:bg-white text-[#1a1f36]"
+              className={`transition-all duration-200 hover:shadow-lg cursor-pointer backdrop-blur-lg ${
+                selectedSkill === skill.number
+                  ? 'bg-orange-500 border-orange-600 text-white'
+                  : 'bg-white/95 border-white/20 hover:bg-white text-[#1a1f36]'
+              }`}
               onClick={() => {
                 handleSkillSelect(skill.number);
                 // Update URL with skill parameter
@@ -464,19 +472,36 @@ const DigitalTextbook = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gradient-to-br from-yellow-500/20 to-emerald-500/20 rounded-full">
-                      <BookOpen className="h-5 w-5 text-yellow-600" />
+                    <div className={`p-3 rounded-full ${
+                      selectedSkill === skill.number
+                        ? 'bg-white/20'
+                        : 'bg-gradient-to-br from-yellow-500/20 to-emerald-500/20'
+                    }`}>
+                      <BookOpen className={`h-5 w-5 ${
+                        selectedSkill === skill.number ? 'text-white' : 'text-yellow-600'
+                      }`} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-[#1a1f36]">
+                      <h3 className={`text-lg font-semibold ${
+                        selectedSkill === skill.number ? 'text-white' : 'text-[#1a1f36]'
+                      }`}>
                         {skill.number}. {skill.name}
                       </h3>
-                      <p className="text-sm text-gray-600">
+                      <p className={`text-sm ${
+                        selectedSkill === skill.number ? 'text-white/80' : 'text-gray-600'
+                      }`}>
                         Важность: {skill.importance}/4
                       </p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="border-gray-300 text-[#1a1f36] hover:bg-yellow-500/10">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={selectedSkill === skill.number 
+                      ? 'border-white text-white hover:bg-white/20' 
+                      : 'border-gray-300 text-[#1a1f36] hover:bg-yellow-500/10'
+                    }
+                  >
                     Изучить
                   </Button>
                 </div>
