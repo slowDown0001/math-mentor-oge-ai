@@ -184,6 +184,28 @@ const TopicPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Textbook Link Card */}
+          <div className="bg-gradient-to-br from-yellow-50 to-emerald-50 border-2 border-yellow-300/50 rounded-lg p-6 shadow-sm mb-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                <BookOpen className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-[#1a1f36] mb-2">Углубленное изучение</h3>
+                <p className="text-sm text-gray-700 mb-4">
+                  Для более глубокого погружения прочитайте нашу статью в учебнике. Там вы найдете статьи, определения, примеры и вопросы для практики.
+                </p>
+                <Button
+                  onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
+                  className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Открыть учебник
+                </Button>
+              </div>
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-6">
             {/* Skills */}
             <div>
@@ -254,30 +276,7 @@ const TopicPage: React.FC = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview" className="m-0 p-6 space-y-6">
-              {/* Textbook Link Card */}
-              <div className="bg-gradient-to-br from-yellow-50 to-emerald-50 border-2 border-yellow-300/50 rounded-lg p-6 shadow-sm">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                    <BookOpen className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-[#1a1f36] mb-2">Углубленное изучение</h3>
-                    <p className="text-sm text-gray-700 mb-4">
-                      For deeper dive read our article in textbook. There you will find articles, definitions, examples and questions to practice.
-                    </p>
-                    <Button
-                      onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
-                      className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300"
-                    >
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      Открыть учебник
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Article Content */}
+            <TabsContent value="overview" className="m-0 p-6">
               {loadingArticle ? (
                 <div className="text-sm text-gray-700">Загружаем обзор…</div>
               ) : article?.topic_text ? (
