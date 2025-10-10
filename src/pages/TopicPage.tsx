@@ -9,6 +9,7 @@ import { StreakDisplay } from "@/components/streak/StreakDisplay";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ArticleRenderer from "@/components/ArticleRenderer";
 import OgeExerciseQuiz from "@/components/OgeExerciseQuiz";
+import VideoPlayerWithChat from "@/components/video/VideoPlayerWithChat";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useModuleProgress } from "@/hooks/useModuleProgress";
@@ -27,6 +28,7 @@ const TopicPage: React.FC = () => {
   const navigate = useNavigate();
   const { refetch, getProgressStatus } = useModuleProgress();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedVideo, setSelectedVideo] = useState<{ videoId: string; title: string; description: string } | null>(null);
 
   // /module/:moduleSlug/topic/:topicId
   const { moduleSlug = "", topicId = "" } = useParams<{
@@ -118,8 +120,23 @@ const TopicPage: React.FC = () => {
 
   return (
     <>
-      {/* Modal for exercises only */}
+      {/* Video Modal */}
+      {selectedVideo && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <div className="w-full max-w-6xl bg-white rounded-lg overflow-hidden">
+            <VideoPlayerWithChat
+              video={{
+                videoId: selectedVideo.videoId,
+                title: selectedVideo.title,
+                description: selectedVideo.description
+              }}
+              onClose={() => setSelectedVideo(null)}
+            />
+          </div>
+        </div>
+      )}
 
+      {/* Exercise Modal */}
       {selectedExercise && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
           <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -268,62 +285,31 @@ const TopicPage: React.FC = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="videos" className="m-0 p-6 space-y-8">
+            <TabsContent value="videos" className="m-0 p-6 space-y-4">
               {(!topic.videoData || topic.videoData.length === 0) ? (
                 <div className="text-sm text-gray-600">Видео для темы пока нет</div>
               ) : (
                 topic.videoData.map((video, index) => (
-                  <div key={video.videoId} className="space-y-4 pb-8 border-b border-gray-200 last:border-0 last:pb-0">
-                    {/* Video Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-[#1a1f36] mb-2 flex items-center gap-2">
-                          <Play className="h-5 w-5 text-blue-600" />
-                          {video.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-3">{video.description}</p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
-                            15:23
-                          </span>
-                          <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">Новое</span>
-                        </div>
+                  <div 
+                    key={video.videoId} 
+                    className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => setSelectedVideo(video)}
+                  >
+                    <div className="flex-shrink-0 w-40 h-24 bg-gray-200 rounded overflow-hidden relative group">
+                      <img 
+                        src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
+                        alt={video.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/40 transition-colors">
+                        <Play className="h-8 w-8 text-white" />
                       </div>
                     </div>
-
-                    {/* Video Player and Transcript Grid */}
-                    <div className="grid lg:grid-cols-2 gap-6">
-                      {/* Video Player */}
-                      <div className="bg-gray-100 rounded-lg overflow-hidden aspect-video flex items-center justify-center">
-                        <iframe
-                          className="w-full h-full"
-                          src={`https://www.youtube.com/embed/${video.videoId}`}
-                          title={video.title}
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
-
-                      {/* Transcript */}
-                      <div className="bg-white rounded-lg border border-gray-200 p-4">
-                        <h4 className="font-semibold text-[#1a1f36] mb-3">Транскрипт:</h4>
-                        <div className="text-sm text-gray-700 space-y-3 max-h-[400px] overflow-y-auto">
-                          <p>В этом видео мы изучаем основы натуральных и целых чисел.</p>
-                          <p>Натуральные числа - это числа, которые используются для счёта предметов. Множество натуральных чисел обозначается как N и включает в себя числа 1, 2, 3, 4 и так далее.</p>
-                          <p>Целые числа включают в себя натуральные числа, ноль и отрицательные числа. Множество целых чисел обозначается как Z.</p>
-                          <p>Мы рассмотрим основные свойства этих чисел и научимся выполнять с ними различные операции.</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Video Topics */}
-                    <div>
-                      <h4 className="font-semibold text-[#1a1f36] mb-3">Темы видео:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Определения</span>
-                        <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Множества чисел</span>
-                        <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm">Сравнение чисел</span>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-[#1a1f36] mb-1">{video.title}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{video.description}</p>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded">Видео</span>
                       </div>
                     </div>
                   </div>
