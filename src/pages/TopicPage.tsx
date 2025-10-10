@@ -169,45 +169,25 @@ const TopicPage: React.FC = () => {
 
         {/* Lesson Description */}
         <div className="bg-white/95 backdrop-blur-sm rounded-lg border border-white/20 shadow-sm p-4 mb-4">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold text-[#1a1f36] mb-2">
-                Изучение основ натуральных и целых чисел, их свойств и операций
-              </h2>
-              
-              <div className="flex items-center gap-4 text-xs text-gray-600">
-                <div className="flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>2-3 часа</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Target className="h-3.5 w-3.5" />
-                  <span>5 навыков</span>
-                </div>
+          {/* Textbook Link - Full Width */}
+          <div className="bg-gradient-to-br from-yellow-50 to-emerald-50 border border-yellow-300/50 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <BookOpen className="h-5 w-5 text-white" />
               </div>
-            </div>
-
-            {/* Compact Textbook Link */}
-            <div className="flex-shrink-0 bg-gradient-to-br from-yellow-50 to-emerald-50 border border-yellow-300/50 rounded-lg p-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="h-4 w-4 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-[#1a1f36] mb-0.5">Учебник</h3>
-                  <p className="text-xs text-gray-700">
-                    Статьи, определения, примеры
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
-                  className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold text-xs h-8 flex-shrink-0"
-                >
-                  <BookOpen className="h-3 w-3 mr-1" />
-                  Открыть
-                </Button>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold text-[#1a1f36] mb-1">Углубленное изучение в учебнике</h3>
+                <p className="text-sm text-gray-700">
+                  Для более глубокого погружения в тему прочитайте нашу статью в учебнике. Там вы найдете подробные теоретические материалы, определения всех ключевых понятий, разобранные примеры решения задач и упражнения для самостоятельной практики.
+                </p>
               </div>
+              <Button
+                onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
+                className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold h-10 flex-shrink-0 px-6"
+              >
+                <BookOpen className="h-4 w-4 mr-2" />
+                Открыть учебник
+              </Button>
             </div>
           </div>
 
