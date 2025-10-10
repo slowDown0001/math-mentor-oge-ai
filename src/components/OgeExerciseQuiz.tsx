@@ -588,23 +588,23 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
           </AlertDialogHeader>
           
           <div className="text-center space-y-3 my-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-5 bg-gradient-to-br from-sage/10 to-sage/5 rounded-2xl border-2 border-sage/20 shadow-lg">
-                <div className="text-4xl font-bold bg-gradient-to-r from-gold to-sage bg-clip-text text-transparent">{correctAnswers}</div>
-                <div className="text-sm font-semibold text-navy/60 mt-1">из {questions.length}</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-4 bg-gradient-to-br from-sage/10 to-sage/5 rounded-2xl border-2 border-sage/20 shadow-lg">
+                <div className="text-3xl font-bold bg-gradient-to-r from-gold to-sage bg-clip-text text-transparent">{correctAnswers}</div>
+                <div className="text-xs font-semibold text-navy/60 mt-1">из {questions.length}</div>
               </div>
-              <div className="p-5 bg-gradient-to-br from-gold/10 to-gold/5 rounded-2xl border-2 border-gold/20 shadow-lg">
-                <div className="text-4xl font-bold bg-gradient-to-r from-gold to-sage bg-clip-text text-transparent">{score}%</div>
-                <div className="text-sm font-semibold text-navy/60 mt-1">точность</div>
+              <div className="p-4 bg-gradient-to-br from-gold/10 to-gold/5 rounded-2xl border-2 border-gold/20 shadow-lg">
+                <div className="text-3xl font-bold bg-gradient-to-r from-gold to-sage bg-clip-text text-transparent">{score}%</div>
+                <div className="text-xs font-semibold text-navy/60 mt-1">точность</div>
               </div>
             </div>
           </div>
 
-          <AlertDialogFooter className="flex-col sm:flex-row gap-3 pt-4">
+          <AlertDialogFooter className="flex-col gap-3 pt-4 w-full">
             {correctAnswers < 3 && (
               <AlertDialogAction
                 onClick={handleRetry}
-                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl px-4 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
                 попробовать еще раз
@@ -628,13 +628,13 @@ const OgeExerciseQuiz: React.FC<OgeExerciseQuizProps> = ({
                 
                 navigate('/ogemath');
               }}
-              className="bg-gradient-to-r from-navy to-navy/80 hover:from-navy/90 hover:to-navy/70 text-white rounded-xl px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
+              className="w-full bg-gradient-to-r from-navy to-navy/80 hover:from-navy/90 hover:to-navy/70 text-white rounded-xl px-4 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
             >
               💬 к ИИ ассистенту
             </AlertDialogAction>
             <AlertDialogAction 
               onClick={onBack}
-              className="bg-gradient-to-r from-gold to-sage hover:from-gold/90 hover:to-sage/90 text-white rounded-xl px-6 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
+              className="w-full bg-gradient-to-r from-gold to-sage hover:from-gold/90 hover:to-sage/90 text-white rounded-xl px-4 py-3 text-sm font-bold shadow-lg hover:shadow-xl transition-all"
             >
               ← назад к модулю
             </AlertDialogAction>
