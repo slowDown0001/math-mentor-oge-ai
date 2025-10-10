@@ -189,23 +189,25 @@ const TopicPage: React.FC = () => {
 
             {/* Compact Textbook Link */}
             <div className="flex-shrink-0 bg-gradient-to-br from-yellow-50 to-emerald-50 border border-yellow-300/50 rounded-lg p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded flex items-center justify-center">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded flex items-center justify-center flex-shrink-0">
                   <BookOpen className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="text-sm font-semibold text-[#1a1f36]">Учебник</h3>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-[#1a1f36] mb-0.5">Учебник</h3>
+                  <p className="text-xs text-gray-700">
+                    Статьи, определения, примеры
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
+                  className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold text-xs h-8 flex-shrink-0"
+                >
+                  <BookOpen className="h-3 w-3 mr-1" />
+                  Открыть
+                </Button>
               </div>
-              <p className="text-xs text-gray-700 mb-2 max-w-[200px]">
-                Статьи, определения, примеры и задачи
-              </p>
-              <Button
-                size="sm"
-                onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
-                className="w-full bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold text-xs h-8"
-              >
-                <BookOpen className="h-3 w-3 mr-1" />
-                Открыть
-              </Button>
             </div>
           </div>
 
