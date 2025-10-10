@@ -344,9 +344,26 @@ const TopicPage: React.FC = () => {
                     className="relative p-6 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-all"
                   >
                     <div className="flex items-start gap-4">
-                      {/* Icon */}
-                      <div className="p-3 bg-purple-100 rounded-lg flex-shrink-0">
-                        <Zap className="h-6 w-6 text-purple-600" />
+                      {/* Progress Cell - same as module page */}
+                      <div className="flex-shrink-0">
+                        {(() => {
+                          switch (status) {
+                            case 'mastered':
+                              return (
+                                <div className="relative w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                                  <Crown className="h-6 w-6 text-white" />
+                                </div>
+                              );
+                            case 'proficient':
+                              return <div className="w-12 h-12 bg-gradient-to-t from-orange-500 from-33% to-gray-200 to-33% rounded-lg" />;
+                            case 'familiar':
+                              return <div className="w-12 h-12 rounded-lg border-2 border-orange-500 bg-[linear-gradient(to_top,theme(colors.orange.500)_20%,white_20%)]" />;
+                            case 'attempted':
+                              return <div className="w-12 h-12 border-2 border-orange-400 rounded-lg bg-white" />;
+                            default:
+                              return <div className="w-12 h-12 border-2 border-gray-300 rounded-lg bg-white" />;
+                          }
+                        })()}
                       </div>
 
                       {/* Content */}
