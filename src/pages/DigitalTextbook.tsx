@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play, Edit3, Send, ChevronLeft, Calculator, Highlighter } from 'lucide-react';
+import { ChevronDown, ChevronRight, MessageCircle, X, BookOpen, Lightbulb, ArrowLeft, Play, Edit3, Send, ChevronLeft, Calculator, Highlighter, Target } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import newSyllabusData from '../data/newSyllabusStructure.json';
 import ArticleRenderer from '../components/ArticleRenderer';
@@ -23,6 +23,7 @@ import { getSelectedTextWithMath } from '@/utils/getSelectedTextWithMath';
 import { useMathJaxSelection } from '../hooks/useMathJaxSelection';
 import { StreakDisplay } from '@/components/streak/StreakDisplay';
 import { Link } from 'react-router-dom';
+import { findTopicRoute } from '@/lib/topic-routing';
 
 interface Skill {
   number: number;
@@ -151,6 +152,12 @@ const DigitalTextbook = () => {
   const [missingMCQs, setMissingMCQs] = useState<number[]>([]);
   const [showPractice, setShowPractice] = useState(false);
   const navigate = useNavigate();
+
+  // Get topic route information for the selected topic
+  const topicRoute = useMemo(() => {
+    if (!selectedTopic) return null;
+    return findTopicRoute(selectedTopic);
+  }, [selectedTopic]);
 
   // Prevent body scroll when this page is mounted
   useEffect(() => {
@@ -571,15 +578,19 @@ const DigitalTextbook = () => {
             К программе
           </Button>
           
-          {selectedTopic && (
-            <Button
-              onClick={handleBackToTopic}
-              variant="ghost"
-              className="w-full justify-start text-white hover:bg-yellow-500/10 hover:text-yellow-400"
+          {selectedTopic && topicRoute && (
+            <Link 
+              to={`/module/${topicRoute.moduleSlug}/topic/${topicRoute.topicId}`}
+              className="block"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              К теме
-            </Button>
+              <Button
+                variant="default"
+                className="w-full justify-start bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-400 hover:to-emerald-400 text-[#1a1f36] shadow-lg font-semibold"
+              >
+                <Target className="mr-2 h-4 w-4" />
+                Страница темы
+              </Button>
+            </Link>
           )}
         </div>
 
