@@ -862,22 +862,22 @@ const PracticeByNumberOgemath = () => {
   const questionNumbers = Array.from({ length: 25 }, (_, i) => (i + 1).toString());
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-background">
       {/* Navigation Bar */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-card shadow-sm border-b border-border">
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-start">
             {practiceStarted ? (
               <Button 
                 onClick={handleBackToSelection}
-                className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                variant="outline"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 К выбору вопросов
               </Button>
             ) : (
               <Link to="/ogemath-practice">
-                <Button className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                <Button variant="outline">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Назад
                 </Button>
@@ -914,28 +914,28 @@ const PracticeByNumberOgemath = () => {
                     <Button
                       variant="outline"
                       onClick={() => toggleQuestionGroup('all')}
-                      className="p-4 h-auto text-center hover:bg-blue-50"
+                      className="p-4 h-auto text-center"
                     >
                       Все вопросы
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => toggleQuestionGroup('part1')}
-                      className="p-4 h-auto text-center hover:bg-blue-50"
+                      className="p-4 h-auto text-center"
                     >
                       Часть 1
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => toggleQuestionGroup('part2_algebra')}
-                      className="p-4 h-auto text-center hover:bg-blue-50"
+                      className="p-4 h-auto text-center"
                     >
                       Часть 2 Алгебра
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => toggleQuestionGroup('part2_geometry')}
-                      className="p-4 h-auto text-center hover:bg-blue-50"
+                      className="p-4 h-auto text-center"
                     >
                       Часть 2 Геометрия
                     </Button>
@@ -1056,7 +1056,7 @@ const PracticeByNumberOgemath = () => {
                 <Button
                   onClick={handleStartPractice}
                   disabled={selectedNumbers.length === 0}
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="px-8 py-3 text-lg"
                 >
                   Начать практику
                 </Button>
@@ -1064,9 +1064,9 @@ const PracticeByNumberOgemath = () => {
 
               {/* Selection Summary */}
               {selectedNumbers.length > 0 && (
-                <Card className="bg-blue-50 border-blue-200">
+                <Card>
                   <CardContent className="pt-6">
-                    <p className="text-blue-800">
+                    <p>
                       <strong>Выбрано номеров:</strong> {selectedNumbers.join(', ')}
                     </p>
                   </CardContent>
@@ -1100,7 +1100,6 @@ const PracticeByNumberOgemath = () => {
                       <Button
                         onClick={() => setShowFormulaBooklet(true)}
                         variant="outline"
-                        className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
                       >
                         <BookOpen className="w-4 h-4 mr-2" />
                         Справочник формул
@@ -1191,7 +1190,6 @@ const PracticeByNumberOgemath = () => {
                       <Button
                         variant="outline"
                         onClick={handlePhotoAttachment}
-                        className="bg-blue-50 hover:bg-blue-100 border-blue-200"
                       >
                         <Camera className="w-4 h-4 mr-2" />
                         Прикрепить фото
@@ -1265,9 +1263,9 @@ const PracticeByNumberOgemath = () => {
 
                 {/* Solution */}
                 {showSolution && currentQuestion.solution_text && (
-                  <Card className="bg-blue-50 border-blue-200">
+                  <Card>
                     <CardHeader>
-                      <CardTitle className="text-blue-800">Решение</CardTitle>
+                      <CardTitle>Решение</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="prose max-w-none">
@@ -1356,8 +1354,8 @@ const PracticeByNumberOgemath = () => {
             <DialogTitle>Загрузка фото решения</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-blue-800">
+            <div className="p-4 bg-muted border rounded-lg">
+              <p>
                 Загрузите фото в телеграм бот egechat_bot. Уже загрузили? Нажмите кнопку 'Да'
               </p>
             </div>
