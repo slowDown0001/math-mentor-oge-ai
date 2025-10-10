@@ -574,11 +574,11 @@ const DigitalTextbook = () => {
               className="block"
             >
               <Button
-                variant="default"
-                className="w-full justify-start bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-400 hover:to-emerald-400 text-[#1a1f36] shadow-lg font-semibold"
+                variant="ghost"
+                className="w-full justify-start text-white hover:bg-yellow-500/10 hover:text-yellow-400 font-medium"
               >
                 <Target className="mr-2 h-4 w-4" />
-                Страница темы
+                На платформу
               </Button>
             </Link>
           )}
