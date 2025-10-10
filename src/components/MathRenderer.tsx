@@ -8,30 +8,37 @@ interface MathRendererProps {
   compiler?: 'katex' | 'mathjax';
 }
 
-const MathRenderer = ({ text, className = '', compiler = 'katex' }: MathRendererProps) => {
+// Default to MathJax
+const MathRenderer = ({ text, className = '', compiler = 'mathjax' }: MathRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current || !text) return;
+    const el = containerRef.current;
+    if (!el || !text) return;
 
     try {
-      // Fix escaped symbols like &amp; -> &
-      const decoded = text.replace(/&amp;/g, '&');
-      containerRef.current.innerHTML = decoded;
+      // Decode common HTML entities that often slip into LaTeX
+      const decoded = text
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        // optional helpful remaps:
+        .replace(/&le;/g, '\\le ')
+        .replace(/&ge;/g, '\\ge ')
+        .replace(/&ne;/g, '\\ne ')
+        .replace(/&times;/g, '\\times ')
+        .replace(/&middot;/g, '\\cdot ');
 
-      
+      el.innerHTML = decoded;
+
       if (compiler === 'katex') {
-        // Use KaTeX manager to render math
-        kaTeXManager.renderMath(containerRef.current);
-      } else if (compiler === 'mathjax') {
-        // Use MathJax manager to render math
-        mathJaxManager.renderMath(containerRef.current);
+        kaTeXManager.renderMath(el);
+      } else {
+        mathJaxManager.renderMath(el);
       }
     } catch (error) {
       console.error(`Error rendering math with ${compiler}:`, error);
-      if (containerRef.current) {
-        containerRef.current.textContent = text;
-      }
+      el.textContent = text; // fallback to plain text
     }
   }, [text, compiler]);
 
@@ -41,6 +48,5 @@ const MathRenderer = ({ text, className = '', compiler = 'katex' }: MathRenderer
     </div>
   );
 };
-
 
 export default MathRenderer;
