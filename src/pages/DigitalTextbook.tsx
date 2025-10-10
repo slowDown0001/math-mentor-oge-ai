@@ -542,6 +542,16 @@ const DigitalTextbook = () => {
         
         {/* Navigation buttons */}
         <div className="p-4 space-y-2 border-b border-yellow-500/20">
+          {/* Back to Syllabus - First */}
+          <Button
+            onClick={handleBackToSyllabus}
+            variant="ghost"
+            className="w-full justify-start text-white hover:bg-yellow-500/10 hover:text-yellow-400"
+          >
+            <BookOpen className="mr-2 h-4 w-4" />
+            К программе
+          </Button>
+          
           {/* OGE Math Practice Link */}
           <Link to="/ogemath">
             <Button
@@ -567,15 +577,6 @@ const DigitalTextbook = () => {
             {isSelecting && (
               <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full"></div>
             )}
-          </Button>
-          
-          <Button
-            onClick={handleBackToSyllabus}
-            variant="ghost"
-            className="w-full justify-start text-white hover:bg-yellow-500/10 hover:text-yellow-400"
-          >
-            <BookOpen className="mr-2 h-4 w-4" />
-            К программе
           </Button>
           
           {selectedTopic && topicRoute && (
