@@ -24,7 +24,6 @@ import { useMathJaxSelection } from '../hooks/useMathJaxSelection';
 import { StreakDisplay } from '@/components/streak/StreakDisplay';
 import { Link } from 'react-router-dom';
 import { findTopicRoute } from '@/lib/topic-routing';
-import FlyingMathBackground from '@/components/FlyingMathBackground';
 
 interface Skill {
   number: number;
@@ -362,212 +361,58 @@ const DigitalTextbook = () => {
     setShowPractice(false);
   };
 
-  const renderWelcomePage = () => {
+  const renderFullSyllabus = () => {
     const syllabusData = newSyllabusData as SyllabusStructure;
-    const totalModules = Object.keys(syllabusData).length;
-    const totalTopics = Object.values(syllabusData).reduce((acc, module) => acc + Object.keys(module).length, 0);
-    const totalSkills = getAllSkillsFromStructure().length;
     
     return (
-      <div className="space-y-8">
-        {/* Welcome Header */}
-        <div className="text-center mb-12">
-          <h1 className="font-display text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-yellow-400 to-emerald-400 text-transparent bg-clip-text">
-            Добро пожаловать в Математический Учебник
-          </h1>
-          <p className="text-xl text-gray-300">
-            Систематизированный курс математики с {totalSkills} навыками
-          </p>
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text">Программа ОГЭ по математике</h2>
+          <p className="text-xl text-gray-300">Выберите любой навык для изучения</p>
         </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <Card className="bg-white/5 backdrop-blur-lg border-white/10 hover:bg-white/10 transition-all">
-            <CardContent className="p-8 text-center">
-              <div className="text-5xl font-bold text-yellow-400 mb-2">{totalModules}</div>
-              <div className="text-lg text-gray-300">Модулей</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white/5 backdrop-blur-lg border-white/10 hover:bg-white/10 transition-all">
-            <CardContent className="p-8 text-center">
-              <div className="text-5xl font-bold text-emerald-400 mb-2">{totalTopics}</div>
-              <div className="text-lg text-gray-300">Тем</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white/5 backdrop-blur-lg border-white/10 hover:bg-white/10 transition-all">
-            <CardContent className="p-8 text-center">
-              <div className="text-5xl font-bold text-blue-400 mb-2">{totalSkills}</div>
-              <div className="text-lg text-gray-300">Навыков</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Instructions */}
-        <div className="text-center">
-          <p className="text-lg text-gray-300 mb-6">
-            Выберите модуль слева, чтобы начать изучение. Каждый модуль содержит темы, а каждая тема включает набор навыков для освоения.
-          </p>
-          
-          {/* Difficulty Badges */}
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <span className="px-4 py-2 rounded-full bg-gray-500/20 text-gray-300 text-sm border border-gray-500/30">Базовый</span>
-            <span className="px-4 py-2 rounded-full bg-blue-500/20 text-blue-300 text-sm border border-blue-500/30">Стандартный</span>
-            <span className="px-4 py-2 rounded-full bg-yellow-500/20 text-yellow-300 text-sm border border-yellow-500/30">Важный</span>
-            <span className="px-4 py-2 rounded-full bg-orange-500/20 text-orange-300 text-sm border border-orange-500/30">Продвинутый</span>
-            <span className="px-4 py-2 rounded-full bg-red-500/20 text-red-300 text-sm border border-red-500/30">Экспертный</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderModulePage = () => {
-    if (!selectedModule) return null;
-
-    const syllabusData = newSyllabusData as SyllabusStructure;
-    const module = syllabusData[selectedModule];
-    
-    if (!module) return null;
-
-    return (
-      <div className="space-y-8">
-        {/* Module Header */}
-        <div className="mb-8">
-          <h1 className="font-display text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-yellow-400 to-emerald-400 text-transparent bg-clip-text">
-            {selectedModule}
-          </h1>
-          <p className="text-xl text-gray-300">Обзор модуля и всех тем</p>
-        </div>
-
-        {/* Topics Grid */}
-        <div className="space-y-6">
-          {Object.entries(module).map(([topicKey, topic]) => (
-            <Card 
-              key={topicKey}
-              className="bg-white/5 backdrop-blur-lg border-white/10 hover:bg-white/10 transition-all overflow-hidden"
-            >
+        
+        <div className="grid gap-6">
+          {Object.entries(syllabusData).map(([moduleName, module]) => (
+            <Card key={moduleName} className="overflow-hidden bg-white/95 backdrop-blur-lg border-white/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-emerald-500/10 border-b border-yellow-500/20">
+                <CardTitle className="text-xl text-[#1a1f36] font-display">{moduleName}</CardTitle>
+              </CardHeader>
               <CardContent className="p-6">
-                {/* Topic Header */}
-                <div className="mb-4">
-                  <h3 className="text-2xl font-bold text-yellow-400 mb-1">
-                    {topicKey} {topic.name}
-                  </h3>
-                </div>
-
-                {/* Skill Pills */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {topic.skills.slice(0, 4).map((skill) => (
-                    <span 
-                      key={skill.number}
-                      className="px-3 py-1 rounded-full bg-white/10 text-white text-sm border border-white/20"
+                <div className="grid gap-4">
+                  {Object.entries(module).map(([topicKey, topic]) => (
+                    <div 
+                      key={topicKey} 
+                      className="border border-gray-200 rounded-lg p-4 hover:bg-yellow-50 cursor-pointer transition-colors"
+                      onClick={() => handleTopicSelect(topicKey)}
                     >
-                      #{skill.number}
-                    </span>
+                      <h4 className="font-semibold text-lg mb-3 text-[#1a1f36] hover:text-yellow-600">
+                        {topicKey} {topic.name}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {getFilteredSkills(topic.skills, searchTerm).map((skill) => (
+                          <Button
+                            key={skill.number}
+                            variant="outline"
+                            size="sm"
+                            className="justify-start text-left h-auto py-2 text-[#1a1f36] border-gray-300 hover:bg-yellow-500/10 hover:border-yellow-500/50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSkillSelect(skill.number);
+                              // Update URL with skill parameter
+                              setSearchParams({ skill: skill.number.toString() });
+                            }}
+                          >
+                            <BookOpen className="h-3 w-3 mr-2 flex-shrink-0" />
+                            <span className="text-xs">{skill.number}. {skill.name}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
                   ))}
-                  {topic.skills.length > 4 && (
-                    <span className="px-3 py-1 rounded-full bg-white/10 text-white text-sm border border-white/20">
-                      +{topic.skills.length - 4} еще
-                    </span>
-                  )}
                 </div>
-
-                {/* Open Topic Button */}
-                <Button
-                  onClick={() => handleTopicSelect(topicKey)}
-                  className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20"
-                >
-                  Открыть тему
-                </Button>
               </CardContent>
             </Card>
           ))}
-        </div>
-      </div>
-    );
-  };
-
-  const renderTopicPage = () => {
-    if (!selectedTopic) return null;
-
-    const syllabusData = newSyllabusData as SyllabusStructure;
-    let currentTopic = null;
-    let currentTopicData = null;
-    let currentModuleName = null;
-
-    // Find the selected topic in the data structure
-    for (const [moduleName, module] of Object.entries(syllabusData)) {
-      for (const [topicKey, topicData] of Object.entries(module)) {
-        if (topicKey === selectedTopic) {
-          currentTopic = topicKey;
-          currentTopicData = topicData;
-          currentModuleName = moduleName;
-          break;
-        }
-      }
-      if (currentTopic) break;
-    }
-
-    if (!currentTopicData) return null;
-
-    const getDifficultyBadge = (importance: number) => {
-      if (importance === 1) return { text: 'Базовый', className: 'bg-gray-500/20 text-gray-300 border-gray-500/30' };
-      if (importance === 2) return { text: 'Стандартный', className: 'bg-blue-500/20 text-blue-300 border-blue-500/30' };
-      if (importance === 3) return { text: 'Важный', className: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' };
-      if (importance === 4) return { text: 'Продвинутый', className: 'bg-orange-500/20 text-orange-300 border-orange-500/30' };
-      return { text: 'Экспертный', className: 'bg-red-500/20 text-red-300 border-red-500/30' };
-    };
-
-    return (
-      <div className="space-y-8">
-        {/* Topic Header */}
-        <div className="mb-8">
-          <h1 className="font-display text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-emerald-400 text-transparent bg-clip-text">
-            {currentTopic} {currentTopicData.name}
-          </h1>
-          <p className="text-lg text-gray-400">Модуль: {currentModuleName}</p>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <h3 className="text-lg text-gray-300 mb-3">Прогресс по теме</h3>
-          <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-yellow-400 to-emerald-400" style={{ width: '0%' }}></div>
-          </div>
-        </div>
-
-        {/* Skills Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {currentTopicData.skills.map((skill) => {
-            const difficulty = getDifficultyBadge(skill.importance);
-            return (
-              <Card 
-                key={skill.number}
-                className="bg-white/5 backdrop-blur-lg border-white/10 hover:bg-white/10 transition-all group cursor-pointer"
-                onClick={() => {
-                  handleSkillSelect(skill.number);
-                  setSearchParams({ skill: skill.number.toString() });
-                }}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="text-3xl font-bold text-yellow-400 mb-2">#{skill.number}</div>
-                      <h3 className="text-lg font-semibold text-white mb-2">{skill.name}</h3>
-                      <p className="text-sm text-gray-400">Важность: {skill.importance}/4</p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs border ${difficulty.className}`}>
-                      {difficulty.text}
-                    </span>
-                  </div>
-                  <Button
-                    className="w-full bg-gradient-to-r from-yellow-500/20 to-emerald-500/20 hover:from-yellow-500/30 hover:to-emerald-500/30 text-yellow-400 border border-yellow-500/30 group-hover:border-yellow-500/50"
-                  >
-                    Изучить →
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
         </div>
       </div>
     );
@@ -683,43 +528,17 @@ const DigitalTextbook = () => {
 
   return (
     <div className="flex h-screen w-full text-white overflow-hidden" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
-      {/* Flying Math Background */}
-      <FlyingMathBackground />
-      
-      {/* Top Header */}
-      <div className="fixed top-0 left-0 right-0 z-40 bg-[#1a1f36]/95 backdrop-blur-lg border-b border-yellow-500/20 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-bold bg-gradient-to-r from-yellow-400 to-emerald-400 text-transparent bg-clip-text">
-              Математический Учебник
-            </h1>
-            <p className="text-sm text-gray-400">
-              {getAllSkillsFromStructure().length} навыков • {Object.keys(newSyllabusData as SyllabusStructure).length} модулей • {Object.values(newSyllabusData as SyllabusStructure).reduce((acc, m) => acc + Object.keys(m).length, 0)} темы
-            </p>
-          </div>
-          <div className="text-sm text-gray-400">
-            всего навыков: {getAllSkillsFromStructure().length}
-          </div>
-        </div>
-      </div>
-      
       {/* Chat Toggle Button - Fixed to right edge - ALWAYS VISIBLE */}
       <button
         onClick={() => setIsChatOpen(true)}
-        className="fixed right-0 top-32 z-50 bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-400 hover:to-emerald-400 text-[#1a1f36] px-3 py-2 rounded-l-lg shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center gap-2 text-sm font-medium"
+        className="fixed right-0 top-20 z-50 bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-400 hover:to-emerald-400 text-[#1a1f36] px-3 py-2 rounded-l-lg shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center gap-2 text-sm font-medium"
       >
         <MessageCircle className="h-4 w-4" />
         <span className="font-medium">ЧАТ</span>
       </button>
       
       {/* Left Sidebar - Fixed */}
-      <div className="fixed left-0 top-20 bottom-0 w-80 bg-[#1a1f36]/95 backdrop-blur-lg border-r border-yellow-500/20 flex flex-col overflow-hidden z-30 mt-2">
-        
-        {/* Sidebar Header */}
-        <div className="p-4 border-b border-yellow-500/20">
-          <h2 className="font-display text-xl font-bold text-yellow-400 mb-1">Модули</h2>
-          <p className="text-sm text-gray-400">Выберите модуль для изучения</p>
-        </div>
+      <div className="w-64 h-screen bg-[#1a1f36]/80 backdrop-blur-lg border-r border-yellow-500/20 flex-shrink-0 flex flex-col overflow-auto">
         
         {/* Navigation buttons */}
         <div className="p-4 space-y-2 border-b border-yellow-500/20">
@@ -765,69 +584,15 @@ const DigitalTextbook = () => {
           )}
         </div>
 
-        {/* Syllabus Navigation Tree */}
-        <ScrollArea className="flex-1 px-4 py-4">
-          <div className="space-y-2">
-            {Object.entries(newSyllabusData as SyllabusStructure).map(([moduleName, module]) => {
-              const topicCount = Object.keys(module).length;
-              const isModuleSelected = selectedModule === moduleName;
-              
-              return (
-                <div key={moduleName} className="space-y-1">
-                  {/* Module Button */}
-                  <button
-                    onClick={() => {
-                      if (isModuleSelected) {
-                        handleBackToSyllabus();
-                      } else {
-                        handleModuleSelect(moduleName);
-                      }
-                    }}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-between group ${
-                      isModuleSelected
-                        ? 'bg-yellow-500/20 text-yellow-400 font-semibold'
-                        : 'text-gray-300 hover:bg-yellow-500/10 hover:text-yellow-400'
-                    }`}
-                  >
-                    <span className="text-sm flex-1">{moduleName}</span>
-                    <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs border border-white/20 group-hover:border-yellow-500/30">
-                      {topicCount}
-                    </span>
-                  </button>
-                  
-                  {/* Topics - Only show when module is selected */}
-                  {isModuleSelected && (
-                    <div className="ml-4 space-y-1 animate-in slide-in-from-left">
-                      {Object.entries(module).map(([topicKey, topic]) => (
-                        <button
-                          key={topicKey}
-                          onClick={() => handleTopicSelect(topicKey)}
-                          className={`w-full text-left px-3 py-2 rounded-md text-xs transition-all duration-200 ${
-                            selectedTopic === topicKey
-                              ? 'bg-emerald-500/20 text-emerald-400 font-medium'
-                              : 'text-gray-400 hover:bg-emerald-500/10 hover:text-emerald-300'
-                          }`}
-                        >
-                          {topicKey} {topic.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
-
       </div>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
 
 
-        {/* Content Area with proper padding for header */}
-        <div className="flex-1 overflow-auto relative pt-24 px-8">
-          <div className="max-w-6xl mx-auto py-6">
+        {/* Content Area */}
+        <div className="flex-1 overflow-auto relative">
+          <div className="max-w-6xl mx-auto px-4 py-6">
             {/* Breadcrumb Navigation */}
             {(selectedModule || selectedTopic || selectedSkill) && (
               <div className="flex items-center gap-2 mb-6 text-sm text-gray-300">
@@ -864,9 +629,8 @@ const DigitalTextbook = () => {
             )}
 
             {/* Main Content */}
-            {!selectedSkill && !selectedTopic && !selectedModule && renderWelcomePage()}
-            {selectedModule && !selectedTopic && !selectedSkill && renderModulePage()}
-            {selectedTopic && !selectedSkill && renderTopicPage()}
+            {!selectedSkill && !selectedTopic && renderFullSyllabus()}
+            {selectedTopic && !selectedSkill && renderTopicView()}
             {selectedSkill && (
               <div className="space-y-6">
                 {!showPractice ? (
