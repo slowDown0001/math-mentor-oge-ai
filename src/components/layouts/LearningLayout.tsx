@@ -54,9 +54,9 @@ const LearningLayout: React.FC = () => {
         <div className="w-full pr-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3 pl-4">
             <img 
-              src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/avatars/logo_yes.png" 
+              src="https://kbaazksvkvnafrwtmkcw.supabase.co/storage/v1/object/public/avatars/logo100.png" 
               alt="Logo"
-              className="w-12 h-12 rounded-lg"
+              className="w-14 h-14 rounded-lg"
             />
             {currentCourse ? (
               <Link 
