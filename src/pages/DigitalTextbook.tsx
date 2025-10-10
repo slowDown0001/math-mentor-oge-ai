@@ -24,6 +24,7 @@ import { useMathJaxSelection } from '../hooks/useMathJaxSelection';
 import { StreakDisplay } from '@/components/streak/StreakDisplay';
 import { Link } from 'react-router-dom';
 import { findTopicRoute } from '@/lib/topic-routing';
+import FlyingMathBackground from '@/components/FlyingMathBackground';
 
 interface Skill {
   number: number;
@@ -528,6 +529,9 @@ const DigitalTextbook = () => {
 
   return (
     <div className="flex h-screen w-full text-white overflow-hidden" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
+      {/* Flying Math Background */}
+      <FlyingMathBackground />
+      
       {/* Chat Toggle Button - Fixed to right edge - ALWAYS VISIBLE */}
       <button
         onClick={() => setIsChatOpen(true)}
@@ -583,6 +587,44 @@ const DigitalTextbook = () => {
             </Link>
           )}
         </div>
+
+        {/* Syllabus Navigation Tree */}
+        <ScrollArea className="flex-1 px-4 py-4">
+          <Accordion type="multiple" className="space-y-2">
+            {Object.entries(newSyllabusData as SyllabusStructure).map(([moduleName, module]) => (
+              <AccordionItem 
+                key={moduleName} 
+                value={moduleName}
+                className="border-b border-yellow-500/20"
+              >
+                <AccordionTrigger 
+                  className="text-white hover:text-yellow-400 font-medium py-3 hover:no-underline"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleModuleSelect(moduleName);
+                  }}
+                >
+                  <span className="text-sm">{moduleName}</span>
+                </AccordionTrigger>
+                <AccordionContent className="space-y-1 pb-2">
+                  {Object.entries(module).map(([topicKey, topic]) => (
+                    <button
+                      key={topicKey}
+                      onClick={() => handleTopicSelect(topicKey)}
+                      className={`w-full text-left px-3 py-2 rounded-md text-xs transition-all duration-200 ${
+                        selectedTopic === topicKey
+                          ? 'bg-yellow-500/20 text-yellow-400 font-medium'
+                          : 'text-gray-300 hover:bg-yellow-500/10 hover:text-yellow-400'
+                      }`}
+                    >
+                      {topicKey} {topic.name}
+                    </button>
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </ScrollArea>
 
       </div>
 
