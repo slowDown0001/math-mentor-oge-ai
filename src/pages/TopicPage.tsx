@@ -168,87 +168,80 @@ const TopicPage: React.FC = () => {
         </div>
 
         {/* Lesson Description */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-lg border border-white/20 shadow-sm p-6 mb-4">
-          <h2 className="text-xl font-semibold text-[#1a1f36] mb-3">
-            Изучение основ натуральных и целых чисел, их свойств и операций
-          </h2>
-          
-          <div className="flex items-center gap-6 text-sm text-gray-600 mb-6">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span>2-3 часа</span>
+        <div className="bg-white/95 backdrop-blur-sm rounded-lg border border-white/20 shadow-sm p-4 mb-4">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-[#1a1f36] mb-2">
+                Изучение основ натуральных и целых чисел, их свойств и операций
+              </h2>
+              
+              <div className="flex items-center gap-4 text-xs text-gray-600">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>2-3 часа</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Target className="h-3.5 w-3.5" />
+                  <span>5 навыков</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              <span>5 навыков</span>
+
+            {/* Compact Textbook Link */}
+            <div className="flex-shrink-0 bg-gradient-to-br from-yellow-50 to-emerald-50 border border-yellow-300/50 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded flex items-center justify-center">
+                  <BookOpen className="h-4 w-4 text-white" />
+                </div>
+                <h3 className="text-sm font-semibold text-[#1a1f36]">Учебник</h3>
+              </div>
+              <p className="text-xs text-gray-700 mb-2 max-w-[200px]">
+                Статьи, определения, примеры и задачи
+              </p>
+              <Button
+                size="sm"
+                onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
+                className="w-full bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold text-xs h-8"
+              >
+                <BookOpen className="h-3 w-3 mr-1" />
+                Открыть
+              </Button>
             </div>
           </div>
 
-          {/* Textbook Link Card */}
-          <div className="bg-gradient-to-br from-yellow-50 to-emerald-50 border border-yellow-300/50 rounded-lg p-4 shadow-sm mb-6">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                <BookOpen className="h-5 w-5 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-base font-semibold text-[#1a1f36] mb-1">Углубленное изучение</h3>
-                <p className="text-xs text-gray-700 mb-3">
-                  Для более глубокого погружения прочитайте нашу статью в учебнике. Там вы найдете статьи, определения, примеры и вопросы для практики.
-                </p>
-                <Button
-                  size="sm"
-                  onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
-                  className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300"
-                >
-                  <BookOpen className="h-3.5 w-3.5 mr-1.5" />
-                  Открыть учебник
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-4">
             {/* Skills */}
             <div>
-              <h3 className="font-semibold text-[#1a1f36] mb-3">Навыки для изучения:</h3>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">Натуральные числа</span>
-                <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">Целые числа</span>
-                <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">Модуль числа</span>
-                <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">Делимость</span>
-                <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm">НОД и НОК</span>
+              <h3 className="font-semibold text-[#1a1f36] text-sm mb-2">Навыки:</h3>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">Натуральные числа</span>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">Целые числа</span>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">Модуль числа</span>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">Делимость</span>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">НОД и НОК</span>
               </div>
             </div>
 
             {/* Learning Goals */}
             <div>
-              <h3 className="font-semibold text-[#1a1f36] mb-3">Цели обучения:</h3>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <h3 className="font-semibold text-[#1a1f36] text-sm mb-2">Цели обучения:</h3>
+              <ul className="space-y-1 text-xs text-gray-700">
+                <li className="flex items-start gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
                   <span>Понимать разницу между натуральными и целыми числами</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <li className="flex items-start gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
                   <span>Выполнять операции с целыми числами</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span>Применять признаки делимости</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span>Находить НОД и НОК чисел</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span>Работать с модулем числа</span>
+                <li className="flex items-start gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span>Применять признаки делимости и находить НОД/НОК</span>
                 </li>
               </ul>
             </div>
           </div>
         </div>
-
         {/* Single block with tabs */}
         <motion.div
           initial={{ opacity: 0, y: 6 }}
