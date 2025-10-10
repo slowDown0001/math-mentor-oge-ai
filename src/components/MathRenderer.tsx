@@ -16,7 +16,7 @@ const MathRenderer = ({ text, className = '', compiler = 'katex' }: MathRenderer
 
     try {
       // Fix escaped symbols like &amp; -> &
-      const decoded = text.replaceAll('&amp;', '&');
+      const decoded = text.replace(/&amp;/g, '&');
       containerRef.current.innerHTML = decoded;
 
       

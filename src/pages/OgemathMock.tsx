@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import MathRenderer from "@/components/MathRenderer";
 import { toast } from "sonner";
 import FormulaBookletDialog from "@/components/FormulaBookletDialog";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 interface Question {
   question_id: string;
@@ -48,6 +49,7 @@ const OgemathMock = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [examResults, setExamResults] = useState<ExamResult[]>([]);
   const [questionStartTime, setQuestionStartTime] = useState<Date | null>(null);
   const [examId, setExamId] = useState<string>("");
@@ -252,28 +254,32 @@ const OgemathMock = () => {
       toast.error('Войдите в систему для прохождения экзамена');
       return;
     }
-    const cryptoApi = window.crypto || (window as any).msCrypto;
-    const array = new Uint8Array(16);
-    cryptoApi.getRandomValues(array);
-    const newExamId = `${array[0].toString(16).padStart(2, '0')}${array[1].toString(16).padStart(2, '0')}${array[2].toString(16).padStart(2, '0')}${array[3].toString(16).padStart(2, '0')}-${array[4].toString(16).padStart(2, '0')}${array[5].toString(16).padStart(2, '0')}-${array[6].toString(16).padStart(2, '0')}${array[7].toString(16).padStart(2, '0')}-${array[8].toString(16).padStart(2, '0')}${array[9].toString(16).padStart(2, '0')}-${array[10].toString(16).padStart(2, '0')}${array[11].toString(16).padStart(2, '0')}${array[12].toString(16).padStart(2, '0')}${array[13].toString(16).padStart(2, '0')}${array[14].toString(16).padStart(2, '0')}${array[15].toString(16).padStart(2, '0')}`;
-    setExamId(newExamId);
-
+    
+    setIsTransitioning(true);
+    
     try {
+      const cryptoApi = window.crypto || (window as any).msCrypto;
+      const array = new Uint8Array(16);
+      cryptoApi.getRandomValues(array);
+      const newExamId = `${array[0].toString(16).padStart(2, '0')}${array[1].toString(16).padStart(2, '0')}${array[2].toString(16).padStart(2, '0')}${array[3].toString(16).padStart(2, '0')}-${array[4].toString(16).padStart(2, '0')}${array[5].toString(16).padStart(2, '0')}-${array[6].toString(16).padStart(2, '0')}${array[7].toString(16).padStart(2, '0')}-${array[8].toString(16).padStart(2, '0')}${array[9].toString(16).padStart(2, '0')}-${array[10].toString(16).padStart(2, '0')}${array[11].toString(16).padStart(2, '0')}${array[12].toString(16).padStart(2, '0')}${array[13].toString(16).padStart(2, '0')}${array[14].toString(16).padStart(2, '0')}${array[15].toString(16).padStart(2, '0')}`;
+      setExamId(newExamId);
+
       const { error } = await supabase.from('profiles').update({ exam_id: newExamId }).eq('user_id', user.id);
       if (error) {
         console.error('Error saving exam_id to profiles:', error);
         toast.error('Ошибка при сохранении идентификатора экзамена');
         return;
       }
+
+      setExamStarted(true);
+      setExamStartTime(new Date());
+      await generateQuestionSelection();
     } catch (error) {
       console.error('Error updating profile with exam_id:', error);
       toast.error('Ошибка при подготовке экзамена');
-      return;
+    } finally {
+      setIsTransitioning(false);
     }
-
-    setExamStarted(true);
-    setExamStartTime(new Date());
-    await generateQuestionSelection();
   };
 
   // Helpers
@@ -311,14 +317,17 @@ const OgemathMock = () => {
   const handleNextQuestion = async () => {
     if (!currentQuestion || !questionStartTime) return;
 
-    const timeSpent = Math.floor((new Date().getTime() - questionStartTime.getTime()) / 1000);
-    const problemNumber = currentQuestion.problem_number_type || currentQuestionIndex + 1;
+    setIsTransitioning(true);
 
-    let isCorrect: boolean | null = null;
-    let analysisOutput = "";
-    let scores = 0;
+    try {
+      const timeSpent = Math.floor((new Date().getTime() - questionStartTime.getTime()) / 1000);
+      const problemNumber = currentQuestion.problem_number_type || currentQuestionIndex + 1;
 
-    if (user) {
+      let isCorrect: boolean | null = null;
+      let analysisOutput = "";
+      let scores = 0;
+
+      if (user) {
       if (userAnswer.trim()) {
         if (problemNumber >= 20) {
           // FRQ (20–25)
@@ -565,20 +574,26 @@ const OgemathMock = () => {
       problemNumber
     };
 
-    setExamResults(prev => {
-      const newResults = [...prev];
-      newResults[currentQuestionIndex] = { ...newResults[currentQuestionIndex], ...result, attempted: true };
-      return newResults;
-    });
+      setExamResults(prev => {
+        const newResults = [...prev];
+        newResults[currentQuestionIndex] = { ...newResults[currentQuestionIndex], ...result, attempted: true };
+        return newResults;
+      });
 
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-      setUserAnswer("");
-      setPhotoFeedback("");
-      setPhotoScores(null);
-      setQuestionStartTime(new Date());
-    } else {
-      handleFinishExam();
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex(prev => prev + 1);
+        setUserAnswer("");
+        setPhotoFeedback("");
+        setPhotoScores(null);
+        setQuestionStartTime(new Date());
+      } else {
+        handleFinishExam();
+      }
+    } catch (error) {
+      console.error('Error in handleNextQuestion:', error);
+      toast.error('Произошла ошибка');
+    } finally {
+      setIsTransitioning(false);
     }
   };
 
@@ -1277,7 +1292,7 @@ const OgemathMock = () => {
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <Button onClick={() => setShowFormulaBooklet(true)} variant="outline">
+              <Button onClick={() => setShowFormulaBooklet(true)} variant="outline" disabled={isTransitioning}>
                 <BookOpen className="w-4 h-4 mr-2" />
                 Справочные материалы
               </Button>
@@ -1289,12 +1304,12 @@ const OgemathMock = () => {
                 {formatTime(elapsedTime)}
               </div>
 
-              <Button onClick={() => setShowQuestionMenu(true)} variant="outline" className="bg-blue-50 hover:bg-blue-100 border-blue-200">
+              <Button onClick={() => setShowQuestionMenu(true)} variant="outline" className="bg-blue-50 hover:bg-blue-100 border-blue-200" disabled={isTransitioning}>
                 <Menu className="w-4 h-4 mr-2" />
                 Вопросы
               </Button>
 
-              <Button onClick={handleFinishExam} variant="outline" className="text-red-600 border-red-300 hover:bg-red-50">
+              <Button onClick={handleFinishExam} variant="outline" className="text-red-600 border-red-300 hover:bg-red-50" disabled={isTransitioning}>
                 Завершить экзамен
               </Button>
             </div>
@@ -1347,12 +1362,13 @@ const OgemathMock = () => {
                       onChange={(e) => setUserAnswer(e.target.value)}
                       placeholder="Введите ваш ответ"
                       className="text-lg"
+                      disabled={isTransitioning}
                     />
                   </div>
 
                   {isPhotoQuestion && (
                     <div className="flex justify-center">
-                      <Button variant="outline" onClick={handlePhotoAttachment} className="bg-blue-50 hover:bg-blue-100 border-blue-200">
+                      <Button variant="outline" onClick={handlePhotoAttachment} className="bg-blue-50 hover:bg-blue-100 border-blue-200" disabled={isTransitioning}>
                         <Camera className="w-4 h-4 mr-2" />
                         Прикрепить фото
                       </Button>
@@ -1368,6 +1384,7 @@ const OgemathMock = () => {
                             setUserAnswer(examResults[currentQuestionIndex - 1]?.userAnswer || "");
                           }}
                           variant="outline"
+                          disabled={isTransitioning}
                         >
                           <ArrowLeft className="w-4 h-4 mr-2" />
                           Предыдущий
@@ -1375,7 +1392,7 @@ const OgemathMock = () => {
                       )}
                     </div>
 
-                    <Button onClick={handleNextQuestion} className="flex items-center gap-2">
+                    <Button onClick={handleNextQuestion} className="flex items-center gap-2" disabled={isTransitioning || loading}>
                       {currentQuestionIndex === questions.length - 1 ? 'Завершить экзамен' : 'Следующий вопрос'}
                       {currentQuestionIndex < questions.length - 1 && <ArrowRight className="w-4 h-4" />}
                     </Button>
@@ -1488,6 +1505,8 @@ const OgemathMock = () => {
           </AlertDescription>
         </Alert>
       )}
+
+      {isTransitioning && <LoadingOverlay message="Загрузка..." />}
     </div>
   );
 };
