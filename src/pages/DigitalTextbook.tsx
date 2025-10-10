@@ -552,7 +552,11 @@ const DigitalTextbook = () => {
   }, [isSelecting]);
 
   return (
-    <div className="flex h-screen w-full text-white overflow-hidden" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
+    <div
+      className="fixed inset-0 flex w-full text-white overflow-hidden overscroll-contain"
+      style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}
+    >
+
       {/* Chat Toggle Button - Fixed to right edge - ALWAYS VISIBLE */}
       <button
         onClick={() => setIsChatOpen(true)}
