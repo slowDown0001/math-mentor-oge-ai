@@ -615,7 +615,7 @@ const DigitalTextbook = () => {
 
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto relative">
+        <div className="flex-1 overflow-auto relative pt-28">
           <div className="max-w-6xl mx-auto px-4 py-6">
             {/* Breadcrumb Navigation */}
             {(selectedModule || selectedTopic || selectedSkill) && (
