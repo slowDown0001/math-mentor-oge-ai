@@ -575,38 +575,6 @@ const DigitalTextbook = () => {
           )}
         </div>
 
-        {/* Module Navigation */}
-        <ScrollArea className="flex-1 px-2 py-4">
-          <div className="text-xs font-semibold text-sidebar-foreground/60 px-3 mb-2">МОДУЛИ</div>
-          <Accordion type="single" collapsible className="w-full">
-            {Object.entries(newSyllabusData as SyllabusStructure).map(([moduleName, module]) => (
-              <AccordionItem key={moduleName} value={moduleName} className="border-b-0">
-                <AccordionTrigger className="text-sm py-2 px-3 hover:bg-sidebar-accent rounded-md text-sidebar-foreground hover:no-underline">
-                  {moduleName}
-                </AccordionTrigger>
-                <AccordionContent className="pb-1">
-                  <div className="space-y-1 pl-2">
-                    {Object.entries(module).map(([topicKey, topic]) => (
-                      <Button
-                        key={topicKey}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedModule(moduleName);
-                          setSelectedTopic(topic.name);
-                          setSelectedSkill(null);
-                        }}
-                        className="w-full justify-start text-xs h-auto py-2 px-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      >
-                        {topic.name}
-                      </Button>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </ScrollArea>
       </div>
 
       {/* Main Content Area */}
