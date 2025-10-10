@@ -822,13 +822,12 @@ const DigitalTextbook = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden ml-80 mt-20">
+      <div className="flex-1 flex flex-col overflow-hidden">
 
 
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-auto relative">
-          <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Content Area with proper padding for header */}
+        <div className="flex-1 overflow-auto relative pt-24 px-8">
+          <div className="max-w-6xl mx-auto py-6">
             {/* Breadcrumb Navigation */}
             {(selectedModule || selectedTopic || selectedSkill) && (
               <div className="flex items-center gap-2 mb-6 text-sm text-gray-300">
