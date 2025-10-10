@@ -512,7 +512,7 @@ const DigitalTextbook = () => {
   }, [isSelecting]);
 
   return (
-    <div className="flex h-screen w-full bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="flex h-screen w-full bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
       {/* Chat Toggle Button - Fixed to right edge - ALWAYS VISIBLE */}
       <button
         onClick={() => setIsChatOpen(true)}
@@ -578,7 +578,7 @@ const DigitalTextbook = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col overflow-hidden">
 
 
         {/* Content Area */}
