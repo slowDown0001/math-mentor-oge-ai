@@ -185,21 +185,22 @@ const TopicPage: React.FC = () => {
           </div>
 
           {/* Textbook Link Card */}
-          <div className="bg-gradient-to-br from-yellow-50 to-emerald-50 border-2 border-yellow-300/50 rounded-lg p-6 shadow-sm mb-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                <BookOpen className="h-6 w-6 text-white" />
+          <div className="bg-gradient-to-br from-yellow-50 to-emerald-50 border border-yellow-300/50 rounded-lg p-4 shadow-sm mb-6">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-yellow-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                <BookOpen className="h-5 w-5 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-[#1a1f36] mb-2">Углубленное изучение</h3>
-                <p className="text-sm text-gray-700 mb-4">
+                <h3 className="text-base font-semibold text-[#1a1f36] mb-1">Углубленное изучение</h3>
+                <p className="text-xs text-gray-700 mb-3">
                   Для более глубокого погружения прочитайте нашу статью в учебнике. Там вы найдете статьи, определения, примеры и вопросы для практики.
                 </p>
                 <Button
+                  size="sm"
                   onClick={() => (window.location.href = `/textbook?topic=${topicNumber}`)}
                   className="bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300"
                 >
-                  <BookOpen className="h-4 w-4 mr-2" />
+                  <BookOpen className="h-3.5 w-3.5 mr-1.5" />
                   Открыть учебник
                 </Button>
               </div>
