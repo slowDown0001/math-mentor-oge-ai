@@ -367,7 +367,7 @@ const OgemathRevision = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+      <div className="min-h-screen text-white" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
         <Header />
         <div className="pt-20 px-4">
           <div className="max-w-2xl mx-auto text-center">
@@ -386,46 +386,46 @@ const OgemathRevision = () => {
     const sessionMinutes = Math.max(1, Math.round((new Date().getTime() - session.startTime.getTime()) / (1000 * 60)));
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+      <div className="min-h-screen text-white" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
         <Header />
         <div className="pt-20 px-4">
           <div className="max-w-2xl mx-auto">
-            <Card className="shadow-lg">
+            <Card className="shadow-lg bg-white/10 backdrop-blur-lg border-white/20">
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-green-600">
+                <CardTitle className="text-2xl bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text">
                   <Trophy className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
                   Отличное повторение!
                 </CardTitle>
-                <p className="text-sm text-green-700 mt-2">
+                <p className="text-sm text-gray-300 mt-2">
                   Повторение - мать учения! Вы укрепили свои знания 💪
                 </p>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{session.questionsAttempted}</div>
-                    <div className="text-sm text-green-700">Вопросов решено</div>
+                  <div className="text-center p-4 bg-yellow-500/20 backdrop-blur-sm rounded-lg border border-yellow-500/30">
+                    <div className="text-2xl font-bold text-yellow-400">{session.questionsAttempted}</div>
+                    <div className="text-sm text-gray-300">Вопросов решено</div>
                   </div>
-                  <div className="text-center p-4 bg-emerald-50 rounded-lg">
-                    <div className="text-2xl font-bold text-emerald-600">{session.correctAnswers}</div>
-                    <div className="text-sm text-emerald-700">Правильных ответов</div>
+                  <div className="text-center p-4 bg-emerald-500/20 backdrop-blur-sm rounded-lg border border-emerald-500/30">
+                    <div className="text-2xl font-bold text-emerald-400">{session.correctAnswers}</div>
+                    <div className="text-sm text-gray-300">Правильных ответов</div>
                   </div>
                 </div>
                 
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-3xl font-bold text-blue-600">{accuracy}%</div>
-                  <div className="text-sm text-blue-700">Точность</div>
+                <div className="text-center p-4 bg-blue-500/20 backdrop-blur-sm rounded-lg border border-blue-500/30">
+                  <div className="text-3xl font-bold text-blue-400">{accuracy}%</div>
+                  <div className="text-sm text-gray-300">Точность</div>
                 </div>
                 
-                <div className="text-center p-4 bg-orange-50 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">{session.pointsEarned}</div>
-                  <div className="text-sm text-orange-700">Баллов заработано</div>
+                <div className="text-center p-4 bg-orange-500/20 backdrop-blur-sm rounded-lg border border-orange-500/30">
+                  <div className="text-2xl font-bold text-orange-400">{session.pointsEarned}</div>
+                  <div className="text-sm text-gray-300">Баллов заработано</div>
                 </div>
 
-                <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <Heart className="w-6 h-6 mx-auto mb-2 text-purple-500" />
-                  <p className="text-sm text-purple-700 font-medium">
-                    {accuracy >= 80 
+                <div className="text-center p-4 bg-purple-500/20 backdrop-blur-sm rounded-lg border border-purple-500/30">
+                  <Heart className="w-6 h-6 mx-auto mb-2 text-purple-400" />
+                  <p className="text-sm text-gray-300 font-medium">
+                    {accuracy >= 80
                       ? "Превосходно! Ваши навыки значительно улучшились!" 
                       : accuracy >= 60 
                       ? "Хорошая работа! Продолжайте практиковаться!" 
@@ -454,11 +454,11 @@ const OgemathRevision = () => {
                 )}
                 
                 <div className="flex gap-3">
-                  <Button onClick={handleRestartSession} className="flex-1 bg-green-600 hover:bg-green-700" size="lg">
+                  <Button onClick={handleRestartSession} className="flex-1 bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-600 hover:to-emerald-600" size="lg">
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Еще раз
                   </Button>
-                  <Button onClick={handleBackToMain} variant="outline" className="flex-1" size="lg">
+                  <Button onClick={handleBackToMain} variant="outline" className="flex-1 border-white/20 text-white hover:bg-white/10" size="lg">
                     Назад к практике
                   </Button>
                 </div>
@@ -475,7 +475,7 @@ const OgemathRevision = () => {
     : Math.min((session.questionsAttempted / 20) * 100, 100); // Show progress up to 20 questions in unlimited mode
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+    <div className="min-h-screen text-white" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
       <Header />
       <div className="pt-20 px-4 pb-4">
         <div className="max-w-4xl mx-auto">
