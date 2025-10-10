@@ -6,7 +6,6 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    base: mode === 'production' ? '/math-mentor-oge-ai/' : '/',
     host: "::",
     port: 8080,
   },
