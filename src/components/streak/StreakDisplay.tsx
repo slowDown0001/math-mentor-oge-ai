@@ -84,10 +84,16 @@ export const StreakDisplay = () => {
         earnedEnergyPoints: currentEnergyPoints
       });
 
-      // Show celebration if weekly goal is reached
+      // Show celebration if weekly goal is reached (only once per day)
       if (currentEnergyPoints >= weeklyGoalPoints && weeklyGoalPoints > 0) {
-        setShowCelebration(true);
-        setTimeout(() => setShowCelebration(false), 3000);
+        const lastCelebrationDate = localStorage.getItem('goal_celebration_date');
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (lastCelebrationDate !== today) {
+          setShowCelebration(true);
+          localStorage.setItem('goal_celebration_date', today);
+          setTimeout(() => setShowCelebration(false), 3000);
+        }
       }
     } catch (error) {
       console.error('Error fetching streak data:', error);
