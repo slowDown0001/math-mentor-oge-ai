@@ -607,7 +607,7 @@ const DigitalTextbook = () => {
                 className="w-full justify-start text-white hover:bg-yellow-500/10 hover:text-yellow-400 font-medium"
               >
                 <Target className="mr-2 h-4 w-4" />
-                На платформу
+                К уроку
               </Button>
             </Link>
           )}
