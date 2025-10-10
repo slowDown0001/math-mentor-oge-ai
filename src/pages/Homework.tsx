@@ -1005,12 +1005,12 @@ const Homework = () => {
     return (
       <div className="min-h-screen text-white relative" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
         <FlyingMathBackground />
-        <div className="bg-white shadow-sm border-b relative z-20">
+        <div className="bg-[#f4f4f5] shadow-sm border-b relative z-20">
           <div className="container mx-auto px-4 py-3">
             <div className="flex justify-start">
               <Button
                 onClick={() => navigate('/ogemath-practice')}
-                className="bg-gradient-to-r from-yellow-200 to-yellow-300 hover:from-yellow-300 hover:to-yellow-400 text-black shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                className="bg-gradient-to-r from-[#f59e0b] to-[#10b981] hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
               >
                 Назад
               </Button>
@@ -1237,19 +1237,19 @@ const Homework = () => {
           exit={{ opacity: 0, scale: 0.5 }}
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
         >
-          <motion.div initial={{ y: -50 }} animate={{ y: 0 }} className="bg-white rounded-lg p-8 text-center max-w-md mx-4">
-            <Trophy className="w-16 h-16 mx-auto text-yellow-500 mb-4" />
-            <h2 className="text-2xl font-bold text-purple-800 mb-4">Поздравляем!</h2>
+          <motion.div initial={{ y: -50 }} animate={{ y: 0 }} className="bg-[#f4f4f5] rounded-lg p-8 text-center max-w-md mx-4">
+            <Trophy className="w-16 h-16 mx-auto text-[#f59e0b] mb-4" />
+            <h2 className="text-2xl font-bold mb-4" style={{ background: 'linear-gradient(135deg, #f59e0b, #10b981)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Поздравляем!</h2>
             <p className="text-gray-600 mb-6">Вы успешно выполнили всё домашнее задание! 🎉</p>
 
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
+            <div className="bg-gradient-to-r from-[#f59e0b]/10 to-[#10b981]/10 rounded-lg p-4 mb-6">
               <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5" />
                 Результаты работы:
               </h3>
               <div className="grid grid-cols-3 gap-4 text-sm mb-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">{completedQuestions.size}</div>
+                  <div className="text-2xl font-bold text-[#f59e0b]">{completedQuestions.size}</div>
                   <div className="text-gray-600">Выполнено</div>
                 </div>
                 <div className="text-center">
@@ -1329,7 +1329,7 @@ const Homework = () => {
               Назад к карте
             </Button>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold font-display bg-gradient-to-r from-yellow-500 to-emerald-500 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold font-display" style={{ background: 'linear-gradient(135deg, #f59e0b, #10b981)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 Домашнее задание
               </h1>
               <p className="text-gray-200/90 mt-1">
@@ -1463,7 +1463,7 @@ const Homework = () => {
                     <>
                       <Button
                         onClick={handleNextQuestion}
-                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        className="flex-1 bg-gradient-to-r from-[#f59e0b] to-[#10b981] hover:opacity-90"
                         size="lg"
                       >
                         {currentQuestionIndex === currentQuestions.length - 1 ? (
@@ -1506,10 +1506,10 @@ const Homework = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="fixed z-50 bg-white rounded-lg shadow-xl border-2 border-purple-500 p-3"
-          style={{ left: `${selectionPosition.x}px`, top: `${selectionPosition.y}px`, transform: 'translate(-50%, -100%)' }}
+          className="fixed z-50 bg-[#f4f4f5] rounded-lg shadow-xl border-2 p-3"
+          style={{ left: `${selectionPosition.x}px`, top: `${selectionPosition.y}px`, transform: 'translate(-50%, -100%)', borderColor: '#f59e0b' }}
         >
-          <Button onClick={handleAskHedgehog} className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2">
+          <Button onClick={handleAskHedgehog} className="bg-gradient-to-r from-[#f59e0b] to-[#10b981] hover:opacity-90 text-white flex items-center gap-2">
             <MessageSquare className="w-4 h-4" />
             Спросить Ёжика
           </Button>
