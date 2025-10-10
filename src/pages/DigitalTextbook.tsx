@@ -152,6 +152,14 @@ const DigitalTextbook = () => {
   const [showPractice, setShowPractice] = useState(false);
   const navigate = useNavigate();
 
+  // Prevent body scroll when this page is mounted
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && selectedText) {
