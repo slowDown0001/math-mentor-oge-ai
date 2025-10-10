@@ -360,25 +360,25 @@ const DigitalTextbook = () => {
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Программа ОГЭ по математике</h2>
-          <p className="text-lg text-gray-600">Выберите любой навык для изучения</p>
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text">Программа ОГЭ по математике</h2>
+          <p className="text-xl text-gray-300">Выберите любой навык для изучения</p>
         </div>
         
         <div className="grid gap-6">
           {Object.entries(syllabusData).map(([moduleName, module]) => (
-            <Card key={moduleName} className="overflow-hidden bg-white/90 backdrop-blur-sm border-white/50 hover:border-blue-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <CardHeader className="bg-gradient-to-br from-blue-100 to-purple-100">
-                <CardTitle className="text-xl text-blue-700">{moduleName}</CardTitle>
+            <Card key={moduleName} className="overflow-hidden bg-white/95 backdrop-blur-lg border-white/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-emerald-500/10 border-b border-yellow-500/20">
+                <CardTitle className="text-xl text-[#1a1f36] font-display">{moduleName}</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid gap-4">
                   {Object.entries(module).map(([topicKey, topic]) => (
                     <div 
                       key={topicKey} 
-                      className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="border border-gray-200 rounded-lg p-4 hover:bg-yellow-50 cursor-pointer transition-colors"
                       onClick={() => handleTopicSelect(topicKey)}
                     >
-                      <h4 className="font-semibold text-lg mb-3 text-gray-800 hover:text-primary">
+                      <h4 className="font-semibold text-lg mb-3 text-[#1a1f36] hover:text-yellow-600">
                         {topicKey} {topic.name}
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -387,7 +387,7 @@ const DigitalTextbook = () => {
                             key={skill.number}
                             variant="outline"
                             size="sm"
-                            className="justify-start text-left h-auto py-2 hover:bg-primary/10"
+                            className="justify-start text-left h-auto py-2 text-[#1a1f36] border-gray-300 hover:bg-yellow-500/10 hover:border-yellow-500/50"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSkillSelect(skill.number);
@@ -435,10 +435,10 @@ const DigitalTextbook = () => {
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="font-display text-4xl font-bold mb-4 bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text">
             {currentTopic} {currentTopicData.name}
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-xl text-gray-300">
             Все навыки по теме - выберите для изучения
           </p>
         </div>
@@ -447,7 +447,7 @@ const DigitalTextbook = () => {
           {getFilteredSkills(currentTopicData.skills, searchTerm).map((skill) => (
             <Card 
               key={skill.number}
-              className="transition-all duration-200 hover:shadow-lg cursor-pointer hover:bg-primary/5"
+              className="transition-all duration-200 hover:shadow-lg cursor-pointer bg-white/95 backdrop-blur-lg border-white/20 hover:bg-white text-[#1a1f36]"
               onClick={() => {
                 handleSkillSelect(skill.number);
                 // Update URL with skill parameter
@@ -457,11 +457,11 @@ const DigitalTextbook = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-primary/10 text-primary rounded-full">
-                      <BookOpen className="h-5 w-5" />
+                    <div className="p-3 bg-gradient-to-br from-yellow-500/20 to-emerald-500/20 rounded-full">
+                      <BookOpen className="h-5 w-5 text-yellow-600" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-[#1a1f36]">
                         {skill.number}. {skill.name}
                       </h3>
                       <p className="text-sm text-gray-600">
@@ -469,7 +469,7 @@ const DigitalTextbook = () => {
                       </p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="border-gray-300 text-[#1a1f36] hover:bg-yellow-500/10">
                     Изучить
                   </Button>
                 </div>
@@ -479,21 +479,21 @@ const DigitalTextbook = () => {
         </div>
 
         {/* Topic Summary */}
-        <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-lg p-6 border-white/50 border">
-          <h3 className="text-lg font-semibold mb-4">Сводка по теме</h3>
+        <div className="mt-8 bg-white/95 backdrop-blur-lg rounded-lg p-6 border-white/20 text-[#1a1f36]">
+          <h3 className="text-lg font-semibold mb-4 font-display">Сводка по теме</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-primary">{currentTopicData.skills.length}</div>
+              <div className="text-2xl font-bold bg-gradient-to-r from-yellow-500 to-emerald-500 text-transparent bg-clip-text">{currentTopicData.skills.length}</div>
               <div className="text-sm text-gray-600">Всего навыков</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-emerald-600">
                 {currentTopicData.skills.filter(s => s.importance <= 2).length}
               </div>
               <div className="text-sm text-gray-600">Базовых навыков</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold text-yellow-600">
                 {currentTopicData.skills.filter(s => s.importance >= 3).length}
               </div>
               <div className="text-sm text-gray-600">Продвинутых навыков</div>
@@ -520,26 +520,26 @@ const DigitalTextbook = () => {
   }, [isSelecting]);
 
   return (
-    <div className="flex h-screen w-full bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
+    <div className="flex h-screen w-full text-white overflow-hidden" style={{ background: "linear-gradient(135deg, #1a1f36 0%, #2d3748 50%, #1a1f36 100%)" }}>
       {/* Chat Toggle Button - Fixed to right edge - ALWAYS VISIBLE */}
       <button
         onClick={() => setIsChatOpen(true)}
-        className="fixed right-0 top-20 z-50 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-3 py-2 rounded-l-lg shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center gap-2 text-sm"
+        className="fixed right-0 top-20 z-50 bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-400 hover:to-emerald-400 text-[#1a1f36] px-3 py-2 rounded-l-lg shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center gap-2 text-sm font-medium"
       >
         <MessageCircle className="h-4 w-4" />
         <span className="font-medium">ЧАТ</span>
       </button>
       
       {/* Left Sidebar - Fixed */}
-      <div className="w-64 h-screen bg-sidebar border-r border-border flex-shrink-0 flex flex-col overflow-auto">
+      <div className="w-64 h-screen bg-[#1a1f36]/80 backdrop-blur-lg border-r border-yellow-500/20 flex-shrink-0 flex flex-col overflow-auto">
         
         {/* Navigation buttons */}
-        <div className="p-4 space-y-2 border-b border-border">
+        <div className="p-4 space-y-2 border-b border-yellow-500/20">
           {/* OGE Math Practice Link */}
           <Link to="/ogemath">
             <Button
               variant="ghost"
-              className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              className="w-full justify-start text-white hover:bg-yellow-500/10 hover:text-yellow-400"
             >
               <Calculator className="mr-2 h-4 w-4" />
               Практика ОГЭ
@@ -551,8 +551,8 @@ const DigitalTextbook = () => {
             variant={isSelecting ? "default" : "ghost"}
             className={`w-full justify-start relative transition-all duration-300 ${
               isSelecting 
-                ? "bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 text-white shadow-xl ring-2 ring-yellow-300/50" 
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:bg-gradient-to-r hover:from-yellow-50 hover:to-orange-50"
+                ? "bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-400 hover:to-emerald-400 text-[#1a1f36] shadow-xl ring-2 ring-yellow-300/50" 
+                : "text-white hover:bg-yellow-500/10 hover:text-yellow-400"
             }`}
           >
             <Highlighter className="mr-2 h-4 w-4" />
@@ -565,7 +565,7 @@ const DigitalTextbook = () => {
           <Button
             onClick={handleBackToSyllabus}
             variant="ghost"
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className="w-full justify-start text-white hover:bg-yellow-500/10 hover:text-yellow-400"
           >
             <BookOpen className="mr-2 h-4 w-4" />
             К программе
@@ -575,7 +575,7 @@ const DigitalTextbook = () => {
             <Button
               onClick={handleBackToTopic}
               variant="ghost"
-              className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              className="w-full justify-start text-white hover:bg-yellow-500/10 hover:text-yellow-400"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               К теме
@@ -594,10 +594,10 @@ const DigitalTextbook = () => {
           <div className="max-w-6xl mx-auto px-4 py-6">
             {/* Breadcrumb Navigation */}
             {(selectedModule || selectedTopic || selectedSkill) && (
-              <div className="flex items-center gap-2 mb-6 text-sm text-gray-600">
+              <div className="flex items-center gap-2 mb-6 text-sm text-gray-300">
                 <button 
                   onClick={handleBackToSyllabus}
-                  className="hover:text-primary transition-colors"
+                  className="hover:text-yellow-400 transition-colors"
                 >
                   Программа
                 </button>
@@ -612,7 +612,7 @@ const DigitalTextbook = () => {
                     <ChevronRight className="h-4 w-4" />
                     <button 
                       onClick={handleBackToTopic}
-                      className="hover:text-primary transition-colors"
+                      className="hover:text-yellow-400 transition-colors"
                     >
                       {selectedTopic}
                     </button>
@@ -635,9 +635,9 @@ const DigitalTextbook = () => {
                 {!showPractice ? (
                   <>
                     {currentArticle && (
-                      <Card className="w-full bg-white/90 backdrop-blur-sm border-white/50">
-                        <CardHeader className="bg-gradient-to-r from-blue-100 to-purple-100">
-                          <CardTitle className="text-xl text-blue-700">
+                      <Card className="w-full bg-white/95 backdrop-blur-lg border-white/20 text-[#1a1f36]">
+                        <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-emerald-500/10 border-b border-yellow-500/20">
+                          <CardTitle className="text-xl font-display text-[#1a1f36]">
                             Навык {selectedSkill}: {getAllSkillsFromStructure().find(s => s.number === selectedSkill)?.name}
                           </CardTitle>
                         </CardHeader>
@@ -662,14 +662,14 @@ const DigitalTextbook = () => {
                           <div className="mt-8 pt-6 border-t border-gray-200">
                             <div className="flex items-center justify-between">
                               <div>
-                                <h3 className="text-lg font-semibold text-gray-900">Готовы к практике?</h3>
+                                <h3 className="text-lg font-semibold text-[#1a1f36]">Готовы к практике?</h3>
                                 <p className="text-sm text-gray-600">
                                   Закрепите знания с помощью интерактивных заданий
                                 </p>
                               </div>
                               <Button 
                                 onClick={handleStartPractice}
-                                className="flex items-center gap-2"
+                                className="flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-400 hover:to-emerald-400 text-[#1a1f36]"
                                 disabled={loadingMCQ}
                               >
                                 <Play className="h-4 w-4" />
@@ -677,7 +677,7 @@ const DigitalTextbook = () => {
                               </Button>
                             </div>
                             {missingMCQs.includes(selectedSkill) && (
-                              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-400 rounded-lg">
                                 <p className="text-sm text-yellow-800">
                                   <Lightbulb className="h-4 w-4 inline mr-2" />
                                   Для этого навыка пока нет готовых заданий. Вы можете задать вопросы через чат!
@@ -690,11 +690,11 @@ const DigitalTextbook = () => {
                     )}
                     
                     {loading && (
-                      <Card className="w-full bg-white/90 backdrop-blur-sm border-white/50">
+                      <Card className="w-full bg-white/95 backdrop-blur-lg border-white/20">
                         <CardContent className="p-6">
                           <div className="flex items-center justify-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                            <span className="ml-3 text-gray-600">Загружаем материал...</span>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+                            <span className="ml-3 text-gray-300">Загружаем материал...</span>
                           </div>
                         </CardContent>
                       </Card>
@@ -718,14 +718,14 @@ const DigitalTextbook = () => {
       {/* Text Selection Popup */}
       {selectedText && (
         <div className="fixed top-24 right-4 z-50 animate-fade-in">
-          <div className="bg-white/95 backdrop-blur-md border border-gray-200/60 rounded-2xl shadow-2xl p-5 max-w-md transform transition-all duration-300 hover:scale-105">
+          <div className="bg-white/95 backdrop-blur-md border border-yellow-500/20 rounded-2xl shadow-2xl p-5 max-w-md transform transition-all duration-300 hover:scale-105">
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                <MessageCircle className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="w-4 h-4 text-[#1a1f36]" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900 mb-2">✨ Выделенный текст:</p>
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 border border-blue-100">
+                <p className="text-sm font-semibold text-[#1a1f36] mb-2">✨ Выделенный текст:</p>
+                <div className="bg-gradient-to-r from-yellow-50 to-emerald-50 rounded-lg p-3 border border-yellow-200">
                   <p className="text-sm text-gray-700 leading-relaxed">"{selectedText}"</p>
                 </div>
               </div>
@@ -743,13 +743,13 @@ const DigitalTextbook = () => {
               placeholder="Дополнительный вопрос (необязательно)..."
               value={customQuestion}
               onChange={(e) => setCustomQuestion(e.target.value)}
-              className="mb-4 resize-none"
+              className="mb-4 resize-none text-[#1a1f36]"
               rows={2}
             />
             
             <Button 
               onClick={handleAskEzhik}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl py-2.5"
+              className="w-full bg-gradient-to-r from-yellow-500 to-emerald-500 hover:from-yellow-400 hover:to-emerald-400 text-[#1a1f36] shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl py-2.5 font-medium"
               size="sm"
             >
               <MessageCircle className="w-4 h-4 mr-2" />
@@ -761,16 +761,16 @@ const DigitalTextbook = () => {
 
       {/* Chat Sheet */}
       <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
-        <SheetContent className="w-full sm:max-w-lg h-full p-0 bg-white/95 backdrop-blur-md border-white/50">
-          <SheetHeader className="px-6 py-4 border-b border-white/50">
-            <SheetTitle className="text-left">Чат с Ёжиком</SheetTitle>
+        <SheetContent className="w-full sm:max-w-lg h-full p-0 bg-white/95 backdrop-blur-md border-yellow-500/20">
+          <SheetHeader className="px-6 py-4 border-b border-yellow-500/20 bg-gradient-to-r from-yellow-500/5 to-emerald-500/5">
+            <SheetTitle className="text-left text-[#1a1f36] font-display">Чат с Ёжиком</SheetTitle>
           </SheetHeader>
           
           <div className="flex flex-col h-[calc(100vh-80px)]">
             <div className="flex-1 overflow-hidden">
               <CourseChatMessages messages={messages} isTyping={isTyping} />
             </div>
-            <div className="border-t border-white/50 p-4 bg-white/50">
+            <div className="border-t border-yellow-500/20 p-4 bg-gradient-to-r from-yellow-50/50 to-emerald-50/50">
               <ChatInput onSendMessage={handleSendChatMessage} isTyping={isTyping} />
             </div>
           </div>
